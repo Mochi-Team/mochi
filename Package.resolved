@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "cwasm3",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/shareup/cwasm3.git",
+      "state" : {
+        "revision" : "e0f173f728633bdcac854e12868af8c16f233366",
+        "version" : "0.5.3"
+      }
+    }
+  ],
+  "version" : 2
+}
