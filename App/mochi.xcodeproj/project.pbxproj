@@ -7,23 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		13C18B9529CE6CC200C14F26 /* mochiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C18B9429CE6CC200C14F26 /* mochiApp.swift */; };
-		13C18B9729CE6CC200C14F26 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C18B9629CE6CC200C14F26 /* Persistence.swift */; };
-		13C18B9A29CE6CC200C14F26 /* mochi.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 13C18B9829CE6CC200C14F26 /* mochi.xcdatamodeld */; };
-		13C18B9C29CE6CC200C14F26 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C18B9B29CE6CC200C14F26 /* ContentView.swift */; };
-		13C18B9E29CE6CC300C14F26 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13C18B9D29CE6CC300C14F26 /* Assets.xcassets */; };
-		13C18BA229CE6CC300C14F26 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13C18BA129CE6CC300C14F26 /* Preview Assets.xcassets */; };
+		1396FE0529DF561C00B22132 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1396FE0029DF561C00B22132 /* Assets.xcassets */; };
+		1396FE0629DF561C00B22132 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1396FE0229DF561C00B22132 /* Preview Assets.xcassets */; };
+		1396FE0729DF561C00B22132 /* MochiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1396FE0329DF561C00B22132 /* MochiApp.swift */; };
+		1396FE0C29DF58CA00B22132 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 1396FE0B29DF58CA00B22132 /* App */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		134516B629DF44D200E4C3B8 /* mochi */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = mochi; path = ..; sourceTree = "<group>"; };
+		1396FDFF29DF561C00B22132 /* mochi.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = mochi.entitlements; sourceTree = "<group>"; };
+		1396FE0029DF561C00B22132 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1396FE0229DF561C00B22132 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		1396FE0329DF561C00B22132 /* MochiApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MochiApp.swift; sourceTree = "<group>"; };
 		13C18B9129CE6CC200C14F26 /* mochi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mochi.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13C18B9429CE6CC200C14F26 /* mochiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mochiApp.swift; sourceTree = "<group>"; };
-		13C18B9629CE6CC200C14F26 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
-		13C18B9929CE6CC200C14F26 /* mochi.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = mochi.xcdatamodel; sourceTree = "<group>"; };
-		13C18B9B29CE6CC200C14F26 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		13C18B9D29CE6CC300C14F26 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		13C18B9F29CE6CC300C14F26 /* mochi.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = mochi.entitlements; sourceTree = "<group>"; };
-		13C18BA129CE6CC300C14F26 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,17 +27,62 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1396FE0C29DF58CA00B22132 /* App in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1337293829DF4E7200C086FA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		1396FDFD29DF561C00B22132 /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		1396FDFE29DF561C00B22132 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				1396FDFF29DF561C00B22132 /* mochi.entitlements */,
+				1396FE0029DF561C00B22132 /* Assets.xcassets */,
+				1396FE0129DF561C00B22132 /* Preview Content */,
+				1396FE0329DF561C00B22132 /* MochiApp.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		1396FE0129DF561C00B22132 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				1396FE0229DF561C00B22132 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		1396FE0429DF561C00B22132 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
 		13C18B8829CE6CC100C14F26 = {
 			isa = PBXGroup;
 			children = (
-				13C18B9329CE6CC200C14F26 /* mochi */,
+				134516B629DF44D200E4C3B8 /* mochi */,
+				1396FE0429DF561C00B22132 /* iOS */,
+				1396FDFD29DF561C00B22132 /* macOS */,
+				1396FDFE29DF561C00B22132 /* Shared */,
 				13C18B9229CE6CC200C14F26 /* Products */,
+				1337293829DF4E7200C086FA /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -51,28 +92,6 @@
 				13C18B9129CE6CC200C14F26 /* mochi.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		13C18B9329CE6CC200C14F26 /* mochi */ = {
-			isa = PBXGroup;
-			children = (
-				13C18B9429CE6CC200C14F26 /* mochiApp.swift */,
-				13C18B9629CE6CC200C14F26 /* Persistence.swift */,
-				13C18B9B29CE6CC200C14F26 /* ContentView.swift */,
-				13C18B9D29CE6CC300C14F26 /* Assets.xcassets */,
-				13C18B9F29CE6CC300C14F26 /* mochi.entitlements */,
-				13C18B9829CE6CC200C14F26 /* mochi.xcdatamodeld */,
-				13C18BA029CE6CC300C14F26 /* Preview Content */,
-			);
-			path = mochi;
-			sourceTree = "<group>";
-		};
-		13C18BA029CE6CC300C14F26 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				13C18BA129CE6CC300C14F26 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -85,12 +104,16 @@
 				13C18B8D29CE6CC200C14F26 /* Sources */,
 				13C18B8E29CE6CC200C14F26 /* Frameworks */,
 				13C18B8F29CE6CC200C14F26 /* Resources */,
+				1345C12F29E079120009AB4E /* Run Swiftlint Script */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = mochi;
+			packageProductDependencies = (
+				1396FE0B29DF58CA00B22132 /* App */,
+			);
 			productName = mochi;
 			productReference = 13C18B9129CE6CC200C14F26 /* mochi.app */;
 			productType = "com.apple.product-type.application";
@@ -133,22 +156,41 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13C18BA229CE6CC300C14F26 /* Preview Assets.xcassets in Resources */,
-				13C18B9E29CE6CC300C14F26 /* Assets.xcassets in Resources */,
+				1396FE0629DF561C00B22132 /* Preview Assets.xcassets in Resources */,
+				1396FE0529DF561C00B22132 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1345C12F29E079120009AB4E /* Run Swiftlint Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Swiftlint Script";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\nif which swiftlint > /dev/null; then\n  swiftlint --config ../.swiftlint.yml ../\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		13C18B8D29CE6CC200C14F26 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13C18B9529CE6CC200C14F26 /* mochiApp.swift in Sources */,
-				13C18B9729CE6CC200C14F26 /* Persistence.swift in Sources */,
-				13C18B9C29CE6CC200C14F26 /* ContentView.swift in Sources */,
-				13C18B9A29CE6CC200C14F26 /* mochi.xcdatamodeld in Sources */,
+				1396FE0729DF561C00B22132 /* MochiApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,9 +247,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx13.3;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -257,8 +302,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				SDKROOT = macosx13.3;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -269,15 +317,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = mochi/mochi.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Shared/mochi.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"mochi/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = ..;
 				DEVELOPMENT_TEAM = A6HC4Y86NJ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -298,6 +346,7 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -308,15 +357,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = mochi/mochi.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Shared/mochi.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"mochi/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = ..;
 				DEVELOPMENT_TEAM = A6HC4Y86NJ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -337,6 +386,7 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -365,18 +415,12 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCVersionGroup section */
-		13C18B9829CE6CC200C14F26 /* mochi.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				13C18B9929CE6CC200C14F26 /* mochi.xcdatamodel */,
-			);
-			currentVersion = 13C18B9929CE6CC200C14F26 /* mochi.xcdatamodel */;
-			path = mochi.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
+/* Begin XCSwiftPackageProductDependency section */
+		1396FE0B29DF58CA00B22132 /* App */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = App;
 		};
-/* End XCVersionGroup section */
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 13C18B8929CE6CC100C14F26 /* Project object */;
 }

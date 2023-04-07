@@ -1,0 +1,35 @@
+name: cd
+
+on:
+  workflow_run:
+    workflows: 
+      - ci
+    branches:
+      - main
+      - dev
+    types:
+      - completed
+
+jobs:
+  build-publish:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Brew Install Dependencies
+        run: |
+          brew install git-cliff create-dmg xcbeautify
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v3
+        with:
+          extra_plugins: |
+            @semantic-release/exec
+            @google/semantic-release-replace-plugin
+            @semantic-release/github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

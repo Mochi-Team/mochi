@@ -1,0 +1,58 @@
+# format options
+
+--allman false
+--asynccapturing
+--binarygrouping 4,8
+--closingparen balanced
+--closurevoid remove
+--commas inline
+--comments indent
+--decimalgrouping 3,3
+--elseposition same-line
+--exponentcase lowercase
+--exponentgrouping disabled
+--extensionacl on-extension
+--fractiongrouping disabled
+--funcattributes prev-line
+--generictypes
+--hexgrouping 4,8
+--hexliteralcase uppercase
+--ifdef no-indent
+--indent 4
+--indentcase false
+--importgrouping alpha
+--linebreaks lf
+--maxwidth 200
+--octalgrouping 4,8
+--operatorfunc spaced
+--patternlet hoist
+--ranges no-space
+--redundanttype infer-locals-only
+--self init-only
+--semicolons inline
+--someAny true
+--stripunusedargs always
+--throwcapturing
+--trimwhitespace always
+--typeattributes prev-line
+--varattributes prev-line
+--voidtype void
+--wraparguments before-first
+--wrapeffects never
+--wrapcollections before-first
+--wrapconditions after-first
+--wrapparameters before-first
+
+# op-ins (enable)
+
+--enable genericExtensions
+--enable spaceInsideGenerics
+--enable opaqueGenericParameters
+--enable isEmpty
+--enable markTypes
+--enable wrapConditionalBodies
+--enable wrapEnumCases
+
+# op-ins (disable)
+
+--disable wrapMultilineStatementBraces

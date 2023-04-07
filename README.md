@@ -1,3 +1,1 @@
 # mochi
-
-Hello
