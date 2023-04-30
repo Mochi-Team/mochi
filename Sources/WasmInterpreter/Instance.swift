@@ -25,7 +25,7 @@ public final class WasmInstance {
     init(
         module bytes: [UInt8],
         stackSize: UInt32 = 512 * 1_024,
-        _ imports: [Import]
+        _ imports: [Import] = []
     ) throws {
         id = nextInstanceIdentifier
         idPointer = .allocate(
@@ -72,47 +72,65 @@ public final class WasmInstance {
 }
 
 extension WasmInstance {
-    public convenience init(
-        module: URL,
-        stackSize: UInt32 = 512 * 1_024,
-        _ imports: Import...
-    ) throws {
-        try self.init(module: [UInt8](try Data(contentsOf: module)), stackSize: stackSize, imports)
-    }
-
-    public convenience init(
-        module: [UInt8],
-        stackSize: UInt32 = 512 * 1_024,
-        _ imports: Import...
-    ) throws {
-        try self.init(module: module, stackSize: stackSize, imports)
-    }
-
     @resultBuilder
     public enum ImportsResultBuilder {
-        public static func buildBlock(_ components: Import...) -> [Import] {
-            components
-        }
-
-        public static func buildEither(_ component: [Import]) -> [Import] {
+        public static func buildEither(first component: [Import]) -> [Import] {
             component
         }
 
-        public static func buildArray(_ components: [[Import]]) -> [Import] {
-            components.flatMap { $0 }
+        public static func buildEither(second component: [Import]) -> [Import] {
+            component
         }
 
         public static func buildOptional(_ component: [Import]?) -> [Import] {
             component ?? []
         }
+
+        public static func buildExpression(_ expression: Import) -> [Import] {
+            [expression]
+        }
+
+        public static func buildExpression(_ expression: ()) -> [Import] {
+            []
+        }
+
+        public static func buildBlock(_ components: [Import]...) -> [Import] {
+            components.flatMap { $0 }
+        }
+
+        public static func buildArray(_ components: [[Import]]) -> [Import] {
+            Array(components.joined())
+        }
+    }
+
+    public convenience init(
+        module: URL,
+        stackSize: UInt32 = 512 * 1_024,
+        @ImportsResultBuilder _ imports: () -> [Import] = { [] }
+    ) throws {
+        try self.init(module: [UInt8](try Data(contentsOf: module)), stackSize: stackSize, imports())
     }
 
     public convenience init(
         module: [UInt8],
         stackSize: UInt32 = 512 * 1_024,
-        @ImportsResultBuilder _ imports: () -> [Import]
+        @ImportsResultBuilder _ imports: () -> [Import] = { [] }
     ) throws {
         try self.init(module: module, stackSize: stackSize, imports())
+    }
+
+    public convenience init(
+        module: Data,
+        stackSize: UInt32 = 512 * 1_024,
+        @ImportsResultBuilder _ imports: () -> [Import] = { [] }
+    ) throws {
+        try self.init(module: .init(module), stackSize: stackSize, imports())
+    }
+
+    public func importFunctions(
+        @ImportsResultBuilder _ imports: () -> [Import] = { [] }
+    ) throws {
+        try importNativeFunctions(imports())
     }
 }
 
@@ -145,7 +163,7 @@ extension WasmInstance {
                     )
                 } catch {
                     removeImportedFunction(for: context, instanceIdentifier: id)
-                    throw error
+                    print("function import error for \(functionName) - \(functionSignature): \(error)")
                 }
             }
         }

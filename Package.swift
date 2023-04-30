@@ -5,36 +5,55 @@ import PackageDescription
 
 // MARK: - Features
 
-let featuresProducts: [Product] = [
-    .library(
-        name: "App",
-        targets: ["App"]
-    ),
-    .library(
-        name: "Home",
-        targets: ["Home"]
-    ),
-    .library(
-        name: "Settings",
-        targets: ["Settings"]
-    )
-]
-
 let featuresTargets: [Target] = [
     .target(
         name: "App",
         dependencies: [
             "Architecture",
             "Home",
+            "ModuleLists",
+            "Repos",
+            "Search",
+            "Settings",
             "SharedModels",
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            "Styling",
+            "ViewComponents",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "NukeUI", package: "Nuke")
         ]
     ),
     .target(
         name: "Home",
         dependencies: [
             "Architecture",
+            "ModuleClient",
+            "RepoClient",
             "SharedModels",
+            "ViewComponents",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "NukeUI", package: "Nuke")
+        ]
+    ),
+    .target(
+        name: "Repos",
+        dependencies: [
+            "Architecture",
+            "ModuleClient",
+            "RepoClient",
+            "SharedModels",
+            "ViewComponents",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "NukeUI", package: "Nuke")
+        ]
+    ),
+    .target(
+        name: "Search",
+        dependencies: [
+            "Architecture",
+            "ModuleClient",
+            "RepoClient",
+            "SharedModels",
+            "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
     ),
@@ -45,23 +64,57 @@ let featuresTargets: [Target] = [
             "SharedModels",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
+    ),
+    .target(
+        name: "ModuleLists",
+        dependencies: [
+            "Architecture",
+            "Styling",
+            "RepoClient",
+            "SharedModels",
+            "ViewComponents",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
     )
+    
 ]
+
+let featuresProducts = featuresTargets
+    .filter { $0.type == .regular && !$0.isTest }
+    .map { target in
+        Product.library(
+            name: target.name,
+            targets: [target.name]
+        )
+    }
 
 // MARK: - Clients
 
-let clientsProducts: [Product] = [
-    .library(
-        name: "UserDefaultsClient",
-        targets: ["UserDefaultsClient"]
-    ),
-    .library(
-        name: "UserSettingsClient",
-        targets: ["UserSettingsClient"]
-    )
-]
-
 let clientsTargets: [Target] = [
+    .target(
+        name: "ModuleClient",
+        dependencies: [
+            "SharedModels",
+            "WasmInterpreter",
+            .product(name: "Tagged", package: "swift-tagged"),
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
+    .testTarget(
+        name: "ModuleClientTests",
+        dependencies: [
+            "ModuleClient"
+        ]
+    ),
+    .target(
+        name: "RepoClient",
+        dependencies: [
+            "SharedModels",
+            .product(name: "TOMLDecoder", package: "TOMLDecoder"),
+            .product(name: "Tagged", package: "swift-tagged"),
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
     .target(
         name: "UserDefaultsClient",
         dependencies: [
@@ -74,30 +127,25 @@ let clientsTargets: [Target] = [
             "UserDefaultsClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
-    )
+    ),
 ]
+
+let clientsProducts: [Product] = clientsTargets
+    .filter { $0.type == .regular && !$0.isTest }
+    .map {
+        .library(
+            name: $0.name,
+            targets: [$0.name]
+        )
+    }
 
 // MARK: - Miscellaneous
-
-let miscProducs: [Product] = [
-    .library(
-        name: "Architecture",
-        targets: ["Architecture"]
-    ),
-    .library(
-        name: "SharedModels",
-        targets: ["SharedModels"]
-    ),
-    .library(
-        name: "WasmInterpreter",
-        targets: ["WasmInterpreter"]
-    )
-]
 
 let miscTargets: [Target] = [
     .target(
         name: "Architecture",
         dependencies: [
+            "FoundationHelpers",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         ]
     ),
@@ -107,6 +155,23 @@ let miscTargets: [Target] = [
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         ]
+    ),
+    .target(
+        name: "Styling",
+        dependencies: [
+            "ViewComponents",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
+    .target(
+        name: "ViewComponents",
+        dependencies: [
+            "SharedModels",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
+    .target(
+        name: "FoundationHelpers"
     ),
     .target(
         name: "WasmInterpreter",
@@ -139,6 +204,17 @@ let miscTargets: [Target] = [
         ]
     )
 ]
+
+let miscProducs: [Product] = miscTargets
+    .filter { $0.type == .regular && !$0.isTest }
+    .map {
+        .library(
+            name: $0.name,
+            targets: [$0.name]
+        )
+    }
+
+
 // MARK: - Package
 
 let package = Package(
@@ -150,8 +226,10 @@ let package = Package(
     products: featuresProducts + clientsProducts + miscProducs,
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0"),
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "fc17996ded63b136741ab2e0c0e0d549a8486adc"),
-        .package(url: "https://github.com/johnpatrickmorgan/TCACoordinators.git", exact: "0.4.0")
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "99a84e2e914be9afac2dfd5e53cc56476dfacb52"),
+        .package(url: "https://github.com/johnpatrickmorgan/TCACoordinators.git", exact: "0.4.0"),
+        .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
+        .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2")
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

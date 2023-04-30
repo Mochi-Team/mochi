@@ -10,6 +10,11 @@ import Foundation
 
 public protocol WasmValue: CustomStringConvertible {
     static var wasmType: WasmValueType { get }
+
+    init(_ value: Int32)
+    init(_ value: Int64)
+    init(_ value: Float32)
+    init(_ value: Float64)
 }
 
 public enum WasmValueType {

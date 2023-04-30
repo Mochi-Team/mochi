@@ -2,18 +2,27 @@
 //  SettingsFeature+View.swift
 //  
 //
-//  Created ErrorErrorError on 4/7/23.
+//  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
 //
 
+import Architecture
 import ComposableArchitecture
-import SharedModels
 import SwiftUI
 
 extension SettingsFeature.View: View {
     @MainActor
     public var body: some View {
-        EmptyView()
+        WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+            Text("Hello, World!")
+                .onAppear {
+                    viewStore.send(.didAppear)
+                }
+        }
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity
+        )
     }
 }
 

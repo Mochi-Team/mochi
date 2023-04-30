@@ -52,6 +52,7 @@ public extension WasmInstance.Memory {
 
         return (0..<length).map { bufferPointer[$0] }
     }
+
     func data(byteOffset: Int, length: Int) throws -> Data {
         let heap = try heap()
 

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Feature.swift
 //
 //
 //  Created by ErrorErrorError on 4/5/23.
@@ -8,11 +8,12 @@
 
 import ComposableArchitecture
 import Foundation
+@_exported import FoundationHelpers
 import SwiftUI
 
-public protocol FeatureState: Equatable, Sendable {}
-
 public protocol SendableAction: Equatable, Sendable {}
+
+public protocol FeatureState: Equatable, Sendable {}
 
 public protocol FeatureAction: Equatable, Sendable {
     associatedtype ViewAction: SendableAction
@@ -28,18 +29,24 @@ public protocol FeatureAction: Equatable, Sendable {
     ///
     static func delegate(_: DelegateAction) -> Self
 
-    /// InternalActions should be invoked in reducer calls only.
+    /// InternalActions should only be invoked within the same reducer calls.
+    /// The only exception to that are accessing delegate actions.
+    ///
     static func `internal`(_: InternalAction) -> Self
 }
 
 public protocol FeatureView: View {
-    associatedtype Store
-    var store: Store { get }
+    associatedtype State: FeatureState
+    associatedtype Action: FeatureAction
+    var store: Store<State, Action> { get }
 
-    init(store: Store)
+    init(store: Store<State, Action>)
 }
 
 public protocol FeatureReducer: Reducer {
+    associatedtype State
+    associatedtype Action
+
     init()
 }
 

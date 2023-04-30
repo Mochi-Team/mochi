@@ -6,25 +6,21 @@
 //  Copyright © 2023. All rights reserved.
 //
 
-import ComposableArchitecture
+import Dependencies
 import Foundation
 
-extension UserDefaultsClient {
-    public static var live: Self {
-        let userDefaults = UserDefaults.standard
-
-        return .init(
-            doubleForKey: { userDefaults.double(forKey: $0) },
-            intForKey: { userDefaults.integer(forKey: $0) },
-            boolForKey: { userDefaults.bool(forKey: $0) },
-            dataForKey: { userDefaults.data(forKey: $0) },
-            setDouble: { userDefaults.setValue($0, forKey: $1) },
-            setInt: { userDefaults.setValue($0, forUndefinedKey: $1) },
-            setBool: { userDefaults.setValue($0, forKey: $1) },
-            setData: { userDefaults.setValue($0, forUndefinedKey: $1) },
-            remove: { userDefaults.removeObject(forKey: $0) }
-        )
-    }
+extension UserDefaultsClient: DependencyKey {
+    public static let liveValue = Self(
+        doubleForKey: { UserDefaults.standard.double(forKey: $0) },
+        intForKey: { UserDefaults.standard.integer(forKey: $0) },
+        boolForKey: { UserDefaults.standard.bool(forKey: $0) },
+        dataForKey: { UserDefaults.standard.data(forKey: $0) },
+        setDouble: { UserDefaults.standard.setValue($0, forKey: $1) },
+        setInt: { UserDefaults.standard.setValue($0, forUndefinedKey: $1) },
+        setBool: { UserDefaults.standard.setValue($0, forKey: $1) },
+        setData: { UserDefaults.standard.setValue($0, forUndefinedKey: $1) },
+        remove: { UserDefaults.standard.removeObject(forKey: $0) }
+    )
 }
 
 extension UserDefaults: @unchecked Sendable {}

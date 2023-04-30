@@ -22,7 +22,7 @@ ios-build:
 
 macos-build:
 	set -o pipefail && xcodebuild archive \
-		-project App/AnimeNow.xcodeproj \
+		-project App/mochi.xcodeproj \
 		-destination "generic/platform=macOS" \
 		-scheme "mochi" \
 		-archivePath "./App/mochi (macOS).xcarchive" \

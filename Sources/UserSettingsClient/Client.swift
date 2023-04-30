@@ -2,24 +2,25 @@
 //  Client.swift
 //  
 //
-//  Created ErrorErrorError on 4/6/23.
+//  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
 //
 
-import ComposableArchitecture
+import Dependencies
+import Foundation
+import XCTestDynamicOverlay
 
 public struct UserSettingsClient: Sendable {
     // TODO: Add client interface types
 }
 
-extension DependencyValues {
-    public var userSettings: UserSettingsClient {
-        get { self[UserSettingsClientKey.self] }
-        set { self[UserSettingsClientKey.self] = newValue }
-    }
+extension UserSettingsClient: TestDependencyKey {
+    public static let testValue = Self()
+}
 
-    private enum UserSettingsClientKey: DependencyKey {
-        static var liveValue = UserSettingsClient.live
-        static var testValue = UserSettingsClient.unimplemented
+extension DependencyValues {
+    public var clientUserSettings: UserSettingsClient {
+        get { self[UserSettingsClient.self] }
+        set { self[UserSettingsClient.self] = newValue }
     }
 }

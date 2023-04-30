@@ -2,13 +2,12 @@
 //  SettingsFeature.swift
 //  
 //
-//  Created ErrorErrorError on 4/7/23.
+//  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
 //
 
 import Architecture
 import ComposableArchitecture
-import SharedModels
 
 public enum SettingsFeature: Feature {
     public struct State: FeatureState {
@@ -18,7 +17,10 @@ public enum SettingsFeature: Feature {
     }
 
     public enum Action: FeatureAction {
-        public enum ViewAction: SendableAction {}
+        public enum ViewAction: SendableAction {
+            case didAppear
+        }
+
         public enum DelegateAction: SendableAction {}
         public enum InternalAction: SendableAction {}
 
@@ -37,6 +39,9 @@ public enum SettingsFeature: Feature {
     }
 
     public struct Reducer: FeatureReducer {
+        public typealias State = SettingsFeature.State
+        public typealias Action = SettingsFeature.Action
+
         public init() {}
     }
 }

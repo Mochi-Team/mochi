@@ -10,6 +10,24 @@
       }
     },
     {
+      "identity" : "flowstacks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/johnpatrickmorgan/FlowStacks",
+      "state" : {
+        "revision" : "8d1bc577fcab0c09d599f1f2f6747db2d15f84f4",
+        "version" : "0.3.0"
+      }
+    },
+    {
+      "identity" : "nuke",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kean/Nuke.git",
+      "state" : {
+        "revision" : "f4d9b95788679d0654c032961f73e7e9c16ca6b4",
+        "version" : "12.1.0"
+      }
+    },
+    {
       "identity" : "swift-case-paths",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-case-paths",
@@ -41,7 +59,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-composable-architecture",
       "state" : {
-        "branch" : "prerelease/1.0",
         "revision" : "fc17996ded63b136741ab2e0c0e0d549a8486adc"
       }
     },
@@ -88,6 +105,15 @@
       "state" : {
         "revision" : "47dd574b900ba5ba679f56ea00d4d282fc7305a6",
         "version" : "0.7.1"
+      }
+    },
+    {
+      "identity" : "tcacoordinators",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/johnpatrickmorgan/TCACoordinators.git",
+      "state" : {
+        "revision" : "18e2707ff569a111f415915de1972316b3f256a2",
+        "version" : "0.4.0"
       }
     },
     {

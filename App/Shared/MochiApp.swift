@@ -15,7 +15,7 @@ struct MochiApp: App {
         WindowGroup {
             AppFeature.View(
                 store: .init(
-                    initialState: .home(),
+                    initialState: .init(),
                     reducer: AppFeature.Reducer()
                 )
             )

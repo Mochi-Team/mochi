@@ -2,24 +2,28 @@
 //  SettingsFeature+Reducer.swift
 //  
 //
-//  Created ErrorErrorError on 4/7/23.
+//  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
 //
 
+import Architecture
 import ComposableArchitecture
-import SharedModels
 
-extension SettingsFeature.Reducer: ReducerProtocol {
-    public typealias State = SettingsFeature.State
-    public typealias Action = SettingsFeature.Action
-
-    public var body: some ReducerProtocolOf<Self> {
+extension SettingsFeature.Reducer: Reducer {
+    public var body: some ReducerOf<Self> {
         Reduce(self.core)
     }
 }
 
 extension SettingsFeature.Reducer {
     func core(state: inout State, action: Action) -> Effect<Action> {
-        .none
+        switch action {
+        case let .view(viewAction):
+            switch viewAction {
+            case .didAppear:
+                break
+            }
+        }
+        return .none
     }
 }

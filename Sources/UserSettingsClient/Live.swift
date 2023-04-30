@@ -2,15 +2,13 @@
 //  Live.swift
 //  
 //
-//  Created ErrorErrorError on 4/6/23.
+//  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
 //
 
-import ComposableArchitecture
-import UserDefaultsClient
+import Dependencies
+import Foundation
 
-extension UserSettingsClient {
-    public static var live: Self {
-        .init()
-    }
+extension UserSettingsClient: DependencyKey {
+    public static let liveValue = Self()
 }
