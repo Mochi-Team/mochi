@@ -7,8 +7,8 @@
 //
 
 import Architecture
+import Discover
 import Foundation
-import Home
 import ModuleLists
 import Repos
 import Search
@@ -51,24 +51,25 @@ public enum AppFeature: Feature {
     }
 
     public struct State: FeatureState {
-        public var home = HomeFeature.State()
+        public var discover = DiscoverFeature.State()
         public var repos = ReposFeature.State()
         public var search = SearchFeature.State()
         public var settings = SettingsFeature.State()
 
-        public var selected = Tab.home
+        public var selected = Tab.discover
 
-        @PresentationState public var destination: Destination.State?
+        @PresentationState
+        public var destination: Destination.State?
 
         public init(
-            home: HomeFeature.State = .init(),
+            discover: DiscoverFeature.State = .init(),
             repos: ReposFeature.State = .init(),
             search: SearchFeature.State = .init(),
             settings: SettingsFeature.State = .init(),
-            selected: AppFeature.State.Tab = Tab.home,
+            selected: AppFeature.State.Tab = Tab.discover,
             destination: Destination.State? = nil
         ) {
-            self.home = home
+            self.discover = discover
             self.repos = repos
             self.search = search
             self.settings = settings
@@ -77,15 +78,15 @@ public enum AppFeature: Feature {
         }
 
         public enum Tab: String, CaseIterable, Sendable {
-            case home = "Home"
+            case discover = "Discover"
             case repos = "Repos"
             case search = "Search"
             case settings = "Settings"
 
             var image: String {
                 switch self {
-                case .home:
-                    return "house"
+                case .discover:
+                    return "doc.text.image"
                 case .repos:
                     return "globe"
                 case .search:
@@ -97,14 +98,27 @@ public enum AppFeature: Feature {
 
             var selected: String {
                 switch self {
-                case .home:
-                    return "house.fill"
+                case .discover:
+                    return "doc.text.image.fill"
                 case .repos:
                     return self.image
                 case .search:
                     return self.image
                 case .settings:
                     return "gearshape.fill"
+                }
+            }
+
+            var colorAccent: Color {
+                switch self {
+                case .discover:
+                    return .init(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
+                case .repos:
+                    return .init(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
+                case .search:
+                    return .init(hue: 351 / 360, saturation: 0.68, brightness: 0.81)
+                case .settings:
+                    return .init(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
                 }
             }
         }
@@ -119,7 +133,7 @@ public enum AppFeature: Feature {
         public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
-            case home(HomeFeature.Action)
+            case discover(DiscoverFeature.Action)
             case repos(ReposFeature.Action)
             case search(SearchFeature.Action)
             case settings(SettingsFeature.Action)

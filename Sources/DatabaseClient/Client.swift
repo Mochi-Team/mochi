@@ -6,23 +6,48 @@
 //  Copyright © 2023. All rights reserved.
 //
 
+import CoreData
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
-public struct DatabaseClient: Sendable {
-    // TODO: Add client interface types
+public protocol DatabaseClient: Sendable {
+    @Sendable
+    func insert<T: MORepresentable>(_ item: T) async throws
+
+    @Sendable
+    @discardableResult
+    func update<T: MORepresentable, V: ConvertableValue>(
+        _ id: T.EntityID,
+        _ keyPath: WritableKeyPath<T, V>,
+        _ value: V
+    ) async throws -> Bool
+
+    @Sendable
+    @discardableResult
+    func update<T: MORepresentable, V: ConvertableValue>(
+        _ id: T.EntityID,
+        _ keyPath: WritableKeyPath<T, V?>,
+        _ value: V?
+    ) async throws -> Bool
+
+    @Sendable
+    func delete<T: MORepresentable>(_ item: T) async throws
+
+    @Sendable
+    func fetch<T: MORepresentable>(_ request: Request<T>) async throws -> [T]
+
+    @Sendable
+    func observe<T: MORepresentable>(_ request: Request<T>) -> AsyncStream<[T]>
 }
 
-extension DatabaseClient: TestDependencyKey {
-    public static var testValue: Self {
-        .init()
-    }
+public struct DatabaseClientKey: DependencyKey {
+    public static let liveValue: any DatabaseClient = DatabaseClientLive()
 }
 
 extension DependencyValues {
-    public var database: DatabaseClient {
-        get { self[DatabaseClient.self] }
-        set { self[DatabaseClient.self] = newValue }
+    public var databaseClient: any DatabaseClient {
+        get { self[DatabaseClientKey.self] }
+        set { self[DatabaseClientKey.self] = newValue }
     }
 }

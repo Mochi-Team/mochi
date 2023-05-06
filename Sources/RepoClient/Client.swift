@@ -6,12 +6,14 @@
 //  Copyright © 2023. All rights reserved.
 //
 
+import DatabaseClient
 import Dependencies
 import Foundation
 import SharedModels
 import XCTestDynamicOverlay
 
 public struct RepoClient: Sendable {
+
     /// Shared select module
     ///
     /// Module must be installed in order to select it
@@ -22,43 +24,80 @@ public struct RepoClient: Sendable {
     public let selectedModuleStream: @Sendable () -> AsyncStream<SelectedModule?>
 
     /// Validates a repo url string
-    /// 
-    public let validateRepo: @Sendable (URL) async throws -> Repo
-
-    /// Adding a new repo
     ///
-    public let addRepo: @Sendable (URL) async -> Result<Repo, Error>
-
-    /// Remove repo and all installed modules from that repo
     ///
-    public let removeRepo: @Sendable (Repo.ID) async -> Result<Void, Error>
-
-    /// Installs module and  stores it
-    ///
-    public let installModule: @Sendable (Repo, Module) async -> Result<Void, Error>
-
-    /// Remove module
-    ///
-    public let removeModule: @Sendable (Module.ID) async -> Result<Void, Error>
-
-    /// Repos installed
-    ///
-    public let repos: @Sendable () async -> [Repo]
-
-    /// Modules installed
-    ///
-    public let modules: @Sendable () async -> [Module]
+    public let validateRepo: @Sendable (URL) async throws -> RepoPayload
 
     /// Modules for repo
-    /// includes local and network modules
     ///
-    public let repoModules: @Sendable (Repo) async throws -> RepoModulesResult
+    /// Fetches repo modules
+    public let fetchRepoModules: @Sendable (Repo) async throws -> [Module.Manifest]
+
+    /// Install Repo
+    ///
+    /// This function installs a repo in the system.
+    public let installRepo: @Sendable (RepoPayload) async throws -> Void
+
+    /// Remove Repo
+    ///
+    /// Removes a repo from he system
+    public let removeRepo: @Sendable (Repo.ID) async throws -> Void
+
+    /// Install a Module
+    ///
+    /// Installs a module on the system
+    public let installModule: @Sendable (Repo.ID, Module.Manifest) async throws -> Void
+
+    /// Remove a Module
+    ///
+    /// This removes a moduled installed on a system
+    public let removeModule: @Sendable (Repo.ID, Module.ID) async throws -> Void
+
+    /// Installed Repos
+    ///
+    /// Returns installed repos
+    public let repos: @Sendable (Request<Repo>) -> AsyncStream<[Repo]>
+
+    /// Installed Modules
+    ///
+    /// Returns installed modules
+    public let modules: @Sendable (Request<Module>) -> AsyncStream<[Module]>
 }
 
 extension RepoClient {
     public struct SelectedModule: Equatable, Sendable {
         public let repoId: Repo.ID
         public let module: Module
+    }
+
+    @dynamicMemberLookup
+    public struct RepoPayload: Equatable, Sendable {
+        public let remoteURL: URL
+        public var iconURL: URL? {
+            manifest.icon
+                .flatMap { URL(string: $0) }
+                .flatMap { url in
+                    if url.baseURL == nil {
+                        return .init(string: url.relativeString, relativeTo: remoteURL)
+                    } else {
+                        return url
+                    }
+                }
+        }
+
+        public let manifest: Repo.Manifest
+
+        public subscript<Value>(dynamicMember dynamicMember: KeyPath<Repo.Manifest, Value>) -> Value {
+            manifest[keyPath: dynamicMember]
+        }
+
+        public init(
+            remoteURL: URL,
+            manifest: Repo.Manifest
+        ) {
+            self.remoteURL = remoteURL
+            self.manifest = manifest
+        }
     }
 }
 
@@ -67,13 +106,13 @@ extension RepoClient: TestDependencyKey {
         selectModule: unimplemented("\(Self.self).selectModule"),
         selectedModuleStream: unimplemented("\(Self.self).selectedModule", placeholder: .never),
         validateRepo: unimplemented(),
-        addRepo: unimplemented("\(Self.self).addRepo", placeholder: .failure(Error.failedToAddRepo)),
-        removeRepo: unimplemented("\(Self.self).removeRepo", placeholder: .success(())),
-        installModule: unimplemented("\(Self.self).installModule", placeholder: .failure(.failedToInstallModule)),
-        removeModule: unimplemented("\(Self.self).removeModule", placeholder: .success(())),
-        repos: unimplemented("\(Self.self).repos", placeholder: []),
-        modules: unimplemented("\(Self.self).modules", placeholder: []),
-        repoModules: unimplemented("\(Self.self).repoModules", placeholder: .init())
+        fetchRepoModules: unimplemented("\(Self.self).repoModules", placeholder: .init()),
+        installRepo: unimplemented(),
+        removeRepo: unimplemented(),
+        installModule: unimplemented(),
+        removeModule: unimplemented(),
+        repos: unimplemented(),
+        modules: unimplemented()
     )
 }
 

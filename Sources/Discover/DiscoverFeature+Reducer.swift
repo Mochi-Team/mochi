@@ -1,5 +1,5 @@
 //
-//  HomeFeature+Reducer.swift
+//  DiscoverFeature+Reducer.swift
 //  
 //
 //  Created by ErrorErrorError on 4/5/23.
@@ -12,7 +12,7 @@ import ModuleClient
 import RepoClient
 import SharedModels
 
-extension HomeFeature.Reducer: ReducerProtocol {
+extension DiscoverFeature.Reducer: ReducerProtocol {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {

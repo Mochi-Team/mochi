@@ -8,8 +8,8 @@
 
 import Architecture
 import ComposableArchitecture
+import Discover
 import Foundation
-import Home
 import ModuleLists
 import Repos
 import Search
@@ -27,11 +27,11 @@ extension AppFeature.View: View {
         ) { viewStore in
             ZStack {
                 switch viewStore.state {
-                case .home:
-                    HomeFeature.View(
+                case .discover:
+                    DiscoverFeature.View(
                         store: store.internalAction.scope(
-                            state: \.home,
-                            action: Action.InternalAction.home
+                            state: \.discover,
+                            action: Action.InternalAction.discover
                         )
                     )
                 case .repos:
@@ -102,32 +102,48 @@ extension AppFeature.View {
         HStack(alignment: .bottom, spacing: 0) {
             ForEach(State.Tab.allCases, id: \.rawValue) { tab in
                 VStack(spacing: 2) {
+                    if tab == selected {
+                        RoundedRectangle(cornerRadius: 12)
+                            .frame(width: 18, height: 4)
+                            .transition(.opacity.combined(with: .scale))
+                    }
+
                     Image(systemName: tab == selected ? tab.selected : tab.image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                         .font(.system(size: 20, weight: .semibold))
+                        .frame(height: 18)
+                        .padding(.top, 8)
 
                     Text(tab.rawValue)
                         .font(.system(size: 10, weight: .medium))
                 }
-                .foregroundColor(tab == selected ? nil : .gray)
+                .foregroundColor(tab == selected ? tab.colorAccent : .gray)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     ViewStore(store.viewAction.stateless).send(.didSelectTab(tab))
                 }
+                .background(
+                    Rectangle()
+                        .foregroundColor(tab.colorAccent.opacity(tab == selected ? 0.08 : 0.0))
+                        .ignoresSafeArea()
+                        .edgesIgnoringSafeArea(.all)
+                        .blur(radius: 24)
+                )
+                .animation(.easeInOut(duration: 0.2), value: tab == selected)
             }
             .frame(maxWidth: .infinity)
         }
-        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
+        .frame(
+            maxWidth: .infinity,
+            alignment: .bottom
+        )
         .background(
             BlurView()
                 .ignoresSafeArea()
                 .edgesIgnoringSafeArea(.all)
-        )
-        .frame(
-            maxWidth: .infinity,
-            alignment: .bottom
         )
         .overlay(alignment: .top) {
             Color.gray.opacity(0.2)

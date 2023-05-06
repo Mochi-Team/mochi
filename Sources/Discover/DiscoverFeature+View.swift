@@ -1,5 +1,5 @@
 //
-//  HomeFeature+View.swift
+//  DiscoverFeature+View.swift
 //
 //
 //  Created by ErrorErrorError on 4/5/23.
@@ -12,7 +12,7 @@ import SharedModels
 import SwiftUI
 import ViewComponents
 
-extension HomeFeature.View: View {
+extension DiscoverFeature.View: View {
     @MainActor
     public var body: some View {
         WithViewStore(store, observe: \.listings) { viewStore in
@@ -45,13 +45,8 @@ extension HomeFeature.View: View {
                     Spacer()
 
                     Image(systemName: "exclamationmark.triangle.fill")
-
-                    switch error {
-                    case .module:
-                        EmptyView()
-                    case .system:
-                        EmptyView()
-                    }
+                    Text(error.description)
+                        .font(.body.weight(.semibold))
 
                     Spacer()
 
@@ -59,7 +54,7 @@ extension HomeFeature.View: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: tabNavigationSize.height)
                 }
-            } loadingView: {
+            } waitingView: {
                 buildListingsView(
                     [
                         .init(
@@ -117,7 +112,7 @@ extension HomeFeature.View: View {
     }
 }
 
-extension HomeFeature.View {
+extension DiscoverFeature.View {
     @MainActor
     func buildListingsView(_ listings: [DiscoverListing]) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -145,7 +140,7 @@ extension HomeFeature.View {
     }
 }
 
-extension HomeFeature.View {
+extension DiscoverFeature.View {
     @MainActor
     var topBar: some View {
         HStack(spacing: 12) {
@@ -191,7 +186,7 @@ extension HomeFeature.View {
     }
 }
 
-extension HomeFeature.View {
+extension DiscoverFeature.View {
     @MainActor
     func rowListing(_ listing: DiscoverListing) -> some View {
         LazyVStack(alignment: .leading) {
@@ -358,9 +353,9 @@ extension HomeFeature.View {
     }
 }
 
-struct HomeView_Previews: PreviewProvider {
+struct DiscoverView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeFeature.View(
+        DiscoverFeature.View(
             store: .init(
                 initialState: .init(),
                 reducer: EmptyReducer()

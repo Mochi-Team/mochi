@@ -28,6 +28,15 @@
       }
     },
     {
+      "identity" : "semver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kutchie-pelaez/Semver.git",
+      "state" : {
+        "revision" : "2b515fb1b5fc653e5f2140386f57b873853661e2",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "swift-case-paths",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-case-paths",

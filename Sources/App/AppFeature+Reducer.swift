@@ -8,7 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
-import Home
+import Discover
 import ModuleLists
 import Repos
 import Search
@@ -25,7 +25,7 @@ extension AppFeature.Reducer {
             case let .view(.didSelectTab(tab)):
                 state.selected = tab
 
-            case let .internal(.home(.delegate(delegate))):
+            case let .internal(.discover(.delegate(delegate))):
                 switch delegate {
                 case .openModules:
                     state.destination = .sheet(.moduleLists(.init()))
@@ -49,7 +49,7 @@ extension AppFeature.Reducer {
             case .internal(.destination(.dismiss)):
                 state.destination = nil
 
-            case .internal(.home):
+            case .internal(.discover):
                 break
 
             case .internal(.repos):
@@ -73,8 +73,8 @@ extension AppFeature.Reducer {
             AppFeature.Destination()
         }
 
-        Scope(state: \.home, action: /Action.InternalAction.home) {
-            HomeFeature.Reducer()
+        Scope(state: \.discover, action: /Action.InternalAction.discover) {
+            DiscoverFeature.Reducer()
         }
 
         Scope(state: \.repos, action: /Action.InternalAction.repos) {

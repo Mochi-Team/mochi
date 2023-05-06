@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import DatabaseClient
 import RepoClient
 import SharedModels
 
@@ -49,7 +50,7 @@ public enum ModuleListsFeature: Feature {
         }
 
         public enum InternalAction: SendableAction {
-            case loadedRepos([Repo])
+            case fetchRepos(TaskResult<[Repo]>)
         }
 
         case view(ViewAction)
@@ -70,7 +71,11 @@ public enum ModuleListsFeature: Feature {
         public typealias State = ModuleListsFeature.State
         public typealias Action = ModuleListsFeature.Action
 
-        @Dependency(\.repo) var repoClient
+        @Dependency(\.repo)
+        var repoClient
+
+        @Dependency(\.databaseClient)
+        var databaseClient
 
         public init() {}
     }

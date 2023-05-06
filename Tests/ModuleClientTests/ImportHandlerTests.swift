@@ -16,7 +16,8 @@ final class ImportHandlerTests: XCTestCase {
         let number: Int
         let numberOptional: Int?
         let bool: Bool
-        let boolOptional: Bool? // swiftlint:disable discouraged_optional_boolean
+        // swiftlint:disable discouraged_optional_boolean
+        let boolOptional: Bool?
         let object: Nested
         let objectOptional: Nested?
 

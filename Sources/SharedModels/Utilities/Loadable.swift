@@ -9,6 +9,7 @@
 import Foundation
 
 public enum Loadable<T, E> {
+    case pending
     case loading
     case loaded(T)
     case failed(E)
@@ -40,6 +41,8 @@ public enum Loadable<T, E> {
 public extension Loadable {
     func map<V>(_ block: @escaping (T) -> V) -> Loadable<V, E> {
         switch self {
+        case .pending:
+            return .pending
         case .loading:
             return .loading
         case .loaded(let t):
@@ -51,6 +54,8 @@ public extension Loadable {
 
     func mapError<V>(_ block: @escaping (E) -> V) -> Loadable<T, V> {
         switch self {
+        case .pending:
+            return .pending
         case .loading:
             return .loading
         case .loaded(let t):

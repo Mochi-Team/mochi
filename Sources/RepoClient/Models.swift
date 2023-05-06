@@ -21,5 +21,6 @@ extension RepoClient {
         case failedToDownloadRepo
         case failedToAddRepo
         case failedToInstallModule
+        case failedToLoadPackages
     }
 }

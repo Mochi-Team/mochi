@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import DatabaseClient
 
 extension ModuleListsFeature.Reducer: Reducer {
     public var body: some ReducerOf<Self> {
@@ -15,7 +16,7 @@ extension ModuleListsFeature.Reducer: Reducer {
             switch action {
             case .view(.didAppear):
                 return .run {
-                    .internal(.loadedRepos(await repoClient.repos()))
+                    await .internal(.fetchRepos(.init { try await databaseClient.fetch(.all) }))
                 }
 
             case let .view(.didSelectModule(repoId, moduleId)):
@@ -24,8 +25,12 @@ extension ModuleListsFeature.Reducer: Reducer {
                     await send(.delegate(.didSelectModule))
                 }
 
-            case let .internal(.loadedRepos(repos)):
+            case let .internal(.fetchRepos(.success(repos))):
                 state.repos = repos
+
+            case let .internal(.fetchRepos(.failure(error))):
+                print(error)
+                state.repos = []
 
             case .delegate:
                 break

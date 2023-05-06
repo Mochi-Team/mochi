@@ -58,7 +58,7 @@ extension ModuleListsFeature.View {
     func repoSection(_ repo: Repo) -> some View {
         VStack(spacing: 12) {
             HStack {
-                LazyImage(url: repo.icon) { state in
+                LazyImage(url: repo.iconURL) { state in
                     if let image = state.image {
                         image.resizable()
                             .aspectRatio(contentMode: .fit)
@@ -85,39 +85,43 @@ extension ModuleListsFeature.View {
             Divider()
 
             VStack(spacing: 8) {
-                if repo.modules.isEmpty {
-                    VStack(spacing: 8) {
-                        Text("No modules installed")
-                            .font(.headline.bold())
-
-                        Text("This repo does not contained any installed modules.")
-                            .font(.callout)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(12)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.16).cornerRadius(12))
-                } else {
-                    ForEach(repo.modules) { module in
-                        Button {
-                            ViewStore(store.viewAction.stateless)
-                                .send(.didSelectModule(repo.id, module.id))
-                        } label: {
-                            moduleRow(module)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
+                // TODO: Use installed repo with modules
+//                if repo.modules.isEmpty {
+//                    VStack(spacing: 8) {
+//                        Text("No modules installed")
+//                            .font(.headline.bold())
+//
+//                        Text("This repo does not contained any installed modules.")
+//                            .font(.callout)
+//                            .multilineTextAlignment(.center)
+//                    }
+//                    .padding(12)
+//                    .frame(maxWidth: .infinity)
+//                    .background(Color.gray.opacity(0.16).cornerRadius(12))
+//                } else {
+//                    ForEach(repo.modules) { module in
+//                        Button {
+//                            ViewStore(store.viewAction.stateless)
+//                                .send(.didSelectModule(repo.id, module.id))
+//                        } label: {
+//                            moduleRow(module)
+//                                .contentShape(Rectangle())
+//                        }
+//                        .buttonStyle(.plain)
+//                    }
+//                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @MainActor
-    func moduleRow(_ module: Module.Manifest) -> some View {
+    func moduleRow(
+        _ repo: Repo,
+        _ module: Module.Manifest
+    ) -> some View {
         HStack {
-            LazyImage(url: module.icon) { state in
+            LazyImage(url: module.iconURL(repoURL: repo.baseURL)) { state in
                 if let image = state.image {
                     image.resizable()
                         .aspectRatio(contentMode: .fit)
@@ -132,7 +136,7 @@ extension ModuleListsFeature.View {
                 Text(module.name)
                     .font(.body.weight(.medium))
 
-                Text(module.version)
+                Text("v\(module.version.description)")
                     .font(.footnote.weight(.medium))
                     .foregroundColor(.gray)
             }
@@ -154,16 +158,17 @@ struct ModuleListsFeatureView_Previews: PreviewProvider {
                     initialState: .init(
                         repos: [
                             .init(
-                                repoURL: .init(string: "/").unsafelyUnwrapped,
+                                baseURL: .init(string: "/").unsafelyUnwrapped,
+                                dateAdded: .init(),
+                                lastRefreshed: .init(),
                                 manifest: .init(
-                                    id: "local",
                                     name: "Local Repo",
                                     author: "errorerrorerror",
                                     description: "This is a local repo"
                                 )
                             )
                         ],
-                        selected: .init(repoId: "local", moduleId: "1")
+                        selected: nil
                     ),
                     reducer: EmptyReducer()
                 )

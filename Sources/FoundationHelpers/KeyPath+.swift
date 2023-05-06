@@ -17,3 +17,7 @@ public prefix func ! <T>(keyPath: KeyPath<T, Bool>) -> (T) -> Bool  {
 public func == <T, V: Equatable>(lhs: KeyPath<T, V>, rhs: V) -> (T) -> Bool {
     { $0[keyPath: lhs] == rhs }
 }
+
+public func ?? <T, V>(keyPath: KeyPath<T, V?>, rhs: V) -> (T) -> V {
+    { $0[keyPath: keyPath] ?? rhs }
+}

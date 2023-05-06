@@ -10,7 +10,7 @@ let featuresTargets: [Target] = [
         name: "App",
         dependencies: [
             "Architecture",
-            "Home",
+            "Discover",
             "ModuleLists",
             "Repos",
             "Search",
@@ -23,7 +23,7 @@ let featuresTargets: [Target] = [
         ]
     ),
     .target(
-        name: "Home",
+        name: "Discover",
         dependencies: [
             "Architecture",
             "ModuleClient",
@@ -38,9 +38,11 @@ let featuresTargets: [Target] = [
         name: "Repos",
         dependencies: [
             "Architecture",
+//            "DatabaseClient",
             "ModuleClient",
             "RepoClient",
             "SharedModels",
+            "Styling",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
@@ -76,7 +78,6 @@ let featuresTargets: [Target] = [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
     )
-    
 ]
 
 let featuresProducts = featuresTargets
@@ -91,6 +92,12 @@ let featuresProducts = featuresTargets
 // MARK: - Clients
 
 let clientsTargets: [Target] = [
+    .target(
+        name: "DatabaseClient",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
     .target(
         name: "ModuleClient",
         dependencies: [
@@ -152,8 +159,10 @@ let miscTargets: [Target] = [
     .target(
         name: "SharedModels",
         dependencies: [
+            "DatabaseClient",
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "Semver", package: "Semver")
         ]
     ),
     .target(
@@ -229,7 +238,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "99a84e2e914be9afac2dfd5e53cc56476dfacb52"),
         .package(url: "https://github.com/johnpatrickmorgan/TCACoordinators.git", exact: "0.4.0"),
         .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
-        .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2")
+        .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
+        .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0")
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

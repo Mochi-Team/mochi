@@ -97,16 +97,16 @@ public extension Effect where Failure == Never {
 
     static func run(
         animation: Animation? = nil,
-        _ operation: @escaping () async -> Action
+        _ operation: @escaping () async throws -> Action
     ) -> Self {
-        self.run { await $0(operation(), animation: animation) }
+        self.run { try await $0(operation(), animation: animation) }
     }
 
     static func run(
         animation: Animation? = nil,
-        _ operation: @escaping () async -> Void
+        _ operation: @escaping () async throws -> Void
     ) -> Self {
-        self.run { _ in await operation() }
+        self.run { _ in try await operation() }
     }
 }
 

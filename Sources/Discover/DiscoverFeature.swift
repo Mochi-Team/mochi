@@ -1,5 +1,5 @@
 //
-//  HomeFeature.swift
+//  DiscoverFeature.swift
 //  
 //
 //  Created by ErrorErrorError on 4/5/23.
@@ -15,7 +15,7 @@ import SharedModels
 import SwiftUI
 import ViewComponents
 
-public enum HomeFeature: Feature {
+public enum DiscoverFeature: Feature {
     public enum Error: Swift.Error, Equatable, Sendable {
         case system(System)
         case module(ModuleClient.Error)
@@ -24,6 +24,19 @@ public enum HomeFeature: Feature {
             case unknown
             case moduleNotSelected
         }
+
+        var description: String {
+            switch self {
+            case .system(.moduleNotSelected):
+                return "Module Not Selected"
+            case .system(.unknown):
+                return "Unknown System Error Has Occurred"
+            case .module(.unknown):
+                return "Unknown Module Error Has Occurred"
+            case .module:
+                return "Failed to Load Module Discovery"
+            }
+        }
     }
 
     public struct State: FeatureState {
@@ -31,7 +44,7 @@ public enum HomeFeature: Feature {
         public var selectedModule: RepoClient.SelectedModule?
 
         public init(
-            listings: Loadable<[DiscoverListing], Error> = .loading,
+            listings: Loadable<[DiscoverListing], Error> = .pending,
             selectedModule: RepoClient.SelectedModule? = nil
         ) {
             self.listings = listings
@@ -65,16 +78,16 @@ public enum HomeFeature: Feature {
         @InsetValue(\.tabNavigation) var tabNavigationSize
         @SwiftUI.State var optionSelectionSize = SizeInset.zero
 
-        public let store: FeatureStoreOf<HomeFeature>
+        public let store: FeatureStoreOf<DiscoverFeature>
 
-        nonisolated public init(store: FeatureStoreOf<HomeFeature>) {
+        nonisolated public init(store: FeatureStoreOf<DiscoverFeature>) {
             self.store = store
         }
     }
 
     public struct Reducer: FeatureReducer {
-        public typealias State = HomeFeature.State
-        public typealias Action = HomeFeature.Action
+        public typealias State = DiscoverFeature.State
+        public typealias Action = DiscoverFeature.Action
 
         @Dependency(\.repo)
         var repoClient
