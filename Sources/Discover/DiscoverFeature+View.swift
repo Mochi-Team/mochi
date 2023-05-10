@@ -9,6 +9,7 @@
 import Architecture
 import NukeUI
 import SharedModels
+import Styling
 import SwiftUI
 import ViewComponents
 
@@ -17,31 +18,26 @@ extension DiscoverFeature.View: View {
     public var body: some View {
         WithViewStore(store, observe: \.listings) { viewStore in
             LoadableView(loadable: viewStore.state) { listings in
-                if listings.isEmpty {
-                    VStack(spacing: 12) {
-                        topBarSpacer
-
-                        Spacer()
-
-                        Image(systemName: "questionmark.app.dashed")
-                            .font(.largeTitle)
-
-                        Text("No listings available for this module.")
-                            .font(.subheadline.bold())
-                        Spacer()
-
-                        Spacer()
-                            .frame(maxWidth: .infinity)
-                            .frame(height: tabNavigationSize.height)
+                Group {
+                    if listings.isEmpty {
+                        VStack(spacing: 12) {
+                            Spacer()
+                            
+                            Image(systemName: "questionmark.app.dashed")
+                                .font(.largeTitle)
+                            
+                            Text("No listings available for this module.")
+                                .font(.subheadline.bold())
+                            Spacer()
+                        }
+                    } else {
+                        buildListingsView(listings)
                     }
-                } else {
-                    buildListingsView(listings)
                 }
+                .animation(.easeInOut, value: viewStore.state.finished)
             } failedView: { error in
                 // TODO: Add error state depending on module or system fetching
                 VStack(spacing: 12) {
-                    topBarSpacer
-
                     Spacer()
 
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -49,11 +45,8 @@ extension DiscoverFeature.View: View {
                         .font(.body.weight(.semibold))
 
                     Spacer()
-
-                    Spacer()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: tabNavigationSize.height)
                 }
+                .animation(.easeInOut, value: viewStore.state.finished)
             } waitingView: {
                 buildListingsView(
                     [
@@ -97,15 +90,50 @@ extension DiscoverFeature.View: View {
                 )
                 .redacted(reason: .placeholder)
                 .disabled(true)
+                .animation(.easeInOut, value: viewStore.state.finished)
             }
-            .animation(.easeInOut, value: viewStore.state.finished)
         }
         .frame(
             maxWidth: .infinity,
             maxHeight: .infinity
         )
         .edgesIgnoringSafeArea(.top)
-        .overlay(topBar, alignment: .top)
+        .safeAreaInset(edge: .top) {
+            TopBarView(
+                trailingAccessory: {
+                    WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
+                        Button {
+                            viewStore.send(.didTapOpenModules)
+                        } label: {
+                            HStack {
+                                Text(viewStore.state?.module.name ?? "Unselected")
+                                Image(systemName: "chevron.up.chevron.down")
+                            }
+                            .font(.footnote.weight(.semibold))
+                            .padding(8)
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 4)
+                            .background(
+                                BlurView()
+                                    .clipShape(Capsule())
+                            )
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            )
+            .backgroundStyle(.clear)
+            .frame(maxWidth: .infinity)
+            .readSize { size in
+                topBarSizeInset = size
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Spacer()
+                .frame(maxWidth: .infinity)
+                .frame(height: bottomNavigationSize.height)
+        }
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
@@ -132,57 +160,16 @@ extension DiscoverFeature.View {
                     }
                 }
             }
-
-            Spacer()
-                .frame(maxWidth: .infinity)
-                .frame(height: tabNavigationSize.height)
         }
     }
 }
 
 extension DiscoverFeature.View {
     @MainActor
-    var topBar: some View {
-        HStack(spacing: 12) {
-            Text("mochi")
-                .font(.largeTitle.bold())
-                .opacity(0.0)
-
-            Spacer()
-
-            Button {
-                ViewStore(store.viewAction.stateless)
-                    .send(.didTapOpenModules)
-            } label: {
-                HStack {
-                    Text("Option 1")
-                    Image(systemName: "chevron.up.chevron.down")
-                }
-                .font(.footnote.weight(.semibold))
-                .padding(8)
-                .padding(.horizontal, 4)
-                .background(
-                    BlurView()
-                        .clipShape(Capsule())
-                )
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal)
-        .padding(.top, 12)
-        .padding(.bottom, 12)
-        .frame(maxWidth: .infinity)
-        .readSize { size in
-            optionSelectionSize = size
-        }
-    }
-
-    @MainActor
     var topBarSpacer: some View {
         Spacer()
             .frame(maxWidth: .infinity)
-            .frame(height: optionSelectionSize.vertical)
+            .frame(height: topBarSizeInset.vertical)
     }
 }
 
@@ -229,12 +216,13 @@ extension DiscoverFeature.View {
                                 .aspectRatio(5 / 7, contentMode: .fit)
                                 .cornerRadius(12)
 
-                                Text(media.title ?? "Unknown")
+                                Text(media.title ?? "No Title")
+                                    .lineLimit(3)
                                     .font(.subheadline.weight(.medium))
                                     .multilineTextAlignment(.leading)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
-                            .frame(width: 132)
+                            .frame(width: 124)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 ViewStore(store.viewAction.stateless)
@@ -308,6 +296,7 @@ extension DiscoverFeature.View {
                                 .cornerRadius(12)
 
                                 Text(media.title ?? "Unknown")
+                                    .lineLimit(3)
                                     .font(.subheadline.weight(.medium))
                                     .multilineTextAlignment(.leading)
                                     .fixedSize(horizontal: false, vertical: true)

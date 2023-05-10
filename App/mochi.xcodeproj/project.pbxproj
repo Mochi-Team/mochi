@@ -15,6 +15,7 @@
 
 /* Begin PBXFileReference section */
 		134516B629DF44D200E4C3B8 /* mochi */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = mochi; path = ..; sourceTree = "<group>"; };
+		138DA7D52A0AB5E800FDAC13 /* mochi-info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mochi-info.plist"; sourceTree = "<group>"; };
 		1396FDFF29DF561C00B22132 /* mochi.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = mochi.entitlements; sourceTree = "<group>"; };
 		1396FE0029DF561C00B22132 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1396FE0229DF561C00B22132 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -51,6 +52,7 @@
 		1396FDFE29DF561C00B22132 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				138DA7D52A0AB5E800FDAC13 /* mochi-info.plist */,
 				1396FDFF29DF561C00B22132 /* mochi.entitlements */,
 				1396FE0029DF561C00B22132 /* Assets.xcassets */,
 				1396FE0129DF561C00B22132 /* Preview Content */,
@@ -325,6 +327,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Shared/mochi-info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -365,6 +368,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Shared/mochi-info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

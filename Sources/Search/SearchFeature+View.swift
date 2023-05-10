@@ -8,51 +8,145 @@
 
 import Architecture
 import ComposableArchitecture
+import NukeUI
+import Styling
 import SwiftUI
+import ViewComponents
 
 extension SearchFeature.View: View {
     @MainActor
     public var body: some View {
-        VStack {
-            WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
-                HStack(spacing: 12) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
+        WithViewStore(store, observe: \.`self`) { viewStore in
+            ScrollView(.vertical) {
+                LazyVStack(spacing: 12) {
+                    LoadableView(loadable: viewStore.items) { paging in
+                        LazyVGrid(
+                            columns: .init(
+                                repeating: .init(alignment: .top),
+                                count: 3
+                            ),
+                            alignment: .leading
+                        ) {
+                            ForEach(paging.items) { item in
+                                VStack(alignment: .leading) {
+                                    FillAspectImage(url: item.posterImage)
+                                        .aspectRatio(2 / 3, contentMode: .fit)
+                                        .cornerRadius(12)
 
-                    TextField("Search for content...", text: viewStore.binding(\.$query))
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 16, weight: .regular))
-                        .frame(maxWidth: .infinity)
-
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(Color.gray)
-                        .opacity(viewStore.query.isEmpty ? 0.0 : 1.0)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            viewStore.send(.didClearQuery)
+                                    Text(item.title ?? "Title Unavailable")
+                                        .font(.footnote)
+                                }
+                                .contentShape(Rectangle())
+                            }
                         }
+                        .padding(.horizontal)
+                    } failedView: { _ in
+                        Rectangle()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                            .padding()
+                            .overlay(Text("Failed to fetch items"))
+                    } loadingView: {
+                        ProgressView()
+                    } pendingView: {
+                        Text("Type to search")
+                    }
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .foregroundColor(.gray.opacity(0.1))
-                )
-                .padding(.horizontal)
-
-                // TODO: Show/Hide filters depending on module, if available
-//                    Image(systemName: "line.horizontal.3.decrease")
-//                        .font(.system(size: 18, weight: .bold))
-
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(.top, 16)
-
-            Spacer()
+            .safeAreaInset(edge: .top) {
+                topBar
+            }
+            .safeAreaInset(edge: .bottom) {
+                Spacer()
+                    .frame(height: tabNavInsetSize.height)
+            }
+            .onAppear {
+                ViewStore(store.viewAction.stateless).send(.didAppear)
+            }
+            .background(Color(uiColor: .systemBackground).ignoresSafeArea().edgesIgnoringSafeArea(.all))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            ViewStore(store.viewAction.stateless).send(.didAppear)
+    }
+}
+
+extension SearchFeature.View {
+    @MainActor
+    var topBar: some View {
+        TopBarView(title: "Search") {
+            WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
+                Button {
+                    ViewStore(store.viewAction.stateless)
+                        .send(.didTapOpenModules)
+                } label: {
+                    HStack {
+                        Text(viewStore.state?.module.name ?? "Not Selected")
+                        Image(systemName: "chevron.up.chevron.down")
+                    }
+                    .font(.footnote.weight(.semibold))
+                    .padding(8)
+                    .padding(.horizontal, 4)
+                    .background(
+                        BlurView()
+                            .clipShape(Capsule())
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        } bottomAccessory: {
+            WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                HStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+
+                        TextField("Search for content...", text: viewStore.binding(\.$searchQuery.query).removeDuplicates())
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 16, weight: .regular))
+                            .frame(maxWidth: .infinity)
+
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Color.gray)
+                            .opacity(viewStore.searchQuery.query.isEmpty ? 0.0 : 1.0)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                viewStore.send(.didClearQuery)
+                            }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .foregroundColor(.gray.opacity(0.1))
+                    )
+                    .frame(maxHeight: .infinity)
+
+                    if !viewStore.searchFilters.isEmpty {
+                        Button {
+                            viewStore.send(.didTapFilterOptions)
+                        } label: {
+                            Circle()
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .overlay(
+                                    Image(systemName: "line.horizontal.3.decrease")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .contentShape(Rectangle())
+                                        .aspectRatio(contentMode: .fit)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .transition(.opacity)
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .readSize { size in
+            topBarSize = size
         }
     }
 }
@@ -61,8 +155,21 @@ struct SearchFeatureView_Previews: PreviewProvider {
     static var previews: some View {
         SearchFeature.View(
             store: .init(
-                initialState: .init(query: ""),
-                reducer: SearchFeature.Reducer()
+                initialState: .init(
+                    searchQuery: .init(query: "demo"),
+                    searchFilters: [
+                        .init(id: "filter-one", displayName: "hehehe", multiSelect: false, required: true, options: [])
+                    ],
+                    selectedModule: nil,
+                    items: .loaded(
+                        .init(
+                            items: [.init(id: "media_1", title: "Demo 1", meta: .video)],
+                            currentPage: "1",
+                            nextPage: nil
+                        )
+                    )
+                ),
+                reducer: EmptyReducer()
             )
         )
     }

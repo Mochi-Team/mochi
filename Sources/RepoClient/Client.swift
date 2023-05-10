@@ -46,7 +46,7 @@ public struct RepoClient: Sendable {
     /// Install a Module
     ///
     /// Installs a module on the system
-    public let installModule: @Sendable (Repo.ID, Module.Manifest) async throws -> Void
+    public let installModule: @Sendable (Repo.ID, Module.Manifest) -> AsyncThrowingStream<RepoModuleDownloadState, Swift.Error>
 
     /// Remove a Module
     ///
@@ -61,7 +61,7 @@ public struct RepoClient: Sendable {
     /// Installed Modules
     ///
     /// Returns installed modules
-    public let modules: @Sendable (Request<Module>) -> AsyncStream<[Module]>
+    public let modules: @Sendable (Repo.ID) -> AsyncStream<Set<Module>>
 }
 
 extension RepoClient {

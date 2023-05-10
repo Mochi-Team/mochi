@@ -83,8 +83,8 @@ public struct SnapScroll<T, Content: View>: View {
         .readSize { size in
             maxWidth = size.size.width
         }
-        .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.76), value: translation)
-        .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.76), value: position)
+        .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.76), value: translation != .zero)
+        .animation(.interactiveSpring(response: 0.25, dampingFraction: 0.66), value: position)
     }
 }
 

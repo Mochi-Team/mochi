@@ -94,11 +94,13 @@ extension Attribute {
         self.name = name
         self.encode = { plainObject, managedObject in
             let managedObjects = managedObject.mutableSetValue(forKey: name)
+
             let objects = plainObject[keyPath: keyPath]
 
             // Adding and updating existing elements
             for object in objects {
-                var managed = try managedObjects.compactMap { $0 as? NSManagedObject }
+                var managed = try managedObjects
+                    .compactMap { $0 as? NSManagedObject }
                     .first { try Relation(from: $0)[keyPath: Relation.idKeyPath] == object[keyPath: Relation.idKeyPath] }
 
                 if managed == nil {
@@ -127,9 +129,9 @@ extension Attribute {
                     continue
                 }
 
-                if !objects
-                    .contains(where: { wrapped[keyPath: Relation.idKeyPath] == $0[keyPath: Relation.idKeyPath] }) {
+                if !objects.contains(where: { wrapped[keyPath: Relation.idKeyPath] == $0[keyPath: Relation.idKeyPath] }) {
                     managedObjects.remove(managed)
+                    managedObject.managedObjectContext?.delete(managed)
                 }
             }
         }
@@ -194,6 +196,7 @@ extension Attribute {
                 if !objects
                     .contains(where: { wrapped[keyPath: Relation.idKeyPath] == $0[keyPath: Relation.idKeyPath] }) {
                     managedObjects.remove(managed)
+                    managedObject.managedObjectContext?.delete(managed)
                 }
             }
         }

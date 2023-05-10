@@ -13,6 +13,7 @@ import SharedModels
 
 extension RepoPackagesFeature.Reducer: Reducer {
     private struct LoadedRepoModulesCancellable: Hashable {}
+    private struct LoadedRepoModulesInstalledCancellable: Hashable {}
 
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -20,12 +21,22 @@ extension RepoPackagesFeature.Reducer: Reducer {
             case .view(.didAppear):
                 let repo = state.repo
                 state.packages = .loading
-                return .run { send in
-                    await withTaskCancellation(id: LoadedRepoModulesCancellable.self, cancelInFlight: true) {
-                        await send(.internal(.loadedRepoModules(.init { try await repoClient.fetchRepoModules(repo) })))
+                return .merge(
+                    .run { send in
+                        await withTaskCancellation(id: LoadedRepoModulesCancellable.self, cancelInFlight: true) {
+                            await send(.internal(.loadedRepoModules(.init { try await repoClient.fetchRepoModules(repo) })))
+                        }
                     }
-                }
-                .animation()
+                    .animation(),
+                    .run { send in
+                        await withTaskCancellation(id: LoadedRepoModulesInstalledCancellable.self, cancelInFlight: true) {
+                            let installedModulesStream = repoClient.modules(repo.id)
+                            for await modules in installedModulesStream {
+                                await send(.internal(.installedModulesState(modules)))
+                            }
+                        }
+                    }
+                )
 
             case let .view(.didTapInstallModule(moduleId)):
                 let repoId = state.repo.id
@@ -34,15 +45,23 @@ extension RepoPackagesFeature.Reducer: Reducer {
                     break
                 }
 
-                return .run {
-                    try await repoClient.installModule(repoId, manifest)
+                return .run { send in
+                    let installStream = repoClient.installModule(repoId, manifest)
+
+                    for try await installState in installStream {
+                        await send(.internal(.moduleDownloadState(moduleId, installState)))
+                    }
+                    await send(.internal(.moduleDownloadState(moduleId, .installed)))
+                } catch: { _, send in
+                    await send(.internal(.moduleDownloadState(moduleId, nil)))
                 }
 
             case let .view(.didTapRemoveModule(moduleId)):
                 let repoId = state.repo.id
 
-                return .run {
+                return .run { send in
                     try await repoClient.removeModule(repoId, moduleId)
+                    await send(.internal(.moduleDownloadState(moduleId, nil)))
                 }
 
             case .view(.didTapBackButton):
@@ -58,6 +77,12 @@ extension RepoPackagesFeature.Reducer: Reducer {
 
             case let .internal(.loadedRepoModules(.failure(error))):
                 state.packages = .failed((error as? RepoClient.Error) ?? .failedToFindRepo)
+
+            case let .internal(.moduleDownloadState(moduleId, downloadState)):
+                state.installingModules[moduleId] = downloadState
+
+            case let .internal(.installedModulesState(modulesIds)):
+                state.installedModules = modulesIds
 
             case .delegate:
                 break

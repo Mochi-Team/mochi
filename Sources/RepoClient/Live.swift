@@ -20,9 +20,16 @@ extension RepoClient: DependencyKey {
     private static var databaseClient
 
     public static let liveValue = Self(
-        selectModule: { _, moduleId in
-            if let module: Module = try? await databaseClient.fetch(.all.where(\.id == moduleId)).first {
-//                selectedModule.send(nil)
+        selectModule: { repoId, moduleId in
+            guard let repo: Repo = try? await databaseClient.fetch(.all.where(\.baseURL == repoId.rawValue)).first else {
+                selectedModule.send(nil)
+                return
+            }
+
+            if let module = repo.modules.first(where: { $0.id == moduleId }) {
+                selectedModule.send(.init(repoId: repoId, module: module))
+            } else {
+                selectedModule.send(nil)
             }
         },
         selectedModuleStream: {
@@ -74,13 +81,73 @@ extension RepoClient: DependencyKey {
                 try await databaseClient.delete(repo)
             }
         },
-        installModule: { _, _ in
-            // / TODO: Download module contents and then add it to coredata
+        installModule: { repoId, moduleManifest in
+            .init { continuation in
+                continuation.yield(.pending)
+                let task = Task.detached {
+                    guard var repo: Repo = try await databaseClient.fetch(.all.where(\.baseURL == repoId.rawValue)).first else {
+                        continuation.finish(throwing: RepoClient.Error.failedToFindRepo)
+                        return
+                    }
+
+                    let moduleFileURL = repo.baseURL.appendingPathComponent(moduleManifest.file, isDirectory: false)
+                    let request = URLRequest(url: moduleFileURL)
+
+                    do {
+                        let (data, response) = try await URLSession.shared.data(for: request)
+
+                        guard let response = response as? HTTPURLResponse else {
+                            throw RepoClient.Error.failedToDownloadModule
+                        }
+
+                        continuation.yield(.installing)
+
+                        if let index = repo.modules.firstIndex(where: { $0.id == moduleManifest.id }) {
+                            repo.modules.remove(at: index)
+                        }
+
+                        let module = Module(
+                            binaryModule: data,
+                            installDate: .init(),
+                            manifest: moduleManifest
+                        )
+
+                        repo.modules.insert(module)
+
+                        try await databaseClient.insert(repo)
+
+                        continuation.finish()
+                    } catch {
+                        continuation.finish(throwing: RepoClient.Error.failedToDownloadModule)
+                    }
+                }
+
+                continuation.onTermination = { @Sendable _ in
+                    task.cancel()
+                }
+            }
         },
-        removeModule: { _, _ in
-//            try await databaseClient.delete(module)
+        removeModule: { repoId, moduleId in
+            guard var repo: Repo = try await databaseClient.fetch(.all.where(\.baseURL == repoId.rawValue)).first else {
+                return
+            }
+
+            if let index = repo.modules.firstIndex(where: { $0.id == moduleId }) {
+                repo.modules.remove(at: index)
+                try await databaseClient.insert(repo)
+            }
+
+            if Self.selectedModule.value?.repoId == repoId && Self.selectedModule.value?.module.id == moduleId {
+                Self.selectedModule.send(nil)
+            }
         },
         repos: { databaseClient.observe($0) },
-        modules: { databaseClient.observe($0) }
+        modules: { repoId in
+            let stream: AsyncStream<[Repo]> = databaseClient.observe(.all.where(\.baseURL == repoId.rawValue))
+            return stream.map { repos in
+                repos.first?.modules ?? .init()
+            }
+            .eraseToStream()
+        }
     )
 }

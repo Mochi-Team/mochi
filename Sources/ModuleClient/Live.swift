@@ -31,12 +31,12 @@ extension ModuleClient: DependencyKey {
 struct ModuleHandler {
     private let module: Module
     private let instance: WasmInstance
-    private let importHandlers: HostModuleIntercommunication<WasmInstance.Memory>
+    private let hostModuleComms: HostModuleIntercommunication<WasmInstance.Memory>
 
     init(module: Module) throws {
         self.module = module
         self.instance = try .init(module: module.binaryModule)
-        self.importHandlers = .init(memory: instance.memory)
+        self.hostModuleComms = .init(memory: instance.memory)
         initializeImports()
     }
 }
@@ -45,12 +45,12 @@ struct ModuleHandler {
 ///
 extension ModuleHandler {
     func search(_ query: SearchQuery) async throws -> Paging<Media> {
-        let queryPtr = self.importHandlers.addToHostMemory(query)
+        let queryPtr = self.hostModuleComms.addToHostMemory(query)
         let resultsPtr: Int32 = try instance.exports.search(queryPtr)
 
-        if let values = importHandlers.getHostObject(resultsPtr) as? Paging<Media> {
-            return values
-        } else if let result = importHandlers.getHostObject(resultsPtr) as? ModuleClient.Error {
+        if let paging = hostModuleComms.getHostObject(resultsPtr) as? Paging<Any?> {
+            return paging.into()
+        } else if let result = hostModuleComms.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -60,9 +60,9 @@ extension ModuleHandler {
     func discoverListings() async throws -> [DiscoverListing] {
         let resultsPtr: Int32 = try instance.exports.discovery_listing()
 
-        if let values = importHandlers.getHostObject(resultsPtr) as? [DiscoverListing] {
+        if let values = hostModuleComms.getHostObject(resultsPtr) as? [DiscoverListing] {
             return values
-        } else if let result = importHandlers.getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostModuleComms.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -71,9 +71,9 @@ extension ModuleHandler {
 
     func searchFilters() async throws -> [SearchFilter] {
         let resultsPtr: Int32 = try instance.exports.search_filters()
-        if let values = importHandlers.getHostObject(resultsPtr) as? [SearchFilter] {
+        if let values = hostModuleComms.getHostObject(resultsPtr) as? [SearchFilter] {
             return values
-        } else if let result = importHandlers.getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostModuleComms.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -92,60 +92,60 @@ private extension ModuleHandler {
                 WasmInstance.Function("copy") { [self] (
                     ptr: PtrRef
                 ) -> Int32 in
-                    importHandlers.copy(ptr: ptr)
+                    hostModuleComms.copy(ptr: ptr)
                 }
 
                 WasmInstance.Function("destroy") { [self] (ptr: Int32) in
-                    importHandlers.destroy(ptr: ptr)
+                    hostModuleComms.destroy(ptr: ptr)
                 }
 
                 WasmInstance.Function("create_array") { [self] () -> Int32 in
-                    importHandlers.create_array()
+                    hostModuleComms.create_array()
                 }
 
                 WasmInstance.Function("create_obj") { [self] in
-                    importHandlers.create_obj()
+                    hostModuleComms.create_obj()
                 }
 
                 WasmInstance.Function("create_string") { [self] (
                     bufPtr: RawPtr,
                     bufLen: Int32
                 ) -> Int32 in
-                    importHandlers.create_string(buf_ptr: bufPtr, buf_len: bufLen)
+                    hostModuleComms.create_string(buf_ptr: bufPtr, buf_len: bufLen)
                 }
 
                 WasmInstance.Function("create_bool") { [self] (
                     value: Int32
                 ) -> Int32 in
-                    importHandlers.create_bool(value: value)
+                    hostModuleComms.create_bool(value: value)
                 }
 
                 WasmInstance.Function("create_float") { [self] (
                     value: Float64
                 ) -> Int32 in
-                    importHandlers.create_float(value: value)
+                    hostModuleComms.create_float(value: value)
                 }
 
                 WasmInstance.Function("create_int") { [self] (
                     value: Int64
                 ) -> Int32 in
-                    importHandlers.create_int(value: value)
+                    hostModuleComms.create_int(value: value)
                 }
 
                 WasmInstance.Function("create_error") { [self] () -> Int32 in
-                    importHandlers.create_error()
+                    hostModuleComms.create_error()
                 }
 
                 WasmInstance.Function("ptr_kind") { [self] (
                     ptr: PtrRef
                 ) -> PtrKind.RawValue in
-                    importHandlers.ptr_kind(ptr: ptr)
+                    hostModuleComms.ptr_kind(ptr: ptr)
                 }
 
                 WasmInstance.Function("string_len") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.string_len(ptr: ptr)
+                    hostModuleComms.string_len(ptr: ptr)
                 }
 
                 WasmInstance.Function("read_string") { [self] (
@@ -153,31 +153,31 @@ private extension ModuleHandler {
                     bufPtr: Int32,
                     bufLen: Int32
                 ) in
-                    importHandlers.read_string(ptr: ptr, buf_ptr: bufPtr, len: bufLen)
+                    hostModuleComms.read_string(ptr: ptr, buf_ptr: bufPtr, len: bufLen)
                 }
 
                 WasmInstance.Function("read_int") { [self] (
                     ptr: Int32
                 ) -> Int64 in
-                    importHandlers.read_int(ptr: ptr)
+                    hostModuleComms.read_int(ptr: ptr)
                 }
 
                 WasmInstance.Function("read_float") { [self] (
                     ptr: Int32
                 ) -> Float64 in
-                    importHandlers.read_float(ptr: ptr)
+                    hostModuleComms.read_float(ptr: ptr)
                 }
 
                 WasmInstance.Function("read_bool") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.read_bool(ptr: ptr)
+                    hostModuleComms.read_bool(ptr: ptr)
                 }
 
                 WasmInstance.Function("obj_len") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.obj_len(ptr: ptr)
+                    hostModuleComms.obj_len(ptr: ptr)
                 }
 
                 WasmInstance.Function("obj_get") { [self] (
@@ -185,7 +185,7 @@ private extension ModuleHandler {
                     keyPtr: RawPtr,
                     keyLen: Int32
                 ) -> Int32 in
-                    importHandlers.obj_get(ptr: ptr, key_ptr: keyPtr, key_len: keyLen)
+                    hostModuleComms.obj_get(ptr: ptr, key_ptr: keyPtr, key_len: keyLen)
                 }
 
                 WasmInstance.Function("obj_set") { [self] (
@@ -194,7 +194,7 @@ private extension ModuleHandler {
                     keyLen: Int32,
                     valuePtr: PtrRef
                 ) in
-                    importHandlers.obj_set(ptr: ptr, key_ptr: keyPtr, key_len: keyLen, value_ptr: valuePtr)
+                    hostModuleComms.obj_set(ptr: ptr, key_ptr: keyPtr, key_len: keyLen, value_ptr: valuePtr)
                 }
 
                 WasmInstance.Function("obj_remove") { [self] (
@@ -202,32 +202,32 @@ private extension ModuleHandler {
                     keyPtr: Int32,
                     keyLen: Int32
                 ) in
-                    importHandlers.obj_remove(ptr: ptr, key_ptr: keyPtr, key_len: keyLen)
+                    hostModuleComms.obj_remove(ptr: ptr, key_ptr: keyPtr, key_len: keyLen)
                 }
 
                 WasmInstance.Function("obj_keys") { [self] (
                     ptr: PtrRef
                 ) -> Int32 in
-                    importHandlers.obj_keys(ptr: ptr)
+                    hostModuleComms.obj_keys(ptr: ptr)
                 }
 
                 WasmInstance.Function("obj_values") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.obj_values(ptr: ptr)
+                    hostModuleComms.obj_values(ptr: ptr)
                 }
 
                 WasmInstance.Function("array_len") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.array_len(ptr: ptr)
+                    hostModuleComms.array_len(ptr: ptr)
                 }
 
                 WasmInstance.Function("array_get") { [self] (
                     ptr: PtrRef,
                     idx: Int32
                 ) -> Int32 in
-                    importHandlers.array_get(ptr: ptr, idx: idx)
+                    hostModuleComms.array_get(ptr: ptr, idx: idx)
                 }
 
                 WasmInstance.Function("array_set") { [self] (
@@ -235,21 +235,21 @@ private extension ModuleHandler {
                     idx: Int32,
                     valuePtr: Int32
                 ) in
-                    importHandlers.array_set(ptr: ptr, idx: idx, value_ptr: valuePtr)
+                    hostModuleComms.array_set(ptr: ptr, idx: idx, value_ptr: valuePtr)
                 }
 
                 WasmInstance.Function("array_append") { [self] (
                     ptr: Int32,
                     valuePtr: Int32
                 ) in
-                    importHandlers.array_append(ptr: ptr, value_ptr: valuePtr)
+                    hostModuleComms.array_append(ptr: ptr, value_ptr: valuePtr)
                 }
 
                 WasmInstance.Function("array_remove") { [self] (
                     ptr: Int32,
                     idx: Int32
                 ) in
-                    importHandlers.array_remove(ptr: ptr, idx: idx)
+                    hostModuleComms.array_remove(ptr: ptr, idx: idx)
                 }
             }
 
@@ -257,15 +257,15 @@ private extension ModuleHandler {
 
             WasmInstance.Import(namespace: "http") {
                 WasmInstance.Function("create") { [self] (method: Int32) -> Int32 in
-                    importHandlers.request_create(method: method)
+                    hostModuleComms.request_create(method: method)
                 }
 
                 WasmInstance.Function("send") { [self] (ptr: ReqRef) in
-                    importHandlers.request_send(ptr: ptr)
+                    hostModuleComms.request_send(ptr: ptr)
                 }
 
                 WasmInstance.Function("close") { [self] (ptr: ReqRef) in
-                    importHandlers.request_close(ptr: ptr)
+                    hostModuleComms.request_close(ptr: ptr)
                 }
 
                 WasmInstance.Function("set_url") { [self] (
@@ -273,7 +273,7 @@ private extension ModuleHandler {
                     urlPtr: Int32,
                     urlLen: Int32
                 ) in
-                    importHandlers.request_set_url(
+                    hostModuleComms.request_set_url(
                         ptr: ptr,
                         url_ptr: urlPtr,
                         url_len: urlLen
@@ -287,7 +287,7 @@ private extension ModuleHandler {
                     valuePtr: Int32,
                     valueLen: Int32
                 ) in
-                    importHandlers.request_set_header(
+                    hostModuleComms.request_set_header(
                         ptr: ptr,
                         key_ptr: keyPtr,
                         key_len: keyLen,
@@ -301,7 +301,7 @@ private extension ModuleHandler {
                     dataPtr: Int32,
                     dataLen: Int32
                 ) in
-                    importHandlers.request_set_body(
+                    hostModuleComms.request_set_body(
                         ptr: ptr,
                         data_ptr: dataPtr,
                         data_len: dataLen
@@ -312,19 +312,19 @@ private extension ModuleHandler {
                     ptr: Int32,
                     method: Int32
                 ) in
-                    importHandlers.request_set_method(ptr: ptr, method: method)
+                    hostModuleComms.request_set_method(ptr: ptr, method: method)
                 }
 
                 WasmInstance.Function("get_method") { [self] (
                     ptr: Int32
                 ) -> WasmRequest.Method.RawValue in
-                    importHandlers.request_get_method(ptr: ptr)
+                    hostModuleComms.request_get_method(ptr: ptr)
                 }
 
                 WasmInstance.Function("get_url") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.request_get_url(ptr: ptr)
+                    hostModuleComms.request_get_url(ptr: ptr)
                 }
 
                 WasmInstance.Function("get_header") { [self] (
@@ -332,19 +332,19 @@ private extension ModuleHandler {
                     keyPtr: Int32,
                     keyLen: Int32
                 ) -> Int32 in
-                    importHandlers.request_get_header(ptr: ptr, key_ptr: keyPtr, key_len: keyLen)
+                    hostModuleComms.request_get_header(ptr: ptr, key_ptr: keyPtr, key_len: keyLen)
                 }
 
                 WasmInstance.Function("get_status_code") { [self] (
                     ptr: Int32
                 ) -> Int32 in
-                    importHandlers.request_get_status_code(ptr: ptr)
+                    hostModuleComms.request_get_status_code(ptr: ptr)
                 }
 
                 WasmInstance.Function("get_data_len") { [self] (
                     ptr: ReqRef
                 ) -> Int32 in
-                    importHandlers.request_get_data_len(ptr: ptr)
+                    hostModuleComms.request_get_data_len(ptr: ptr)
                 }
 
                 WasmInstance.Function("get_data") { [self] (
@@ -352,7 +352,7 @@ private extension ModuleHandler {
                     arrRef: Int32,
                     arrLen: Int32
                 ) in
-                    importHandlers.request_get_data(ptr: ptr, arr_ptr: arrRef, arr_len: arrLen)
+                    hostModuleComms.request_get_data(ptr: ptr, arr_ptr: arrRef, arr_len: arrLen)
                 }
             }
 
@@ -363,40 +363,238 @@ private extension ModuleHandler {
                     bufPtr: RawPtr,
                     bufLen: Int32
                 ) -> Int32 in
-                    importHandlers.json_parse(buf_ptr: bufPtr, buf_len: bufLen)
+                    hostModuleComms.json_parse(buf_ptr: bufPtr, buf_len: bufLen)
                 }
             }
 
-            // MARK: Mochi Structs Meta
+            // MARK: HTML Imports
 
-            WasmInstance.Import(namespace: "structs_meta") {
-                WasmInstance.Function("create_search_filters") { [self] (
-                    filtersPtr: Int32,
-                    filtersLen: Int32
+            WasmInstance.Import(namespace: "html") {
+                WasmInstance.Function("parse") { (
+                    strPtr: RawPtr,
+                    strLen: Int32
                 ) -> Int32 in
-                    importHandlers.create_search_filters(
-                        filters_ptr: filtersPtr,
-                        filters_len: filtersLen
+                    hostModuleComms.scraper_parse(string_ptr: strPtr, string_len: strLen)
+                }
+
+                WasmInstance.Function("parse_with_uri") { (
+                    strPtr: RawPtr,
+                    strLen: Int32,
+                    uriPtr: RawPtr,
+                    uriLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_parse_with_uri(
+                        string_ptr: strPtr,
+                        string_len: strLen,
+                        base_uri_ptr: uriPtr,
+                        base_uri_len: uriLen
                     )
                 }
 
+                WasmInstance.Function("parse_fragment") { (
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_parse(string_ptr: strPtr, string_len: strLen)
+                }
+
+                WasmInstance.Function("parse_fragment_with_uri") { (
+                    strPtr: RawPtr,
+                    strLen: Int32,
+                    uriPtr: RawPtr,
+                    uriLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_parse_with_uri(
+                        string_ptr: strPtr,
+                        string_len: strLen,
+                        base_uri_ptr: uriPtr,
+                        base_uri_len: uriLen
+                    )
+                }
+
+                WasmInstance.Function("select") { (
+                    ptr: PtrRef,
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_select(
+                        ptr: ptr,
+                        selector_ptr: strPtr,
+                        selector_len: strLen
+                    )
+                }
+
+                WasmInstance.Function("attr") { (
+                    ptr: PtrRef,
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_attr(
+                        ptr: ptr,
+                        selector_ptr: strPtr,
+                        selector_len: strLen
+                    )
+                }
+
+                WasmInstance.Function("set_text") { (
+                    ptr: PtrRef,
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_set_text(
+                        ptr: ptr,
+                        text: strPtr,
+                        text_len: strLen
+                    )
+                }
+
+                WasmInstance.Function("set_html") { (
+                    ptr: PtrRef,
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_set_html(
+                        ptr: ptr,
+                        html: strPtr,
+                        html_len: strLen
+                    )
+                }
+
+                WasmInstance.Function("prepend") { (
+                    ptr: PtrRef,
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_prepend(
+                        ptr: ptr,
+                        html: strPtr,
+                        html_len: strLen
+                    )
+                }
+
+                WasmInstance.Function("append") { (
+                    ptr: PtrRef,
+                    strPtr: RawPtr,
+                    strLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_append(
+                        ptr: ptr,
+                        html: strPtr,
+                        html_len: strLen
+                    )
+                }
+
+                WasmInstance.Function("first") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_first(ptr: ptr)
+                }
+
+                WasmInstance.Function("last") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_last(ptr: ptr)
+                }
+
+                WasmInstance.Function("next") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_next(ptr: ptr)
+                }
+
+                WasmInstance.Function("previous") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_previous(ptr: ptr)
+                }
+
+                WasmInstance.Function("base_uri") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_base_uri(ptr: ptr)
+                }
+
+                WasmInstance.Function("body") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_body(ptr: ptr)
+                }
+
+                WasmInstance.Function("text") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_text(ptr: ptr)
+                }
+
+                WasmInstance.Function("untrimmed_text") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_untrimmed_text(ptr: ptr)
+                }
+
+                WasmInstance.Function("own_text") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_own_text(ptr: ptr)
+                }
+
+                WasmInstance.Function("data") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_data(ptr: ptr)
+                }
+
+                WasmInstance.Function("array") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_array(ptr: ptr)
+                }
+
+                WasmInstance.Function("html") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_html(ptr: ptr)
+                }
+
+                WasmInstance.Function("outer_html") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_outer_html(ptr: ptr)
+                }
+
+                WasmInstance.Function("escape") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_escape(ptr: ptr)
+                }
+
+                WasmInstance.Function("unescape") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_unescape(ptr: ptr)
+                }
+
+                WasmInstance.Function("id") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_id(ptr: ptr)
+                }
+
+                WasmInstance.Function("tag_name") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_tag_name(ptr: ptr)
+                }
+
+                WasmInstance.Function("class_name") { (ptr: PtrRef) -> PtrRef in
+                    hostModuleComms.scraper_class_name(ptr: ptr)
+                }
+
+                WasmInstance.Function("has_class") { (
+                    ptr: PtrRef,
+                    classNamePtr: RawPtr,
+                    classNameLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_has_class(ptr: ptr, class_name_ptr: classNamePtr, class_name_length: classNameLen)
+                }
+
+                WasmInstance.Function("has_attr") { (
+                    ptr: PtrRef,
+                    attrNamePtr: RawPtr,
+                    attrNameLen: Int32
+                ) -> Int32 in
+                    hostModuleComms.scraper_has_attr(
+                        ptr: ptr,
+                        attr_name_ptr: attrNamePtr,
+                        attr_name_length: attrNameLen
+                    )
+                }
+            }
+
+            // MARK: Mochi Structs Meta Imports
+
+            WasmInstance.Import(namespace: "structs_meta") {
                 WasmInstance.Function("create_search_filter") { [self] (
                     idPtr: Int32,
                     idLen: Int32,
                     namePtr: Int32,
                     nameLen: Int32,
-                    optionsPtr: Int32,
-                    optionsLen: Int32,
+                    optionsArrayRef: Int32,
                     multiSelect: Int32,
                     required: Int32
                 ) -> Int32 in
-                    importHandlers.create_search_filter(
+                    hostModuleComms.create_search_filter(
                         id_ptr: idPtr,
                         id_len: idLen,
                         name_ptr: namePtr,
                         name_len: nameLen,
-                        options_ptr: optionsPtr,
-                        options_len: optionsLen,
+                        options_array_ref: optionsArrayRef,
                         multiselect: multiSelect,
                         required: required
                     )
@@ -408,7 +606,7 @@ private extension ModuleHandler {
                     namePtr: Int32,
                     nameLen: Int32
                 ) -> Int32 in
-                    importHandlers.create_search_filter_option(
+                    hostModuleComms.create_search_filter_option(
                         option_id_ptr: optionIdPtr,
                         option_id_len: optionIdLen,
                         name_ptr: namePtr,
@@ -427,7 +625,7 @@ private extension ModuleHandler {
                     bannerImageLen: Int32,
                     meta: Int32
                 ) -> Int32 in
-                    importHandlers.create_media(
+                    hostModuleComms.create_media(
                         id_ptr: idPtr,
                         id_len: idLen,
                         title_ptr: titlePtr,
@@ -440,17 +638,15 @@ private extension ModuleHandler {
                     )
                 }
 
-                WasmInstance.Function("create_media_paging") { [self] (
-                    itemsPtr: Int32,
-                    itemsCount: Int32,
-                    currentPagePtr: Int32,
+                WasmInstance.Function("create_paging") { [self] (
+                    itemsArrayRefPtr: PtrRef,
+                    currentPagePtr: RawPtr,
                     currentPageLen: Int32,
-                    nextPagePtr: Int32,
+                    nextPagePtr: RawPtr,
                     nextPageLen: Int32
                 ) -> Int32 in
-                    importHandlers.create_media_paging(
-                        items_ptr: itemsPtr,
-                        items_count: itemsCount,
+                    hostModuleComms.create_paging(
+                        items_array_ref_ptr: itemsArrayRefPtr,
                         current_page_ptr: currentPagePtr,
                         current_page_len: currentPageLen,
                         next_page_ptr: nextPagePtr,
@@ -464,21 +660,11 @@ private extension ModuleHandler {
                     listingType: RawPtr,
                     pagingPtr: PtrRef
                 ) -> Int32 in
-                    importHandlers.create_discover_listing(
+                    hostModuleComms.create_discover_listing(
                         title_ptr: titlePtr,
                         title_len: titleLen,
                         listing_type: listingType,
                         paging_ptr: pagingPtr
-                    )
-                }
-
-                WasmInstance.Function("create_discover_listings") { [self] (
-                    listingsPtr: RawPtr,
-                    listingsLen: Int32
-                ) -> Int32 in
-                    importHandlers.create_discover_listings(
-                        listings_ptr: listingsPtr,
-                        listings_len: listingsLen
                     )
                 }
             }

@@ -20,8 +20,8 @@ public enum RepoPackagesFeature: Feature {
         public init(
             repo: Repo,
             packages: Loadable<[[Module.Manifest]], RepoClient.Error> = .pending,
-            installedModules: [Module] = [],
-            installingModules: [Module.ID: Double] = [:]
+            installedModules: Set<Module> = [],
+            installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:]
         ) {
             self.repo = repo
             self.packages = packages
@@ -31,8 +31,8 @@ public enum RepoPackagesFeature: Feature {
 
         public let repo: Repo
         public var packages: Loadable<[[Module.Manifest]], RepoClient.Error>
-        public var installedModules: [Module]
-        public var installingModules: [Module.ID: Double]
+        public var installedModules: Set<Module>
+        public var installingModules: [Module.ID: RepoClient.RepoModuleDownloadState]
     }
 
     public enum Action: FeatureAction {
@@ -49,6 +49,8 @@ public enum RepoPackagesFeature: Feature {
 
         public enum InternalAction: SendableAction {
             case loadedRepoModules(TaskResult<[Module.Manifest]>)
+            case moduleDownloadState(Module.ID, RepoClient.RepoModuleDownloadState?)
+            case installedModulesState(Set<Module>)
         }
 
         case view(ViewAction)

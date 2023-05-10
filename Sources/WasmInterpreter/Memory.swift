@@ -137,7 +137,7 @@ extension WasmInstance.Memory {
         let size: Int
 
         func isValid(byteOffset: Int, length: Int) -> Bool {
-            size >= byteOffset + length
+            0 <= byteOffset + length && byteOffset + length <= size
         }
     }
 

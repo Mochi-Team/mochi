@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import NukeUI
+import RepoClient
 import SharedModels
 import Styling
 import SwiftUI
@@ -95,7 +96,6 @@ extension RepoPackagesFeature.View {
                     ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
                         if !package.isEmpty {
                             packageRow(package)
-                                .padding(.horizontal)
                         }
                     }
                 }
@@ -180,7 +180,7 @@ extension RepoPackagesFeature.View {
     struct PackageDownloadState: Equatable {
         let repo: Repo
         let installedModule: Module?
-        let downloadState: Double?
+        let downloadState: RepoClient.RepoModuleDownloadState?
     }
 
     @MainActor
@@ -236,15 +236,31 @@ extension RepoPackagesFeature.View {
 
                 HStack(spacing: 0) {
                     if let downloadState = viewStore.downloadState {
-                        CircularProgressView(
-                            progress: downloadState,
-                            barStyle: .init(fill: .blue, width: 4, blurRadius: 1)
-                        ) {
-                            Image(systemName: "stop.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .foregroundColor(.blue)
-                                .padding(6)
+                        Group {
+                            switch downloadState {
+                            case .pending:
+                                EmptyView()
+                            case let .downloading(progress):
+                                CircularProgressView(
+                                    progress: progress,
+                                    barStyle: .init(fill: .blue, width: 4, blurRadius: 1)
+                                ) {
+                                    Image(systemName: "stop.fill")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .foregroundColor(.blue)
+                                        .padding(6)
+                                }
+                                .frame(width: 24, height: 24)
+                            case .installing:
+                                EmptyView()
+                            case .installed:
+                                Image(systemName: "checkmark.circle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .foregroundColor(.green)
+                                    .frame(width: 24, height: 24)
+                            }
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -261,11 +277,13 @@ extension RepoPackagesFeature.View {
                                     .foregroundColor(.gray)
                             }
                             .buttonStyle(.plain)
+                            .frame(width: 24, height: 24)
                         } else {
                             Image(systemName: "checkmark.circle.fill")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .foregroundColor(.green)
+                                .frame(width: 24, height: 24)
                         }
                     } else {
                         Button {
@@ -277,13 +295,25 @@ extension RepoPackagesFeature.View {
                                 .foregroundColor(.blue)
                         }
                         .buttonStyle(.plain)
+                        .frame(width: 24, height: 24)
                     }
                 }
-                .frame(width: 24, height: 24)
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
+            .padding(.horizontal)
+            .contentShape(Rectangle())
+            .contextMenu {
+                if let installed = viewStore.installedModule {
+                    Button {
+                        viewStore.send(.didTapRemoveModule(installed.id))
+                    } label: {
+                        Label("Remove module", systemImage: "trash.fill")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 }

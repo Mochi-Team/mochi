@@ -48,11 +48,15 @@ final class DatabaseClientLive: DatabaseClient {
 
     func insert<T: MORepresentable>(_ item: T) async throws {
         try await pc.schedule { context in
-            guard let object = context.insert(entity: T.entityName) else {
-                fatalError("entity name not found")
+            let object: NSManagedObject?
+
+            if let objectFound = try context.fetch(.all.where(T.idKeyPath == item[keyPath: T.idKeyPath])).first {
+                object = objectFound
+            } else {
+                object = context.insert(entity: T.entityName)
             }
 
-            try object.update(with: item)
+            try object?.update(with: item)
         }
     }
 
@@ -100,7 +104,7 @@ final class DatabaseClientLive: DatabaseClient {
 
     func observe<T: MORepresentable>(_ request: Request<T>) -> AsyncStream<[T]> {
         .init { continuation in
-            Task.detached { [unowned self] in
+            let cancellation = Task.detached { [unowned self] in
                 let values = try? await self.fetch(request)
                 continuation.yield(values ?? [])
 
@@ -108,6 +112,10 @@ final class DatabaseClientLive: DatabaseClient {
                     let values = try? await self.fetch(request)
                     continuation.yield(values ?? [])
                 }
+            }
+
+            continuation.onTermination = { _ in
+                cancellation.cancel()
             }
         }
     }

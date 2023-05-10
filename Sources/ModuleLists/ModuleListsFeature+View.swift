@@ -86,30 +86,30 @@ extension ModuleListsFeature.View {
 
             VStack(spacing: 8) {
                 // TODO: Use installed repo with modules
-//                if repo.modules.isEmpty {
-//                    VStack(spacing: 8) {
-//                        Text("No modules installed")
-//                            .font(.headline.bold())
-//
-//                        Text("This repo does not contained any installed modules.")
-//                            .font(.callout)
-//                            .multilineTextAlignment(.center)
-//                    }
-//                    .padding(12)
-//                    .frame(maxWidth: .infinity)
-//                    .background(Color.gray.opacity(0.16).cornerRadius(12))
-//                } else {
-//                    ForEach(repo.modules) { module in
-//                        Button {
-//                            ViewStore(store.viewAction.stateless)
-//                                .send(.didSelectModule(repo.id, module.id))
-//                        } label: {
-//                            moduleRow(module)
-//                                .contentShape(Rectangle())
-//                        }
-//                        .buttonStyle(.plain)
-//                    }
-//                }
+                if repo.modules.isEmpty {
+                    VStack(spacing: 8) {
+                        Text("No modules installed")
+                            .font(.headline.bold())
+
+                        Text("This repo does not contained any installed modules.")
+                            .font(.callout)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray.opacity(0.16).cornerRadius(12))
+                } else {
+                    ForEach(repo.modules.sorted { $0.name < $1.name }, id: \.id) { module in
+                        Button {
+                            ViewStore(store.viewAction.stateless)
+                                .send(.didSelectModule(repo.id, module.id))
+                        } label: {
+                            moduleRow(repo, module.manifest)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -131,6 +131,7 @@ extension ModuleListsFeature.View {
                     Color.gray // Acts as a placeholder
                 }
             }
+            .frame(width: 42, height: 42)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(module.name)
@@ -140,11 +141,12 @@ extension ModuleListsFeature.View {
                     .font(.footnote.weight(.medium))
                     .foregroundColor(.gray)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
         }
-        .fixedSize(horizontal: true, vertical: false)
+//        .fixedSize(horizontal: true, vertical: false)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
+        .padding(.vertical, 8)
     }
 }
 

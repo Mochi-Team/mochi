@@ -43,6 +43,8 @@ public enum DiscoverFeature: Feature {
         public var listings: Loadable<[DiscoverListing], Error>
         public var selectedModule: RepoClient.SelectedModule?
 
+        var hasSetUp = false
+
         public init(
             listings: Loadable<[DiscoverListing], Error> = .pending,
             selectedModule: RepoClient.SelectedModule? = nil
@@ -75,10 +77,13 @@ public enum DiscoverFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        @InsetValue(\.tabNavigation) var tabNavigationSize
-        @SwiftUI.State var optionSelectionSize = SizeInset.zero
-
         public let store: FeatureStoreOf<DiscoverFeature>
+
+        @InsetValue(\.tabNavigation)
+        var bottomNavigationSize
+
+        @SwiftUI.State
+        var topBarSizeInset = SizeInset.zero
 
         nonisolated public init(store: FeatureStoreOf<DiscoverFeature>) {
             self.store = store

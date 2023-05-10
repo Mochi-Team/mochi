@@ -28,6 +28,7 @@ let featuresTargets: [Target] = [
             "Architecture",
             "ModuleClient",
             "RepoClient",
+            "Styling",
             "SharedModels",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
@@ -38,7 +39,6 @@ let featuresTargets: [Target] = [
         name: "Repos",
         dependencies: [
             "Architecture",
-//            "DatabaseClient",
             "ModuleClient",
             "RepoClient",
             "SharedModels",
@@ -54,9 +54,11 @@ let featuresTargets: [Target] = [
             "Architecture",
             "ModuleClient",
             "RepoClient",
+            "Styling",
             "SharedModels",
             "ViewComponents",
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "NukeUI", package: "Nuke")
         ]
     ),
     .target(
@@ -104,7 +106,8 @@ let clientsTargets: [Target] = [
             "SharedModels",
             "WasmInterpreter",
             .product(name: "Tagged", package: "swift-tagged"),
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "SwiftSoup", package: "SwiftSoup")
         ]
     ),
     .testTarget(
@@ -239,7 +242,8 @@ let package = Package(
         .package(url: "https://github.com/johnpatrickmorgan/TCACoordinators.git", exact: "0.4.0"),
         .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
-        .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0")
+        .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0")
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

@@ -23,10 +23,11 @@ final class ModuleClientTests: XCTestCase {
             installDate: Date(),
             manifest: .init(
                 id: "demo-1",
-                name: "test",
-                icon: nil,
-                version: "0.0.0",
-                released: .init()
+                name: "demo 1",
+                file: "",
+                version: .init(0, 0, 1),
+                released: .init(),
+                meta: [.video]
             )
         )
 
@@ -34,7 +35,7 @@ final class ModuleClientTests: XCTestCase {
 
         let items = try await moduleClient.searchFilters(module)
 
-        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items.count, 2)
     }
 
     func testModuleSearch() async throws {
@@ -43,18 +44,19 @@ final class ModuleClientTests: XCTestCase {
             installDate: Date(),
             manifest: .init(
                 id: "demo-1",
-                name: "test",
-                icon: nil,
-                version: "0.0.0",
-                released: .init()
+                name: "demo 1",
+                file: "",
+                version: .init(0, 0, 1),
+                released: .init(),
+                meta: [.video]
             )
         )
 
         let moduleClient = ModuleClient.liveValue
 
-        let listing = try await moduleClient.search(module, .init(query: "Hello"))
+        let listing = try await moduleClient.search(module, .init(query: ""))
 
-        XCTAssertEqual(listing.currentPage, "Hello")
+        XCTAssertNotNil(listing.items.first?.id)
     }
 
     func testModuleDiscoveryListing() async throws {
@@ -63,10 +65,11 @@ final class ModuleClientTests: XCTestCase {
             installDate: Date(),
             manifest: .init(
                 id: "demo-1",
-                name: "test",
-                icon: nil,
-                version: "0.0.0",
-                released: .init()
+                name: "demo 1",
+                file: "",
+                version: .init(0, 0, 1),
+                released: .init(),
+                meta: [.video]
             )
         )
 

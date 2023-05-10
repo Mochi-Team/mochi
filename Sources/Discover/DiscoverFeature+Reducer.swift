@@ -17,6 +17,12 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
         Reduce { state, action in
             switch action {
             case.view(.didAppear):
+                if state.hasSetUp {
+                    break
+                }
+
+                state.hasSetUp = true
+
                 return .merge(
                     .run { send in
                         let moduleStream = repoClient.selectedModuleStream()

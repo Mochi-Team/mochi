@@ -35,7 +35,7 @@ public struct DiscoverListing: Sendable, Equatable {
     }
 }
 
-public struct SearchFilter: Identifiable {
+public struct SearchFilter: Identifiable, Equatable, Sendable {
     public let id: Tagged<Self, String>
     public let displayName: String
     public let multiSelect: Bool
@@ -56,7 +56,7 @@ public struct SearchFilter: Identifiable {
         self.options = options
     }
 
-    public struct Option: Identifiable {
+    public struct Option: Identifiable, Equatable, Sendable {
         public let id: Tagged<Self, String>
         public let displayName: String
 
@@ -70,7 +70,7 @@ public struct SearchFilter: Identifiable {
     }
 }
 
-public struct SearchQuery {
+public struct SearchQuery: Equatable, Sendable {
     public init(
         query: String,
         page: String? = nil,
@@ -81,12 +81,12 @@ public struct SearchQuery {
         self.filters = filters
     }
 
-    public let query: String
-    public let page: String?
-    public let filters: [Filter]
+    public var query: String
+    public var page: String?
+    public var filters: [Filter]
 
-    public struct Filter: Identifiable {
-        public let id: Tagged<Self, String>
+    public struct Filter: Identifiable, Equatable, Sendable {
+        public let id: SearchFilter.ID
         public let optionId: SearchFilter.Option.ID
 
         public init(

@@ -163,7 +163,7 @@ extension WasmInstance {
                     )
                 } catch {
                     removeImportedFunction(for: context, instanceIdentifier: id)
-                    print("function import error for \(functionName) - \(functionSignature): \(error)")
+//                    print("function import error for \(functionName) - \(functionSignature): \(error)")
                 }
             }
         }

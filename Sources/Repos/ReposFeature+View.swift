@@ -23,12 +23,6 @@ extension ReposFeature.View: View {
                 showsIndicators: false
             ) {
                 LazyVStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: topBarSize.size.height)
-
-                    Spacer()
-                        .frame(height: 4)
-
                     repoUrlTextInput
                         .padding(.horizontal)
 
@@ -66,13 +60,29 @@ extension ReposFeature.View: View {
                             }
                         }
                     }
-
-                    Spacer()
-                        .frame(height: tabNavigationSize.height)
                 }
                 .animation(.easeInOut, value: viewStore.state.count)
             }
-            .overlay(topBar, alignment: .top)
+            .safeAreaInset(edge: .top) {
+                // swiftlint:disable trailing_closure
+                TopBarView(
+                    title: "Repos",
+                    trailingAccessory: {
+                        Button {
+                            ViewStore(store.viewAction.stateless).send(.didAskToRefreshModules)
+                        } label: {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .contentShape(Rectangle())
+                                .font(.title2.weight(.semibold))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                )
+            }
+            .safeAreaInset(edge: .bottom) {
+                Spacer()
+                    .frame(height: tabNavigationSize.height)
+            }
             .overlay {
                 if viewStore.state.isEmpty {
                     noReposView
@@ -103,9 +113,6 @@ extension ReposFeature.View {
     var noReposView: some View {
         VStack(spacing: 0) {
             Spacer()
-                .frame(height: topBarSize.size.height)
-
-            Spacer()
                 .frame(height: 4)
 
             repoUrlTextInput
@@ -117,9 +124,6 @@ extension ReposFeature.View {
                 .font(.callout)
 
             Spacer()
-
-            Spacer()
-                .frame(height: tabNavigationSize.height)
         }
     }
 
@@ -130,7 +134,7 @@ extension ReposFeature.View {
             observe: \.`self`
         ) { viewStore in
             VStack(spacing: 0) {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     Group {
                         switch viewStore.urlRepoState.repo {
                         case .failed:
@@ -141,6 +145,7 @@ extension ReposFeature.View {
                                 .fixedSize(horizontal: true, vertical: true)
                         default:
                             Image(systemName: "magnifyingglass")
+                                .foregroundColor(.gray)
                         }
                     }
 
@@ -150,16 +155,12 @@ extension ReposFeature.View {
                             .removeDuplicates()
                     )
                     .textFieldStyle(.plain)
-                    .textInputAutocapitalization(.never)
-                    .textContentType(UITextContentType.URL)
-                    .keyboardType(.asciiCapable)
-                    .autocorrectionDisabled(true)
-                    .font(.callout)
-                    .padding(.vertical, 10)
-                    .contentShape(Rectangle())
-
-                    Spacer()
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(maxWidth: .infinity)
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .frame(maxHeight: .infinity)
 
                 LoadableView(loadable: viewStore.urlRepoState.repo) { repo in
                     Divider()
@@ -199,12 +200,13 @@ extension ReposFeature.View {
                                 .font(.system(size: 18).weight(.semibold))
                         }
                     }
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 12)
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal, 16)
+            .fixedSize(horizontal: false, vertical: true)
             .background(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 12)
                     .foregroundColor(.gray.opacity(0.1))
             )
             .animation(.easeInOut(duration: 0.2), value: viewStore.urlRepoState)
@@ -271,20 +273,13 @@ extension ReposFeature.View {
 }
 
 extension ReposFeature.View {
-    @MainActor
-    var topBar: some View {
-        TopBarView(
-            title: "Repos",
-            buttons: [
-                .init(style: .systemImage("arrow.triangle.2.circlepath")) {
-                    ViewStore(store.viewAction.stateless).send(.didAskToRefreshModules)
-                }
-            ]
-        )
-        .readSize { size in
-            topBarSize = size
-        }
-    }
+//    @MainActor
+//    var topBar: some View {
+//        // swiftlint:disable trailing_closure
+////        .readSize { size in
+////            topBarSize = size
+////        }
+//    }
 }
 
 struct ReposFeatureView_Previews: PreviewProvider {
@@ -315,7 +310,7 @@ struct ReposFeatureView_Previews: PreviewProvider {
                         )
                     ]
                 ),
-                reducer: ReposFeature.Reducer()
+                reducer: EmptyReducer()
             )
         )
     }

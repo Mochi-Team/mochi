@@ -89,9 +89,6 @@ public enum ReposFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<ReposFeature>
 
-        @SwiftUI.State
-        var topBarSize = SizeInset.zero
-
         @InsetValue(\.tabNavigation)
         var tabNavigationSize
 

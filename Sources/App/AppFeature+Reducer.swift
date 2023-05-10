@@ -35,7 +35,10 @@ extension AppFeature.Reducer {
                 switch delegate {}
 
             case let .internal(.search(.delegate(delegate))):
-                switch delegate {}
+                switch delegate {
+                case .tappedOpenModules:
+                    state.destination = .sheet(.moduleLists(.init()))
+                }
 
             case let .internal(.settings(.delegate(delegate))):
                 switch delegate {}

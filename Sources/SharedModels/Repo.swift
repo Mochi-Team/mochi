@@ -17,6 +17,7 @@ public struct Repo: Equatable, Identifiable, Sendable, Decodable {
     public var baseURL: URL
     public var dateAdded: Date
     public var lastRefreshed: Date?
+    public var modules: Set<Module>
 
     public var iconURL: URL? {
         manifest.icon
@@ -36,12 +37,14 @@ public struct Repo: Equatable, Identifiable, Sendable, Decodable {
         baseURL: URL,
         dateAdded: Date,
         lastRefreshed: Date?,
-        manifest: Repo.Manifest
+        manifest: Repo.Manifest,
+        modules: Set<Module> = []
     ) {
         self.baseURL = baseURL
         self.dateAdded = dateAdded
         self.lastRefreshed = lastRefreshed
         self.manifest = manifest
+        self.modules = modules
     }
 
     public subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Manifest, Value>) -> Value {
@@ -80,7 +83,8 @@ extension Repo: MORepresentable {
             manifest: .init(
                 name: "",
                 author: ""
-            )
+            ),
+            modules: []
         )
     }
 
@@ -93,12 +97,13 @@ extension Repo: MORepresentable {
         .init("icon", \.icon),
         .init("lastRefreshed", \.lastRefreshed),
         .init("name", \.name),
-        .init("repoDescription", \.description)
+        .init("repoDescription", \.description),
+        .init("modules", \.modules)
     ]
 }
 
 @dynamicMemberLookup
-public struct Module: Equatable, Identifiable, Sendable, Decodable {
+public struct Module: Hashable, Identifiable, Sendable, Decodable {
     public var id: Manifest.ID {
         get { manifest.id }
         set { manifest.id = newValue }
@@ -106,7 +111,7 @@ public struct Module: Equatable, Identifiable, Sendable, Decodable {
     public var binaryModule: Data
     public var installDate: Date
 
-    var manifest: Manifest
+    public var manifest: Manifest
 
     public init(
         binaryModule: Data,
@@ -125,7 +130,7 @@ public struct Module: Equatable, Identifiable, Sendable, Decodable {
 }
 
 extension Module {
-    public struct Manifest: Equatable, Identifiable, Sendable, Decodable {
+    public struct Manifest: Hashable, Identifiable, Sendable, Decodable {
         public var id: Tagged<Self, String>
         public var name: String
         public var description: String?

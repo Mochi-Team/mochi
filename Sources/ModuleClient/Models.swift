@@ -22,3 +22,16 @@ extension KVAccess {
             .value
     }
 }
+
+extension SearchQuery: KVAccess {}
+extension SearchQuery.Filter: KVAccess {}
+
+extension Paging {
+    func into<V>(_: V.Type = V.self) -> Paging<V> {
+        .init(
+            items: items.compactMap { $0 as? V },
+            currentPage: currentPage,
+            nextPage: nextPage
+        )
+    }
+}
