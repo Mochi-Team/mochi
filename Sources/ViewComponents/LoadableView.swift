@@ -21,8 +21,6 @@ public struct LoadableView<T, E, Loaded: View, Failed: View, Loading: View, Pend
     let loadingView: () -> Loading
     let pendingView: () -> Pending
 
-    var asGroup = true
-
     public init(
         loadable: Loadable<T, E>,
         @ViewBuilder loadedView: @escaping (T) -> Loaded,
@@ -49,14 +47,6 @@ public struct LoadableView<T, E, Loaded: View, Failed: View, Loading: View, Pend
         case let .failed(e):
             failedView(e)
         }
-    }
-}
-
-public extension LoadableView {
-    func asGroup(_ group: Bool) -> Self {
-        var view = self
-        view.asGroup = group
-        return view
     }
 }
 

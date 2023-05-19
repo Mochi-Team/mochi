@@ -6,39 +6,33 @@
 //  Copyright © 2023. All rights reserved.
 //
 
-import CoreData
+import CoreORM
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
 public protocol DatabaseClient: Sendable {
     @Sendable
-    func insert<T: MORepresentable>(_ item: T) async throws
+    func initialize() async throws
+
+    @Sendable
+    func insert<T: Entity>(_ item: T) async throws
+
+    @Sendable
+    func insertOrUpdate<T: Entity>(_ item: T) async throws
 
     @Sendable
     @discardableResult
-    func update<T: MORepresentable, V: ConvertableValue>(
-        _ id: T.EntityID,
-        _ keyPath: WritableKeyPath<T, V>,
-        _ value: V
-    ) async throws -> Bool
+    func update<T: Entity>(_ item: T) async throws -> Bool
 
     @Sendable
-    @discardableResult
-    func update<T: MORepresentable, V: ConvertableValue>(
-        _ id: T.EntityID,
-        _ keyPath: WritableKeyPath<T, V?>,
-        _ value: V?
-    ) async throws -> Bool
+    func delete<T: Entity>(_ item: T) async throws
 
     @Sendable
-    func delete<T: MORepresentable>(_ item: T) async throws
+    func fetch<T: Entity>(_ request: Request<T>) async throws -> [T]
 
     @Sendable
-    func fetch<T: MORepresentable>(_ request: Request<T>) async throws -> [T]
-
-    @Sendable
-    func observe<T: MORepresentable>(_ request: Request<T>) -> AsyncStream<[T]>
+    func observe<T: Entity>(_ request: Request<T>) -> AsyncStream<[T]>
 }
 
 public struct DatabaseClientKey: DependencyKey {

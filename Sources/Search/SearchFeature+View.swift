@@ -59,12 +59,11 @@ extension SearchFeature.View: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Spacer()
-                    .frame(height: tabNavInsetSize.height)
+                    .frame(height: bottomNavInsetSize.height)
             }
             .onAppear {
                 ViewStore(store.viewAction.stateless).send(.didAppear)
             }
-            .background(Color(uiColor: .systemBackground).ignoresSafeArea().edgesIgnoringSafeArea(.all))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -75,24 +74,10 @@ extension SearchFeature.View {
     var topBar: some View {
         TopBarView(title: "Search") {
             WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
-                Button {
+                ModuleSelectionButton(module: viewStore.state?.module.manifest) {
                     ViewStore(store.viewAction.stateless)
                         .send(.didTapOpenModules)
-                } label: {
-                    HStack {
-                        Text(viewStore.state?.module.name ?? "Not Selected")
-                        Image(systemName: "chevron.up.chevron.down")
-                    }
-                    .font(.footnote.weight(.semibold))
-                    .padding(8)
-                    .padding(.horizontal, 4)
-                    .background(
-                        BlurView()
-                            .clipShape(Capsule())
-                    )
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
             }
         } bottomAccessory: {
             WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
@@ -144,9 +129,6 @@ extension SearchFeature.View {
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
-        }
-        .readSize { size in
-            topBarSize = size
         }
     }
 }

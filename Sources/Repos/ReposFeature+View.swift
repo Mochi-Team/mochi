@@ -37,7 +37,7 @@ extension ReposFeature.View: View {
                             .padding(.horizontal)
 
                         ForEach(viewStore.state) { repo in
-                            repoRow(repo, repo.id == viewStore.state.last?.id)
+                            repoRow(repo)
                                 .padding(.horizontal)
                                 .background(Color(uiColor: .systemBackground))
                                 .contentShape(Rectangle())
@@ -73,7 +73,7 @@ extension ReposFeature.View: View {
                         } label: {
                             Image(systemName: "arrow.triangle.2.circlepath")
                                 .contentShape(Rectangle())
-                                .font(.title2.weight(.semibold))
+                                .font(.title3.weight(.semibold))
                         }
                         .buttonStyle(.plain)
                     }
@@ -98,9 +98,8 @@ extension ReposFeature.View: View {
         }
         .overlay {
             IfLetStore(
-                store.internalAction.scope(
-                    state: \.repoPackages,
-                    action: Action.InternalAction.repoPackages
+                store.scope(
+                    state: \.selected
                 ),
                 then: RepoPackagesFeature.View.init
             )
@@ -204,7 +203,6 @@ extension ReposFeature.View {
                 }
                 .padding(.horizontal)
             }
-            .fixedSize(horizontal: false, vertical: true)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .foregroundColor(.gray.opacity(0.1))
@@ -216,40 +214,37 @@ extension ReposFeature.View {
 
 extension ReposFeature.View {
     @MainActor
-    func repoRow(_ repo: Repo, _ lastItem: Bool) -> some View {
-        WithViewStore(
-            store.viewAction,
-            observe: \.loadedModules[repo.id] ?? .pending
-        ) { viewStore in
-            HStack(alignment: .top, spacing: 16) {
-                LazyImage(url: repo.iconURL) { state in
-                    if let image = state.image {
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    } else {
-                        Image(systemName: "questionmark.square.dashed")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .font(.body.weight(.light))
-                    }
+    func repoRow(_ repo: Repo) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            LazyImage(url: repo.iconURL) { state in
+                if let image = state.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Image(systemName: "questionmark.square.dashed")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .font(.body.weight(.light))
                 }
-                .frame(width: 38, height: 38)
+            }
+            .frame(width: 38, height: 38)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(repo.name)
-                        .font(.callout.weight(.medium))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(repo.name)
+                    .font(.callout.weight(.medium))
 
-                    HStack(spacing: 0) {
-                        Text(repo.baseURL.host ?? repo.author)
-                            .font(.footnote)
-                    }
-                    .lineLimit(1)
-                    .foregroundColor(.gray)
+                HStack(spacing: 0) {
+                    Text(repo.baseURL.host ?? repo.author)
+                        .font(.footnote)
                 }
+                .lineLimit(1)
+                .foregroundColor(.gray)
+            }
 
-                Spacer()
+            Spacer()
 
+            WithViewStore(store, observe: \.repoModules[repo.id] ?? .pending) { viewStore in
                 ZStack {
                     LoadableView(loadable: viewStore.state) { _ in
                         Image(systemName: "checkmark.circle.fill")
@@ -266,20 +261,10 @@ extension ReposFeature.View {
                 }
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
     }
-}
-
-extension ReposFeature.View {
-//    @MainActor
-//    var topBar: some View {
-//        // swiftlint:disable trailing_closure
-////        .readSize { size in
-////            topBarSize = size
-////        }
-//    }
 }
 
 struct ReposFeatureView_Previews: PreviewProvider {
@@ -287,28 +272,28 @@ struct ReposFeatureView_Previews: PreviewProvider {
         ReposFeature.View(
             store: .init(
                 initialState: .init(
-                    repos: [
-                        .init(
-                            baseURL: .init(string: "http://192.168.86.35:3000").unsafelyUnwrapped,
-                            dateAdded: .init(),
-                            lastRefreshed: .init(),
-                            manifest: .init(
-                                name: "Repo 1",
-                                author: "errorerrorerror"
-                            )
-                        ),
-                        .init(
-                            baseURL: .init(string: "/").unsafelyUnwrapped,
-                            dateAdded: .init(),
-                            lastRefreshed: .init(),
-                            manifest: .init(
-                                name: "Repo 2",
-                                author: "lol",
-                                description: nil,
-                                icon: nil
-                            )
-                        )
-                    ]
+//                    repos: [
+//                        .init(
+//                            baseURL: .init(string: "http://192.168.86.35:3000").unsafelyUnwrapped,
+//                            dateAdded: .init(),
+//                            lastRefreshed: .init(),
+//                            manifest: .init(
+//                                name: "Repo 1",
+//                                author: "errorerrorerror"
+//                            )
+//                        ),
+//                        .init(
+//                            baseURL: .init(string: "/").unsafelyUnwrapped,
+//                            dateAdded: .init(),
+//                            lastRefreshed: .init(),
+//                            manifest: .init(
+//                                name: "Repo 2",
+//                                author: "lol",
+//                                description: nil,
+//                                icon: nil
+//                            )
+//                        )
+//                    ]
                 ),
                 reducer: EmptyReducer()
             )

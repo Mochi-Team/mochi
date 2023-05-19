@@ -15,52 +15,45 @@ import SwiftUI
 import Tagged
 import ViewComponents
 
-public enum RepoPackagesFeature: Feature {
-    public struct State: FeatureState {
+public enum RepoPackagesFeature {
+    public typealias Package = [Module.Manifest]
+
+    public struct State: FeatureState, Identifiable {
         public init(
             repo: Repo,
-            packages: Loadable<[[Module.Manifest]], RepoClient.Error> = .pending,
-            installedModules: Set<Module> = [],
+            modules: Loadable<[Module.Manifest], RepoClient.Error> = .pending,
             installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:]
         ) {
             self.repo = repo
-            self.packages = packages
-            self.installedModules = installedModules
+            self.modules = modules
             self.installingModules = installingModules
         }
 
-        public let repo: Repo
-        public var packages: Loadable<[[Module.Manifest]], RepoClient.Error>
-        public var installedModules: Set<Module>
+        public var id: Repo.ID { repo.id }
+
+        public var repo: Repo
+        public var modules: Loadable<[Module.Manifest], RepoClient.Error>
         public var installingModules: [Module.ID: RepoClient.RepoModuleDownloadState]
+
+        public var packages: Loadable<[Package], RepoClient.Error> {
+            modules.map { manifests in
+                Dictionary(grouping: manifests, by: \.id)
+                    .map(\.value)
+                    .filter { !$0.isEmpty }
+                    .sorted { $0.latestModule.name < $1.latestModule.name }
+            }
+        }
+
+        public var installedModules: [Module] {
+            repo.modules.sorted(by: \.name)
+        }
     }
 
-    public enum Action: FeatureAction {
-        public enum ViewAction: SendableAction {
-            case didAppear
-            case didTapBackButton
-            case didTapInstallModule(Module.ID)
-            case didTapRemoveModule(Module.ID)
-        }
-
-        public enum DelegateAction: SendableAction {
-            case backButtonTapped
-        }
-
-        public enum InternalAction: SendableAction {
-            case loadedRepoModules(TaskResult<[Module.Manifest]>)
-            case moduleDownloadState(Module.ID, RepoClient.RepoModuleDownloadState?)
-            case installedModulesState(Set<Module>)
-        }
-
-        case view(ViewAction)
-        case delegate(DelegateAction)
-        case `internal`(InternalAction)
-    }
+    public typealias Action = ReposFeature.Action
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<RepoPackagesFeature>
+        public let store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>
 
         @SwiftUI.State
         var topBarSizeInset: SizeInset = .zero
@@ -68,18 +61,16 @@ public enum RepoPackagesFeature: Feature {
         @InsetValue(\.tabNavigation)
         var tabNavigationInset
 
-        nonisolated public init(store: FeatureStoreOf<RepoPackagesFeature>) {
+        nonisolated public init(store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = RepoPackagesFeature.State
-        public typealias Action = RepoPackagesFeature.Action
+    public typealias Reducer = ReposFeature.Reducer
+}
 
-        @Dependency(\.repo)
-        var repoClient
-
-        public init() {}
+extension RepoPackagesFeature.Package {
+    var latestModule: Module.Manifest {
+        self.max { $0.version < $1.version }.unsafelyUnwrapped
     }
 }

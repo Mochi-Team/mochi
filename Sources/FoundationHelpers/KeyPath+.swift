@@ -21,3 +21,19 @@ public func == <T, V: Equatable>(lhs: KeyPath<T, V>, rhs: V) -> (T) -> Bool {
 public func ?? <T, V>(keyPath: KeyPath<T, V?>, rhs: V) -> (T) -> V {
     { $0[keyPath: keyPath] ?? rhs }
 }
+
+public extension Sequence {
+    func sorted<Value: Comparable>(by keyPath: KeyPath<Element, Value>) -> [Element] {
+        sorted { $0[keyPath: keyPath] < $1[keyPath: keyPath] }
+    }
+}
+
+infix operator |>
+public func |> <T, L: Sequence, V: Equatable>(keyPath: KeyPath<T, V>, _ into: L) -> (T) -> Bool where V == L.Element {
+    { into.contains($0[keyPath: keyPath]) }
+}
+
+infix operator !|>
+public func !|> <T, L: Sequence, V: Equatable>(keyPath: KeyPath<T, V>, _ into: L) -> (T) -> Bool where V == L.Element {
+    { !into.contains($0[keyPath: keyPath]) }
+}

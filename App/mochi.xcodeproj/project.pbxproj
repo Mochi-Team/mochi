@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		132862252A17D06300F67EAC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132862242A17D06300F67EAC /* AppDelegate.swift */; };
 		1396FE0529DF561C00B22132 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1396FE0029DF561C00B22132 /* Assets.xcassets */; };
 		1396FE0629DF561C00B22132 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1396FE0229DF561C00B22132 /* Preview Assets.xcassets */; };
 		1396FE0729DF561C00B22132 /* MochiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1396FE0329DF561C00B22132 /* MochiApp.swift */; };
@@ -14,6 +15,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		132862242A17D06300F67EAC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		133C36312A168E8B007ED802 /* CoreORM.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = CoreORM.xctestplan; path = ../Tests/CoreORMTests/CoreORM.xctestplan; sourceTree = "<group>"; };
 		134516B629DF44D200E4C3B8 /* mochi */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = mochi; path = ..; sourceTree = "<group>"; };
 		138DA7D52A0AB5E800FDAC13 /* mochi-info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mochi-info.plist"; sourceTree = "<group>"; };
 		1396FDFF29DF561C00B22132 /* mochi.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = mochi.entitlements; sourceTree = "<group>"; };
@@ -72,6 +75,7 @@
 		1396FE0429DF561C00B22132 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				132862242A17D06300F67EAC /* AppDelegate.swift */,
 			);
 			path = iOS;
 			sourceTree = "<group>";
@@ -79,6 +83,7 @@
 		13C18B8829CE6CC100C14F26 = {
 			isa = PBXGroup;
 			children = (
+				133C36312A168E8B007ED802 /* CoreORM.xctestplan */,
 				134516B629DF44D200E4C3B8 /* mochi */,
 				1396FE0429DF561C00B22132 /* iOS */,
 				1396FDFD29DF561C00B22132 /* macOS */,
@@ -192,6 +197,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				132862252A17D06300F67EAC /* AppDelegate.swift in Sources */,
 				1396FE0729DF561C00B22132 /* MochiApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

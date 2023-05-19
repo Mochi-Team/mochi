@@ -145,3 +145,4 @@ custom_rules:
     excluded:
       - ".*/WasmInterpreterTests/.*\\.swift"
       - ".*/ModuleClientTests/.*\\.swift"
+      - ".*/CoreORMTests/.*\\.swift"

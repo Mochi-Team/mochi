@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import DatabaseClient
 import Discover
 import ModuleLists
 import Repos
@@ -17,6 +18,10 @@ import Settings
 extension AppFeature.Reducer {
     @ReducerBuilder<State, Action>
     public var body: some ReducerOf<Self> {
+        Scope(state: \.settings.userSettings, action: /Action.InternalAction.appDelegate) {
+            AppDelegateFeature.Reducer()
+        }
+
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
@@ -24,6 +29,9 @@ extension AppFeature.Reducer {
 
             case let .view(.didSelectTab(tab)):
                 state.selected = tab
+
+            case .internal(.appDelegate):
+                break
 
             case let .internal(.discover(.delegate(delegate))):
                 switch delegate {

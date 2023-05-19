@@ -66,10 +66,7 @@ public enum SearchFeature: Feature {
         public let store: FeatureStoreOf<SearchFeature>
 
         @InsetValue(\.tabNavigation)
-        var tabNavInsetSize
-
-        @SwiftUI.State
-        var topBarSize = SizeInset.zero
+        var bottomNavInsetSize
 
         nonisolated public init(store: FeatureStoreOf<SearchFeature>) {
             self.store = store

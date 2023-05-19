@@ -35,49 +35,59 @@ public enum ReposFeature: Feature {
         }
     }
 
-    public enum ModuleFetchingError: Swift.Error, Equatable, Sendable {
-        case failedToConnect
-        case noNetworkConnection
-        case unknown
-    }
-
     public struct State: FeatureState {
-        public var repos: [Repo]
-        public var loadedModules: [Repo.ID: Loadable<Date, ModuleFetchingError>]
+        @SelectableState
+        public var repos: IdentifiedArrayOf<Repo>
         public var urlRepoState: RepoURLState
+        public var repoModules: [Repo.ID: Loadable<[Module.Manifest], RepoClient.Error>]
+        public var installingModules: [RepoClient.RepoModuleID: RepoClient.RepoModuleDownloadState] = [:]
 
-        public var repoPackages: RepoPackagesFeature.State?
+        public var selected: RepoPackagesFeature.State? {
+            $repos.element.flatMap { repo in
+                .init(
+                    repo: repo,
+                    modules: repoModules[repo.id] ?? .pending,
+                    installingModules: Dictionary(
+                        uniqueKeysWithValues: installingModules.filter(\.key.repoId == repo.id)
+                            .map { ($0.moduleId, $1) }
+                    )
+                )
+            }
+        }
 
         public init(
-            repos: [Repo] = [],
-            loadedModules: [Repo.ID: Loadable<Date, ModuleFetchingError>] = [:],
-            repoURLState: RepoURLState = .init(),
-            repoPackages: RepoPackagesFeature.State? = nil
+            repos: SelectableState<Repo> = .init(),
+            repoModules: [Repo.ID: Loadable<[Module.Manifest], RepoClient.Error>] = [:],
+            repoURLState: RepoURLState = .init()
         ) {
-            self.repos = repos
-            self.loadedModules = loadedModules
+            self._repos = repos
+            self.repoModules = repoModules
             self.urlRepoState = repoURLState
-            self.repoPackages = repoPackages
         }
     }
 
     public enum Action: FeatureAction {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
+            case didAskToRefreshRepo(Repo.ID)
             case didAskToRefreshModules
+            case didTapBackButtonForOverlay
             case didTapRepo(Repo.ID)
             case didTapToAddNewRepo(RepoClient.RepoPayload)
             case didTapToDeleteRepo(Repo.ID)
+            case didTapAddModule(Repo.ID, Module.ID)
+            case didTapRemoveModule(Repo.ID, Module.ID)
             case binding(BindingAction<State>)
         }
 
         public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
+            case animateSelectRepo(Repo.ID?)
             case validateRepoURL(Loadable<RepoClient.RepoPayload, RepoURLState.Error>)
-            case loadableModules(Repo.ID, Loadable<Date, ModuleFetchingError>)
-            case fetchRepos(TaskResult<[Repo]>)
-            case repoPackages(RepoPackagesFeature.Action)
+            case loadableModules(Repo.ID, Loadable<[Module.Manifest], RepoClient.Error>)
+            case observeReposResult([Repo])
+            case observeInstalls([RepoClient.RepoModuleID: RepoClient.RepoModuleDownloadState])
         }
 
         case view(ViewAction)

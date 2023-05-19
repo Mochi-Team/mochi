@@ -38,11 +38,18 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
 
             case let .view(.didTapMedia(media)):
                 // TODO: Open a navigation/modal sheet for the specified media
-                break
+                switch media.meta {
+                case .image:
+                    break
+                case .video:
+                    break
+                case .text:
+                    break
+                }
 
-            case let .internal(.selectedModule(module)):
-                state.selectedModule = module
-                return fetchLatestListings(&state)
+            case let .internal(.selectedModule(selection)):
+                state.selectedModule = selection?.module.manifest
+                return fetchLatestListings(&state, selection)
 
             case let .internal(.loadedListings(.success(listing))):
                 state.listings = .loaded(listing)
@@ -58,20 +65,21 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
     }
 
     private func fetchLatestListings(
-        _ state: inout State
+        _ state: inout State,
+        _ selectedModule: RepoClient.SelectedModule?
     ) -> Effect<Action> {
-        guard let selectedModule = state.selectedModule else {
+        guard let selectedModule else {
             state.listings = .failed(.system(.moduleNotSelected))
             return .none
         }
 
-        let module = selectedModule.module
-
         state.listings = .loading
 
         return .run { send in
-            let listing = try await moduleClient.getDiscoverListings(module)
-            await send(.internal(.loadedListings(.success(listing))))
+//            await withTaskCancellation(id: <#T##AnyHashable#>) {
+                let listing = try await moduleClient.getDiscoverListings(selectedModule.module)
+                await send(.internal(.loadedListings(.success(listing))))
+//            }
         } catch: { error, send in
             if let error = error as? ModuleClient.Error {
                 await send(.internal(.loadedListings(.failure(.module(error)))))

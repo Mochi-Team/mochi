@@ -7,17 +7,19 @@
 //
 
 import App
+import ComposableArchitecture
 import SwiftUI
 
 @main
 struct MochiApp: App {
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
+
     var body: some Scene {
         WindowGroup {
             AppFeature.View(
-                store: .init(
-                    initialState: .init(),
-                    reducer: AppFeature.Reducer()
-                )
+                store: appDelegate.store
             )
         }
     }

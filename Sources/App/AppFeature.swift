@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import DatabaseClient
 import Discover
 import Foundation
 import ModuleLists
@@ -133,6 +134,7 @@ public enum AppFeature: Feature {
         public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
+            case appDelegate(AppDelegateFeature.Action)
             case discover(DiscoverFeature.Action)
             case repos(ReposFeature.Action)
             case search(SearchFeature.Action)
@@ -157,6 +159,9 @@ public enum AppFeature: Feature {
     public struct Reducer: FeatureReducer {
         public typealias State = AppFeature.State
         public typealias Action = AppFeature.Action
+
+        @Dependency(\.databaseClient)
+        var databaseClient
 
         public init() { }
     }

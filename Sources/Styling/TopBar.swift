@@ -20,6 +20,7 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
     public init(
         title: String? = nil,
         backCallback: (() -> Void)? = nil,
+        backgroundStyle: BackgroundStyle = .system,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
         @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
     ) {
@@ -27,6 +28,7 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
         self.backCallback = backCallback
         self.trailingAccessory = trailingAccessory
         self.bottomAccessory = bottomAccessory
+        self.backgroundStyle = backgroundStyle
     }
 
     public let title: String?
@@ -65,17 +67,21 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            Group {
+            ZStack {
                 switch backgroundStyle {
                 case .system:
                     Color(uiColor: .systemBackground)
+                        .transition(.opacity)
                 case .blurred:
                     BlurView()
+                        .transition(.opacity)
                 case .clear:
                     EmptyView()
+                        .transition(.opacity)
                 }
             }
             .edgesIgnoringSafeArea(.top)
+            .animation(.easeInOut, value: backgroundStyle)
         )
     }
 
@@ -89,9 +95,10 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
 extension TopBarView {
     public init(
         title: String? = nil,
-        backCallback: (() -> Void)? = nil
+        backCallback: (() -> Void)? = nil,
+        backgroundStyle: BackgroundStyle = .system
     ) where TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
-        self.init(title: title, backCallback: backCallback) {
+        self.init(title: title, backCallback: backCallback, backgroundStyle: backgroundStyle) {
             EmptyView()
         } bottomAccessory: {
             EmptyView()
@@ -101,9 +108,10 @@ extension TopBarView {
     public init(
         title: String? = nil,
         backCallback: (() -> Void)? = nil,
+        backgroundStyle: BackgroundStyle = .system,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
     ) where BottomAccessory == EmptyView {
-        self.init(title: title, backCallback: backCallback) {
+        self.init(title: title, backCallback: backCallback, backgroundStyle: backgroundStyle) {
             trailingAccessory()
         } bottomAccessory: {
             EmptyView()
@@ -113,9 +121,10 @@ extension TopBarView {
     public init(
         title: String? = nil,
         backCallback: (() -> Void)? = nil,
+        backgroundStyle: BackgroundStyle = .system,
         @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
     ) where TrailingAccessory == EmptyView {
-        self.init(title: title, backCallback: backCallback) {
+        self.init(title: title, backCallback: backCallback, backgroundStyle: backgroundStyle) {
             EmptyView()
         } bottomAccessory: {
             bottomAccessory()

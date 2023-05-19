@@ -10,6 +10,7 @@ import DatabaseClient
 import Dependencies
 import Foundation
 import SharedModels
+import Tagged
 import XCTestDynamicOverlay
 
 public struct RepoClient: Sendable {
@@ -19,7 +20,13 @@ public struct RepoClient: Sendable {
     /// Module must be installed in order to select it
     public let selectModule: @Sendable (Repo.ID, Module.ID) async -> Void
 
+    /// Selected Module
+    ///
+    /// Returns the selected module, if any
+    public let selectedModule: @Sendable () -> SelectedModule?
+
     /// Shared selected module
+    ///
     ///
     public let selectedModuleStream: @Sendable () -> AsyncStream<SelectedModule?>
 
@@ -35,8 +42,8 @@ public struct RepoClient: Sendable {
 
     /// Install Repo
     ///
-    /// This function installs a repo in the system.
-    public let installRepo: @Sendable (RepoPayload) async throws -> Void
+    /// This function adds a repo in the system.
+    public let addRepo: @Sendable (RepoPayload) async throws -> Void
 
     /// Remove Repo
     ///
@@ -45,13 +52,18 @@ public struct RepoClient: Sendable {
 
     /// Install a Module
     ///
-    /// Installs a module on the system
-    public let installModule: @Sendable (Repo.ID, Module.Manifest) -> AsyncThrowingStream<RepoModuleDownloadState, Swift.Error>
+    /// Add a module on the system
+    public let addModule: @Sendable (Repo.ID, Module.Manifest) async -> Void
 
     /// Remove a Module
     ///
     /// This removes a moduled installed on a system
     public let removeModule: @Sendable (Repo.ID, Module.ID) async throws -> Void
+
+    /// Observe Installing and pending modules
+    ///
+    ///
+    public let observeModuleInstalls: @Sendable () -> AsyncStream<[RepoModuleID: RepoModuleDownloadState]>
 
     /// Installed Repos
     ///
@@ -64,53 +76,18 @@ public struct RepoClient: Sendable {
     public let modules: @Sendable (Repo.ID) -> AsyncStream<Set<Module>>
 }
 
-extension RepoClient {
-    public struct SelectedModule: Equatable, Sendable {
-        public let repoId: Repo.ID
-        public let module: Module
-    }
-
-    @dynamicMemberLookup
-    public struct RepoPayload: Equatable, Sendable {
-        public let remoteURL: URL
-        public var iconURL: URL? {
-            manifest.icon
-                .flatMap { URL(string: $0) }
-                .flatMap { url in
-                    if url.baseURL == nil {
-                        return .init(string: url.relativeString, relativeTo: remoteURL)
-                    } else {
-                        return url
-                    }
-                }
-        }
-
-        public let manifest: Repo.Manifest
-
-        public subscript<Value>(dynamicMember dynamicMember: KeyPath<Repo.Manifest, Value>) -> Value {
-            manifest[keyPath: dynamicMember]
-        }
-
-        public init(
-            remoteURL: URL,
-            manifest: Repo.Manifest
-        ) {
-            self.remoteURL = remoteURL
-            self.manifest = manifest
-        }
-    }
-}
-
 extension RepoClient: TestDependencyKey {
     public static let testValue = Self(
         selectModule: unimplemented("\(Self.self).selectModule"),
+        selectedModule: unimplemented(),
         selectedModuleStream: unimplemented("\(Self.self).selectedModule", placeholder: .never),
         validateRepo: unimplemented(),
         fetchRepoModules: unimplemented("\(Self.self).repoModules", placeholder: .init()),
-        installRepo: unimplemented(),
+        addRepo: unimplemented(),
         removeRepo: unimplemented(),
-        installModule: unimplemented(),
+        addModule: unimplemented(),
         removeModule: unimplemented(),
+        observeModuleInstalls: unimplemented(),
         repos: unimplemented(),
         modules: unimplemented()
     )

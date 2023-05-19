@@ -11,7 +11,9 @@ import ComposableArchitecture
 import SharedModels
 
 extension SearchFeature.Reducer: Reducer {
-    struct FetchingItemsDebounce: Hashable {}
+    private enum Cancellables: Hashable {
+        case fetchingItemsDebounce
+    }
 
     public var body: some ReducerOf<Self> {
         Scope(state: /State.self, action: /Action.view) {
@@ -43,25 +45,25 @@ extension SearchFeature.Reducer: Reducer {
             case .view(.didClearQuery):
                 state.searchQuery.query = ""
                 state.items = .pending
-                return .cancel(id: FetchingItemsDebounce.self)
+                return .cancel(id: Cancellables.fetchingItemsDebounce)
 
             case .view(.binding(\.$searchQuery.query)):
                 guard let selected = state.selectedModule else {
                     state.items = .pending
-                    return .cancel(id: FetchingItemsDebounce.self)
+                    return .cancel(id: Cancellables.fetchingItemsDebounce)
                 }
 
                 let searchQuery = state.searchQuery
 
                 guard !searchQuery.query.isEmpty else {
                     state.items = .pending
-                    return .cancel(id: FetchingItemsDebounce.self)
+                    return .cancel(id: Cancellables.fetchingItemsDebounce)
                 }
 
                 state.items = .loading
 
                 return .run { send in
-                    try await withTaskCancellation(id: FetchingItemsDebounce.self, cancelInFlight: true) {
+                    try await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
                         try await Task.sleep(nanoseconds: 1_000_000 * 1_000)
 
                         await send(.internal(.loadedItems(.init { try await moduleClient.search(selected.module, searchQuery) })))
@@ -76,7 +78,7 @@ extension SearchFeature.Reducer: Reducer {
                 state.items = .pending
                 state.searchQuery = .init(query: "")
                 return .merge(
-                    .cancel(id: FetchingItemsDebounce.self),
+                    .cancel(id: Cancellables.fetchingItemsDebounce),
                     .run { send in
                         if let selectedModule {
                             await send(.internal(.loadedSearchFilters(.init { try await moduleClient.searchFilters(selectedModule.module) })))

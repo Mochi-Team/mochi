@@ -19,23 +19,109 @@ extension RepoPackagesFeature.View: View {
     @MainActor
     public var body: some View {
         ScrollView(.vertical) {
-            LazyVStack(spacing: 12) {
-                Spacer()
-                    .frame(height: topBarSizeInset.size.height)
-
+            LazyVStack(spacing: 0) {
                 repoHeader
-                packagesView
 
                 Spacer()
-                    .frame(height: tabNavigationInset.height)
+                    .frame(height: 12)
+
+                Divider()
+                    .padding(.horizontal)
+
+                Spacer()
+                    .frame(height: 12)
+
+                WithViewStore(store.viewAction, observe: \.installedModules) { viewStore in
+                    LazyVStack(spacing: 0) {
+                        if !viewStore.isEmpty {
+                            Text("Installed Modules")
+                                .font(.footnote.bold())
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal)
+
+                            Spacer()
+                                .frame(height: 8)
+
+                            ForEach(viewStore.state) { module in
+                                packageRow([module.manifest])
+
+                                if viewStore.state.last?.id != module.id {
+                                    Spacer()
+                                        .frame(height: 12)
+                                }
+                            }
+
+                            Spacer()
+                                .frame(height: 8)
+                        }
+                    }
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: viewStore.state.count)
+                }
+
+                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                    LazyVStack(spacing: 0) {
+                        Text("All Modules")
+                            .font(.footnote.bold())
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                            .transition(.opacity)
+
+                        Spacer()
+                            .frame(height: 8)
+                            .transition(.opacity)
+
+                        LoadableView(loadable: viewStore.packages) { packages in
+                            Group {
+                                if packages.isEmpty || !packages.contains(where: !\.isEmpty) {
+                                    packagesStatusView(.noModulesFound)
+                                } else {
+                                    ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
+                                        if !package.isEmpty {
+                                            packageRow(package)
+
+                                            if packages.last?.latestModule.id != package.latestModule.id {
+                                                Spacer()
+                                                    .frame(height: 12)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            .transition(.opacity)
+                        } failedView: { _ in
+                            packagesStatusView(.failedToFetch)
+                                .transition(.opacity)
+                        } waitingView: {
+                            packagesStatusView(.fetchingModules)
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeInOut, value: viewStore.packages)
+                }
+                .frame(maxWidth: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .overlay(alignment: .top, content: topBar)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity
+        )
+        .safeAreaInset(edge: .top, content: topBar)
+        .safeAreaInset(edge: .bottom) {
+            Spacer()
+                .frame(height: tabNavigationInset.height)
+        }
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
         .background(Color(uiColor: .systemBackground).ignoresSafeArea().edgesIgnoringSafeArea(.all))
+        .transition(.move(edge: .trailing).combined(with: .opacity))
+        .screenDismissed {
+            ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
+        }
     }
 }
 
@@ -43,7 +129,7 @@ extension RepoPackagesFeature.View {
     @MainActor
     func topBar() -> some View {
         TopBarView {
-            ViewStore(store.viewAction.stateless).send(.didTapBackButton)
+            ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
         }
         .readSize { sizeInset in
             topBarSizeInset = sizeInset
@@ -81,31 +167,6 @@ extension RepoPackagesFeature.View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
-    }
-
-    @MainActor
-    var packagesView: some View {
-        WithViewStore(store.viewAction, observe: \.packages) { viewStore in
-            Divider()
-                .padding(.horizontal)
-
-            LoadableView(loadable: viewStore.state) { packages in
-                if packages.isEmpty || !packages.contains(where: !\.isEmpty) {
-                    packagesStatusView(.noModulesFound)
-                } else {
-                    ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
-                        if !package.isEmpty {
-                            packageRow(package)
-                        }
-                    }
-                }
-            } failedView: { _ in
-                packagesStatusView(.failedToFetch)
-            } waitingView: {
-                packagesStatusView(.fetchingModules)
-            }
-        }
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -185,12 +246,18 @@ extension RepoPackagesFeature.View {
 
     @MainActor
     @ViewBuilder
+    func moduleRow(_ module: Module) -> some View {
+
+    }
+
+    @MainActor
+    @ViewBuilder
     func packageRow(_ modules: [Module.Manifest]) -> some View {
         let latestModule = modules.latestModule
         WithViewStore(store.viewAction) { state in
             PackageDownloadState(
                 repo: state.repo,
-                installedModule: state.installedModules.first(where: \.id == latestModule.id),
+                installedModule: state.repo.modules.first(where: \.id == latestModule.id),
                 downloadState: state.installingModules.first(where: \.key == latestModule.id)?.value
             )
         } content: { viewStore in
@@ -232,10 +299,8 @@ extension RepoPackagesFeature.View {
 
                 Spacer()
 
-                // TODO: Add install module
-
                 HStack(spacing: 0) {
-                    if let downloadState = viewStore.downloadState {
+                    if let downloadState = viewStore.downloadState, downloadState != .installed {
                         Group {
                             switch downloadState {
                             case .pending:
@@ -251,25 +316,27 @@ extension RepoPackagesFeature.View {
                                         .foregroundColor(.blue)
                                         .padding(6)
                                 }
-                                .frame(width: 24, height: 24)
                             case .installing:
-                                EmptyView()
+                                ProgressView()
+                                    .controlSize(.small)
                             case .installed:
-                                Image(systemName: "checkmark.circle.fill")
+                                EmptyView()
+                            case .failed:
+                                Image(systemName: "exclamationmark.triangle.fill")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .foregroundColor(.green)
-                                    .frame(width: 24, height: 24)
+                                    .foregroundColor(.red)
                             }
                         }
+                        .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            viewStore.send(.didTapRemoveModule(latestModule.id))
+                            viewStore.send(.didTapRemoveModule(viewStore.repo.id, latestModule.id))
                         }
                     } else if let installedModule = viewStore.installedModule {
                         if installedModule.version < latestModule.version {
                             Button {
-                                viewStore.send(.didTapInstallModule(latestModule.id))
+                                viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
                             } label: {
                                 Image(systemName: "arrow.up.circle.fill")
                                     .resizable()
@@ -287,7 +354,7 @@ extension RepoPackagesFeature.View {
                         }
                     } else {
                         Button {
-                            viewStore.send(.didTapInstallModule(latestModule.id))
+                            viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .resizable()
@@ -307,7 +374,7 @@ extension RepoPackagesFeature.View {
             .contextMenu {
                 if let installed = viewStore.installedModule {
                     Button {
-                        viewStore.send(.didTapRemoveModule(installed.id))
+                        viewStore.send(.didTapRemoveModule(viewStore.repo.id, installed.id))
                     } label: {
                         Label("Remove module", systemImage: "trash.fill")
                     }
@@ -329,36 +396,17 @@ struct RepoPackagesFeatureView_Previews: PreviewProvider {
                         lastRefreshed: nil,
                         manifest: .init(name: "Repo 1", author: "errorerrorerror")
                     )
-                    ,
-                    packages: .loaded([
-                        [
-                            .init(
-                                id: "module-1",
-                                name: "Module 1",
-                                file: "/hello/test.wasm",
-                                version: .init(1, 0, 0),
-                                released: .init(),
-                                meta: [.video, .image, .text]
-                            )
-                        ]
-                    ])
 //                    ,
-//                    installedModules: [
+//                    modules: .loaded([
 //                        .init(
-//                            binaryModule: .init(),
-//                            installDate: .init(),
-//                            manifest: .init(
-//                                id: "module-1",
-//                                name: "Module 1",
-//                                file: "/hello/test.wasm",
-//                                version: .init(1, 0, 0),
-//                                released: .init(),
-//                                meta: [.video, .image, .text]
-//                            )
+//                            id: "module-1",
+//                            name: "Module 1",
+//                            file: "/hello/test.wasm",
+//                            version: .init(1, 0, 0),
+//                            released: .init(),
+//                            meta: [.video, .image, .text]
 //                        )
-//                    ]
-//                    ,
-//                    installingModules: ["module-1": 0.2]
+//                    ])
                 ),
                 reducer: EmptyReducer()
             )

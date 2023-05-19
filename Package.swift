@@ -17,6 +17,7 @@ let featuresTargets: [Target] = [
             "Settings",
             "SharedModels",
             "Styling",
+            "UserSettingsClient",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
@@ -97,8 +98,16 @@ let clientsTargets: [Target] = [
     .target(
         name: "DatabaseClient",
         dependencies: [
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            "CoreORM",
+            "SharedModels",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "Semver", package: "Semver"),
+            .product(name: "Tagged", package: "swift-tagged")
         ]
+    ),
+    .testTarget(
+        name: "DatabaseClientTests",
+        dependencies: ["DatabaseClient"]
     ),
     .target(
         name: "ModuleClient",
@@ -119,6 +128,7 @@ let clientsTargets: [Target] = [
     .target(
         name: "RepoClient",
         dependencies: [
+            "DatabaseClient",
             "SharedModels",
             .product(name: "TOMLDecoder", package: "TOMLDecoder"),
             .product(name: "Tagged", package: "swift-tagged"),
@@ -160,9 +170,19 @@ let miscTargets: [Target] = [
         ]
     ),
     .target(
+        name: "CoreORM",
+        dependencies: []
+    ),
+    .testTarget(
+        name: "CoreORMTests",
+        dependencies: [
+            "CoreORM"
+        ]
+    ),
+    .target(
         name: "SharedModels",
         dependencies: [
-            "DatabaseClient",
+            "CoreORM",
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "Semver", package: "Semver")
@@ -243,7 +263,7 @@ let package = Package(
         .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0")
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

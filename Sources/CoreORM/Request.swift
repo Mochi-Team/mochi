@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - Request
 
-public struct Request<PlainObject: MORepresentable> {
+public struct Request<SomeEntity: Entity> {
     var fetchLimit: Int?
     var predicate: NSPredicate?
     var sortDescriptors: [SortDescriptor] = []
@@ -20,7 +20,7 @@ public struct Request<PlainObject: MORepresentable> {
 
 public extension Request {
     func `where`(
-        _ predicate: some PredicateProtocol<PlainObject>
+        _ predicate: some PredicateProtocol<SomeEntity>
     ) -> Self {
         var obj = self
         obj.predicate = predicate
@@ -28,7 +28,7 @@ public extension Request {
     }
 
     func sort(
-        _ keyPath: KeyPath<PlainObject, some Comparable>,
+        _ keyPath: KeyPath<SomeEntity, some Comparable>,
         ascending: Bool = true
     ) -> Self {
         var obj = self
@@ -53,13 +53,12 @@ public extension Request {
 }
 
 extension Request {
-    func makeFetchRequest<ResultType: NSFetchRequestResult>(
-        ofType resultType: NSFetchRequestResultType = .managedObjectResultType,
-        attributesToFetch: Set<Attribute<PlainObject>> = PlainObject.attributes
-    ) -> NSFetchRequest<ResultType> {
-        let properties = attributesToFetch.filter { !$0.isRelation }.map(\.name)
+    func makeFetchRequest<ResultType: NSFetchRequestResult>(ofType resultType: NSFetchRequestResultType = .managedObjectResultType) -> NSFetchRequest<ResultType> {
+        let instance = SomeEntity()
 
-        let fetchRequest = NSFetchRequest<ResultType>(entityName: PlainObject.entityName)
+        let properties = instance.properties.filter { $0 is any OpaqueAttribute }.compactMap { $0.name.value }
+
+        let fetchRequest = NSFetchRequest<ResultType>(entityName: SomeEntity.entityName)
         fetchRequest.resultType = resultType
         fetchRequest.propertiesToFetch = properties
         fetchRequest.includesPropertyValues = !properties.isEmpty
@@ -104,16 +103,16 @@ extension SortDescriptor {
 // MARK: - PredicateProtocol
 
 public protocol PredicateProtocol<Root>: NSPredicate {
-    associatedtype Root: MORepresentable
+    associatedtype Root: Entity
 }
 
 // MARK: - CompoundPredicate
 
-public final class CompoundPredicate<Root: MORepresentable>: NSCompoundPredicate, PredicateProtocol {}
+public final class CompoundPredicate<Root: Entity>: NSCompoundPredicate, PredicateProtocol {}
 
 // MARK: - ComparisonPredicate
 
-public final class ComparisonPredicate<Root: MORepresentable>: NSComparisonPredicate, PredicateProtocol {}
+public final class ComparisonPredicate<Root: Entity>: NSComparisonPredicate, PredicateProtocol {}
 
 // MARK: compound operators
 
@@ -139,46 +138,92 @@ public extension PredicateProtocol {
 
 // MARK: - comparison operators
 
-public extension ConvertableValue where Self: Equatable {
+public extension PrimitiveType where Self: Equatable {
     static func == <R>(
-        kp: KeyPath<R, Self>,
+        kp: KeyPath<R, Attribute<Self, Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .equalTo, value)
     }
 
     static func != <R>(
-        kp: KeyPath<R, Self>,
+        kp: KeyPath<R, Attribute<Self, Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .notEqualTo, value)
     }
 }
 
-public extension ConvertableValue where Self: Comparable {
+public extension Optional where Wrapped: PrimitiveType {
+    static func == <R>(
+        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        value: Self
+    ) -> ComparisonPredicate<R> {
+        ComparisonPredicate(kp, .equalTo, value)
+    }
+
+    static func != <R>(
+        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        value: Self
+    ) -> ComparisonPredicate<R> {
+        ComparisonPredicate(kp, .notEqualTo, value)
+    }
+}
+
+public extension PrimitiveType where Self: Comparable {
     static func > <R>(
-        kp: KeyPath<R, Self>,
+        kp: KeyPath<R, Attribute<Self, Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .greaterThan, value)
     }
 
     static func < <R>(
-        kp: KeyPath<R, Self>,
+        kp: KeyPath<R, Attribute<Self, Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .lessThan, value)
     }
 
     static func <= <R>(
-        kp: KeyPath<R, Self>,
+        kp: KeyPath<R, Attribute<Self, Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .lessThanOrEqualTo, value)
     }
 
     static func >= <R>(
-        kp: KeyPath<R, Self>,
+        kp: KeyPath<R, Attribute<Self, Self>>,
+        value: Self
+    ) -> ComparisonPredicate<R> {
+        ComparisonPredicate(kp, .greaterThanOrEqualTo, value)
+    }
+}
+
+public extension Optional where Wrapped: PrimitiveType & Comparable {
+    static func > <R>(
+        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        value: Self
+    ) -> ComparisonPredicate<R> {
+        ComparisonPredicate(kp, .greaterThan, value)
+    }
+
+    static func < <R>(
+        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        value: Self
+    ) -> ComparisonPredicate<R> {
+        ComparisonPredicate(kp, .lessThan, value)
+    }
+
+    static func <= <R>(
+        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        value: Self
+    ) -> ComparisonPredicate<R> {
+        ComparisonPredicate(kp, .lessThanOrEqualTo, value)
+    }
+
+    static func >= <R>(
+        kp: KeyPath<R, Attribute<Wrapped, Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .greaterThanOrEqualTo, value)
@@ -188,14 +233,16 @@ public extension ConvertableValue where Self: Comparable {
 // MARK: - internal
 
 internal extension ComparisonPredicate {
-    convenience init<Value: ConvertableValue>(
-        _ keyPath: KeyPath<Root, Value>,
+    convenience init<Primitive: PrimitiveType, Value>(
+        _ keyPath: KeyPath<Root, Attribute<Primitive, Value>>,
         _ op: NSComparisonPredicate.Operator,
         _ value: Value?
     ) {
-        let attribute = Root.attribute(keyPath)
-        let ex1 = NSExpression(forKeyPath: attribute.name)
-        let ex2 = NSExpression(forConstantValue: value?.encode())
+        let instance = Root()
+        _ = instance.properties // initializes all attributes names
+        let keyPathName = instance[keyPath: keyPath].name.value.unsafelyUnwrapped
+        let ex1 = NSExpression(forKeyPath: keyPathName)
+        let ex2 = NSExpression(forConstantValue: value)
         self.init(leftExpression: ex1, rightExpression: ex2, modifier: .direct, type: op)
     }
 }

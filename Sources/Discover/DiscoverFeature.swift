@@ -28,7 +28,7 @@ public enum DiscoverFeature: Feature {
         var description: String {
             switch self {
             case .system(.moduleNotSelected):
-                return "Module Not Selected"
+                return "There's no selected module."
             case .system(.unknown):
                 return "Unknown System Error Has Occurred"
             case .module(.unknown):
@@ -41,13 +41,13 @@ public enum DiscoverFeature: Feature {
 
     public struct State: FeatureState {
         public var listings: Loadable<[DiscoverListing], Error>
-        public var selectedModule: RepoClient.SelectedModule?
+        public var selectedModule: Module.Manifest?
 
         var hasSetUp = false
 
         public init(
             listings: Loadable<[DiscoverListing], Error> = .pending,
-            selectedModule: RepoClient.SelectedModule? = nil
+            selectedModule: Module.Manifest? = nil
         ) {
             self.listings = listings
             self.selectedModule = selectedModule
@@ -81,9 +81,6 @@ public enum DiscoverFeature: Feature {
 
         @InsetValue(\.tabNavigation)
         var bottomNavigationSize
-
-        @SwiftUI.State
-        var topBarSizeInset = SizeInset.zero
 
         nonisolated public init(store: FeatureStoreOf<DiscoverFeature>) {
             self.store = store

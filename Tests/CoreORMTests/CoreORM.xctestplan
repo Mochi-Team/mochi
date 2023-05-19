@@ -1,0 +1,28 @@
+{
+  "configurations" : [
+    {
+      "id" : "49D2B83D-16AE-465F-AD24-B0BC9ECF03E3",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "addressSanitizer" : {
+      "enabled" : true
+    },
+    "codeCoverage" : false,
+    "nsZombieEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "CoreORMTests",
+        "name" : "CoreORMTests"
+      }
+    }
+  ],
+  "version" : 1
+}

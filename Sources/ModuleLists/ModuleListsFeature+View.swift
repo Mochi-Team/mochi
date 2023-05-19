@@ -85,7 +85,6 @@ extension ModuleListsFeature.View {
             Divider()
 
             VStack(spacing: 8) {
-                // TODO: Use installed repo with modules
                 if repo.modules.isEmpty {
                     VStack(spacing: 8) {
                         Text("No modules installed")

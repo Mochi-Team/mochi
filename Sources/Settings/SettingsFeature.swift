@@ -8,12 +8,18 @@
 
 import Architecture
 import ComposableArchitecture
+import SharedModels
+import UserSettingsClient
 
 public enum SettingsFeature: Feature {
     public struct State: FeatureState {
-        // TODO: Set state
+        public var userSettings: UserSettings
 
-        public init() {}
+        public init(
+            userSettings: UserSettings = .init()
+        ) {
+            self.userSettings = userSettings
+        }
     }
 
     public enum Action: FeatureAction {

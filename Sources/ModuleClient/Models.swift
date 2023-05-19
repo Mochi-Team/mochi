@@ -14,7 +14,7 @@ protocol KVAccess {}
 
 extension KVAccess {
     // TODO: Improve Key-Value access
-    // Might be a performance bottleneck, optimize in the future
+    // This might be a performance bottleneck, optimize in the future
     subscript(key: String) -> Any? {
         Mirror(reflecting: self)
             .children

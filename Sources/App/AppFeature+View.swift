@@ -64,6 +64,9 @@ extension AppFeature.View: View {
             )
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
+        .onAppear {
+            ViewStore(store.viewAction.stateless).send(.didAppear)
+        }
         .sheetView(
             store: store.internalAction.scope(
                 state: \.$destination,

@@ -68,7 +68,7 @@ public extension Scope where ParentAction: FeatureAction {
     }
 }
 
-public extension Reduce where Action: FeatureAction {
+public extension Reducer where Action: FeatureAction {
     func ifLet<DestinationState, DestinationAction, Destination: Reducer>(
         _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
         action toPresentationAction: CasePath<Action.InternalAction, PresentationAction<DestinationAction>>,
@@ -79,6 +79,18 @@ public extension Reduce where Action: FeatureAction {
             toPresentationState,
             action: /Action.internal..toPresentationAction,
             then: destination
+        )
+    }
+
+    func ifLet<WrappedState, WrappedAction, Wrapped: Reducer>(
+        _ toWrappedState: WritableKeyPath<State, WrappedState?>,
+        action toWrappedAction: CasePath<Action.InternalAction, WrappedAction>,
+        @ReducerBuilder<WrappedState, WrappedAction> then wrapped: () -> Wrapped
+    ) -> _IfLetReducer<Self, Wrapped> where WrappedState == Wrapped.State, WrappedAction == Wrapped.Action {
+        self.ifLet(
+            toWrappedState,
+            action: /Action.internal..toWrappedAction,
+            then: wrapped
         )
     }
 }
