@@ -114,7 +114,8 @@ public extension View {
         animation: Animation = Shimmer.defaultAnimation
     ) -> some View {
         if active {
-            modifier(Shimmer(animation: animation))
+            self.redacted(reason: .placeholder)
+                .modifier(Shimmer(animation: animation))
         } else {
             self
         }

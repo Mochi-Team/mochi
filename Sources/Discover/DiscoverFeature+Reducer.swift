@@ -8,11 +8,16 @@
 
 import Architecture
 import ComposableArchitecture
+import MediaDetails
 import ModuleClient
 import RepoClient
 import SharedModels
 
 extension DiscoverFeature.Reducer: ReducerProtocol {
+    enum Cancellables: Hashable {
+        case fetchDiscoverList
+    }
+
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -37,15 +42,7 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
                 return .action(.delegate(.openModules))
 
             case let .view(.didTapMedia(media)):
-                // TODO: Open a navigation/modal sheet for the specified media
-                switch media.meta {
-                case .image:
-                    break
-                case .video:
-                    break
-                case .text:
-                    break
-                }
+                state.screens.append(.mediaDetails(.init(media: media)))
 
             case let .internal(.selectedModule(selection)):
                 state.selectedModule = selection?.module.manifest
@@ -57,10 +54,19 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
             case let .internal(.loadedListings(.failure(error))):
                 state.listings = .failed(error)
 
+            case let .internal(.screens(.popFrom(id: id))):
+                state.screens.pop(from: id)
+
+            case .internal(.screens):
+                break
+
             case .delegate:
                 break
             }
             return .none
+        }
+        .forEach(\.screens, action: /Action.internal..Action.InternalAction.screens) {
+            DiscoverFeature.Screens()
         }
     }
 
@@ -76,10 +82,10 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
         state.listings = .loading
 
         return .run { send in
-//            await withTaskCancellation(id: <#T##AnyHashable#>) {
+            try await withTaskCancellation(id: Cancellables.fetchDiscoverList) {
                 let listing = try await moduleClient.getDiscoverListings(selectedModule.module)
                 await send(.internal(.loadedListings(.success(listing))))
-//            }
+            }
         } catch: { error, send in
             if let error = error as? ModuleClient.Error {
                 await send(.internal(.loadedListings(.failure(.module(error)))))

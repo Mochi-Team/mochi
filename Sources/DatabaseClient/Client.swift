@@ -11,37 +11,39 @@ import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
-public protocol DatabaseClient: Sendable {
-    @Sendable
-    func initialize() async throws
+public struct DatabaseClient: Sendable {
+    public var initialize: @Sendable () async throws -> Void
 
-    @Sendable
-    func insert<T: Entity>(_ item: T) async throws
+    public var insert: @Sendable (any Entity) async throws -> Void
 
-    @Sendable
-    func insertOrUpdate<T: Entity>(_ item: T) async throws
+    public var insertOrUpdate: @Sendable (any Entity) async throws -> Void
 
-    @Sendable
-    @discardableResult
-    func update<T: Entity>(_ item: T) async throws -> Bool
+    public var update: @Sendable (any Entity) async throws -> Bool
 
-    @Sendable
-    func delete<T: Entity>(_ item: T) async throws
+    public var delete: @Sendable (any Entity) async throws -> Void
 
-    @Sendable
-    func fetch<T: Entity>(_ request: Request<T>) async throws -> [T]
+    var fetch: @Sendable (Entity.Type, Any) async throws -> [Entity]
 
-    @Sendable
-    func observe<T: Entity>(_ request: Request<T>) -> AsyncStream<[T]>
+    var observe: @Sendable (Entity.Type, Any) -> AsyncStream<[Entity]>
 }
 
-public struct DatabaseClientKey: DependencyKey {
-    public static let liveValue: any DatabaseClient = DatabaseClientLive()
+public extension DatabaseClient {
+    func fetch<T: Entity>(_ request: Request<T>) async throws -> [T] {
+        ((try await self.fetch(T.self, request)) as? [T]) ?? []
+    }
+
+    func observe<T: Entity>(_ request: Request<T>) -> AsyncStream<[T]> {
+        self.observe(T.self, request)
+            .compactMap { $0 as? [T] }
+            .eraseToStream()
+    }
 }
+
+extension DatabaseClient: DependencyKey {}
 
 extension DependencyValues {
-    public var databaseClient: any DatabaseClient {
-        get { self[DatabaseClientKey.self] }
-        set { self[DatabaseClientKey.self] = newValue }
+    public var databaseClient: DatabaseClient {
+        get { self[DatabaseClient.self] }
+        set { self[DatabaseClient.self] = newValue }
     }
 }

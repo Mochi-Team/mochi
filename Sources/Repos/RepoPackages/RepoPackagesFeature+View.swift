@@ -19,49 +19,36 @@ extension RepoPackagesFeature.View: View {
     @MainActor
     public var body: some View {
         ScrollView(.vertical) {
-            LazyVStack(spacing: 0) {
+            VStack(spacing: 12) {
                 repoHeader
-
-                Spacer()
-                    .frame(height: 12)
 
                 Divider()
                     .padding(.horizontal)
 
-                Spacer()
-                    .frame(height: 12)
-
                 WithViewStore(store.viewAction, observe: \.installedModules) { viewStore in
-                    LazyVStack(spacing: 0) {
+                    Group {
                         if !viewStore.isEmpty {
-                            Text("Installed Modules")
-                                .font(.footnote.bold())
-                                .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal)
+                            LazyVStack(spacing: 8) {
+                                Text("Installed Modules")
+                                    .font(.footnote.bold())
+                                    .foregroundColor(.gray)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
 
-                            Spacer()
-                                .frame(height: 8)
-
-                            ForEach(viewStore.state) { module in
-                                packageRow([module.manifest])
-
-                                if viewStore.state.last?.id != module.id {
-                                    Spacer()
-                                        .frame(height: 12)
+                                LazyVStack(spacing: 12) {
+                                    ForEach(viewStore.state) { module in
+                                        packageRow([module.manifest])
+                                    }
                                 }
                             }
-
-                            Spacer()
-                                .frame(height: 8)
+                            .transition(.opacity)
                         }
                     }
-                    .transition(.opacity)
                     .animation(.easeInOut, value: viewStore.state.count)
                 }
 
                 WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
-                    LazyVStack(spacing: 0) {
+                    LazyVStack(spacing: 8) {
                         Text("All Modules")
                             .font(.footnote.bold())
                             .foregroundColor(.gray)
@@ -69,22 +56,15 @@ extension RepoPackagesFeature.View: View {
                             .padding(.horizontal)
                             .transition(.opacity)
 
-                        Spacer()
-                            .frame(height: 8)
-                            .transition(.opacity)
-
                         LoadableView(loadable: viewStore.packages) { packages in
                             Group {
                                 if packages.isEmpty || !packages.contains(where: !\.isEmpty) {
                                     packagesStatusView(.noModulesFound)
                                 } else {
-                                    ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
-                                        if !package.isEmpty {
-                                            packageRow(package)
-
-                                            if packages.last?.latestModule.id != package.latestModule.id {
-                                                Spacer()
-                                                    .frame(height: 12)
+                                    LazyVStack(spacing: 12) {
+                                        ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
+                                            if !package.isEmpty {
+                                                packageRow(package)
                                             }
                                         }
                                     }
@@ -109,11 +89,13 @@ extension RepoPackagesFeature.View: View {
             maxWidth: .infinity,
             maxHeight: .infinity
         )
-        .safeAreaInset(edge: .top, content: topBar)
-        .safeAreaInset(edge: .bottom) {
-            Spacer()
-                .frame(height: tabNavigationInset.height)
+        .topBar {
+            ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
         }
+//        .safeAreaInset(edge: .bottom) {
+//            Spacer()
+//                .frame(height: tabNavigationInset.height)
+//        }
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
@@ -127,19 +109,12 @@ extension RepoPackagesFeature.View: View {
 
 extension RepoPackagesFeature.View {
     @MainActor
-    func topBar() -> some View {
-        TopBarView {
-            ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
-        }
-        .readSize { sizeInset in
-            topBarSizeInset = sizeInset
-        }
-    }
-
-    @MainActor
     var repoHeader: some View {
         WithViewStore(store.viewAction, observe: \.repo) { viewStore in
             VStack(alignment: .leading, spacing: 0) {
+                Spacer()
+                    .frame(height: 12)
+
                 LazyImage(url: viewStore.iconURL) { state in
                     if let image = state.image {
                         image
@@ -235,7 +210,7 @@ extension RepoPackagesFeature.View {
         .frame(maxWidth: .infinity)
         .background(state.backgroundColor.opacity(0.12))
         .cornerRadius(12)
-        .padding()
+        .padding(.horizontal)
     }
 
     struct PackageDownloadState: Equatable {

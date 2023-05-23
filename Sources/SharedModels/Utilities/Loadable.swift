@@ -16,7 +16,7 @@ public enum Loadable<T, E> {
 
     public var finished: Bool {
         switch self {
-        case .loading:
+        case .pending, .loading:
             return false
         default:
             return true
@@ -39,7 +39,7 @@ public enum Loadable<T, E> {
 }
 
 public extension Loadable {
-    func map<V>(_ block: @escaping (T) -> V) -> Loadable<V, E> {
+    func mapValue<V>(_ block: @escaping (T) -> V) -> Loadable<V, E> {
         switch self {
         case .pending:
             return .pending
@@ -73,6 +73,12 @@ extension Loadable: Hashable where T: Hashable, E: Hashable {}
 extension Loadable: Comparable where T: Comparable, E: Comparable {
     public static func < (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
+        case (.pending, .loading):
+            return true
+        case (.pending, .loaded):
+            return true
+        case (.pending, .failed):
+            return true
         case (.loading, .loaded):
             return true
         case (.loading, .failed):

@@ -83,6 +83,9 @@ extension RepoClient: DependencyKey {
             if let repo: Repo = try? await databaseClient.fetch(.all.where(\.$baseURL == repoId.rawValue)).first {
                 try await databaseClient.delete(repo)
             }
+            if selectedModule.value?.repoId == repoId {
+                selectedModule.send(nil)
+            }
         },
         addModule: { repoId, moduleManifest in
             let id = RepoModuleID(repoId: repoId, moduleId: moduleManifest.id)

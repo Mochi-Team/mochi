@@ -7,7 +7,6 @@
 //
 
 import Architecture
-import ComposableArchitecture
 import NukeUI
 import Styling
 import SwiftUI
@@ -54,82 +53,77 @@ extension SearchFeature.View: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .safeAreaInset(edge: .top) {
-                topBar
+            .topBar(title: "Search") {
+                WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
+                    ModuleSelectionButton(module: viewStore.state?.module.manifest) {
+                        ViewStore(store.viewAction.stateless)
+                            .send(.didTapOpenModules)
+                    }
+                }
+            } bottomAccessory: {
+                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                    HStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.gray)
+
+                            TextField(
+                                "Search for content...",
+                                text: viewStore.binding(\.$searchQuery.query)
+                                    .removeDuplicates()
+                            )
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 16, weight: .regular))
+                            .frame(maxWidth: .infinity)
+
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(Color.gray)
+                                .opacity(viewStore.searchQuery.query.isEmpty ? 0.0 : 1.0)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewStore.send(.didClearQuery)
+                                }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .foregroundColor(.gray.opacity(0.1))
+                        )
+                        .frame(maxHeight: .infinity)
+
+                        if !viewStore.searchFilters.isEmpty {
+                            Button {
+                                viewStore.send(.didTapFilterOptions)
+                            } label: {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.1))
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .overlay(
+                                        Image(systemName: "line.horizontal.3.decrease")
+                                            .font(.system(size: 18, weight: .bold))
+                                            .contentShape(Rectangle())
+                                            .aspectRatio(contentMode: .fit)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .transition(.opacity)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .safeAreaInset(edge: .bottom) {
-                Spacer()
-                    .frame(height: bottomNavInsetSize.height)
-            }
+//            .safeAreaInset(edge: .bottom) {
+//                Spacer()
+//                    .frame(height: bottomNavInsetSize.height)
+//            }
             .onAppear {
                 ViewStore(store.viewAction.stateless).send(.didAppear)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-extension SearchFeature.View {
-    @MainActor
-    var topBar: some View {
-        TopBarView(title: "Search") {
-            WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
-                ModuleSelectionButton(module: viewStore.state?.module.manifest) {
-                    ViewStore(store.viewAction.stateless)
-                        .send(.didTapOpenModules)
-                }
-            }
-        } bottomAccessory: {
-            WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
-                HStack(spacing: 12) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-
-                        TextField("Search for content...", text: viewStore.binding(\.$searchQuery.query).removeDuplicates())
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 16, weight: .regular))
-                            .frame(maxWidth: .infinity)
-
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(Color.gray)
-                            .opacity(viewStore.searchQuery.query.isEmpty ? 0.0 : 1.0)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewStore.send(.didClearQuery)
-                            }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundColor(.gray.opacity(0.1))
-                    )
-                    .frame(maxHeight: .infinity)
-
-                    if !viewStore.searchFilters.isEmpty {
-                        Button {
-                            viewStore.send(.didTapFilterOptions)
-                        } label: {
-                            Circle()
-                                .fill(Color.gray.opacity(0.1))
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .fixedSize(horizontal: true, vertical: false)
-                                .overlay(
-                                    Image(systemName: "line.horizontal.3.decrease")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .contentShape(Rectangle())
-                                        .aspectRatio(contentMode: .fit)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .transition(.opacity)
-                    }
-                }
-                .fixedSize(horizontal: false, vertical: true)
-            }
-        }
     }
 }
 

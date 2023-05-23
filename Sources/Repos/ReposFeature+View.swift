@@ -7,7 +7,6 @@
 //
 
 import Architecture
-import ComposableArchitecture
 import NukeUI
 import SharedModels
 import Styling
@@ -63,26 +62,22 @@ extension ReposFeature.View: View {
                 }
                 .animation(.easeInOut, value: viewStore.state.count)
             }
-            .safeAreaInset(edge: .top) {
-                // swiftlint:disable trailing_closure
-                TopBarView(
-                    title: "Repos",
-                    trailingAccessory: {
-                        Button {
-                            ViewStore(store.viewAction.stateless).send(.didAskToRefreshModules)
-                        } label: {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .contentShape(Rectangle())
-                                .font(.title3.weight(.semibold))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                )
+            .topBar(title: "Repos") {
+                Button {
+                    ViewStore(store.viewAction.stateless).send(.didAskToRefreshModules)
+                } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .contentShape(Rectangle())
+                        .font(.title3.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+            } bottomAccessory: {
+                EmptyView()
             }
-            .safeAreaInset(edge: .bottom) {
-                Spacer()
-                    .frame(height: tabNavigationSize.height)
-            }
+//            .safeAreaInset(edge: .bottom) {
+//                Spacer()
+//                    .frame(height: tabNavigationSize.height)
+//            }
             .overlay {
                 if viewStore.state.isEmpty {
                     noReposView
@@ -99,7 +94,8 @@ extension ReposFeature.View: View {
         .overlay {
             IfLetStore(
                 store.scope(
-                    state: \.selected
+                    state: \.selected,
+                    action: \.`self`
                 ),
                 then: RepoPackagesFeature.View.init
             )
@@ -154,6 +150,8 @@ extension ReposFeature.View {
                             .removeDuplicates()
                     )
                     .textFieldStyle(.plain)
+                    .autocorrectionDisabled(true)
+                    .textInputAutocapitalization(.never)
                     .font(.system(size: 16, weight: .regular))
                     .frame(maxWidth: .infinity)
                 }
@@ -208,6 +206,7 @@ extension ReposFeature.View {
                     .foregroundColor(.gray.opacity(0.1))
             )
             .animation(.easeInOut(duration: 0.2), value: viewStore.urlRepoState)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -271,31 +270,8 @@ struct ReposFeatureView_Previews: PreviewProvider {
     static var previews: some View {
         ReposFeature.View(
             store: .init(
-                initialState: .init(
-//                    repos: [
-//                        .init(
-//                            baseURL: .init(string: "http://192.168.86.35:3000").unsafelyUnwrapped,
-//                            dateAdded: .init(),
-//                            lastRefreshed: .init(),
-//                            manifest: .init(
-//                                name: "Repo 1",
-//                                author: "errorerrorerror"
-//                            )
-//                        ),
-//                        .init(
-//                            baseURL: .init(string: "/").unsafelyUnwrapped,
-//                            dateAdded: .init(),
-//                            lastRefreshed: .init(),
-//                            manifest: .init(
-//                                name: "Repo 2",
-//                                author: "lol",
-//                                description: nil,
-//                                icon: nil
-//                            )
-//                        )
-//                    ]
-                ),
-                reducer: EmptyReducer()
+                initialState: .init(),
+                reducer: ReposFeature.Reducer()
             )
         )
     }

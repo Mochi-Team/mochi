@@ -27,6 +27,20 @@ let featuresTargets: [Target] = [
         name: "Discover",
         dependencies: [
             "Architecture",
+            "MediaDetails",
+            "ModuleClient",
+            "RepoClient",
+            "Styling",
+            "SharedModels",
+            "ViewComponents",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "NukeUI", package: "Nuke")
+        ]
+    ),
+    .target(
+        name: "MediaDetails",
+        dependencies: [
+            "Architecture",
             "ModuleClient",
             "RepoClient",
             "Styling",
@@ -53,6 +67,7 @@ let featuresTargets: [Target] = [
         name: "Search",
         dependencies: [
             "Architecture",
+            "MediaDetails",
             "ModuleClient",
             "RepoClient",
             "Styling",
@@ -67,6 +82,7 @@ let featuresTargets: [Target] = [
         dependencies: [
             "Architecture",
             "SharedModels",
+            "UserSettingsClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
     ),
@@ -95,6 +111,12 @@ let featuresProducts = featuresTargets
 // MARK: - Clients
 
 let clientsTargets: [Target] = [
+    .target(
+        name: "AnalyticsClient",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
     .target(
         name: "DatabaseClient",
         dependencies: [
@@ -199,7 +221,9 @@ let miscTargets: [Target] = [
         name: "ViewComponents",
         dependencies: [
             "SharedModels",
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "NukeUI", package: "Nuke"),
+            .product(name: "Easing", package: "Easing")
         ]
     ),
     .target(
@@ -246,7 +270,6 @@ let miscProducs: [Product] = miscTargets
         )
     }
 
-
 // MARK: - Package
 
 let package = Package(
@@ -258,12 +281,12 @@ let package = Package(
     products: featuresProducts + clientsProducts + miscProducs,
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0"),
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "99a84e2e914be9afac2dfd5e53cc56476dfacb52"),
-        .package(url: "https://github.com/johnpatrickmorgan/TCACoordinators.git", exact: "0.4.0"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "20b8d15ad176ef7e63fd48ba1b9f23bfed99dc23"),
         .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
+        .package(url: "https://github.com/manuelCarlos/Easing.git", exact: "2.1.6")
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

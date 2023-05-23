@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import MediaDetails
 import NukeUI
 import SharedModels
 import Styling
@@ -16,127 +17,145 @@ import ViewComponents
 extension DiscoverFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store, observe: \.listings) { viewStore in
-            ZStack {
-                LoadableView(loadable: viewStore.state) { listings in
-                    Group {
-                        if listings.isEmpty {
-                            VStack(spacing: 12) {
-                                Spacer()
+        NavStack(
+            store.internalAction.scope(
+                state: \.screens,
+                action: Action.InternalAction.screens
+            )
+        ) {
+            WithViewStore(store, observe: \.sortedListings) { viewStore in
+                ZStack {
+                    LoadableView(loadable: viewStore.state) { listings in
+                        Group {
+                            if listings.isEmpty {
+                                VStack(spacing: 12) {
+                                    Spacer()
 
-                                Image(systemName: "questionmark.app.dashed")
-                                    .font(.largeTitle)
+                                    Image(systemName: "questionmark.app.dashed")
+                                        .font(.largeTitle)
 
-                                Text("No listings available for this module.")
-                                    .font(.subheadline.bold())
-                                Spacer()
+                                    Text("No listings available for this module.")
+                                        .font(.subheadline.bold())
+                                    Spacer()
+                                }
+                            } else {
+                                buildListingsView(listings)
                             }
-                        } else {
-                            buildListingsView(listings)
                         }
-                    }
-                    .transition(.opacity)
-                } failedView: { error in
-                    // TODO: Add error state depending on module or system fetching
-                    VStack(spacing: 12) {
-                        Spacer()
+                        .transition(.opacity)
+                    } failedView: { error in
+                        // TODO: Add error state depending on module or system fetching
+                        VStack(spacing: 12) {
+                            Spacer()
 
-                        Image(systemName: "exclamationmark.triangle.fill")
-                        Text(error.description)
-                            .font(.body.weight(.semibold))
+                            Image(systemName: "exclamationmark.triangle.fill")
+                            Text(error.description)
+                                .font(.body.weight(.semibold))
 
-                        Spacer()
+                            Spacer()
+                        }
+                        .transition(.opacity)
+                    } waitingView: {
+                        buildListingsView(
+                            [
+                                .init(
+                                    title: "placeholder",
+                                    type: .featured,
+                                    paging: .init(
+                                        items: [
+                                            .init(id: "placeholder 1", meta: .video)
+                                        ],
+                                        currentPage: "demo-1"
+                                    )
+                                ),
+                                .init(
+                                    title: "placeholder title",
+                                    type: .default,
+                                    paging: .init(
+                                        items: [
+                                            .init(id: "placeholder 1", meta: .video),
+                                            .init(id: "placeholder 2", meta: .video),
+                                            .init(id: "placeholder 3", meta: .video),
+                                            .init(id: "placeholder 4", meta: .video),
+                                            .init(id: "placeholder 5", meta: .video),
+                                            .init(id: "placeholder 6", meta: .video),
+                                            .init(id: "placeholder 7", meta: .video),
+                                            .init(id: "placeholder 8", meta: .video),
+                                            .init(id: "placeholder 9", meta: .video),
+                                            .init(id: "placeholder 10", meta: .video)
+                                        ],
+                                        currentPage: "demo-1"
+                                    )
+                                ),
+                                .init(
+                                    title: "placeholder title 2",
+                                    type: .rank,
+                                    paging: .init(
+                                        items: [
+                                            .init(id: "placeholder 1", meta: .video),
+                                            .init(id: "placeholder 2", meta: .video),
+                                            .init(id: "placeholder 3", meta: .video),
+                                            .init(id: "placeholder 4", meta: .video),
+                                            .init(id: "placeholder 5", meta: .video),
+                                            .init(id: "placeholder 6", meta: .video),
+                                            .init(id: "placeholder 7", meta: .video),
+                                            .init(id: "placeholder 8", meta: .video),
+                                            .init(id: "placeholder 9", meta: .video),
+                                            .init(id: "placeholder 10", meta: .video)
+                                        ],
+                                        currentPage: "demo-1"
+                                    )
+                                )
+                            ]
+                        )
+                        .redacted(reason: .placeholder)
+                        .shimmering()
+                        .disabled(true)
+                        .transition(.opacity)
                     }
-                    .transition(.opacity)
-                } waitingView: {
-                    buildListingsView(
-                        [
-                            .init(
-                                title: "placeholder",
-                                type: .featured,
-                                paging: .init(
-                                    items: [
-                                        .init(id: "placeholder 1", meta: .video)
-                                    ],
-                                    currentPage: "demo-1"
-                                )
-                            ),
-                            .init(
-                                title: "placeholder title",
-                                type: .default,
-                                paging: .init(
-                                    items: [
-                                        .init(id: "placeholder 1", meta: .video),
-                                        .init(id: "placeholder 2", meta: .video),
-                                        .init(id: "placeholder 3", meta: .video),
-                                        .init(id: "placeholder 4", meta: .video),
-                                        .init(id: "placeholder 5", meta: .video),
-                                        .init(id: "placeholder 6", meta: .video),
-                                        .init(id: "placeholder 7", meta: .video),
-                                        .init(id: "placeholder 8", meta: .video),
-                                        .init(id: "placeholder 9", meta: .video),
-                                        .init(id: "placeholder 10", meta: .video)
-                                    ],
-                                    currentPage: "demo-1"
-                                )
-                            ),
-                            .init(
-                                title: "placeholder title 2",
-                                type: .rank,
-                                paging: .init(
-                                    items: [
-                                        .init(id: "placeholder 1", meta: .video),
-                                        .init(id: "placeholder 2", meta: .video),
-                                        .init(id: "placeholder 3", meta: .video),
-                                        .init(id: "placeholder 4", meta: .video),
-                                        .init(id: "placeholder 5", meta: .video),
-                                        .init(id: "placeholder 6", meta: .video),
-                                        .init(id: "placeholder 7", meta: .video),
-                                        .init(id: "placeholder 8", meta: .video),
-                                        .init(id: "placeholder 9", meta: .video),
-                                        .init(id: "placeholder 10", meta: .video)
-                                    ],
-                                    currentPage: "demo-1"
-                                )
-                            )
-                        ]
+                }
+                .edgesIgnoringSafeArea(viewStore.state.shouldIgnoreTop ? .top : .init())
+                .animation(.easeInOut(duration: 0.25), value: viewStore.state.finished)
+            }
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity
+            )
+            .safeAreaInset(edge: .top) {
+                WithViewStore(store, observe: \.listings.shouldIgnoreTop) { viewStore in
+                    // swiftlint:disable trailing_closure
+                    TopBarView(
+                        backgroundStyle: viewStore.state ? .clear : .system,
+                        trailingAccessory: {
+                            WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
+                                ModuleSelectionButton(module: viewStore.state) {
+                                    viewStore.send(.didTapOpenModules)
+                                }
+                            }
+                        }
                     )
-                    .redacted(reason: .placeholder)
-                    .shimmering()
-                    .disabled(true)
-                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
                 }
             }
-            .edgesIgnoringSafeArea(viewStore.state.shouldIgnoreTop ? .top : .init())
-            .animation(.easeInOut(duration: 0.25), value: viewStore.state.finished)
-        }
-        .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity
-        )
-        .safeAreaInset(edge: .top) {
-            WithViewStore(store, observe: \.listings.shouldIgnoreTop) { viewStore in
-                // swiftlint:disable trailing_closure
-                TopBarView(
-                    backgroundStyle: viewStore.state ? .clear : .system,
-                    trailingAccessory: {
-                        WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
-                            ModuleSelectionButton(module: viewStore.state) {
-                                viewStore.send(.didTapOpenModules)
-                            }
-                        }
-                    }
-                )
-                .frame(maxWidth: .infinity)
+//            .safeAreaInset(edge: .bottom) {
+//                Spacer()
+//                    .frame(maxWidth: .infinity)
+//                    .frame(height: bottomNavigationSize.height)
+//            }
+            .onAppear {
+                ViewStore(store.viewAction.stateless).send(.didAppear)
             }
-        }
-        .safeAreaInset(edge: .bottom) {
-            Spacer()
-                .frame(maxWidth: .infinity)
-                .frame(height: bottomNavigationSize.height)
-        }
-        .onAppear {
-            ViewStore(store.viewAction.stateless).send(.didAppear)
+        } content: { store in
+            SwitchStore(store) { state in
+                switch state {
+                case .mediaDetails:
+                    CaseLet(
+                        /DiscoverFeature.Screens.State.mediaDetails,
+                         action: DiscoverFeature.Screens.Action.mediaDetails,
+                         then: MediaDetailsFeature.View.init
+                    )
+                }
+            }
         }
     }
 }
@@ -193,7 +212,10 @@ extension DiscoverFeature.View {
                     HStack(alignment: .top, spacing: 12) {
                         ForEach(listing.items) { media in
                             VStack(alignment: .leading, spacing: 6) {
-                                LazyImage(url: media.posterImage) { state in
+                                LazyImage(
+                                    url: media.posterImage,
+                                    transaction: .init(animation: .easeInOut(duration: 0.16))
+                                ) { state in
                                     if let image = state.image {
                                         image.resizable()
                                     } else {
@@ -271,7 +293,10 @@ extension DiscoverFeature.View {
                                 Text("\(idx + 1)")
                                     .font(.title3.monospacedDigit().weight(.bold))
 
-                                LazyImage(url: media.posterImage) { state in
+                                LazyImage(
+                                    url: media.posterImage,
+                                    transaction: .init(animation: .easeInOut(duration: 0.16))
+                                ) { state in
                                     if let image = state.image {
                                         image.resizable()
                                     } else {
@@ -316,13 +341,19 @@ extension DiscoverFeature.View {
     @MainActor
     func featuredListing(_ listing: DiscoverListing) -> some View {
         SnapScroll(items: listing.items) { media in
-            LazyImage(url: media.posterImage) { state in
+            LazyImage(
+                url: media.posterImage,
+                transaction: .init(animation: .easeInOut(duration: 0.16))
+            ) { state in
                 if let image = state.image {
                     image.resizable()
                 } else {
                     Color.gray
                         .opacity(0.35)
                 }
+            }
+            .onTapGesture {
+                ViewStore(store.viewAction.stateless).send(.didTapMedia(media))
             }
         }
         .aspectRatio(5 / 7, contentMode: .fill)

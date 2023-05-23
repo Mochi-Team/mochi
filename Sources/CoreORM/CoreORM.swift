@@ -171,16 +171,16 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
                     named: Notification.Name.NSManagedObjectContextDidSave
                 )
 
-                for await _ in notifications {
-                // TODO: Limit the type of requests depending on entity/relations name
-//                    guard let objects = notification.userInfo?[NSUpdatedObjectsKey] as? Set<NSManagedObject> else {
-//                        continue
-//                    }
+                for await notification in notifications {
+                    guard let objects = notification.userInfo?[NSUpdatedObjectsKey] as? Set<NSManagedObject> else {
+                        continue
+                    }
 
-//                    if objects.map(\.entity.name).contains(Instance.entityName) {}
-
-                    let values = try? await self.fetch(request)
-                    continuation.yield(values ?? [])
+                    // TODO: Include entity relations
+                    if objects.map(\.entity.name).contains(Instance.entityName) {
+                        let values = try? await self.fetch(request)
+                        continuation.yield(values ?? [])
+                    }
                 }
             }
             continuation.onTermination = { _ in

@@ -10,17 +10,17 @@ import Foundation
 import SwiftUI
 import ViewComponents
 
-public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
-    public enum BackgroundStyle {
-        case system
-        case blurred
-        case clear
-    }
+public enum TopBarBackgroundStyle {
+    case system
+    case blurred
+    case clear
+}
 
+public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
     public init(
         title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
-        backgroundStyle: BackgroundStyle = .system,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
         @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
     ) {
@@ -31,29 +31,32 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
         self.backgroundStyle = backgroundStyle
     }
 
-    public let title: String?
-    public let backCallback: (() -> Void)?
-    public var backgroundStyle: BackgroundStyle = .system
-    public let trailingAccessory: () -> TrailingAccessory
-    public let bottomAccessory: () -> BottomAccessory
+    let title: String?
+    let backCallback: (() -> Void)?
+    var backgroundStyle: TopBarBackgroundStyle = .system
+    let trailingAccessory: () -> TrailingAccessory
+    let bottomAccessory: () -> BottomAccessory
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if let backCallback {
-                SwiftUI.Button {
-                    backCallback()
-                } label: {
-                    Image(systemName: "chevron.backward.circle.fill")
-                        .font(.system(size: 24, weight: .bold))
-                        .contentShape(Rectangle())
+            HStack {
+                if let backCallback {
+                    SwiftUI.Button {
+                        backCallback()
+                    } label: {
+                        Image(systemName: "chevron.backward")
+                            .font(.callout.bold())
+                            .frame(width: 28, height: 28)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-            }
 
-            HStack(alignment: .bottom, spacing: 12) {
-                Text(title ?? "")
-                    .font(.largeTitle.bold())
-                    .opacity(title == nil ? 0.0 : 1.0)
+                if let title {
+                    Text(title)
+                        .font(.title.bold())
+                }
 
                 Spacer()
 
@@ -85,7 +88,7 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
         )
     }
 
-    public func backgroundStyle(_ style: BackgroundStyle) -> Self {
+    public func backgroundStyle(_ style: TopBarBackgroundStyle) -> Self {
         var copy = self
         copy.backgroundStyle = style
         return copy
@@ -95,10 +98,10 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
 extension TopBarView {
     public init(
         title: String? = nil,
-        backCallback: (() -> Void)? = nil,
-        backgroundStyle: BackgroundStyle = .system
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil
     ) where TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
-        self.init(title: title, backCallback: backCallback, backgroundStyle: backgroundStyle) {
+        self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             EmptyView()
         } bottomAccessory: {
             EmptyView()
@@ -107,11 +110,11 @@ extension TopBarView {
 
     public init(
         title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
-        backgroundStyle: BackgroundStyle = .system,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
     ) where BottomAccessory == EmptyView {
-        self.init(title: title, backCallback: backCallback, backgroundStyle: backgroundStyle) {
+        self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             trailingAccessory()
         } bottomAccessory: {
             EmptyView()
@@ -120,11 +123,11 @@ extension TopBarView {
 
     public init(
         title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
-        backgroundStyle: BackgroundStyle = .system,
         @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
     ) where TrailingAccessory == EmptyView {
-        self.init(title: title, backCallback: backCallback, backgroundStyle: backgroundStyle) {
+        self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             EmptyView()
         } bottomAccessory: {
             bottomAccessory()
@@ -132,49 +135,59 @@ extension TopBarView {
     }
 }
 
-extension TopBarView {
-//    public struct Button {
-//        let style: Style
-//        let callback: () -> Void
-//
-//        public init(
-//            style: TopBarView.Button.Style,
-//            callback: @escaping () -> Void
-//        ) {
-//            self.style = style
-//            self.callback = callback
-//        }
-//
-//        public enum Style {
-//            case text(String)
-//            case image(String)
-//            case systemImage(String)
-//        }
-//    }
+public extension View {
+    func topBar<TrailingAccessory: View, BottomAccessory: View>(
+        title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
+        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
+    ) -> some View {
+        self.safeAreaInset(edge: .top) {
+            TopBarView(
+                title: title,
+                backgroundStyle: backgroundStyle,
+                backCallback: backCallback,
+                trailingAccessory: trailingAccessory,
+                bottomAccessory: bottomAccessory
+            )
+            .frame(maxWidth: .infinity)
+        }
+    }
 
-//    public init(
-//        title: String? = nil,
-//        backCallback: (() -> Void)? = nil,
-//        buttons: [Button] = []
-//    ) {
-//        self.init(title: title, backCallback: backCallback) {
-//            ForEach(Array(zip(buttons.indices, buttons)), id: \.0) { _, button in
-//                SwiftUI.Button {
-//                    button.callback()
-//                } label: {
-//                    Group {
-//                        switch button.style {
-//                        case let .text(string):
-//                            Text(string)
-//                        case let .image(named):
-//                            Image(named)
-//                        case let .systemImage(named):
-//                            Image(systemName: named)
-//                        }
-//                    }
-//                    .font(.title2.weight(.semibold))
-//                }
-//                .buttonStyle(.plain)
-//            }
-//        }
+    func topBar(
+        title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil
+    ) -> some View {
+        self.topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
+            EmptyView()
+        } bottomAccessory: {
+            EmptyView()
+        }
+    }
+
+    func topBar<TrailingAccessory: View>(
+        title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
+    ) -> some View {
+        self.topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback, trailingAccessory: trailingAccessory) {
+            EmptyView()
+        }
+    }
+
+    func topBar<BottomAccessory: View>(
+        title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
+    ) -> some View {
+        self.topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
+            EmptyView()
+        } bottomAccessory: {
+            bottomAccessory()
+        }
+    }
 }

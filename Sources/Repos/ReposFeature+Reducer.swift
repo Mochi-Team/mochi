@@ -11,6 +11,7 @@ import ComposableArchitecture
 import Foundation
 import RepoClient
 import SharedModels
+import Styling
 
 extension ReposFeature.Reducer: Reducer {
     private enum Cancellables: Hashable {
@@ -81,10 +82,10 @@ extension ReposFeature.Reducer: Reducer {
                 )
 
             case let .view(.didTapRepo(repoId)):
-                return .action(.internal(.animateSelectRepo(repoId)), animation: .easeInOut)
+                return .action(.internal(.animateSelectRepo(repoId)), animation: .navStackTransion)
 
             case .view(.didTapBackButtonForOverlay):
-                return .action(.internal(.animateSelectRepo(nil)), animation: .easeInOut)
+                return .action(.internal(.animateSelectRepo(nil)), animation: .navStackTransion)
 
             case let .view(.didTapAddModule(repoId, moduleId)):
                 guard state.selected?.repo.id == repoId else {
@@ -106,7 +107,7 @@ extension ReposFeature.Reducer: Reducer {
                 }
 
             case .view(.binding(\.urlRepoState.$url)):
-                guard let url = URL(string: state.urlRepoState.url) else {
+                guard let url = URL(string: state.urlRepoState.url.lowercased()) else {
                     state.urlRepoState.repo = .pending
                     return .cancel(id: Cancellables.repoURLDebounce)
                 }

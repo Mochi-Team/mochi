@@ -39,8 +39,8 @@ extension SearchFeature.Reducer: Reducer {
                 return .action(.delegate(.tappedOpenModules))
 
             case .view(.didTapFilterOptions):
+//                return .send(.delegate(.tappedFilterOptions))
                 break
-//                return .action(.delegate(.tappedFilterOptions))
 
             case .view(.didClearQuery):
                 state.searchQuery.query = ""

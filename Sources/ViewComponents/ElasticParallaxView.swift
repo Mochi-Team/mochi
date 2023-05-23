@@ -1,0 +1,34 @@
+//
+//  ElasticParallaxView.swift
+//  
+//
+//  Created by ErrorErrorError on 5/19/23.
+//  
+//
+
+import Foundation
+import SwiftUI
+
+struct ElasticParallaxView: ViewModifier {
+    func body(content: Content) -> some View {
+        GeometryReader { reader in
+            let minY = reader.frame(in: .global).minY
+            content
+                .frame(
+                    width: reader.size.width,
+                    height: reader.size.height + (minY > 0 ? minY : 0),
+                    alignment: .top
+                )
+                .contentShape(Rectangle())
+                .clipped()
+                .offset(y: minY < 0 ? 0 : -minY)
+        }
+    }
+}
+
+public extension View {
+    @ViewBuilder
+    func elasticParallax() -> some View {
+        modifier(ElasticParallaxView())
+    }
+}

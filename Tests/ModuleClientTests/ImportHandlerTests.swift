@@ -79,6 +79,7 @@ final class ImportHandlerTests: XCTestCase {
             key_ptr: RawPtr(titleKeyPtrRaw),
             key_len: Int32(titleKey.count)
         )
+
         XCTAssertGreaterThanOrEqual(valuePtr, 0)
 
         let valuePtrKind = importHandlers.ptr_kind(ptr: valuePtr)

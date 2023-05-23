@@ -72,13 +72,13 @@ public extension Reducer where Action: FeatureAction {
     func ifLet<DestinationState, DestinationAction, Destination: Reducer>(
         _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
         action toPresentationAction: CasePath<Action.InternalAction, PresentationAction<DestinationAction>>,
-        @ReducerBuilder<DestinationState, DestinationAction> then destination: () -> Destination
+        @ReducerBuilder<DestinationState, DestinationAction> destination: () -> Destination
     ) -> _PresentationReducer<Self, Destination> where Destination.State == DestinationState, Destination.Action == DestinationAction {
         // swiftlint:disable operator_usage_whitespace
         self.ifLet(
             toPresentationState,
             action: /Action.internal..toPresentationAction,
-            then: destination
+            destination: destination
         )
     }
 
@@ -100,6 +100,7 @@ extension PresentationState: @unchecked Sendable where State: Sendable {}
 extension BindingAction: @unchecked Sendable where Root: Sendable {}
 
 public extension Effect where Failure == Never {
+    @available(*, deprecated, message: "Use `Effect.send` once animation starts working.")
     static func action(
         _ action: Action,
         animation: Animation? = nil

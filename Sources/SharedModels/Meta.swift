@@ -104,6 +104,8 @@ public struct Media: Sendable, Identifiable, Equatable {
     public let title: String?
     public let posterImage: URL?
     public let bannerImage: URL?
+//    public let url: URL
+//    public let status: Status
     public let meta: Meta
 
     public init(
@@ -126,3 +128,115 @@ public struct Media: Sendable, Identifiable, Equatable {
         case text
     }
 }
+
+extension Media {
+    public struct Details: Sendable, Equatable {
+        public let contentDescription: String?
+        public let alternativeTitles: [String]
+        public let alternativePosters: [URL]
+        public let alternativeBanners: [URL]
+        public let genres: [String]
+        public let yearReleased: Int?
+        public let ratings: Int?
+        public let previews: [Preview]
+
+        public init(
+            contentDescription: String? = nil,
+            alternativeTitles: [String] = [],
+            alternativePosters: [URL] = [],
+            alternativeBanners: [URL] = [],
+            genres: [String] = [],
+            yearReleased: Int? = nil,
+            ratings: Int? = nil,
+            previews: [Preview] = []
+        ) {
+            self.contentDescription = contentDescription
+            self.alternativeTitles = alternativeTitles
+            self.alternativePosters = alternativePosters
+            self.alternativeBanners = alternativeBanners
+            self.genres = genres
+            self.yearReleased = yearReleased
+            self.ratings = ratings
+            self.previews = previews
+        }
+    }
+}
+
+extension Media {
+    public struct Content: Sendable, Equatable {
+        public let title: String?
+        public let description: String?
+        public let thumbnail: URL?
+        public let section: String?
+        public let group: Double?
+        public let number: Double
+        public let timestamp: String?
+        public let tags: [String]
+        public let link: String
+
+        public init(
+            title: String? = nil,
+            description: String? = nil,
+            thumbnail: URL? = nil,
+            section: String? = nil,
+            group: Double? = nil,
+            number: Double,
+            timestamp: String? = nil,
+            tags: [String] = [],
+            link: String
+        ) {
+            self.title = title
+            self.description = description
+            self.thumbnail = thumbnail
+            self.section = section
+            self.group = group
+            self.number = number
+            self.timestamp = timestamp
+            self.tags = tags
+            self.link = link
+        }
+    }
+}
+
+extension Media {
+    public struct Preview: Sendable, Equatable {
+        public let title: String?
+        public let description: String?
+        public let thumbnail: URL
+        public let link: URL
+        public let type: PreviewType
+
+        public enum PreviewType: Sendable, Equatable {
+            case video
+            case image
+        }
+
+        public init(
+            title: String? = nil,
+            description: String? = nil,
+            thumbnail: URL,
+            link: URL,
+            type: Media.Preview.PreviewType
+        ) {
+            self.title = title
+            self.description = description
+            self.thumbnail = thumbnail
+            self.link = link
+            self.type = type
+        }
+    }
+}
+
+//extension Media {
+//    public struct Link: Equatable, Sendable {
+//        public let name: String?
+//        public let image: URL?
+//        public let url: URL
+//
+//        public enum LinkType: Equatable, Sendable {
+//            case video
+//            case image
+//            case text
+//        }
+//    }
+//}

@@ -36,7 +36,7 @@ public enum RepoPackagesFeature {
         public var installingModules: [Module.ID: RepoClient.RepoModuleDownloadState]
 
         public var packages: Loadable<[Package], RepoClient.Error> {
-            modules.map { manifests in
+            modules.mapValue { manifests in
                 Dictionary(grouping: manifests, by: \.id)
                     .map(\.value)
                     .filter { !$0.isEmpty }

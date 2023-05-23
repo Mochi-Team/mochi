@@ -9,17 +9,29 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 public struct SwipeToDismissModifier: ViewModifier {
     var onDismiss: () -> Void
+
+    @State
+    private var didDismiss = false
+
     @State
     private var offset: CGSize = .zero
 
+    @GestureState
+    private var isDragActive = false
+
+    @MainActor
     public func body(content: Content) -> some View {
         content
             .offset(x: offset.width)
-            .animation(.interactiveSpring(), value: offset)
+            .animation(.interactiveSpring(), value: offset != .zero)
             .highPriorityGesture(
                 DragGesture()
+                    .updating($isDragActive) { _, state, _ in
+                        state = true
+                    }
                     .onChanged { gesture in
                         if gesture.startLocation.x < 50 {
                             if gesture.translation.width > 0 || gesture.predictedEndTranslation.width > 0 {
@@ -31,18 +43,26 @@ public struct SwipeToDismissModifier: ViewModifier {
                             offset = .zero
                         }
                     }
-                    .onEnded { gesture in
-                        if gesture.translation.width > 75 || gesture.predictedEndTranslation.width > 75 {
+                    .onEnded { _ in
+                        if offset.width > 50 {
+                            didDismiss = true
                             onDismiss()
                         } else {
                             offset = .zero
                         }
                     }
             )
+            .onChange(of: isDragActive) { newValue in
+                /// Handles cancelled gestures
+                if !newValue && offset != .zero && !didDismiss {
+                    offset = .zero
+                }
+            }
     }
 }
 
 public extension View {
+    @MainActor
     func screenDismissed(_ onDismiss: @escaping () -> Void) -> some View {
         self.modifier(SwipeToDismissModifier(onDismiss: onDismiss))
     }
