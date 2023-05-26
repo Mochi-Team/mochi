@@ -8,15 +8,29 @@
 
 import Foundation
 
-extension Array where Element: Identifiable {
+public extension Array where Element: Identifiable {
     subscript(id id: Element.ID) -> Element? {
-        get { self.first(where: \.id == id) }
+        get { first(where: \.id == id) }
         set {
             if let index = self.firstIndex(where: \.id == id) {
                 if let newValue {
                     self[index] = newValue
                 } else {
                     self.remove(at: index)
+                }
+            }
+        }
+    }
+}
+
+public extension Set where Element: Identifiable {
+    subscript(id id: Element.ID) -> Element? {
+        get { first(where: \.id == id) }
+        set {
+            if let index = self.firstIndex(where: \.id == id) {
+                self.remove(at: index)
+                if let newValue {
+                    self.insert(newValue)
                 }
             }
         }

@@ -25,6 +25,7 @@ extension KVAccess {
 
 extension SearchQuery: KVAccess {}
 extension SearchQuery.Filter: KVAccess {}
+extension Playlist.ItemsRequest: KVAccess {}
 
 extension Paging {
     func into<V>(_: V.Type = V.self) -> Paging<V> {

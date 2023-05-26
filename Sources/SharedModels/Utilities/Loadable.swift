@@ -14,7 +14,7 @@ public enum Loadable<T, E> {
     case loaded(T)
     case failed(E)
 
-    public var finished: Bool {
+    public var didFinish: Bool {
         switch self {
         case .pending, .loading:
             return false
@@ -35,6 +35,13 @@ public enum Loadable<T, E> {
             return error
         }
         return nil
+    }
+
+    public var hasInitialized: Bool {
+        if case .pending = self {
+            return false
+        }
+        return true
     }
 }
 

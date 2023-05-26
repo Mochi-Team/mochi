@@ -27,7 +27,7 @@ let featuresTargets: [Target] = [
         name: "Discover",
         dependencies: [
             "Architecture",
-            "MediaDetails",
+            "PlaylistDetails",
             "ModuleClient",
             "RepoClient",
             "Styling",
@@ -38,7 +38,7 @@ let featuresTargets: [Target] = [
         ]
     ),
     .target(
-        name: "MediaDetails",
+        name: "PlaylistDetails",
         dependencies: [
             "Architecture",
             "ModuleClient",
@@ -67,7 +67,7 @@ let featuresTargets: [Target] = [
         name: "Search",
         dependencies: [
             "Architecture",
-            "MediaDetails",
+            "PlaylistDetails",
             "ModuleClient",
             "RepoClient",
             "Styling",

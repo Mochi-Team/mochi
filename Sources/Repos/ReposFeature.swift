@@ -114,7 +114,7 @@ public enum ReposFeature: Feature {
         public typealias State = ReposFeature.State
         public typealias Action = ReposFeature.Action
 
-        @Dependency(\.repo)
+        @Dependency(\.repoClient)
         var repoClient
 
         public init() {}

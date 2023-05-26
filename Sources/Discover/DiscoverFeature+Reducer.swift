@@ -8,8 +8,8 @@
 
 import Architecture
 import ComposableArchitecture
-import MediaDetails
 import ModuleClient
+import PlaylistDetails
 import RepoClient
 import SharedModels
 
@@ -22,11 +22,11 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
         Reduce { state, action in
             switch action {
             case.view(.didAppear):
-                if state.hasSetUp {
+                if state.initialized {
                     break
                 }
 
-                state.hasSetUp = true
+                state.initialized = true
 
                 return .merge(
                     .run { send in
@@ -39,13 +39,17 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
                 )
 
             case .view(.didTapOpenModules):
-                return .action(.delegate(.openModules))
+                return .send(.delegate(.openModules))
 
-            case let .view(.didTapMedia(media)):
-                state.screens.append(.mediaDetails(.init(media: media)))
+            case let .view(.didTapPlaylist(playlist)):
+                guard let repoId = state.selectedRepoModule?.repoId,
+                      let moduleId = state.selectedRepoModule?.module.id else {
+                    break
+                }
+                state.screens.append(.playlistDetails(.init(repoModuleID: .init(repoId: repoId, moduleId: moduleId), playlist: playlist)))
 
             case let .internal(.selectedModule(selection)):
-                state.selectedModule = selection?.module.manifest
+                state.selectedRepoModule = selection.flatMap { .init(repoId: $0.repoId, module: $0.module.manifest) }
                 return fetchLatestListings(&state, selection)
 
             case let .internal(.loadedListings(.success(listing))):

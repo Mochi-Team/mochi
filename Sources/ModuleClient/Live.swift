@@ -12,20 +12,22 @@ import SharedModels
 import WasmInterpreter
 
 extension ModuleClient: DependencyKey {
-    public static let liveValue = Self(
-        searchFilters: { module in
-            try await ModuleHandler(module: module)
-                .searchFilters()
-        },
-        search: { module, query in
-            try await ModuleHandler(module: module)
-                .search(query)
-        },
-        getDiscoverListings: { module in
-            try await ModuleHandler(module: module)
-                .discoverListings()
-        }
-    )
+    public static let liveValue = Self { module in
+        try await ModuleHandler(module: module)
+            .searchFilters()
+    } search: { module, query in
+        try await ModuleHandler(module: module)
+            .search(query)
+    } getDiscoverListings: { module in
+        try await ModuleHandler(module: module)
+            .discoverListings()
+    } getPlaylistDetails: { module, id in
+        try await ModuleHandler(module: module)
+            .playlistDetails(id)
+    } getPlaylistVideos: { module, playlistRequest in
+        try await ModuleHandler(module: module)
+            .playlistVideos(playlistRequest)
+    }
 }
 
 struct ModuleHandler {
@@ -44,7 +46,7 @@ struct ModuleHandler {
 /// Available method calls
 ///
 extension ModuleHandler {
-    func search(_ query: SearchQuery) async throws -> Paging<Media> {
+    func search(_ query: SearchQuery) async throws -> Paging<Playlist> {
         let queryPtr = self.hostModuleComms.addToHostMemory(query)
         let resultsPtr: Int32 = try instance.exports.search(queryPtr)
 
@@ -58,7 +60,7 @@ extension ModuleHandler {
     }
 
     func discoverListings() async throws -> [DiscoverListing] {
-        let resultsPtr: Int32 = try instance.exports.discovery_listing()
+        let resultsPtr: Int32 = try instance.exports.discover_listings()
 
         if let values = hostModuleComms.getHostObject(resultsPtr) as? [DiscoverListing] {
             return values
@@ -77,6 +79,32 @@ extension ModuleHandler {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
+        }
+    }
+
+    func playlistDetails(_ id: Playlist.ID) async throws -> Playlist.Details {
+        let idPtr = self.hostModuleComms.addToHostMemory(id)
+        let resultsPtr: Int32 = try instance.exports.playlist_details(idPtr)
+
+        if let details = hostModuleComms.getHostObject(resultsPtr) as? Playlist.Details {
+            return details
+        } else if let result = hostModuleComms.getHostObject(resultsPtr) as? ModuleClient.Error {
+            throw result
+        } else {
+            throw ModuleClient.Error.nullPtr(for: #function)
+        }
+    }
+
+    func playlistVideos(_ request: Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse {
+        let requestPtr = hostModuleComms.addToHostMemory(request)
+        let resultsPtr: Int32 = try instance.exports.playlist_episodes(requestPtr)
+
+        if let response = hostModuleComms.getHostObject(resultsPtr) as? Playlist.ItemsResponse {
+            return response
+        } else if let result = hostModuleComms.getHostObject(resultsPtr) as? ModuleClient.Error {
+            throw result
+        } else {
+            throw ModuleClient.Error.nullPtr()
         }
     }
 }
@@ -580,6 +608,20 @@ private extension ModuleHandler {
             // MARK: Mochi Structs Meta Imports
 
             WasmInstance.Import(namespace: "structs_meta") {
+                WasmInstance.Function("create_search_filter_option") { [self] (
+                    optionIdPtr: RawPtr,
+                    optionIdLen: Int32,
+                    namePtr: RawPtr,
+                    nameLen: Int32
+                ) -> PtrRef in
+                    hostModuleComms.create_search_filter_option(
+                        option_id_ptr: optionIdPtr,
+                        option_id_len: optionIdLen,
+                        name_ptr: namePtr,
+                        name_len: nameLen
+                    )
+                }
+                
                 WasmInstance.Function("create_search_filter") { [self] (
                     idPtr: Int32,
                     idLen: Int32,
@@ -588,7 +630,7 @@ private extension ModuleHandler {
                     optionsArrayRef: Int32,
                     multiSelect: Int32,
                     required: Int32
-                ) -> Int32 in
+                ) -> PtrRef in
                     hostModuleComms.create_search_filter(
                         id_ptr: idPtr,
                         id_len: idLen,
@@ -599,52 +641,14 @@ private extension ModuleHandler {
                         required: required
                     )
                 }
-
-                WasmInstance.Function("create_search_filter_option") { [self] (
-                    optionIdPtr: Int32,
-                    optionIdLen: Int32,
-                    namePtr: Int32,
-                    nameLen: Int32
-                ) -> Int32 in
-                    hostModuleComms.create_search_filter_option(
-                        option_id_ptr: optionIdPtr,
-                        option_id_len: optionIdLen,
-                        name_ptr: namePtr,
-                        name_len: nameLen
-                    )
-                }
-
-                WasmInstance.Function("create_media") { [self] (
-                    idPtr: Int32,
-                    idLen: Int32,
-                    titlePtr: Int32,
-                    titleLen: Int32,
-                    posterImagePtr: RawPtr,
-                    posterImageLen: Int32,
-                    bannerImagePtr: RawPtr,
-                    bannerImageLen: Int32,
-                    meta: Int32
-                ) -> Int32 in
-                    hostModuleComms.create_media(
-                        id_ptr: idPtr,
-                        id_len: idLen,
-                        title_ptr: titlePtr,
-                        title_len: titleLen,
-                        poster_image_ptr: posterImagePtr,
-                        poster_image_len: posterImageLen,
-                        banner_image_ptr: bannerImagePtr,
-                        banner_image_len: bannerImageLen,
-                        meta: meta
-                    )
-                }
-
+                
                 WasmInstance.Function("create_paging") { [self] (
                     itemsArrayRefPtr: PtrRef,
                     currentPagePtr: RawPtr,
                     currentPageLen: Int32,
                     nextPagePtr: RawPtr,
                     nextPageLen: Int32
-                ) -> Int32 in
+                ) -> PtrRef in
                     hostModuleComms.create_paging(
                         items_array_ref_ptr: itemsArrayRefPtr,
                         current_page_ptr: currentPagePtr,
@@ -653,18 +657,156 @@ private extension ModuleHandler {
                         next_page_len: nextPageLen
                     )
                 }
-
+                
                 WasmInstance.Function("create_discover_listing") { [self] (
                     titlePtr: RawPtr,
                     titleLen: Int32,
                     listingType: RawPtr,
                     pagingPtr: PtrRef
-                ) -> Int32 in
+                ) -> PtrRef in
                     hostModuleComms.create_discover_listing(
                         title_ptr: titlePtr,
                         title_len: titleLen,
                         listing_type: listingType,
                         paging_ptr: pagingPtr
+                    )
+                }
+                
+                WasmInstance.Function("create_playlist") { [self] (
+                    idPtr: RawPtr,
+                    idLen: Int32,
+                    titlePtr: RawPtr,
+                    titleLen: Int32,
+                    posterImagePtr: RawPtr,
+                    posterImageLen: Int32,
+                    bannerImagePtr: RawPtr,
+                    bannerImageLen: Int32,
+                    type: Int32
+                ) -> PtrRef in
+                    hostModuleComms.create_playlist(
+                        id_ptr: idPtr,
+                        id_len: idLen,
+                        title_ptr: titlePtr,
+                        title_len: titleLen,
+                        poster_image_ptr: posterImagePtr,
+                        poster_image_len: posterImageLen,
+                        banner_image_ptr: bannerImagePtr,
+                        banner_image_len: bannerImageLen,
+                        type: type
+                    )
+                }
+                
+                WasmInstance.Function("create_playlist_details") { [self] (
+                    descriptionPtr: RawPtr,
+                    descriptionLen: Int32,
+                    alternativeTitlesPtr: PtrRef,
+                    alternativePostersPtr: PtrRef,
+                    alternativeBannersPtr: PtrRef,
+                    genresPtr: PtrRef,
+                    yearReleased: Int32,
+                    ratings: Int32,
+                    previewsPtr: PtrRef
+                ) -> PtrRef in
+                    hostModuleComms.create_playlist_details(
+                        description_ptr: descriptionPtr,
+                        description_len: descriptionLen,
+                        alternative_titles_ptr: alternativeTitlesPtr,
+                        alternative_posters_ptr: alternativePostersPtr,
+                        alternative_banners_ptr: alternativeBannersPtr,
+                        genres_ptr: genresPtr,
+                        year_released: yearReleased,
+                        ratings: ratings,
+                        previews_ptr: previewsPtr
+                    )
+                }
+                
+                WasmInstance.Function("create_playlist_preview") { [self] (
+                    title_ptr: RawPtr,
+                    title_len: Int32,
+                    description_ptr: RawPtr,
+                    description_len: Int32,
+                    thumbnail_ptr: RawPtr,
+                    thumbnail_len: Int32,
+                    link_ptr: RawPtr,
+                    link_len: Int32,
+                    preview_type: Int32
+                ) -> PtrRef in
+                    hostModuleComms.create_playlist_preview(
+                        title_ptr: title_ptr,
+                        title_len: title_len,
+                        description_ptr: description_ptr,
+                        description_len: description_len,
+                        thumbnail_ptr: thumbnail_ptr,
+                        thumbnail_len: thumbnail_len,
+                        link_ptr: link_ptr,
+                        link_len: link_len,
+                        preview_type: preview_type
+                    )
+                }
+                
+                WasmInstance.Function("create_playlist_item") { [self] (
+                    id_ptr: RawPtr,
+                    id_len: Int32,
+                    title_ptr: RawPtr,
+                    title_len: Int32,
+                    description_ptr: RawPtr,
+                    description_len: Int32,
+                    thumbnail_ptr: RawPtr,
+                    thumbnail_len: Int32,
+                    number: Float64,
+                    timestamp_ptr: RawPtr,
+                    timestamp_len: Int32,
+                    tags_ptr: PtrRef
+                ) -> PtrRef in
+                    hostModuleComms.create_playlist_item(
+                        id_ptr: id_ptr,
+                        id_len: id_len,
+                        title_ptr: title_ptr,
+                        title_len: title_len,
+                        description_ptr: description_ptr,
+                        description_len: description_len,
+                        thumbnail_ptr: thumbnail_ptr,
+                        thumbnail_len: thumbnail_len,
+                        number: number,
+                        timestamp_ptr: timestamp_ptr,
+                        timestamp_len: timestamp_len,
+                        tags_ptr: tags_ptr
+                    )
+                }
+
+                WasmInstance.Function("create_playlist_items_response") { [self] (
+                    content_ptr: PtrRef,
+                    all_groups_ptr: PtrRef
+                ) -> PtrRef in
+                    hostModuleComms.create_playlist_items_response(
+                        content_ptr: content_ptr,
+                        all_groups_ptr: all_groups_ptr
+                    )
+                }
+
+                WasmInstance.Function("create_playlist_group") { [self] (
+                    id: Float64,
+                    display_title_ptr: RawPtr,
+                    display_title_len: Int32
+                ) -> PtrRef in
+                    hostModuleComms.create_playlist_group(
+                        id: id,
+                        display_title_ptr: display_title_ptr,
+                        display_title_len: display_title_len
+                    )
+                }
+
+                WasmInstance.Function("create_playlist_group_items") { [self] (
+                    group_id: Float64,
+                    previous_group_id: Float64,
+                    next_group_id: Float64,
+                    items_ptr: PtrRef
+                ) -> Int32 in
+                    hostModuleComms.create_playlist_group_items(
+                        group_id: group_id,
+                        previous_group_id: previous_group_id,
+                        next_group_id: next_group_id,
+                        items_ptr: items_ptr
                     )
                 }
             }

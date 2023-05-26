@@ -9,8 +9,8 @@
 import Architecture
 import ComposableArchitecture
 import Foundation
-import MediaDetails
 import ModuleClient
+import PlaylistDetails
 import RepoClient
 import SharedModels
 import Styling
@@ -43,15 +43,15 @@ public enum DiscoverFeature: Feature {
 
     public struct Screens: ComposableArchitecture.Reducer {
         public enum State: Equatable, Sendable {
-            case mediaDetails(MediaDetailsFeature.State)
+            case playlistDetails(PlaylistDetailsFeature.State)
         }
 
         public enum Action: Equatable, Sendable, DismissableViewAction {
-            case mediaDetails(MediaDetailsFeature.Action)
+            case playlistDetails(PlaylistDetailsFeature.Action)
 
             public static func dismissed(_ childAction: DiscoverFeature.Screens.Action) -> Bool {
                 switch childAction {
-                case .mediaDetails(.view(.didTappedBackButton)):
+                case .playlistDetails(.view(.didTappedBackButton)):
                     return true
                 default:
                     return false
@@ -60,15 +60,15 @@ public enum DiscoverFeature: Feature {
         }
 
         public var body: some ComposableArchitecture.Reducer<State, Action> {
-            Scope(state: /State.mediaDetails, action: /Action.mediaDetails) {
-                MediaDetailsFeature.Reducer()
+            Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
+                PlaylistDetailsFeature.Reducer()
             }
         }
     }
 
     public struct State: FeatureState {
         public var listings: Loadable<[DiscoverListing], Error>
-        public var selectedModule: Module.Manifest?
+        public var selectedRepoModule: SelectedRepoModule?
         public var screens: StackState<Screens.State>
 
         var sortedListings: Loadable<[DiscoverListing], Error> {
@@ -86,16 +86,21 @@ public enum DiscoverFeature: Feature {
             }
         }
 
-        var hasSetUp = false
+        var initialized = false
 
         public init(
             listings: Loadable<[DiscoverListing], Error> = .pending,
-            selectedModule: Module.Manifest? = nil,
+            selectedRepoModule: SelectedRepoModule? = nil,
             screens: StackState<Screens.State> = .init()
         ) {
             self.listings = listings
-            self.selectedModule = selectedModule
+            self.selectedRepoModule = selectedRepoModule
             self.screens = screens
+        }
+
+        public struct SelectedRepoModule: Equatable, Sendable {
+            let repoId: Repo.ID
+            let module: Module.Manifest
         }
     }
 
@@ -103,7 +108,7 @@ public enum DiscoverFeature: Feature {
         public enum ViewAction: SendableAction {
             case didAppear
             case didTapOpenModules
-            case didTapMedia(Media)
+            case didTapPlaylist(Playlist)
         }
 
         public enum DelegateAction: SendableAction {
@@ -137,7 +142,7 @@ public enum DiscoverFeature: Feature {
         public typealias State = DiscoverFeature.State
         public typealias Action = DiscoverFeature.Action
 
-        @Dependency(\.repo)
+        @Dependency(\.repoClient)
         var repoClient
 
         @Dependency(\.moduleClient)

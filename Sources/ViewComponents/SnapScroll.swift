@@ -9,12 +9,12 @@
 import Foundation
 import SwiftUI
 
-public struct SnapScroll<T, Content: View>: View {
+public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T.Index == Int {
     @State
-    var position: Int
+    var position: T.Index
 
-    var list: [T]
-    var content: (T) -> Content
+    var list: T
+    var content: (T.Element) -> Content
 
     var alignment: VerticalAlignment
     var spacing: CGFloat
@@ -31,20 +31,20 @@ public struct SnapScroll<T, Content: View>: View {
         alignment: VerticalAlignment = .center,
         spacing: CGFloat = 0,
         edgeInsets: EdgeInsets = .init(),
-        items: [T],
-        @ViewBuilder content: @escaping (T) -> Content
+        items: T,
+        @ViewBuilder content: @escaping (T.Element) -> Content
     ) {
         self.alignment = alignment
         self.spacing = spacing
         self.edgeInsets = edgeInsets
-        self.position = 0
+        self._position = .init(initialValue: .init())
         self.list = items
         self.content = content
     }
 
     public var body: some View {
         HStack(alignment: alignment, spacing: spacing) {
-            ForEach(list.indices, id: \.self) { idx in
+            ForEach(list.indices, id: \.`self`) { idx in
                 content(list[idx])
                     .frame(width: max(0, maxWidth - edgeInsets.horizontal - (spacing * 2)))
             }

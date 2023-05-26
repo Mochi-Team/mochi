@@ -160,7 +160,7 @@ extension ReposFeature.Reducer: Reducer {
                             await fetchRepoModules(
                                 repo,
                                 send,
-                                alreadyRequested: state.repoModules[repo.id]?.finished ?? false,
+                                alreadyRequested: state.repoModules[repo.id]?.didFinish ?? false,
                                 forced: forced
                             )
                         }

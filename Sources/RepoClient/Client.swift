@@ -94,7 +94,7 @@ extension RepoClient: TestDependencyKey {
 }
 
 extension DependencyValues {
-    public var repo: RepoClient {
+    public var repoClient: RepoClient {
         get { self[RepoClient.self] }
         set { self[RepoClient.self] = newValue }
     }

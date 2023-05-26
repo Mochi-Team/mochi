@@ -15,15 +15,18 @@ import XCTestDynamicOverlay
 
 public struct ModuleClient: Sendable {
     public let searchFilters: @Sendable (Module) async throws -> [SearchFilter]
-    public let search: @Sendable (Module, SearchQuery) async throws -> Paging<Media>
+    public let search: @Sendable (Module, SearchQuery) async throws -> Paging<Playlist>
     public let getDiscoverListings: @Sendable (Module) async throws -> [DiscoverListing]
+    public let getPlaylistDetails: @Sendable (Module, Playlist.ID) async throws -> Playlist.Details
+
+    public let getPlaylistVideos: @Sendable (Module, Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse
 }
 
 extension ModuleClient {
     public enum Error: Swift.Error, Equatable, Sendable {
         case wasm3(WasmInstance.Error)
-        case nullPtr(for: String = #function)
-        case castError(for: String = #function)
+        case nullPtr(for: String = #function, message: String = "")
+        case castError(for: String = #function, got: String = "", expected: String = "")
         case swiftSoup(for: String = #function, SwiftSoup.Exception)
         case indexOutOfBounds(for: String = #function)
         case unknown(for: String = #function)
@@ -43,7 +46,9 @@ extension ModuleClient: TestDependencyKey {
     public static let testValue = Self(
         searchFilters: unimplemented(),
         search: unimplemented(),
-        getDiscoverListings: unimplemented()
+        getDiscoverListings: unimplemented(),
+        getPlaylistDetails: unimplemented(),
+        getPlaylistVideos: unimplemented()
     )
 }
 

@@ -71,7 +71,7 @@ public enum ModuleListsFeature: Feature {
         public typealias State = ModuleListsFeature.State
         public typealias Action = ModuleListsFeature.Action
 
-        @Dependency(\.repo)
+        @Dependency(\.repoClient)
         var repoClient
 
         @Dependency(\.databaseClient)

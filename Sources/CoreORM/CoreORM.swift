@@ -172,12 +172,16 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
                 )
 
                 for await notification in notifications {
-                    guard let objects = notification.userInfo?[NSUpdatedObjectsKey] as? Set<NSManagedObject> else {
-                        continue
-                    }
-
                     // TODO: Include entity relations
-                    if objects.map(\.entity.name).contains(Instance.entityName) {
+
+                    let hasChanges = notification.userInfo?.contains { _, value in
+                        if let objects = value as? Set<NSManagedObject> {
+                            return objects.contains { $0.entity.name == Instance.entityName }
+                        }
+                        return false
+                    } ?? false
+
+                    if hasChanges {
                         let values = try? await self.fetch(request)
                         continuation.yield(values ?? [])
                     }

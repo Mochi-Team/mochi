@@ -13,12 +13,7 @@ import Semver
 import Tagged
 
 @dynamicMemberLookup
-public struct Module: Entity, Hashable, Identifiable, Sendable {
-    public var id: Manifest.ID {
-        get { manifest.id }
-        set { manifest.id = newValue }
-    }
-
+public struct Module: Entity, Hashable, Sendable {
     @Attribute
     public var binaryModule: Data = .init()
 
@@ -28,20 +23,25 @@ public struct Module: Entity, Hashable, Identifiable, Sendable {
     @Attribute
     public var manifest: Manifest = .init()
 
-    public init() {
-        self._binaryModule = .init(wrappedValue: .init())
-        self._installDate = .init(wrappedValue: .init())
-        self._manifest = .init(wrappedValue: .init())
-    }
+    public init() {}
+}
 
+extension Module: Identifiable {
+    public var id: Manifest.ID {
+        get { manifest.id }
+        set { manifest.id = newValue }
+    }
+}
+
+extension Module {
     public init(
         binaryModule: Data,
         installDate: Date,
         manifest: Module.Manifest
     ) {
-        self._binaryModule = .init(wrappedValue: binaryModule)
-        self._installDate = .init(wrappedValue: installDate)
-        self._manifest = .init(wrappedValue: manifest)
+        self.binaryModule = binaryModule
+        self.installDate = installDate
+        self.manifest = manifest
     }
 
     public subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Manifest, Value>) -> Value {

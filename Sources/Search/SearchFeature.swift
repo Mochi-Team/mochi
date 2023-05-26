@@ -9,18 +9,48 @@
 import Architecture
 import ComposableArchitecture
 import ModuleClient
+import PlaylistDetails
 import RepoClient
 import SharedModels
+import Styling
 import SwiftUI
 import ViewComponents
 
 public enum SearchFeature: Feature {
+    public struct Screens: ComposableArchitecture.Reducer {
+        public init() {}
+
+        public enum State: Equatable, Sendable {
+            case playlistDetails(PlaylistDetailsFeature.State)
+        }
+
+        public enum Action: Equatable, Sendable, DismissableViewAction {
+            case playlistDetails(PlaylistDetailsFeature.Action)
+
+            public static func dismissed(_ childAction: SearchFeature.Screens.Action) -> Bool {
+                switch childAction {
+                case .playlistDetails(.view(.didTappedBackButton)):
+                    return true
+                default:
+                    return false
+                }
+            }
+        }
+
+        public var body: some ComposableArchitecture.Reducer<State, Action> {
+            Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
+                PlaylistDetailsFeature.Reducer()
+            }
+        }
+    }
+
     public struct State: FeatureState {
         @BindingState
         public var searchQuery: SearchQuery
         public var searchFilters: [SearchFilter]
         public var selectedModule: RepoClient.SelectedModule?
-        public var items: Loadable<Paging<Media>, ModuleClient.Error>
+        public var items: Loadable<Paging<Playlist>, ModuleClient.Error>
+        public var screens: StackState<Screens.State>
 
         var hasLoaded = false
 
@@ -28,12 +58,14 @@ public enum SearchFeature: Feature {
             searchQuery: SearchQuery = .init(query: ""),
             searchFilters: [SearchFilter] = [],
             selectedModule: RepoClient.SelectedModule? = nil,
-            items: Loadable<Paging<Media>, ModuleClient.Error> = .pending
+            items: Loadable<Paging<Playlist>, ModuleClient.Error> = .pending,
+            screens: StackState<Screens.State> = .init()
         ) {
             self.searchQuery = searchQuery
             self.searchFilters = searchFilters
             self.selectedModule = selectedModule
             self.items = items
+            self.screens = screens
         }
     }
 
@@ -43,6 +75,7 @@ public enum SearchFeature: Feature {
             case didClearQuery
             case didTapOpenModules
             case didTapFilterOptions
+            case didTapPlaylist(Playlist)
             case binding(BindingAction<State>)
         }
 
@@ -53,7 +86,8 @@ public enum SearchFeature: Feature {
         public enum InternalAction: SendableAction {
             case loadedSelectedModule(RepoClient.SelectedModule?)
             case loadedSearchFilters(TaskResult<[SearchFilter]>)
-            case loadedItems(TaskResult<Paging<Media>>)
+            case loadedItems(TaskResult<Paging<Playlist>>)
+            case screens(StackAction<Screens.State, Screens.Action>)
         }
 
         case view(ViewAction)
@@ -80,7 +114,7 @@ public enum SearchFeature: Feature {
         @Dependency(\.moduleClient)
         var moduleClient
 
-        @Dependency(\.repo)
+        @Dependency(\.repoClient)
         var repoClient
 
         public init() {}

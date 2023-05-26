@@ -28,7 +28,7 @@ public struct SwipeToDismissModifier: ViewModifier {
             .offset(x: offset.width)
             .animation(.interactiveSpring(), value: offset != .zero)
             .highPriorityGesture(
-                DragGesture()
+                DragGesture(minimumDistance: 25, coordinateSpace: .global)
                     .updating($isDragActive) { _, state, _ in
                         state = true
                     }

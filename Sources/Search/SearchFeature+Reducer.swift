@@ -36,7 +36,7 @@ extension SearchFeature.Reducer: Reducer {
                 }
 
             case .view(.didTapOpenModules):
-                return .action(.delegate(.tappedOpenModules))
+                return .send(.delegate(.tappedOpenModules))
 
             case .view(.didTapFilterOptions):
 //                return .send(.delegate(.tappedFilterOptions))
@@ -46,6 +46,21 @@ extension SearchFeature.Reducer: Reducer {
                 state.searchQuery.query = ""
                 state.items = .pending
                 return .cancel(id: Cancellables.fetchingItemsDebounce)
+
+            case let .view(.didTapPlaylist(playlist)):
+                if let selectedModule = state.selectedModule {
+                    state.screens.append(
+                        .playlistDetails(
+                            .init(
+                                repoModuleID: .init(
+                                    repoId: selectedModule.repoId,
+                                    moduleId: selectedModule.module.id
+                                ),
+                                playlist: playlist
+                            )
+                        )
+                    )
+                }
 
             case .view(.binding(\.$searchQuery.query)):
                 guard let selected = state.selectedModule else {
@@ -64,7 +79,7 @@ extension SearchFeature.Reducer: Reducer {
 
                 return .run { send in
                     try await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
-                        try await Task.sleep(nanoseconds: 1_000_000 * 1_000)
+                        try await Task.sleep(nanoseconds: 1_000_000 * 400)
 
                         await send(.internal(.loadedItems(.init { try await moduleClient.search(selected.module, searchQuery) })))
                     }
@@ -98,10 +113,19 @@ extension SearchFeature.Reducer: Reducer {
             case .internal(.loadedItems(.failure)):
                 state.items = .failed(.unknown())
 
+            case let .internal(.screens(.popFrom(id: id))):
+                state.screens.pop(from: id)
+
+            case .internal(.screens):
+                break
+
             case .delegate:
                 break
             }
             return .none
+        }
+        .forEach(\.screens, action: /Action.internal..Action.InternalAction.screens) {
+            SearchFeature.Screens()
         }
     }
 }

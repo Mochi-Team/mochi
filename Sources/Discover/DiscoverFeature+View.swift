@@ -7,8 +7,8 @@
 //
 
 import Architecture
-import MediaDetails
 import NukeUI
+import PlaylistDetails
 import SharedModels
 import Styling
 import SwiftUI
@@ -56,6 +56,18 @@ extension DiscoverFeature.View: View {
                         }
                         .transition(.opacity)
                     } waitingView: {
+                        let placeholders: [Playlist] = [
+                            .init(id: "placeholder 1", type: .video),
+                            .init(id: "placeholder 2", type: .video),
+                            .init(id: "placeholder 3", type: .video),
+                            .init(id: "placeholder 4", type: .video),
+                            .init(id: "placeholder 5", type: .video),
+                            .init(id: "placeholder 6", type: .video),
+                            .init(id: "placeholder 7", type: .video),
+                            .init(id: "placeholder 8", type: .video),
+                            .init(id: "placeholder 9", type: .video),
+                            .init(id: "placeholder 10", type: .video)
+                        ]
                         buildListingsView(
                             [
                                 .init(
@@ -63,7 +75,7 @@ extension DiscoverFeature.View: View {
                                     type: .featured,
                                     paging: .init(
                                         items: [
-                                            .init(id: "placeholder 1", meta: .video)
+                                            .init(id: "placeholder 1", type: .video)
                                         ],
                                         currentPage: "demo-1"
                                     )
@@ -72,18 +84,7 @@ extension DiscoverFeature.View: View {
                                     title: "placeholder title",
                                     type: .default,
                                     paging: .init(
-                                        items: [
-                                            .init(id: "placeholder 1", meta: .video),
-                                            .init(id: "placeholder 2", meta: .video),
-                                            .init(id: "placeholder 3", meta: .video),
-                                            .init(id: "placeholder 4", meta: .video),
-                                            .init(id: "placeholder 5", meta: .video),
-                                            .init(id: "placeholder 6", meta: .video),
-                                            .init(id: "placeholder 7", meta: .video),
-                                            .init(id: "placeholder 8", meta: .video),
-                                            .init(id: "placeholder 9", meta: .video),
-                                            .init(id: "placeholder 10", meta: .video)
-                                        ],
+                                        items: placeholders,
                                         currentPage: "demo-1"
                                     )
                                 ),
@@ -91,31 +92,19 @@ extension DiscoverFeature.View: View {
                                     title: "placeholder title 2",
                                     type: .rank,
                                     paging: .init(
-                                        items: [
-                                            .init(id: "placeholder 1", meta: .video),
-                                            .init(id: "placeholder 2", meta: .video),
-                                            .init(id: "placeholder 3", meta: .video),
-                                            .init(id: "placeholder 4", meta: .video),
-                                            .init(id: "placeholder 5", meta: .video),
-                                            .init(id: "placeholder 6", meta: .video),
-                                            .init(id: "placeholder 7", meta: .video),
-                                            .init(id: "placeholder 8", meta: .video),
-                                            .init(id: "placeholder 9", meta: .video),
-                                            .init(id: "placeholder 10", meta: .video)
-                                        ],
+                                        items: placeholders,
                                         currentPage: "demo-1"
                                     )
                                 )
                             ]
                         )
-                        .redacted(reason: .placeholder)
                         .shimmering()
                         .disabled(true)
                         .transition(.opacity)
                     }
                 }
                 .edgesIgnoringSafeArea(viewStore.state.shouldIgnoreTop ? .top : .init())
-                .animation(.easeInOut(duration: 0.25), value: viewStore.state.finished)
+                .animation(.easeInOut(duration: 0.25), value: viewStore.state.didFinish)
             }
             .frame(
                 maxWidth: .infinity,
@@ -127,8 +116,8 @@ extension DiscoverFeature.View: View {
                     TopBarView(
                         backgroundStyle: viewStore.state ? .clear : .system,
                         trailingAccessory: {
-                            WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
-                                ModuleSelectionButton(module: viewStore.state) {
+                            WithViewStore(store.viewAction, observe: \.selectedRepoModule) { viewStore in
+                                ModuleSelectionButton(module: viewStore.state?.module) {
                                     viewStore.send(.didTapOpenModules)
                                 }
                             }
@@ -137,22 +126,17 @@ extension DiscoverFeature.View: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-//            .safeAreaInset(edge: .bottom) {
-//                Spacer()
-//                    .frame(maxWidth: .infinity)
-//                    .frame(height: bottomNavigationSize.height)
-//            }
             .onAppear {
                 ViewStore(store.viewAction.stateless).send(.didAppear)
             }
         } content: { store in
             SwitchStore(store) { state in
                 switch state {
-                case .mediaDetails:
+                case .playlistDetails:
                     CaseLet(
-                        /DiscoverFeature.Screens.State.mediaDetails,
-                         action: DiscoverFeature.Screens.Action.mediaDetails,
-                         then: MediaDetailsFeature.View.init
+                        /DiscoverFeature.Screens.State.playlistDetails,
+                         action: DiscoverFeature.Screens.Action.playlistDetails,
+                         then: PlaylistDetailsFeature.View.init
                     )
                 }
             }
@@ -190,10 +174,14 @@ extension DiscoverFeature.View {
 
                 Spacer()
 
-                Text("Show All")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(.gray)
-                    .opacity(listing.items.isEmpty ? 0 : 1.0)
+                Button {
+                } label: {
+                    Text("Show All")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.gray)
+                        .opacity(listing.items.isEmpty ? 0 : 1.0)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal)
 
@@ -210,10 +198,10 @@ extension DiscoverFeature.View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 12) {
-                        ForEach(listing.items) { media in
+                        ForEach(listing.items) { playlist in
                             VStack(alignment: .leading, spacing: 6) {
                                 LazyImage(
-                                    url: media.posterImage,
+                                    url: playlist.posterImage,
                                     transaction: .init(animation: .easeInOut(duration: 0.16))
                                 ) { state in
                                     if let image = state.image {
@@ -226,7 +214,7 @@ extension DiscoverFeature.View {
                                 .aspectRatio(5 / 7, contentMode: .fit)
                                 .cornerRadius(12)
 
-                                Text(media.title ?? "No Title")
+                                Text(playlist.title ?? "No Title")
                                     .lineLimit(3)
                                     .font(.subheadline.weight(.medium))
                                     .multilineTextAlignment(.leading)
@@ -236,7 +224,7 @@ extension DiscoverFeature.View {
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 ViewStore(store.viewAction.stateless)
-                                    .send(.didTapMedia(media))
+                                    .send(.didTapPlaylist(playlist))
                             }
                         }
                     }
@@ -257,10 +245,14 @@ extension DiscoverFeature.View {
 
                 Spacer()
 
-                Text("Show All")
-                    .font(.footnote.weight(.bold))
-                    .foregroundColor(.gray)
-                    .opacity(listing.items.isEmpty ? 0 : 1.0)
+                Button {
+                } label: {
+                    Text("Show All")
+                        .font(.footnote.weight(.bold))
+                        .foregroundColor(.gray)
+                        .opacity(listing.items.isEmpty ? 0 : 1.0)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal)
 
@@ -288,13 +280,13 @@ extension DiscoverFeature.View {
 
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(start ..< end, id: \.self) { idx in
-                            let media = listing.items[idx]
+                            let playlist = listing.items[idx]
                             HStack(alignment: .center, spacing: 8) {
                                 Text("\(idx + 1)")
                                     .font(.title3.monospacedDigit().weight(.bold))
 
                                 LazyImage(
-                                    url: media.posterImage,
+                                    url: playlist.posterImage,
                                     transaction: .init(animation: .easeInOut(duration: 0.16))
                                 ) { state in
                                     if let image = state.image {
@@ -308,7 +300,7 @@ extension DiscoverFeature.View {
                                 .frame(width: 64)
                                 .cornerRadius(12)
 
-                                Text(media.title ?? "Unknown")
+                                Text(playlist.title ?? "No Title")
                                     .lineLimit(3)
                                     .font(.subheadline.weight(.medium))
                                     .multilineTextAlignment(.leading)
@@ -321,7 +313,7 @@ extension DiscoverFeature.View {
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 ViewStore(store.viewAction.stateless)
-                                    .send(.didTapMedia(media))
+                                    .send(.didTapPlaylist(playlist))
                             }
 
                             if idx < (end - 1) {
@@ -340,9 +332,9 @@ extension DiscoverFeature.View {
 
     @MainActor
     func featuredListing(_ listing: DiscoverListing) -> some View {
-        SnapScroll(items: listing.items) { media in
+        SnapScroll(items: listing.items) { playlist in
             LazyImage(
-                url: media.posterImage,
+                url: playlist.posterImage,
                 transaction: .init(animation: .easeInOut(duration: 0.16))
             ) { state in
                 if let image = state.image {
@@ -353,7 +345,7 @@ extension DiscoverFeature.View {
                 }
             }
             .onTapGesture {
-                ViewStore(store.viewAction.stateless).send(.didTapMedia(media))
+                ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
             }
         }
         .aspectRatio(5 / 7, contentMode: .fill)

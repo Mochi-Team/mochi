@@ -379,7 +379,7 @@ struct RepoPackagesFeatureView_Previews: PreviewProvider {
 //                            file: "/hello/test.wasm",
 //                            version: .init(1, 0, 0),
 //                            released: .init(),
-//                            meta: [.video, .image, .text]
+//                            type: [.video, .image, .text]
 //                        )
 //                    ])
                 ),

@@ -27,7 +27,10 @@ extension HostModuleIntercommunication {
             } else if let json = jsonObject as? [Any] {
                 return alloc.add(json)
             } else {
-                throw ModuleClient.Error.castError()
+                throw ModuleClient.Error.castError(
+                    got: .init(describing: jsonObject.self),
+                    expected: .init(describing: [Any?].self)
+                )
             }
         }
     }
