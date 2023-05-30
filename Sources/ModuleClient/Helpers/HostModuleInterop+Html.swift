@@ -1,5 +1,5 @@
 //
-//  Live+Imports+Html.swift
+//  HostModuleInterop+Html.swift
 //  
 //
 //  Created by ErrorErrorError on 5/9/23.
@@ -11,7 +11,7 @@ import SwiftSoup
 
 // MARK: - SwiftSoup Imports
 
-extension HostModuleIntercommunication {
+extension HostModuleInterop {
     func scraper_parse(
         string_ptr: RawPtr,
         string_len: Int32

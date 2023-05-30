@@ -52,7 +52,7 @@ final class ImportHandlerTests: XCTestCase {
 
     func testJsonCreationAndAccess() throws {
         let memory = LocalMemoryInstance()
-        let importHandlers = HostModuleIntercommunication(memory: memory)
+        let importHandlers = HostModuleInterop(memory: memory)
 
         let buffered = jsonStrDemo.data(using: .utf8) ?? .init()
 

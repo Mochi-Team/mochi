@@ -1,5 +1,5 @@
 //
-//  Live+Imports+Structs.swift
+//  HostModuleInterop+Structs.swift
 //  
 //
 //  Created by ErrorErrorError on 5/9/23.
@@ -12,7 +12,7 @@ import SharedModels
 // MARK: - Meta Struct Imports
 
 // swiftlint:disable function_parameter_count
-extension HostModuleIntercommunication {
+extension HostModuleInterop {
     func create_search_filter_option(
         option_id_ptr: RawPtr,
         option_id_len: Int32,

@@ -33,7 +33,7 @@ extension ModuleClient: DependencyKey {
 struct ModuleHandler {
     private let module: Module
     private let instance: WasmInstance
-    private let hostModuleComms: HostModuleIntercommunication<WasmInstance.Memory>
+    private let hostModuleComms: HostModuleInterop<WasmInstance.Memory>
 
     init(module: Module) throws {
         self.module = module

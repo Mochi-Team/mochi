@@ -41,6 +41,7 @@ let featuresTargets: [Target] = [
         name: "PlaylistDetails",
         dependencies: [
             "Architecture",
+            "LoggerClient",
             "ModuleClient",
             "RepoClient",
             "Styling",
@@ -130,6 +131,12 @@ let clientsTargets: [Target] = [
     .testTarget(
         name: "DatabaseClientTests",
         dependencies: ["DatabaseClient"]
+    ),
+    .target(
+        name: "LoggerClient",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
     ),
     .target(
         name: "ModuleClient",

@@ -1,5 +1,5 @@
 //
-//  Live+Imports+Json.swift
+//  HostModuleInterop+Json.swift
 //  
 //
 //  Created by ErrorErrorError on 5/9/23.
@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - JSON Imports
 
-extension HostModuleIntercommunication {
+extension HostModuleInterop {
     func json_parse(buf_ptr: RawPtr, buf_len: Int32) -> PtrRef {
         self.handleErrorAlloc { alloc in
             let jsonData = try memory.data(

@@ -1,5 +1,5 @@
 //
-//  Live+Imports+Core.swift
+//  HostModuleInterop+Core.swift
 //  
 //
 //  Created by ErrorErrorError on 5/9/23.
@@ -11,7 +11,7 @@ import SwiftSoup
 
 // MARK: - Core Imports
 
-extension HostModuleIntercommunication {
+extension HostModuleInterop {
     func copy(ptr: PtrRef) -> PtrRef {
         self.handleErrorAlloc { alloc in
             guard ptr >= 0 else {

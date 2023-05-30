@@ -1,5 +1,5 @@
 //
-//  Live+Imports+Http.swift
+//  HostModuleInterop+Http.swift
 //  
 //
 //  Created by ErrorErrorError on 5/9/23.
@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - HTTP Imports
 
-extension HostModuleIntercommunication {
+extension HostModuleInterop {
     func request_create(method: Int32) -> ReqRef {
         self.hostAllocations.withValue { alloc in
             alloc.add(WasmRequest(method: .init(rawValue: method) ?? .GET))

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  HostModuleInterop.swift
 //
 //
 //  Created by ErrorErrorError on 4/25/23.
@@ -45,7 +45,7 @@ enum HTTPMethod: Int32 {
 
 /// This class allows testability of models memory/transformations.
 ///
-struct HostModuleIntercommunication<M: MemoryInstance> {
+struct HostModuleInterop<M: MemoryInstance> {
     let memory: M
 
     let hostAllocations = LockIsolated<[PtrRef: Any?]>([:])
@@ -68,7 +68,7 @@ struct HostModuleIntercommunication<M: MemoryInstance> {
 
 // MARK: - Misc
 
-extension HostModuleIntercommunication {
+extension HostModuleInterop {
     func handleErrorAlloc<R: WasmValue>(
         func: String = #function,
         _ callback: (inout [PtrRef: Any?]) throws -> R
