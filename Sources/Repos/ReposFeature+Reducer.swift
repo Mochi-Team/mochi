@@ -53,7 +53,7 @@ extension ReposFeature.Reducer: Reducer {
                 )
 
             case .view(.didAskToRefreshModules):
-                return fetchAllReposRemoteModules(state, forced: true)
+                return fetchAllReposRemoteModules(state)
 
             case let .view(.didAskToRefreshRepo(repoId)):
                 if let repo = state.repos[id: repoId] {
@@ -151,7 +151,10 @@ extension ReposFeature.Reducer: Reducer {
         }
     }
 
-    private func fetchAllReposRemoteModules(_ state: State, forced: Bool = true) -> Effect<Action> {
+    private func fetchAllReposRemoteModules(
+        _ state: State,
+        forced: Bool = true
+    ) -> Effect<Action> {
         .run { send in
             await withTaskCancellation(id: Cancellables.refreshFetchingAllRemoteModules, cancelInFlight: true) {
                 await withTaskGroup(of: Void.self) { group in
@@ -160,7 +163,7 @@ extension ReposFeature.Reducer: Reducer {
                             await fetchRepoModules(
                                 repo,
                                 send,
-                                alreadyRequested: state.repoModules[repo.id]?.didFinish ?? false,
+                                alreadyRequested: state.repoModules[repo.id].flatMap { $0.hasInitialized } ?? false,
                                 forced: forced
                             )
                         }

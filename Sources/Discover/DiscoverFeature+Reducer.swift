@@ -1,9 +1,9 @@
 //
 //  DiscoverFeature+Reducer.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/5/23.
-//  
+//
 //
 
 import Architecture
@@ -21,7 +21,7 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case.view(.didAppear):
+            case .view(.didAppear):
                 if state.initialized {
                     break
                 }
@@ -50,7 +50,7 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
 
             case let .internal(.selectedModule(selection)):
                 state.selectedRepoModule = selection.flatMap { .init(repoId: $0.repoId, module: $0.module.manifest) }
-                return fetchLatestListings(&state, selection)
+                return state.fetchLatestListings(selection)
 
             case let .internal(.loadedListings(.success(listing))):
                 state.listings = .loaded(listing)
@@ -69,28 +69,33 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
             }
             return .none
         }
-        .forEach(\.screens, action: /Action.internal..Action.InternalAction.screens) {
+        .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
             DiscoverFeature.Screens()
         }
     }
+}
 
-    private func fetchLatestListings(
-        _ state: inout State,
+extension DiscoverFeature.State {
+    mutating func fetchLatestListings(
         _ selectedModule: RepoClient.SelectedModule?
-    ) -> Effect<Action> {
+    ) -> Effect<DiscoverFeature.Action> {
+        @Dependency(\.moduleClient)
+        var moduleClient
+
         guard let selectedModule else {
-            state.listings = .failed(.system(.moduleNotSelected))
+            self.listings = .failed(.system(.moduleNotSelected))
             return .none
         }
 
-        state.listings = .loading
+        self.listings = .loading
 
         return .run { send in
-            try await withTaskCancellation(id: Cancellables.fetchDiscoverList) {
+            try await withTaskCancellation(id: DiscoverFeature.Reducer.Cancellables.fetchDiscoverList) {
                 let listing = try await moduleClient.getDiscoverListings(selectedModule.module)
                 await send(.internal(.loadedListings(.success(listing))))
             }
         } catch: { error, send in
+            print(error)
             if let error = error as? ModuleClient.Error {
                 await send(.internal(.loadedListings(.failure(.module(error)))))
             } else {

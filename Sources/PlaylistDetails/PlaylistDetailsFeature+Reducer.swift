@@ -15,7 +15,7 @@ import RepoClient
 import SharedModels
 
 extension PlaylistDetailsFeature.Reducer: Reducer {
-    private enum Cancellables: Hashable, CaseIterable {
+    enum Cancellables: Hashable, CaseIterable {
         case fetchPlaylistDetails
         case fetchPlaylistItems
     }
@@ -29,7 +29,7 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                return fetchPlaylistContent(&state)
+                return state.fetchPlaylistContent()
 
             case .view(.didTappedBackButton):
                 break
@@ -49,19 +49,27 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
             return .none
         }
     }
+}
 
-    private func fetchPlaylistContent(_ state: inout State, forced: Bool = false) -> Effect<Action> {
-        var effects = [Effect<Action>]()
+extension PlaylistDetailsFeature.State {
+    mutating func fetchPlaylistContent(_ forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
+        @Dependency(\.databaseClient)
+        var databaseClient
 
-        let playlistId = state.playlist.id
-        let repoModuleId = state.repoModuleId
+        @Dependency(\.moduleClient)
+        var moduleClient
 
-        if forced || !state.details.hasInitialized {
-            state.details = .loading
+        var effects = [Effect<PlaylistDetailsFeature.Action>]()
+
+        let playlistId = self.playlist.id
+        let repoModuleId = self.repoModuleId
+
+        if forced || !self.details.hasInitialized {
+            self.details = .loading
 
             effects.append(
                 .run { send in
-                    try await withTaskCancellation(id: Cancellables.fetchPlaylistDetails) {
+                    try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistDetails) {
                         guard let repo = try await databaseClient.fetch(.all.where(\Repo.$baseURL == repoModuleId.repoId.rawValue)).first else {
                             throw ModuleClient.Error.unknown()
                         }
@@ -82,12 +90,12 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
             )
         }
 
-        if forced || !state.contents.hasInitialized {
-            state.contents = .loading
+        if forced || !self.contents.hasInitialized {
+            self.contents = .loading
 
             effects.append(
                 .run { send in
-                    try await withTaskCancellation(id: Cancellables.fetchPlaylistItems) {
+                    try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistItems) {
                         guard let repo = try await databaseClient.fetch(.all.where(\Repo.$baseURL == repoModuleId.repoId.rawValue)).first else {
                             throw ModuleClient.Error.unknown()
                         }
@@ -128,13 +136,10 @@ extension PlaylistDetailsFeature.State {
         public typealias LoadableResponse = Loadable<Playlist.Group.Content, ModuleClient.Error>
 
         public var loadables = [Playlist.Group.ID: LoadableResponse]()
-
         public let allGroups: [Playlist.Group]
-
-        @BindingState
         public var selectedGroupId: Playlist.Group.ID
 
-        public var selectedContent: Loadable<Playlist.Group.Content, ModuleClient.Error> {
+        public var selectedContent: LoadableResponse {
             loadables[selectedGroupId] ?? .pending
         }
 

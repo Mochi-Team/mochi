@@ -170,6 +170,15 @@ let clientsTargets: [Target] = [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
     ),
+    .target(
+        name: "VideoPlayerClient",
+        dependencies: [
+            "Architecture",
+            "SharedModels",
+            "UserDefaultsClient",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
 ]
 
 let clientsProducts: [Product] = clientsTargets

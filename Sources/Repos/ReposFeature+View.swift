@@ -67,17 +67,11 @@ extension ReposFeature.View: View {
                     ViewStore(store.viewAction.stateless).send(.didAskToRefreshModules)
                 } label: {
                     Image(systemName: "arrow.triangle.2.circlepath")
-                        .contentShape(Rectangle())
-                        .font(.title3.weight(.semibold))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.materialToolbarImage)
             } bottomAccessory: {
                 EmptyView()
             }
-//            .safeAreaInset(edge: .bottom) {
-//                Spacer()
-//                    .frame(height: tabNavigationSize.height)
-//            }
             .overlay {
                 if viewStore.state.isEmpty {
                     noReposView
@@ -228,6 +222,7 @@ extension ReposFeature.View {
                 }
             }
             .frame(width: 38, height: 38)
+            .squircle()
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(repo.name)

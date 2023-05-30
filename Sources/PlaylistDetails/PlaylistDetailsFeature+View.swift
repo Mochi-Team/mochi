@@ -28,6 +28,7 @@ extension PlaylistDetailsFeature.View: View {
                             .contrast(0.75)
 
                         Button {
+                            // TODO: Handle retry button tapped
                         } label: {
                             Text("Retry")
                                 .font(.body.weight(.bold))
@@ -80,29 +81,17 @@ extension PlaylistDetailsFeature.View: View {
             ViewStore(store.stateless.viewAction).send(.didTappedBackButton)
         } trailingAccessory: {
             // TODO: Make this change depending if it's in library already or not
-            Image(systemName: "plus")
-                .foregroundColor(.label)
-                .font(.footnote.bold())
-                .frame(width: 28, height: 28)
-                .background(
-                    .ultraThinMaterial,
-                    in: Circle()
-                )
-                .contentShape(Rectangle())
+            Button {
+            } label: {
+                Image(systemName: "plus")
+            }
+            .buttonStyle(.materialToolbarImage)
 
             Menu {
-                // TODO: Show extra buttons here, like share
             } label: {
                 Image(systemName: "ellipsis")
-                    .foregroundColor(.label)
-                    .font(.callout.bold())
-                    .frame(width: 28, height: 28)
-                    .background(
-                        .ultraThinMaterial,
-                        in: Circle()
-                    )
-                    .contentShape(Rectangle())
             }
+            .menuStyle(.materialToolbarImage)
         }
         .onAppear {
             ViewStore(store.viewAction.stateless)
@@ -213,41 +202,42 @@ extension PlaylistDetailsFeature.View {
 
             if !playlistInfo.previews.isEmpty {
                 HeaderWithContent(title: "Previews") {
-                    ScrollView(.horizontal) {
+                    ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 8) {
                             ForEach(playlistInfo.previews, id: \.link) { preview in
-                                LazyImage(url: preview.thumbnail) { state in
-                                    if let image = state.image {
-                                        image
-                                            .resizable()
-                                            .scaledToFit()
-                                    } else {
-                                        Color.gray.opacity(0.2)
-                                            .aspectRatio(preview.type == .image ? 2 / 3 : 16 / 9, contentMode: .fit)
+                                FillAspectImage(url: preview.thumbnail)
+                                    .aspectRatio(preview.type == .image ? 2 / 3 : 16 / 9, contentMode: .fit)
+                                    .overlay {
+                                        if preview.type == .video {
+                                            ZStack {
+                                                Color.black.opacity(0.25)
+                                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                Image(systemName: "play.fill")
+                                                    .font(.title3)
+                                                    .foregroundColor(.white)
+                                                    .opacity(0.9)
+                                                    .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 0)
+                                            }
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        }
                                     }
-                                }
-                                .overlay {
-                                    if preview.type == .video {
-                                        Image(systemName: "play.fill")
-                                            .font(.title3)
-                                            .foregroundColor(.white)
-                                            .opacity(0.9)
-                                            .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 0)
+                                    .contentShape(Rectangle())
+                                    .cornerRadius(12)
+                                    .onTapGesture {
+                                        // TODO: Handle tap gesture for video/image preview
                                     }
-                                }
-                                .cornerRadius(12)
                             }
                         }
                         .padding(.horizontal)
+                        .frame(height: 128)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 128)
                 }
             }
 
             // Contents
             // TODO: Figure out whether or not it should show contents
-            WithViewStore(store, observe: \.contents) { viewStore in
+            WithViewStore(store.viewAction, observe: \.contents) { viewStore in
                 HeaderWithContent {
                     if let value = viewStore.state.value, value.allGroups.count > 1 {
                         Menu {
@@ -286,15 +276,17 @@ extension PlaylistDetailsFeature.View {
                         Text(playlistInfo.playlist.type == .video ? "Episodes" : "Chapters")
                     }
                 } content: {
-                    if viewStore.error != nil {
-
-                    } else {
-                        if playlistInfo.playlist.type == .video {
-                            buildVideoContents(playlistInfo, viewStore.state.value?.selectedContent ?? .pending)
+                    ZStack {
+                        if viewStore.error != nil {
                         } else {
-                            buildImageTextContents(playlistInfo, viewStore.state.value?.selectedContent ?? .pending)
+                            if playlistInfo.playlist.type == .video {
+                                buildVideoContents(playlistInfo, viewStore.state.value?.selectedContent ?? .pending)
+                            } else {
+                                buildImageTextContents(playlistInfo, viewStore.state.value?.selectedContent ?? .pending)
+                            }
                         }
                     }
+                    .animation(.easeInOut, value: viewStore.state.didFinish)
                 }
                 .shimmering(active: !viewStore.didFinish)
                 .disabled(!viewStore.didFinish)
@@ -337,7 +329,7 @@ extension PlaylistDetailsFeature.View {
         _ playlistDetails: Self.State.PlaylistInfo,
         _ content: Loadable<Playlist.Group.Content, ModuleClient.Error>
     ) -> some View {
-        Group {
+        ZStack {
             if content.error != nil {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.red.opacity(0.16))
@@ -348,7 +340,7 @@ extension PlaylistDetailsFeature.View {
                     HStack(alignment: .top, spacing: 12) {
                         ForEach(content.value?.items ?? Self.placeholderItems, id: \.id) { item in
                             VStack(alignment: .leading, spacing: 0) {
-                                FillAspectImage(url: item.thumbnail)
+                                FillAspectImage(url: item.thumbnail ?? playlistDetails.posterImage)
                                     .aspectRatio(16 / 9, contentMode: .fit)
                                     .cornerRadius(12)
 
@@ -356,16 +348,20 @@ extension PlaylistDetailsFeature.View {
                                     .frame(height: 8)
 
                                 Text("Episode \(item.number.withoutTrailingZeroes)")
-                                    .font(.callout)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundColor(.init(white: 0.4))
 
                                 Spacer()
                                     .frame(height: 4)
 
-                                Text(item.title ?? "No Title")
+                                Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
                                     .font(.body.weight(.semibold))
                             }
                             .frame(width: 228)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                // TODO: Handle tap gesture for playlist video item
+                            }
                         }
                         .frame(maxHeight: .infinity, alignment: .top)
                     }
@@ -377,6 +373,7 @@ extension PlaylistDetailsFeature.View {
                 .disabled(!content.didFinish)
             }
         }
+        .animation(.easeIn, value: content)
     }
 
     @MainActor

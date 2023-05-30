@@ -11,7 +11,7 @@ import Foundation
 
 extension Reducer {
     public func analytics(
-        _ toEvent: @escaping (State, Action) -> AnalyticsClient.Action? = { _,_ in nil }
+        _ toEvent: @escaping (State, Action) -> AnalyticsClient.Action? = { _, _ in nil }
     ) -> some Reducer {
         AnalyticsReducer<State, Action>(toAnalyticsAction: toEvent)
     }

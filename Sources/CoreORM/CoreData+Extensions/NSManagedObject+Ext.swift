@@ -150,13 +150,13 @@ extension NSManagedObject {
             if let entityManagedObjectId = entity.mainManagedObjectId {
                 try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
                 cocoaSet.add(managedObjectContext.object(with: entityManagedObjectId))
-           } else {
+            } else {
                 let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
                     forEntityName: DestinationEntity.entityName,
                     into: managedObjectContext
                 )
                 try entity.copy(to: managedObject.objectID, context: managedObjectContext)
-               cocoaSet.add(managedObject)
+                cocoaSet.add(managedObject)
             }
         }
 

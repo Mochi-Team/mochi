@@ -218,7 +218,8 @@ extension HostModuleIntercommunication {
                 .compactMap { $0 as? String }
 
             let previews = (alloc[previews_ptr] as? [Any?])?
-                .compactMap { $0 as? Playlist.Preview }
+                .compactMap { $0 as? Int }
+                .compactMap { alloc[.init($0)] as? Playlist.Preview }
 
             return alloc.add(
                 Playlist.Details(

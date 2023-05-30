@@ -332,22 +332,41 @@ extension DiscoverFeature.View {
 
     @MainActor
     func featuredListing(_ listing: DiscoverListing) -> some View {
-        SnapScroll(items: listing.items) { playlist in
-            LazyImage(
-                url: playlist.posterImage,
-                transaction: .init(animation: .easeInOut(duration: 0.16))
-            ) { state in
-                if let image = state.image {
-                    image.resizable()
-                } else {
-                    Color.gray
-                        .opacity(0.35)
+        TabView {
+            ForEach(listing.items, id: \.id) { playlist in
+                LazyImage(
+                    url: playlist.posterImage ?? playlist.bannerImage,
+                    transaction: .init(animation: .easeInOut(duration: 0.16))
+                ) { state in
+                    if let image = state.image {
+                        image.resizable()
+                    } else {
+                        Color.gray
+                            .opacity(0.35)
+                    }
+                }
+                .onTapGesture {
+                    ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
                 }
             }
-            .onTapGesture {
-                ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
-            }
         }
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+//        SnapScroll(items: listing.items) { playlist in
+//            LazyImage(
+//                url: playlist.posterImage,
+//                transaction: .init(animation: .easeInOut(duration: 0.16))
+//            ) { state in
+//                if let image = state.image {
+//                    image.resizable()
+//                } else {
+//                    Color.gray
+//                        .opacity(0.35)
+//                }
+//            }
+//            .onTapGesture {
+//                ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
+//            }
+//        }
         .aspectRatio(5 / 7, contentMode: .fill)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .transition(.opacity)

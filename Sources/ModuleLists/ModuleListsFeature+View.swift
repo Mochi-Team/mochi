@@ -68,6 +68,7 @@ extension ModuleListsFeature.View {
                         Color.gray
                     }
                 }
+                .squircle()
 
                 VStack(alignment: .leading) {
                     Text(repo.name)
@@ -131,6 +132,7 @@ extension ModuleListsFeature.View {
                 }
             }
             .frame(width: 42, height: 42)
+            .squircle()
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(module.name)

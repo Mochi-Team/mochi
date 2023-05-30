@@ -35,7 +35,7 @@ extension RepoPackagesFeature.View: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal)
 
-                                LazyVStack(spacing: 12) {
+                                LazyVStack(spacing: 8) {
                                     ForEach(viewStore.state) { module in
                                         packageRow([module.manifest])
                                     }
@@ -61,7 +61,7 @@ extension RepoPackagesFeature.View: View {
                                 if packages.isEmpty || !packages.contains(where: !\.isEmpty) {
                                     packagesStatusView(.noModulesFound)
                                 } else {
-                                    LazyVStack(spacing: 12) {
+                                    LazyVStack(spacing: 8) {
                                         ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
                                             if !package.isEmpty {
                                                 packageRow(package)
@@ -91,11 +91,15 @@ extension RepoPackagesFeature.View: View {
         )
         .topBar {
             ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
+        } trailingAccessory: {
+            Button {
+                let viewStore = ViewStore(store.viewAction, observe: \.repo)
+                viewStore.send(.didAskToRefreshRepo(viewStore.state.id))
+            } label: {
+                Image(systemName: "arrow.triangle.2.circlepath")
+            }
+            .buttonStyle(.materialToolbarImage)
         }
-//        .safeAreaInset(edge: .bottom) {
-//            Spacer()
-//                .frame(height: tabNavigationInset.height)
-//        }
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
@@ -127,6 +131,7 @@ extension RepoPackagesFeature.View {
                     }
                 }
                 .frame(width: 58, height: 58)
+                .squircle()
                 .padding(.bottom)
 
                 Text(viewStore.name)
@@ -221,12 +226,6 @@ extension RepoPackagesFeature.View {
 
     @MainActor
     @ViewBuilder
-    func moduleRow(_ module: Module) -> some View {
-
-    }
-
-    @MainActor
-    @ViewBuilder
     func packageRow(_ modules: [Module.Manifest]) -> some View {
         let latestModule = modules.latestModule
         WithViewStore(store.viewAction) { state in
@@ -250,6 +249,7 @@ extension RepoPackagesFeature.View {
                     }
                 }
                 .frame(width: 38, height: 38)
+                .squircle()
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 2) {

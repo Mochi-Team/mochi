@@ -14,7 +14,7 @@ import Tagged
 
 @dynamicMemberLookup
 public struct Module: Entity, Hashable, Sendable {
-    @Attribute
+    @Attribute(traits: [.allowsExternalBinaryDataStorage])
     public var binaryModule: Data = .init()
 
     @Attribute

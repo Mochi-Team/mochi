@@ -36,10 +36,7 @@ public struct ModuleSelectionButton: View {
             .padding(8)
             .padding(.vertical, 2)
             .padding(.horizontal, 4)
-            .background(
-                BlurView()
-                    .clipShape(Capsule())
-            )
+            .background(.ultraThinMaterial, in: Capsule())
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

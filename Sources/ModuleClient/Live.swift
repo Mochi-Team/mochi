@@ -621,7 +621,7 @@ private extension ModuleHandler {
                         name_len: nameLen
                     )
                 }
-                
+
                 WasmInstance.Function("create_search_filter") { [self] (
                     idPtr: Int32,
                     idLen: Int32,
@@ -641,7 +641,7 @@ private extension ModuleHandler {
                         required: required
                     )
                 }
-                
+
                 WasmInstance.Function("create_paging") { [self] (
                     itemsArrayRefPtr: PtrRef,
                     currentPagePtr: RawPtr,
@@ -657,7 +657,7 @@ private extension ModuleHandler {
                         next_page_len: nextPageLen
                     )
                 }
-                
+
                 WasmInstance.Function("create_discover_listing") { [self] (
                     titlePtr: RawPtr,
                     titleLen: Int32,
@@ -671,7 +671,7 @@ private extension ModuleHandler {
                         paging_ptr: pagingPtr
                     )
                 }
-                
+
                 WasmInstance.Function("create_playlist") { [self] (
                     idPtr: RawPtr,
                     idLen: Int32,
@@ -695,7 +695,7 @@ private extension ModuleHandler {
                         type: type
                     )
                 }
-                
+
                 WasmInstance.Function("create_playlist_details") { [self] (
                     descriptionPtr: RawPtr,
                     descriptionLen: Int32,
@@ -719,7 +719,7 @@ private extension ModuleHandler {
                         previews_ptr: previewsPtr
                     )
                 }
-                
+
                 WasmInstance.Function("create_playlist_preview") { [self] (
                     title_ptr: RawPtr,
                     title_len: Int32,
@@ -743,7 +743,7 @@ private extension ModuleHandler {
                         preview_type: preview_type
                     )
                 }
-                
+
                 WasmInstance.Function("create_playlist_item") { [self] (
                     id_ptr: RawPtr,
                     id_len: Int32,

@@ -45,12 +45,8 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
                         backCallback()
                     } label: {
                         Image(systemName: "chevron.backward")
-                            .font(.callout.bold())
-                            .frame(width: 28, height: 28)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.materialToolbarImage)
                 }
 
                 if let title {
@@ -189,5 +185,43 @@ public extension View {
         } bottomAccessory: {
             bottomAccessory()
         }
+    }
+}
+
+public extension ButtonStyle where Self == MaterialToolbarImageButtonStyle {
+    static var materialToolbarImage: MaterialToolbarImageButtonStyle { .init() }
+}
+
+public struct MaterialToolbarImageButtonStyle: ButtonStyle {
+    public init() {}
+
+    @ScaledMetric var size = 28.0
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration
+            .label
+            .font(.callout.bold())
+            .frame(width: size, height: size)
+            .background(.ultraThinMaterial, in: Circle())
+            .contentShape(Rectangle())
+            .scaleEffect(configuration.isPressed ? 0.85 : 1.0)
+            .animation(.spring(), value: configuration.isPressed)
+    }
+}
+
+public extension MenuStyle where Self == MaterialToolbarButtonMenuStyle {
+    static var materialToolbarImage: MaterialToolbarButtonMenuStyle { .init() }
+}
+
+public struct MaterialToolbarButtonMenuStyle: MenuStyle {
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        Menu(configuration)
+            .foregroundColor(.label)
+            .font(.callout.bold())
+            .frame(width: 28, height: 28)
+            .background(.ultraThinMaterial, in: Circle())
+            .contentShape(Rectangle())
     }
 }

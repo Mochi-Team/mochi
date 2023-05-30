@@ -34,19 +34,29 @@ public extension View {
         self
             .background(
                 GeometryReader { geometryProxy in
-                    Spacer()
-                        .onChange(of: geometryProxy.size) { newValue in
-                            callback(
-                                .init(
-                                    size: newValue,
-                                    safeAreaInsets: geometryProxy.safeAreaInsets
-                                )
-                            )
-                        }
+                    Color.clear
                         .onAppear {
                             callback(
                                 .init(
                                     size: geometryProxy.size,
+                                    safeAreaInsets: geometryProxy.safeAreaInsets
+                                )
+                            )
+                        }
+                        #if os(iOS)
+                        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                            callback(
+                                .init(
+                                    size: geometryProxy.size,
+                                    safeAreaInsets: geometryProxy.safeAreaInsets
+                                )
+                            )
+                        }
+                        #endif
+                        .onChange(of: geometryProxy.size) { newValue in
+                            callback(
+                                .init(
+                                    size: newValue,
                                     safeAreaInsets: geometryProxy.safeAreaInsets
                                 )
                             )

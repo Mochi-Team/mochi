@@ -55,12 +55,6 @@ public enum RepoPackagesFeature {
     public struct View: FeatureView {
         public let store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>
 
-        @SwiftUI.State
-        var topBarSizeInset: SizeInset = .zero
-
-        @InsetValue(\.tabNavigation)
-        var tabNavigationInset
-
         nonisolated public init(store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>) {
             self.store = store
         }
