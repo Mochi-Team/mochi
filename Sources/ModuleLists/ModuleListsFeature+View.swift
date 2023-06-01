@@ -30,8 +30,7 @@ extension ModuleListsFeature.View: View {
                             .multilineTextAlignment(.center)
                             .font(.body)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom)
+                    .padding()
                 } else {
                     ScrollView(.vertical) {
                         VStack(spacing: 24) {
@@ -155,7 +154,7 @@ import Styling
 
 struct ModuleListsFeatureView_Previews: PreviewProvider {
     static var previews: some View {
-        SheetView(isPresenting: .constant(true)) {
+//        SheetView(isPresenting: .constant(true)) {
             ModuleListsFeature.View(
                 store: .init(
                     initialState: .init(
@@ -176,7 +175,7 @@ struct ModuleListsFeatureView_Previews: PreviewProvider {
                     reducer: EmptyReducer()
                 )
             )
-        }
+//        }
         .previewLayout(.sizeThatFits)
     }
 }

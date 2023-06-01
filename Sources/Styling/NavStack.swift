@@ -12,28 +12,24 @@ import OrderedCollections
 import SwiftUI
 import ViewComponents
 
-public protocol DismissableViewAction: Equatable {
-    static func dismissed(_ childAction: Self) -> Bool
-}
-
 public extension Animation {
     static var navStackTransion: Animation { .timingCurve(0.31, 0.47, 0.31, 1, duration: 0.4) }
 }
 
-public struct NavStack<State: Equatable, Action: DismissableViewAction, Initial: View, Content: View>: View {
+public struct NavStack<State: Equatable, Action, Root: View, Destination: View>: View {
     private let store: Store<StackState<State>, StackAction<State, Action>>
-    private let initial: () -> Initial
-    private let content: (Store<State, Action>) -> Content
+    private let root: Root
+    private let destination: (Store<State, Action>) -> Destination
     @StateObject private var viewStore: ViewStore<StackState<State>, StackAction<State, Action>>
 
     public init(
         _ store: Store<StackState<State>, StackAction<State, Action>>,
-        @ViewBuilder initial: @escaping () -> Initial,
-        @ViewBuilder content: @escaping (Store<State, Action>) -> Content
+        @ViewBuilder root: @escaping () -> Root,
+        @ViewBuilder destination: @escaping (Store<State, Action>) -> Destination
     ) {
         self.store = store
-        self.initial = initial
-        self.content = content
+        self.root = root()
+        self.destination = destination
         self._viewStore = .init(
             wrappedValue: .init(
                 store,
@@ -45,8 +41,7 @@ public struct NavStack<State: Equatable, Action: DismissableViewAction, Initial:
 
     public var body: some View {
         ZStack {
-            initial()
-                .zIndex(0)
+            root.zIndex(0)
 
             if !viewStore.isEmpty {
                 Color.black
@@ -65,14 +60,10 @@ public struct NavStack<State: Equatable, Action: DismissableViewAction, Initial:
                 ForEach(viewStore.state, id: \.self) { id in
                     IfLetStore(
                         store.scope(state: \.[id: id]) { (childAction: Action) in
-                            if Action.dismissed(childAction) {
-                                return .popFrom(id: id)
-                            } else {
-                                return .element(id: id, action: childAction)
-                            }
+                            .element(id: id, action: childAction)
                         }
                     ) { store in
-                        content(store)
+                        destination(store)
                             .screenDismissed {
                                 viewStore.send(.popFrom(id: id))
                             }
@@ -89,12 +80,12 @@ public struct NavStack<State: Equatable, Action: DismissableViewAction, Initial:
 public extension NavStack {
     init(
         _ store: Store<StackState<State>, StackAction<State, Action>>,
-        @ViewBuilder content: @escaping (Store<State, Action>) -> Content
-    ) where Initial == EmptyView {
+        @ViewBuilder destination: @escaping (Store<State, Action>) -> Destination
+    ) where Root == EmptyView {
         self.init(
             store,
-            initial: EmptyView.init,
-            content: content
+            root: EmptyView.init,
+            destination: destination
         )
     }
 }

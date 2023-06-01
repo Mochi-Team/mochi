@@ -45,9 +45,7 @@ public enum ModuleListsFeature: Feature {
             case didSelectModule(Repo.ID, Module.ID)
         }
 
-        public enum DelegateAction: SendableAction {
-            case didSelectModule
-        }
+        public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
             case fetchRepos(TaskResult<[Repo]>)
@@ -76,6 +74,9 @@ public enum ModuleListsFeature: Feature {
 
         @Dependency(\.databaseClient)
         var databaseClient
+
+        @Dependency(\.dismiss)
+        var dismiss
 
         public init() {}
     }

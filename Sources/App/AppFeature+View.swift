@@ -69,35 +69,6 @@ extension AppFeature.View: View {
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
-        .sheetView(
-            store: store.internalAction.scope(
-                state: \.$destination,
-                action: Action.InternalAction.destination
-            ),
-            state: /AppFeature.Destination.State.sheet,
-            action: AppFeature.Destination.Action.sheet
-        ) { store in
-            SwitchStore(store) { state in
-                switch state {
-                case .moduleLists:
-                    CaseLet(
-                        state: /AppFeature.Destination.State.Sheet.moduleLists,
-                        action: AppFeature.Destination.Action.Sheet.moduleLists,
-                        then: ModuleListsFeature.View.init(store:)
-                    )
-                }
-            }
-        }
-        .popupView(
-            store: store.internalAction.scope(
-                state: \.$destination,
-                action: Action.InternalAction.destination
-            ),
-            state: /AppFeature.Destination.State.popup,
-            action: AppFeature.Destination.Action.popup
-        ) { store in
-            SwitchStore(store) { _ in }
-        }
     }
 }
 
@@ -132,7 +103,7 @@ extension AppFeature.View {
                 .background(
                     Rectangle()
                         .foregroundColor(tab.colorAccent.opacity(tab == selected ? 0.08 : 0.0))
-                        .ignoresSafeArea()
+                        .ignoresSafeArea(.all)
                         .edgesIgnoringSafeArea(.all)
                         .blur(radius: 24)
                 )
@@ -145,15 +116,18 @@ extension AppFeature.View {
             maxWidth: .infinity,
             alignment: .bottom
         )
-        .background(
-            BlurView()
+        .background {
+            Rectangle()
+                .fill(.regularMaterial)
                 .ignoresSafeArea()
                 .edgesIgnoringSafeArea(.all)
-        )
+        }
         .overlay(alignment: .top) {
             Color.gray.opacity(0.2)
                 .frame(height: 0.5)
                 .frame(maxWidth: .infinity)
+                .ignoresSafeArea()
+                .edgesIgnoringSafeArea(.all)
         }
     }
 }

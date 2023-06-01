@@ -11,13 +11,13 @@ let featuresTargets: [Target] = [
         dependencies: [
             "Architecture",
             "Discover",
-            "ModuleLists",
             "Repos",
             "Search",
             "Settings",
             "SharedModels",
             "Styling",
             "UserSettingsClient",
+            "VideoPlayerClient",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
@@ -29,6 +29,7 @@ let featuresTargets: [Target] = [
             "Architecture",
             "PlaylistDetails",
             "ModuleClient",
+            "ModuleLists",
             "RepoClient",
             "Styling",
             "SharedModels",
@@ -70,6 +71,7 @@ let featuresTargets: [Target] = [
             "Architecture",
             "PlaylistDetails",
             "ModuleClient",
+            "ModuleLists",
             "RepoClient",
             "Styling",
             "SharedModels",
@@ -183,6 +185,7 @@ let clientsTargets: [Target] = [
             "Architecture",
             "SharedModels",
             "UserDefaultsClient",
+            "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
     ),

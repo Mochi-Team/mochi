@@ -12,7 +12,6 @@ import Foundation
 import RealModule
 import SwiftUI
 
-@dynamicCallable
 public struct EasingCurveFunction<T: Real>: Sendable {
     let curve: Easing.Curve<T>
     let function: Function
@@ -28,15 +27,14 @@ public struct EasingCurveFunction<T: Real>: Sendable {
         self.function = function
     }
 
-    func dynamicallyCall(withArguments args: [T]) -> T {
-        let arg = args.first ?? 0
+    func callAsFunction(_ value: T) -> T {
         switch function {
         case .easeIn:
-            return curve.easeIn(arg)
+            return curve.easeIn(value)
         case .easeOut:
-            return curve.easeOut(arg)
+            return curve.easeOut(value)
         case .easeInOut:
-            return curve.easeInOut(arg)
+            return curve.easeInOut(value)
         }
     }
 }
@@ -52,7 +50,7 @@ public extension Gradient {
 
 private func mixColors(_ stops: [Gradient.Stop], _ function: EasingCurveFunction<Double>) -> [Gradient.Stop] {
     var steps = [Gradient.Stop]()
-    let sortedStops = stops.sorted(by: \.location)
+    let sortedStops = stops.sorted { $0.location < $1.location }
 
     if stops.count < 2 {
         return stops

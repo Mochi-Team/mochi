@@ -20,9 +20,9 @@ extension ModuleListsFeature.Reducer: Reducer {
                 }
 
             case let .view(.didSelectModule(repoId, moduleId)):
-                return .run { send in
+                return .run { _ in
                     await repoClient.selectModule(repoId, moduleId)
-                    await send(.delegate(.didSelectModule))
+                    await self.dismiss()
                 }
 
             case let .internal(.fetchRepos(.success(repos))):

@@ -44,7 +44,7 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
 
     public var body: some View {
         HStack(alignment: alignment, spacing: spacing) {
-            ForEach(list.indices, id: \.`self`) { idx in
+            ForEach(list.indices, id: \.self) { idx in
                 content(list[idx])
                     .frame(width: max(0, maxWidth - edgeInsets.horizontal - (spacing * 2)))
             }

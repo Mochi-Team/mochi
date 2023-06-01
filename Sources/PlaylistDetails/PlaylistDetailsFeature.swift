@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import DatabaseClient
+import LoggerClient
 import ModuleClient
 import RepoClient
 import SharedModels
@@ -121,6 +122,12 @@ public enum PlaylistDetailsFeature: Feature {
 
         @Dependency(\.repoClient)
         var repoClient
+
+        @Dependency(\.logger)
+        var logger
+
+        @Dependency(\.dismiss)
+        var dismiss
 
         public init() {}
     }

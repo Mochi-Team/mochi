@@ -10,6 +10,7 @@ import Architecture
 import ComposableArchitecture
 import Foundation
 import ModuleClient
+import ModuleLists
 import PlaylistDetails
 import RepoClient
 import SharedModels
@@ -30,7 +31,7 @@ public enum DiscoverFeature: Feature {
         var description: String {
             switch self {
             case .system(.moduleNotSelected):
-                return "There's no selected module."
+                return "There Is No Module Select"
             case .system(.unknown):
                 return "Unknown System Error Has Occurred"
             case .module(.unknown):
@@ -46,17 +47,8 @@ public enum DiscoverFeature: Feature {
             case playlistDetails(PlaylistDetailsFeature.State)
         }
 
-        public enum Action: Equatable, Sendable, DismissableViewAction {
+        public enum Action: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.Action)
-
-            public static func dismissed(_ childAction: DiscoverFeature.Screens.Action) -> Bool {
-                switch childAction {
-                case .playlistDetails(.view(.didTappedBackButton)):
-                    return true
-                default:
-                    return false
-                }
-            }
         }
 
         public var body: some ComposableArchitecture.Reducer<State, Action> {
@@ -71,31 +63,21 @@ public enum DiscoverFeature: Feature {
         public var selectedRepoModule: SelectedRepoModule?
         public var screens: StackState<Screens.State>
 
-        var sortedListings: Loadable<[DiscoverListing], Error> {
-            listings.mapValue { list in
-                list.sorted { leftElement, rightElement in
-                    switch (leftElement.type, rightElement.type) {
-                    case (.featured, .featured):
-                        return true
-                    case (_, .`featured`):
-                        return false
-                    default:
-                        return true
-                    }
-                }
-            }
-        }
-
         var initialized = false
+
+        @PresentationState
+        public var moduleLists: ModuleListsFeature.State?
 
         public init(
             listings: Loadable<[DiscoverListing], Error> = .pending,
             selectedRepoModule: SelectedRepoModule? = nil,
-            screens: StackState<Screens.State> = .init()
+            screens: StackState<Screens.State> = .init(),
+            moduleLists: ModuleListsFeature.State? = nil
         ) {
             self.listings = listings
             self.selectedRepoModule = selectedRepoModule
             self.screens = screens
+            self.moduleLists = moduleLists
         }
 
         public struct SelectedRepoModule: Equatable, Sendable {
@@ -111,14 +93,13 @@ public enum DiscoverFeature: Feature {
             case didTapPlaylist(Playlist)
         }
 
-        public enum DelegateAction: SendableAction {
-            case openModules
-        }
+        public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)
             case loadedListings(Result<[DiscoverListing], Error>)
             case screens(StackAction<Screens.State, Screens.Action>)
+            case moduleLists(PresentationAction<ModuleListsFeature.Action>)
         }
 
         case view(ViewAction)

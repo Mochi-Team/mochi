@@ -7,13 +7,20 @@
 //
 
 import Architecture
+@preconcurrency
+import AVKit
 import ComposableArchitecture
 
 public enum VideoPlayerFeature: Feature {
     public struct State: FeatureState {
         // TODO: Set state
+        let player: AVPlayer
 
-        public init() {}
+        public init(
+            player: AVPlayer
+        ) {
+            self.player = player
+        }
     }
 
     public enum Action: FeatureAction {

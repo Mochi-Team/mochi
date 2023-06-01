@@ -1,0 +1,33 @@
+//
+//  Client.swift
+//  
+//
+//  Created ErrorErrorError on 5/30/23.
+//  Copyright © 2023. All rights reserved.
+//
+
+import Dependencies
+import Foundation
+import OSLog
+import XCTestDynamicOverlay
+
+public struct LoggerClientKey: DependencyKey {
+    public static var previewValue = Logger(category: "preview")
+    public static var liveValue = Logger()
+    public static let testValue = Logger()
+}
+
+extension DependencyValues {
+    public var logger: Logger {
+        get { self[LoggerClientKey.self] }
+        set { self[LoggerClientKey.self] = newValue }
+    }
+}
+
+extension Logger {
+    private static var subsystem = Bundle.main.bundleIdentifier.unsafelyUnwrapped
+
+    init(category: String) {
+        self.init(subsystem: Self.subsystem, category: category)
+    }
+}

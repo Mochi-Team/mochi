@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import ModuleClient
+import ModuleLists
 import PlaylistDetails
 import RepoClient
 import SharedModels
@@ -24,17 +25,8 @@ public enum SearchFeature: Feature {
             case playlistDetails(PlaylistDetailsFeature.State)
         }
 
-        public enum Action: Equatable, Sendable, DismissableViewAction {
+        public enum Action: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.Action)
-
-            public static func dismissed(_ childAction: SearchFeature.Screens.Action) -> Bool {
-                switch childAction {
-                case .playlistDetails(.view(.didTappedBackButton)):
-                    return true
-                default:
-                    return false
-                }
-            }
         }
 
         public var body: some ComposableArchitecture.Reducer<State, Action> {
@@ -51,6 +43,9 @@ public enum SearchFeature: Feature {
         public var selectedModule: RepoClient.SelectedModule?
         public var items: Loadable<Paging<Playlist>, ModuleClient.Error>
         public var screens: StackState<Screens.State>
+
+        @PresentationState
+        public var moduleLists: ModuleListsFeature.State?
 
         var hasLoaded = false
 
@@ -79,15 +74,14 @@ public enum SearchFeature: Feature {
             case binding(BindingAction<State>)
         }
 
-        public enum DelegateAction: SendableAction {
-            case tappedOpenModules
-        }
+        public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
             case loadedSelectedModule(RepoClient.SelectedModule?)
             case loadedSearchFilters(TaskResult<[SearchFilter]>)
             case loadedItems(TaskResult<Paging<Playlist>>)
             case screens(StackAction<Screens.State, Screens.Action>)
+            case moduleLists(PresentationAction<ModuleListsFeature.Action>)
         }
 
         case view(ViewAction)

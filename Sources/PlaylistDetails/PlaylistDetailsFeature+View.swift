@@ -41,7 +41,7 @@ extension PlaylistDetailsFeature.View: View {
                     }
                 } else {
                     ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(spacing: 16) {
+                        VStack(spacing: 16) {
                             topView(viewStore.value ?? .init())
                             contentView(viewStore.value ?? .init())
                         }
@@ -105,8 +105,12 @@ extension PlaylistDetailsFeature.View {
     func topView(_ playlistInfo: Self.State.PlaylistInfo) -> some View {
         ZStack(alignment: .bottom) {
             FillAspectImage(url: playlistInfo.posterImage) { color in
-                imageDominatColor = color
+                withAnimation(.easeIn(duration: 0.25)) {
+                    imageDominatColor = color
+                }
             }
+            .clipped()
+            .contentShape(Rectangle())
             .overlay {
                 LinearGradient(
                     gradient: .easingLinearGradient(
@@ -114,7 +118,7 @@ extension PlaylistDetailsFeature.View {
                             .init(color: .clear, location: 0.0),
                             .init(color: imageDominatColor ?? .black, location: 1.0)
                         ],
-                        easing: .init(curve: .cubic, function: .easeIn)
+                        easing: .init(curve: .exponential, function: .easeIn)
                     ),
                     startPoint: .top,
                     endPoint: .bottom
@@ -337,7 +341,8 @@ extension PlaylistDetailsFeature.View {
                     .frame(maxWidth: .infinity)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 12) {
+                    // FIXME: Improve view height based on title
+                    LazyHStack(alignment: .top, spacing: 12) {
                         ForEach(content.value?.items ?? Self.placeholderItems, id: \.id) { item in
                             VStack(alignment: .leading, spacing: 0) {
                                 FillAspectImage(url: item.thumbnail ?? playlistDetails.posterImage)

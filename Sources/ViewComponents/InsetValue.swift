@@ -48,6 +48,7 @@ public struct InsetValue: @unchecked Sendable, DynamicProperty {
 }
 
 public extension View {
+    @MainActor
     func inset<V: View>(
         for key: WritableKeyPath<InsetableValues, CGSize>,
         alignment: SwiftUI.Alignment = .center,
@@ -61,6 +62,7 @@ public extension View {
         }
     }
 
+    @MainActor
     func inset<V: View>(
         for key: WritableKeyPath<InsetableValues, CGSize>,
         alignment: SwiftUI.Alignment = .center,

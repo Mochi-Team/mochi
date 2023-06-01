@@ -10,6 +10,7 @@ import Architecture
 import ComposableArchitecture
 import DatabaseClient
 import Foundation
+import LoggerClient
 import ModuleClient
 import RepoClient
 import SharedModels
@@ -32,7 +33,9 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                 return state.fetchPlaylistContent()
 
             case .view(.didTappedBackButton):
-                break
+                return .run {
+                    await self.dismiss()
+                }
 
             case .view(.didDissapear):
                 return .cancel(ids: Cancellables.allCases)
@@ -59,6 +62,9 @@ extension PlaylistDetailsFeature.State {
         @Dependency(\.moduleClient)
         var moduleClient
 
+        @Dependency(\.logger)
+        var logger
+
         var effects = [Effect<PlaylistDetailsFeature.Action>]()
 
         let playlistId = self.playlist.id
@@ -81,6 +87,7 @@ extension PlaylistDetailsFeature.State {
                         try await send(.internal(.playlistDetailsResponse(.loaded(moduleClient.getPlaylistDetails(module, playlistId)))))
                     }
                 } catch: { error, send in
+                    logger.error("\(#function) - \(error)")
                     if let error = error as? ModuleClient.Error {
                         await send(.internal(.playlistDetailsResponse(.failed(error))))
                     } else {
@@ -118,6 +125,7 @@ extension PlaylistDetailsFeature.State {
                         )
                     }
                 } catch: { error, send in
+                    logger.error("\(#function) - \(error)")
                     if let error = error as? ModuleClient.Error {
                         await send(.internal(.playlistItemsResponse(.failed(error))))
                     } else {

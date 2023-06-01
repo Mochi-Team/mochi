@@ -18,39 +18,6 @@ import SharedModels
 import SwiftUI
 
 public enum AppFeature: Feature {
-    public struct Destination: ComposableArchitecture.Reducer {
-        public enum State: Equatable, Sendable {
-            case sheet(Sheet)
-            case popup(Popup)
-
-            public enum Sheet: Equatable, Sendable {
-                case moduleLists(ModuleListsFeature.State)
-            }
-
-            public enum Popup: Equatable, Sendable {}
-        }
-
-        public enum Action: Equatable, Sendable {
-            case sheet(Sheet)
-            case popup(Popup)
-
-            public enum Sheet: Equatable, Sendable {
-                case moduleLists(ModuleListsFeature.Action)
-            }
-
-            public enum Popup: Equatable, Sendable {}
-        }
-
-        public var body: some ComposableArchitecture.Reducer<State, Action> {
-            Scope(
-                state: /State.sheet .. State.Sheet.moduleLists,
-                action: /Action.sheet .. Action.Sheet.moduleLists
-            ) {
-                ModuleListsFeature.Reducer()
-            }
-        }
-    }
-
     public struct State: FeatureState {
         public var discover = DiscoverFeature.State()
         public var repos = ReposFeature.State()
@@ -59,23 +26,18 @@ public enum AppFeature: Feature {
 
         public var selected = Tab.discover
 
-        @PresentationState
-        public var destination: Destination.State?
-
         public init(
             discover: DiscoverFeature.State = .init(),
             repos: ReposFeature.State = .init(),
             search: SearchFeature.State = .init(),
             settings: SettingsFeature.State = .init(),
-            selected: AppFeature.State.Tab = Tab.discover,
-            destination: Destination.State? = nil
+            selected: AppFeature.State.Tab = Tab.discover
         ) {
             self.discover = discover
             self.repos = repos
             self.search = search
             self.settings = settings
             self.selected = selected
-            self.destination = destination
         }
 
         public enum Tab: String, CaseIterable, Sendable {
@@ -139,7 +101,6 @@ public enum AppFeature: Feature {
             case repos(ReposFeature.Action)
             case search(SearchFeature.Action)
             case settings(SettingsFeature.Action)
-            case destination(PresentationAction<Destination.Action>)
         }
 
         case view(ViewAction)

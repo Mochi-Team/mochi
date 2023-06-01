@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import ModuleLists
 import NukeUI
 import PlaylistDetails
 import Styling
@@ -130,7 +131,7 @@ extension SearchFeature.View: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } content: { store in
+        } destination: { store in
             SwitchStore(store) { state in
                 switch state {
                 case .playlistDetails:
@@ -143,6 +144,13 @@ extension SearchFeature.View: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheetPresentation(
+            store: store.internalAction.scope(
+                state: \.$moduleLists,
+                action: Action.InternalAction.moduleLists
+            ),
+            content: ModuleListsFeature.View.init
+        )
     }
 }
 

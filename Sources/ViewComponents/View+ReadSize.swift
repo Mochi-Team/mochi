@@ -30,6 +30,7 @@ extension SizeInset: Equatable {}
 extension SizeInset: Sendable {}
 
 public extension View {
+    @MainActor
     func readSize(_ callback: @escaping (SizeInset) -> Void) -> some View {
         self
             .background(

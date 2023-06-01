@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import ModuleLists
 import NukeUI
 import PlaylistDetails
 import SharedModels
@@ -23,7 +24,7 @@ extension DiscoverFeature.View: View {
                 action: Action.InternalAction.screens
             )
         ) {
-            WithViewStore(store, observe: \.sortedListings) { viewStore in
+            WithViewStore(store, observe: \.listings) { viewStore in
                 ZStack {
                     LoadableView(loadable: viewStore.state) { listings in
                         Group {
@@ -129,7 +130,7 @@ extension DiscoverFeature.View: View {
             .onAppear {
                 ViewStore(store.viewAction.stateless).send(.didAppear)
             }
-        } content: { store in
+        } destination: { store in
             SwitchStore(store) { state in
                 switch state {
                 case .playlistDetails:
@@ -141,6 +142,13 @@ extension DiscoverFeature.View: View {
                 }
             }
         }
+        .sheetPresentation(
+            store: store.internalAction.scope(
+                state: \.$moduleLists,
+                action: Action.InternalAction.moduleLists
+            ),
+            content: ModuleListsFeature.View.init
+        )
     }
 }
 
@@ -148,7 +156,7 @@ extension DiscoverFeature.View {
     @MainActor
     func buildListingsView(_ listings: [DiscoverListing]) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 24) {
+            VStack(spacing: 24) {
                 ForEach(listings, id: \.title) { listing in
                     switch listing.type {
                     case .default:
@@ -174,14 +182,16 @@ extension DiscoverFeature.View {
 
                 Spacer()
 
-                Button {
-                } label: {
-                    Text("Show All")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(.gray)
-                        .opacity(listing.items.isEmpty ? 0 : 1.0)
+                if listing.paging.nextPage != nil {
+                    Button {
+                    } label: {
+                        Text("Show All")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.gray)
+                            .opacity(listing.items.isEmpty ? 0 : 1.0)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal)
 
@@ -245,14 +255,16 @@ extension DiscoverFeature.View {
 
                 Spacer()
 
-                Button {
-                } label: {
-                    Text("Show All")
-                        .font(.footnote.weight(.bold))
-                        .foregroundColor(.gray)
-                        .opacity(listing.items.isEmpty ? 0 : 1.0)
+                if listing.paging.nextPage != nil {
+                    Button {
+                    } label: {
+                        Text("Show All")
+                            .font(.footnote.weight(.bold))
+                            .foregroundColor(.gray)
+                            .opacity(listing.items.isEmpty ? 0 : 1.0)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal)
 
@@ -283,7 +295,7 @@ extension DiscoverFeature.View {
                             let playlist = listing.items[idx]
                             HStack(alignment: .center, spacing: 8) {
                                 Text("\(idx + 1)")
-                                    .font(.title3.monospacedDigit().weight(.bold))
+                                    .font(.body.monospacedDigit().weight(.bold))
 
                                 LazyImage(
                                     url: playlist.posterImage,
@@ -331,45 +343,32 @@ extension DiscoverFeature.View {
     }
 
     @MainActor
+    @ViewBuilder
     func featuredListing(_ listing: DiscoverListing) -> some View {
-        TabView {
-            ForEach(listing.items, id: \.id) { playlist in
-                LazyImage(
-                    url: playlist.posterImage ?? playlist.bannerImage,
-                    transaction: .init(animation: .easeInOut(duration: 0.16))
-                ) { state in
-                    if let image = state.image {
-                        image.resizable()
-                    } else {
-                        Color.gray
-                            .opacity(0.35)
+        if !listing.items.isEmpty {
+            TabView {
+                ForEach(listing.items, id: \.id) { playlist in
+                    LazyImage(
+                        url: playlist.posterImage ?? playlist.bannerImage,
+                        transaction: .init(animation: .easeInOut(duration: 0.16))
+                    ) { state in
+                        if let image = state.image {
+                            image.resizable()
+                        } else {
+                            Color.gray
+                                .opacity(0.35)
+                        }
+                    }
+                    .onTapGesture {
+                        ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
                     }
                 }
-                .onTapGesture {
-                    ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
-                }
             }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .aspectRatio(5 / 7, contentMode: .fill)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-//        SnapScroll(items: listing.items) { playlist in
-//            LazyImage(
-//                url: playlist.posterImage,
-//                transaction: .init(animation: .easeInOut(duration: 0.16))
-//            ) { state in
-//                if let image = state.image {
-//                    image.resizable()
-//                } else {
-//                    Color.gray
-//                        .opacity(0.35)
-//                }
-//            }
-//            .onTapGesture {
-//                ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
-//            }
-//        }
-        .aspectRatio(5 / 7, contentMode: .fill)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.opacity)
     }
 }
 

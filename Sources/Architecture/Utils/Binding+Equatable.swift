@@ -19,7 +19,6 @@ public extension Binding where Value: Equatable {
             }
             self.transaction(transaction).wrappedValue = newValue
         }
-
     }
 
     func removeDuplicates() -> Binding<Value> {

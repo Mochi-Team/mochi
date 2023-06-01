@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import ModuleClient
+import ModuleLists
 import PlaylistDetails
 import RepoClient
 import SharedModels
@@ -39,7 +40,7 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
                 )
 
             case .view(.didTapOpenModules):
-                return .send(.delegate(.openModules))
+                state.moduleLists = .init()
 
             case let .view(.didTapPlaylist(playlist)):
                 guard let repoId = state.selectedRepoModule?.repoId,
@@ -58,16 +59,16 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
             case let .internal(.loadedListings(.failure(error))):
                 state.listings = .failed(error)
 
-            case let .internal(.screens(.popFrom(id: id))):
-                state.screens.pop(from: id)
+            case .internal(.moduleLists):
+                break
 
             case .internal(.screens):
                 break
-
-            case .delegate:
-                break
             }
             return .none
+        }
+        .ifLet(\.$moduleLists, action: /Action.internal .. Action.InternalAction.moduleLists) {
+            ModuleListsFeature.Reducer()
         }
         .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
             DiscoverFeature.Screens()
@@ -76,9 +77,7 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
 }
 
 extension DiscoverFeature.State {
-    mutating func fetchLatestListings(
-        _ selectedModule: RepoClient.SelectedModule?
-    ) -> Effect<DiscoverFeature.Action> {
+    mutating func fetchLatestListings(_ selectedModule: RepoClient.SelectedModule?) -> Effect<DiscoverFeature.Action> {
         @Dependency(\.moduleClient)
         var moduleClient
 
@@ -92,7 +91,24 @@ extension DiscoverFeature.State {
         return .run { send in
             try await withTaskCancellation(id: DiscoverFeature.Reducer.Cancellables.fetchDiscoverList) {
                 let listing = try await moduleClient.getDiscoverListings(selectedModule.module)
-                await send(.internal(.loadedListings(.success(listing))))
+                await send(
+                    .internal(
+                        .loadedListings(
+                            .success(
+                                listing.sorted { leftElement, rightElement in
+                                    switch (leftElement.type, rightElement.type) {
+                                    case (.featured, .featured):
+                                        return true
+                                    case (_, .`featured`):
+                                        return false
+                                    default:
+                                        return true
+                                    }
+                                }
+                            )
+                        )
+                    )
+                )
             }
         } catch: { error, send in
             print(error)

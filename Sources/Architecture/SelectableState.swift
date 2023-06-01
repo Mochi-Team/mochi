@@ -12,8 +12,6 @@ import Foundation
 import IdentifiedCollections
 import SwiftUI
 
-extension IdentifiedArray: Sendable where Element: Identifiable, Element: Sendable, Element.ID: Sendable {}
-
 @propertyWrapper
 public struct SelectableState<Element: Identifiable> {
     var _selected: Element.ID?
@@ -55,6 +53,8 @@ public struct SelectableState<Element: Identifiable> {
         self._wrappedValue = newValue
     }
 }
+
+extension IdentifiedArray: Sendable where Element: Sendable, ID: Sendable {}
 
 extension SelectableState: Equatable where Element: Equatable {}
 extension SelectableState: Hashable where Element: Hashable {}

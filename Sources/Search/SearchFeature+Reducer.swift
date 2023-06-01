@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import ModuleLists
 import SharedModels
 
 extension SearchFeature.Reducer: Reducer {
@@ -36,7 +37,7 @@ extension SearchFeature.Reducer: Reducer {
                 }
 
             case .view(.didTapOpenModules):
-                return .send(.delegate(.tappedOpenModules))
+                state.moduleLists = .init()
 
             case .view(.didTapFilterOptions):
 //                return .send(.delegate(.tappedFilterOptions))
@@ -113,18 +114,18 @@ extension SearchFeature.Reducer: Reducer {
             case .internal(.loadedItems(.failure)):
                 state.items = .failed(.unknown())
 
-            case let .internal(.screens(.popFrom(id: id))):
-                state.screens.pop(from: id)
-
-            case .internal(.screens):
+            case .internal(.moduleLists):
                 break
 
-            case .delegate:
+            case .internal(.screens):
                 break
             }
             return .none
         }
-        .forEach(\.screens, action: /Action.internal..Action.InternalAction.screens) {
+        .ifLet(\.$moduleLists, action: /Action.internal .. Action.InternalAction.moduleLists) {
+            ModuleListsFeature.Reducer()
+        }
+        .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
             SearchFeature.Screens()
         }
     }
