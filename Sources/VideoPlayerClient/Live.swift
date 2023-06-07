@@ -12,7 +12,9 @@ import Foundation
 
 extension VideoPlayerClient: DependencyKey {
     public static let liveValue: Self = {
-//        let player = LockIsolated(AVPlayer())
-        return Self()
+        let player = LockIsolated(AVPlayer())
+        return Self(
+            player: player.value
+        )
     }()
 }

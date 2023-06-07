@@ -14,6 +14,7 @@ import ModuleLists
 import Repos
 import Search
 import Settings
+import VideoPlayerClient
 
 extension AppFeature.Reducer {
     @ReducerBuilder<State, Action>
@@ -33,8 +34,26 @@ extension AppFeature.Reducer {
             case .internal(.appDelegate):
                 break
 
+            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
+                state.videoPlayer = .init(
+                    repoModuleID: repoModuleID,
+                    playlist: playlist,
+                    contents: .init(),
+                    groupId: groupId,
+                    episodeId: itemId
+                )
+
             case let .internal(.repos(.delegate(delegate))):
                 switch delegate {}
+
+            case let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
+                state.videoPlayer = .init(
+                    repoModuleID: repoModuleID,
+                    playlist: playlist,
+                    contents: .init(),
+                    groupId: groupId,
+                    episodeId: itemId
+                )
 
             case let .internal(.settings(.delegate(delegate))):
                 switch delegate {}
@@ -50,8 +69,14 @@ extension AppFeature.Reducer {
 
             case .internal(.settings):
                 break
+
+            case .internal(.videoPlayer):
+                break
             }
             return .none
+        }
+        .ifLet(\.$videoPlayer, action: /Action.internal .. Action.InternalAction.videoPlayer) {
+            VideoPlayerFeature.Reducer()
         }
 
         Scope(state: \.discover, action: /Action.InternalAction.discover) {

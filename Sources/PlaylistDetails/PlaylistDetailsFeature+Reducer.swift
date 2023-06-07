@@ -14,6 +14,7 @@ import LoggerClient
 import ModuleClient
 import RepoClient
 import SharedModels
+import Tagged
 
 extension PlaylistDetailsFeature.Reducer: Reducer {
     enum Cancellables: Hashable, CaseIterable {
@@ -33,12 +34,35 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                 return state.fetchPlaylistContent()
 
             case .view(.didTappedBackButton):
-                return .run {
-                    await self.dismiss()
+                return .concatenate(
+                    .cancel(ids: Cancellables.allCases),
+                    .run {
+                        await self.dismiss()
+                    }
+                )
+
+            case let .view(.didTapVideoItem(groupId, itemId)):
+                guard let contents = state.contents.value else {
+                    break
+                }
+                guard let content = contents[groupId: groupId]?.value else {
+                    break
                 }
 
-            case .view(.didDissapear):
-                return .cancel(ids: Cancellables.allCases)
+                return .send(
+                    .delegate(
+                        .playbackVideoItem(
+                            Playlist.ItemsResponse(
+                                content: content,
+                                allGroups: contents.allGroups
+                            ),
+                            repoModuleID: state.repoModuleId,
+                            playlist: state.playlist,
+                            groupId: groupId,
+                            itemId: itemId
+                        )
+                    )
+                )
 
             case .view(.binding):
                 break
@@ -48,6 +72,9 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
 
             case let .internal(.playlistItemsResponse(loadable)):
                 state.contents = loadable.mapValue { .init($0) }
+
+            case .delegate:
+                break
             }
             return .none
         }
@@ -76,15 +103,11 @@ extension PlaylistDetailsFeature.State {
             effects.append(
                 .run { send in
                     try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistDetails) {
-                        guard let repo = try await databaseClient.fetch(.all.where(\Repo.$baseURL == repoModuleId.repoId.rawValue)).first else {
-                            throw ModuleClient.Error.unknown()
+                        let value = try await moduleClient.withModule(id: repoModuleId) { module in
+                            try await module.playlistDetails(playlistId)
                         }
 
-                        guard let module = repo.modules[id: repoModuleId.moduleId] else {
-                            throw ModuleClient.Error.unknown()
-                        }
-
-                        try await send(.internal(.playlistDetailsResponse(.loaded(moduleClient.getPlaylistDetails(module, playlistId)))))
+                        await send(.internal(.playlistDetailsResponse(.loaded(value))))
                     }
                 } catch: { error, send in
                     logger.error("\(#function) - \(error)")
@@ -103,26 +126,11 @@ extension PlaylistDetailsFeature.State {
             effects.append(
                 .run { send in
                     try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistItems) {
-                        guard let repo = try await databaseClient.fetch(.all.where(\Repo.$baseURL == repoModuleId.repoId.rawValue)).first else {
-                            throw ModuleClient.Error.unknown()
+                        let value = try await moduleClient.withModule(id: repoModuleId) { module in
+                            try await module.playlistVideos(.init(playlistId: playlistId))
                         }
 
-                        guard let module = repo.modules[id: repoModuleId.moduleId] else {
-                            throw ModuleClient.Error.unknown()
-                        }
-
-                        try await send(
-                            .internal(
-                                .playlistItemsResponse(
-                                    .loaded(
-                                        moduleClient.getPlaylistVideos(
-                                            module,
-                                            .init(playlistId: playlistId)
-                                        )
-                                    )
-                                )
-                            )
-                        )
+                        await send(.internal(.playlistItemsResponse(.loaded(value))))
                     }
                 } catch: { error, send in
                     logger.error("\(#function) - \(error)")
@@ -163,6 +171,10 @@ extension PlaylistDetailsFeature.State {
 
         public mutating func update(with id: Playlist.Group.ID, loadable: LoadableResponse) {
             loadables[id] = loadable
+        }
+
+        public subscript(groupId groupId: Playlist.Group.ID) -> LoadableResponse? {
+            loadables[groupId]
         }
     }
 }

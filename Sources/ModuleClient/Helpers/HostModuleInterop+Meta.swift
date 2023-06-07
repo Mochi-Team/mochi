@@ -376,7 +376,7 @@ extension HostModuleInterop {
     ) -> PtrRef {
         handleErrorAlloc { alloc in
             let title = try? memory.string(byteOffset: .init(display_title_ptr), length: .init(display_title_len))
-            return alloc.add(Playlist.Group(id: id, displayTitle: title))
+            return alloc.add(Playlist.Group(id: .init(id), displayTitle: title))
         }
     }
 
@@ -404,9 +404,9 @@ extension HostModuleInterop {
 
             return alloc.add(
                 Playlist.Group.Content(
-                    groupId: group_id,
-                    previousGroupId: previous_group_id >= 0 ? previous_group_id : nil,
-                    nextGroupId: next_group_id >= 0 ? next_group_id : nil,
+                    groupId: .init(group_id),
+                    previousGroupId: previous_group_id >= 0 ? .init(previous_group_id) : nil,
+                    nextGroupId: next_group_id >= 0 ? .init(next_group_id) : nil,
                     items: items
                 )
             )

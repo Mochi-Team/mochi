@@ -39,19 +39,6 @@ public enum PlaylistDetailsFeature: Feature {
             self.contents = contents
         }
 
-        public struct RepoModuleID: Equatable, Sendable, Hashable {
-            public let repoId: Repo.ID
-            public let moduleId: Module.ID
-
-            public init(
-                repoId: Repo.ID,
-                moduleId: Module.ID
-            ) {
-                self.repoId = repoId
-                self.moduleId = moduleId
-            }
-        }
-
         @dynamicMemberLookup
         struct PlaylistInfo: Equatable, Sendable {
             let playlist: Playlist
@@ -79,11 +66,19 @@ public enum PlaylistDetailsFeature: Feature {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case didTappedBackButton
-            case didDissapear
+            case didTapVideoItem(Playlist.Group.ID, Playlist.Item.ID)
             case binding(BindingAction<State>)
         }
 
-        public enum DelegateAction: SendableAction {}
+        public enum DelegateAction: SendableAction {
+            case playbackVideoItem(
+                Playlist.ItemsResponse,
+                repoModuleID: RepoModuleID,
+                playlist: Playlist,
+                groupId: Playlist.Group.ID,
+                itemId: Playlist.Item.ID
+            )
+        }
 
         public enum InternalAction: SendableAction {
             case playlistDetailsResponse(Loadable<Playlist.Details, ModuleClient.Error>)

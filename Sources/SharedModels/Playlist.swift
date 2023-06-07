@@ -7,9 +7,10 @@
 //
 
 import Foundation
+import Tagged
 
 public struct Playlist: Sendable, Identifiable, Equatable {
-    public let id: String
+    public let id: Tagged<Self, String>
     public let title: String?
     public let posterImage: URL?
     public let bannerImage: URL?
@@ -18,7 +19,7 @@ public struct Playlist: Sendable, Identifiable, Equatable {
     public let type: PlaylistType
 
     public init(
-        id: ID,
+        id: Self.ID,
         title: String? = nil,
         posterImage: URL? = nil,
         bannerImage: URL? = nil,
@@ -73,7 +74,7 @@ extension Playlist {
 
 extension Playlist {
     public struct Item: Sendable, Equatable, Identifiable {
-        public let id: String
+        public let id: Tagged<Self, String>
         public let title: String?
         public let description: String?
         public let thumbnail: URL?
@@ -134,12 +135,12 @@ extension Playlist {
     public struct ItemsRequest {
         public let playlistId: Playlist.ID
         public let playlistItemNumber: Double?
-        public let playlistItemGroup: Double?
+        public let playlistItemGroup: Playlist.Group.ID?
 
         public init(
             playlistId: Playlist.ID,
             playlistItemNumber: Double? = nil,
-            playlistItemGroup: Double? = nil
+            playlistItemGroup: Playlist.Group.ID? = nil
         ) {
             self.playlistId = playlistId
             self.playlistItemNumber = playlistItemNumber
@@ -152,8 +153,8 @@ extension Playlist {
         public let allGroups: [Group]
 
         public init(
-            content: Playlist.Group.Content,
-            allGroups: [Playlist.Group]
+            content: Group.Content,
+            allGroups: [Group]
         ) {
             self.content = content
             self.allGroups = allGroups
@@ -161,7 +162,7 @@ extension Playlist {
     }
 
     public struct Group: Sendable, Hashable, Identifiable {
-        public let id: Double
+        public let id: Tagged<Self, Double>
         public let displayTitle: String?
 
         public init(

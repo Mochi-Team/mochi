@@ -50,7 +50,7 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
                 state.screens.append(.playlistDetails(.init(repoModuleID: .init(repoId: repoId, moduleId: moduleId), playlist: playlist)))
 
             case let .internal(.selectedModule(selection)):
-                state.selectedRepoModule = selection.flatMap { .init(repoId: $0.repoId, module: $0.module.manifest) }
+                state.selectedRepoModule = selection
                 return state.fetchLatestListings(selection)
 
             case let .internal(.loadedListings(.success(listing))):
@@ -62,7 +62,23 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
             case .internal(.moduleLists):
                 break
 
+            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, repoModuleID, playlist, groupId, itemId)))))):
+                return .send(
+                    .delegate(
+                        .playbackVideoItem(
+                            items,
+                            repoModuleID: repoModuleID,
+                            playlist: playlist,
+                            groupId: groupId,
+                            itemId: itemId
+                        )
+                    )
+                )
+
             case .internal(.screens):
+                break
+
+            case .delegate:
                 break
             }
             return .none
@@ -90,12 +106,15 @@ extension DiscoverFeature.State {
 
         return .run { send in
             try await withTaskCancellation(id: DiscoverFeature.Reducer.Cancellables.fetchDiscoverList) {
-                let listing = try await moduleClient.getDiscoverListings(selectedModule.module)
+                let value = try await moduleClient.withModule(id: .init(repoId: selectedModule.repoId, moduleId: selectedModule.module.id)) { module in
+                    try await module.discoverListings()
+                }
+
                 await send(
                     .internal(
                         .loadedListings(
                             .success(
-                                listing.sorted { leftElement, rightElement in
+                                value.sorted { leftElement, rightElement in
                                     switch (leftElement.type, rightElement.type) {
                                     case (.featured, .featured):
                                         return true

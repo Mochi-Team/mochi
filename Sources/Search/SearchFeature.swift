@@ -74,7 +74,15 @@ public enum SearchFeature: Feature {
             case binding(BindingAction<State>)
         }
 
-        public enum DelegateAction: SendableAction {}
+        public enum DelegateAction: SendableAction {
+            case playbackVideoItem(
+                Playlist.ItemsResponse,
+                repoModuleID: RepoModuleID,
+                playlist: Playlist,
+                groupId: Playlist.Group.ID,
+                itemId: Playlist.Item.ID
+            )
+        }
 
         public enum InternalAction: SendableAction {
             case loadedSelectedModule(RepoClient.SelectedModule?)

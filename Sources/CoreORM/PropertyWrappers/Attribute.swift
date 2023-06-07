@@ -25,6 +25,7 @@ public struct Attribute<Value: TransformableValue, WrappedValue>: OpaqueAttribut
         get { internalValue.value }
         set { internalValue.value = newValue }
     }
+
     public var projectedValue: Self {
         get { self }
         set { self = newValue }

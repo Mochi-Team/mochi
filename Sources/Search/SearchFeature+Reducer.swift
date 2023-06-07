@@ -80,9 +80,19 @@ extension SearchFeature.Reducer: Reducer {
 
                 return .run { send in
                     try await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
-                        try await Task.sleep(nanoseconds: 1_000_000 * 400)
+                        try await Task.sleep(nanoseconds: 1_000_000 * 600)
 
-                        await send(.internal(.loadedItems(.init { try await moduleClient.search(selected.module, searchQuery) })))
+                        await send(
+                            .internal(
+                                .loadedItems(
+                                    .init {
+                                        try await moduleClient.withModule(id: .init(repoId: selected.repoId, moduleId: selected.module.id)) { module in
+                                            try await module.search(searchQuery)
+                                        }
+                                    }
+                                )
+                            )
+                        )
                     }
                 }
 
@@ -97,7 +107,17 @@ extension SearchFeature.Reducer: Reducer {
                     .cancel(id: Cancellables.fetchingItemsDebounce),
                     .run { send in
                         if let selectedModule {
-                            await send(.internal(.loadedSearchFilters(.init { try await moduleClient.searchFilters(selectedModule.module) })))
+                            await send(
+                                .internal(
+                                    .loadedSearchFilters(
+                                        .init {
+                                            try await moduleClient.withModule(id: .init(repoId: selectedModule.repoId, moduleId: selectedModule.module.id)) { module in
+                                                try await module.searchFilters()
+                                            }
+                                        }
+                                    )
+                                )
+                            )
                         }
                     }
                 )
@@ -114,10 +134,26 @@ extension SearchFeature.Reducer: Reducer {
             case .internal(.loadedItems(.failure)):
                 state.items = .failed(.unknown())
 
+            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, groupId, itemId)))))):
+                return .send(
+                    .delegate(
+                        .playbackVideoItem(
+                            items,
+                            repoModuleID: id,
+                            playlist: playlist,
+                            groupId: groupId,
+                            itemId: itemId
+                        )
+                    )
+                )
+
             case .internal(.moduleLists):
                 break
 
             case .internal(.screens):
+                break
+
+            case .delegate:
                 break
             }
             return .none

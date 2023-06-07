@@ -10,6 +10,7 @@ import Architecture
 import ComposableArchitecture
 import DatabaseClient
 import Foundation
+import ModuleClient
 import SharedModels
 import SwiftUI
 
@@ -27,15 +28,23 @@ public enum AppDelegateFeature {
         @Dependency(\.databaseClient)
         var databaseClient
 
+        @Dependency(\.moduleClient)
+        var moduleClient
+
         public init() {}
 
         public var body: some ComposableArchitecture.Reducer<State, Action> {
             Reduce { _, action in
                 switch action {
                 case .didFinishLaunching:
-                    return .run {
-                        try await databaseClient.initialize()
-                    }
+                    return .merge(
+                        .run {
+                            try await databaseClient.initialize()
+                        },
+                        .run {
+                            try await moduleClient.initialize()
+                        }
+                    )
                 }
             }
         }

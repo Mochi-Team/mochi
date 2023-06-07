@@ -66,7 +66,7 @@ extension SearchFeature.View: View {
                 }
                 .topBar(title: "Search") {
                     WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
-                        ModuleSelectionButton(module: viewStore.state?.module.manifest) {
+                        ModuleSelectionButton(module: viewStore.state?.module) {
                             ViewStore(store.viewAction.stateless)
                                 .send(.didTapOpenModules)
                         }

@@ -6,6 +6,7 @@
 //  Copyright © 2023. All rights reserved.
 //
 
+@preconcurrency
 import AVFoundation
 import Dependencies
 import Foundation
@@ -21,11 +22,13 @@ public struct VideoPlayerClient: Sendable {
 //    let seek: @Sendable (_ progress: Double) async throws -> Void
 //    let volume: @Sendable (_ amount: Double) async throws -> Void
 //    let reset: @Sendable () async throws -> Void
-//    let player: @Sendable () -> AVPlayer
+    public let player: AVPlayer
 }
 
 extension VideoPlayerClient: TestDependencyKey {
-    public static let testValue = Self()
+    public static let testValue = Self(
+        player: unimplemented()
+    )
 }
 
 extension DependencyValues {

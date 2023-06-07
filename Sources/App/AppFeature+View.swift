@@ -16,6 +16,7 @@ import Search
 import Settings
 import Styling
 import SwiftUI
+import VideoPlayerClient
 import ViewComponents
 
 extension AppFeature.View: View {
@@ -25,41 +26,39 @@ extension AppFeature.View: View {
             store.viewAction,
             observe: \.selected
         ) { viewStore in
-            ZStack {
-                Group {
-                    switch viewStore.state {
-                    case .discover:
-                        DiscoverFeature.View(
-                            store: store.internalAction.scope(
-                                state: \.discover,
-                                action: Action.InternalAction.discover
-                            )
+            Group {
+                switch viewStore.state {
+                case .discover:
+                    DiscoverFeature.View(
+                        store: store.internalAction.scope(
+                            state: \.discover,
+                            action: Action.InternalAction.discover
                         )
-                    case .repos:
-                        ReposFeature.View(
-                            store: store.internalAction.scope(
-                                state: \.repos,
-                                action: Action.InternalAction.repos
-                            )
+                    )
+                case .repos:
+                    ReposFeature.View(
+                        store: store.internalAction.scope(
+                            state: \.repos,
+                            action: Action.InternalAction.repos
                         )
-                    case .search:
-                        SearchFeature.View(
-                            store: store.internalAction.scope(
-                                state: \.search,
-                                action: Action.InternalAction.search
-                            )
+                    )
+                case .search:
+                    SearchFeature.View(
+                        store: store.internalAction.scope(
+                            state: \.search,
+                            action: Action.InternalAction.search
                         )
-                    case .settings:
-                        SettingsFeature.View(
-                            store: store.internalAction.scope(
-                                state: \.settings,
-                                action: Action.InternalAction.settings
-                            )
+                    )
+                case .settings:
+                    SettingsFeature.View(
+                        store: store.internalAction.scope(
+                            state: \.settings,
+                            action: Action.InternalAction.settings
                         )
-                    }
+                    )
                 }
-                .transition(.opacity)
             }
+            .transition(.opacity)
             .animation(.easeInOut(duration: 0.2), value: viewStore.state)
             .safeAreaInset(edge: .bottom) {
                 navbar(viewStore.state)
@@ -68,6 +67,15 @@ extension AppFeature.View: View {
         }
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
+        }
+        .overlay {
+            IfLetStore(
+                store.internalAction.scope(
+                    state: \.$videoPlayer,
+                    action: Action.InternalAction.videoPlayer
+                ),
+                then: VideoPlayerFeature.View.init(store:)
+            )
         }
     }
 }

@@ -46,19 +46,19 @@ struct VideoPlayer: PlatformAgnosticViewRepresentable {
         _ platformView: PlayerView,
         context: Context
     ) {
-//        if platformView.videoGravity != gravity {
-//            platformView.videoGravity = gravity
-//        }
+        if platformView.videoGravity != gravity {
+            platformView.videoGravity = gravity
+        }
 
-//        guard let pipController = context.coordinator.controller else {
-//            return
-//        }
+        guard let pipController = context.coordinator.controller else {
+            return
+        }
 
-//        if pipActive, !pipController.isPictureInPictureActive {
-//            pipController.startPictureInPicture()
-//        } else if !pipActive, pipController.isPictureInPictureActive {
-//            pipController.stopPictureInPicture()
-//        }
+        if pipActive, !pipController.isPictureInPictureActive {
+            pipController.startPictureInPicture()
+        } else if !pipActive, pipController.isPictureInPictureActive {
+            pipController.stopPictureInPicture()
+        }
     }
 }
 

@@ -47,7 +47,7 @@ public struct RepoClient: Sendable {
 
     /// Remove Repo
     ///
-    /// Removes a repo from he system
+    /// Removes a repo from the system
     public let removeRepo: @Sendable (Repo.ID) async throws -> Void
 
     /// Install a Module

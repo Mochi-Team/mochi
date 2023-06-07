@@ -143,11 +143,13 @@ let clientsTargets: [Target] = [
     .target(
         name: "ModuleClient",
         dependencies: [
+            "DatabaseClient",
             "SharedModels",
             "WasmInterpreter",
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-            .product(name: "SwiftSoup", package: "SwiftSoup")
+            .product(name: "SwiftSoup", package: "SwiftSoup"),
+            .product(name: "Semaphore", package: "Semaphore")
         ]
     ),
     .testTarget(
@@ -183,7 +185,10 @@ let clientsTargets: [Target] = [
         name: "VideoPlayerClient",
         dependencies: [
             "Architecture",
+            "DatabaseClient",
+            "ModuleClient",
             "SharedModels",
+            "Styling",
             "UserDefaultsClient",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
@@ -305,7 +310,8 @@ let package = Package(
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
-        .package(url: "https://github.com/manuelCarlos/Easing.git", exact: "2.1.6")
+        .package(url: "https://github.com/manuelCarlos/Easing.git", exact: "2.1.6"),
+        .package(url: "https://github.com/groue/Semaphore", exact: "0.0.8")
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

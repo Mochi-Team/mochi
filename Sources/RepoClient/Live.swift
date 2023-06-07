@@ -16,7 +16,7 @@ import TOMLDecoder
 extension RepoClient: DependencyKey {
     private static let selectedModule = CurrentValueSubject<SelectedModule?, Never>(nil)
     private static let moduleDownloadProgress = CurrentValueSubject<[RepoModuleID: RepoModuleDownloadState], Never>([:])
-    private static let modulesDownloadProgressTasks = LockIsolated<[RepoModuleID: Task<Void, RepoClient.Error>]>([:])
+    private static let modulesDownloadProgressTasks = LockIsolated<[RepoModuleID: Task<Void, Never>]>([:])
 
     @Dependency(\.databaseClient)
     private static var databaseClient
@@ -29,7 +29,7 @@ extension RepoClient: DependencyKey {
             }
 
             if let module = repo.modules.first(where: { $0.id == moduleId }) {
-                selectedModule.send(.init(repoId: repoId, module: module))
+                selectedModule.send(.init(repoId: repoId, module: module.manifest))
             } else {
                 selectedModule.send(nil)
             }
@@ -108,7 +108,7 @@ extension RepoClient: DependencyKey {
                         let id: RepoModuleID
                         var observation: NSKeyValueObservation?
 
-                        init(id: RepoClient.RepoModuleID) {
+                        init(id: RepoModuleID) {
                             self.id = id
                         }
 
@@ -127,6 +127,10 @@ extension RepoClient: DependencyKey {
                     let (data, response) = try await URLSession.shared.data(for: request, delegate: delegate)
 
                     guard let response = response as? HTTPURLResponse else {
+                        throw RepoClient.Error.failedToDownloadModule
+                    }
+
+                    guard response.mimeType == "application/wasm" else {
                         throw RepoClient.Error.failedToDownloadModule
                     }
 
@@ -151,6 +155,7 @@ extension RepoClient: DependencyKey {
                     Self.moduleDownloadProgress.value[id] = .failed(.failedToInstallModule)
                 }
             }
+            modulesDownloadProgressTasks.withValue { $0[id] = task }
         },
         removeModule: { repoId, moduleId in
             let id = RepoModuleID(repoId: repoId, moduleId: moduleId)
@@ -184,8 +189,4 @@ extension RepoClient: DependencyKey {
                 .eraseToStream()
         }
     )
-}
-
-private actor DownloadActor {
-
 }

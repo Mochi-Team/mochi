@@ -365,6 +365,11 @@ extension PlaylistDetailsFeature.View {
                             .frame(width: 228)
                             .contentShape(Rectangle())
                             .onTapGesture {
+                                if let content = content.value {
+                                    ViewStore(store.viewAction.stateless).send(
+                                        .didTapVideoItem(content.groupId, item.id)
+                                    )
+                                }
                                 // TODO: Handle tap gesture for playlist video item
                             }
                         }

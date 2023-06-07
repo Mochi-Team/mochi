@@ -60,7 +60,7 @@ public enum DiscoverFeature: Feature {
 
     public struct State: FeatureState {
         public var listings: Loadable<[DiscoverListing], Error>
-        public var selectedRepoModule: SelectedRepoModule?
+        public var selectedRepoModule: RepoClient.SelectedModule?
         public var screens: StackState<Screens.State>
 
         var initialized = false
@@ -70,7 +70,7 @@ public enum DiscoverFeature: Feature {
 
         public init(
             listings: Loadable<[DiscoverListing], Error> = .pending,
-            selectedRepoModule: SelectedRepoModule? = nil,
+            selectedRepoModule: RepoClient.SelectedModule? = nil,
             screens: StackState<Screens.State> = .init(),
             moduleLists: ModuleListsFeature.State? = nil
         ) {
@@ -78,11 +78,6 @@ public enum DiscoverFeature: Feature {
             self.selectedRepoModule = selectedRepoModule
             self.screens = screens
             self.moduleLists = moduleLists
-        }
-
-        public struct SelectedRepoModule: Equatable, Sendable {
-            let repoId: Repo.ID
-            let module: Module.Manifest
         }
     }
 
@@ -93,7 +88,15 @@ public enum DiscoverFeature: Feature {
             case didTapPlaylist(Playlist)
         }
 
-        public enum DelegateAction: SendableAction {}
+        public enum DelegateAction: SendableAction {
+            case playbackVideoItem(
+                Playlist.ItemsResponse,
+                repoModuleID: RepoModuleID,
+                playlist: Playlist,
+                groupId: Playlist.Group.ID,
+                itemId: Playlist.Item.ID
+            )
+        }
 
         public enum InternalAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)

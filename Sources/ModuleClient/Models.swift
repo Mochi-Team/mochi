@@ -13,19 +13,33 @@ import Tagged
 protocol KVAccess {}
 
 extension KVAccess {
-    // TODO: Improve Key-Value access
+    // FIXME: Improve Key-Value access
     // This might be a performance bottleneck, optimize in the future
     subscript(key: String) -> Any? {
-        Mirror(reflecting: self)
-            .children
-            .first { $0.label == key }?
-            .value
+        let mirror = Mirror(reflecting: self)
+        for (someKey, someValue) in mirror.children where someKey == key {
+            if let value = someValue as? any OpaqueTagged {
+                return value.rawValue
+            } else {
+                return someValue
+            }
+        }
+        return nil
     }
 }
+
+private protocol OpaqueTagged {
+    associatedtype RawValue
+    var rawValue: RawValue { get }
+}
+
+extension Tagged: OpaqueTagged {}
 
 extension SearchQuery: KVAccess {}
 extension SearchQuery.Filter: KVAccess {}
 extension Playlist.ItemsRequest: KVAccess {}
+extension Playlist.EpisodeSourcesRequest: KVAccess {}
+extension Playlist.EpisodeServerRequest: KVAccess {}
 
 extension Paging {
     func into<V>(_: V.Type = V.self) -> Paging<V> {

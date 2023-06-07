@@ -40,7 +40,7 @@ public enum ReposFeature: Feature {
         public var repos: IdentifiedArrayOf<Repo>
         public var urlRepoState: RepoURLState
         public var repoModules: [Repo.ID: Loadable<[Module.Manifest], RepoClient.Error>]
-        public var installingModules: [RepoClient.RepoModuleID: RepoClient.RepoModuleDownloadState] = [:]
+        public var installingModules: [RepoModuleID: RepoClient.RepoModuleDownloadState] = [:]
 
         public var selected: RepoPackagesFeature.State? {
             $repos.element.flatMap { repo in
@@ -87,7 +87,7 @@ public enum ReposFeature: Feature {
             case validateRepoURL(Loadable<RepoClient.RepoPayload, RepoURLState.Error>)
             case loadableModules(Repo.ID, Loadable<[Module.Manifest], RepoClient.Error>)
             case observeReposResult([Repo])
-            case observeInstalls([RepoClient.RepoModuleID: RepoClient.RepoModuleDownloadState])
+            case observeInstalls([RepoModuleID: RepoClient.RepoModuleDownloadState])
         }
 
         case view(ViewAction)

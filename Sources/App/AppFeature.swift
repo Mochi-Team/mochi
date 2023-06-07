@@ -16,6 +16,7 @@ import Search
 import Settings
 import SharedModels
 import SwiftUI
+import VideoPlayerClient
 
 public enum AppFeature: Feature {
     public struct State: FeatureState {
@@ -25,6 +26,9 @@ public enum AppFeature: Feature {
         public var settings = SettingsFeature.State()
 
         public var selected = Tab.discover
+
+        @PresentationState
+        public var videoPlayer: VideoPlayerFeature.State?
 
         public init(
             discover: DiscoverFeature.State = .init(),
@@ -101,6 +105,7 @@ public enum AppFeature: Feature {
             case repos(ReposFeature.Action)
             case search(SearchFeature.Action)
             case settings(SettingsFeature.Action)
+            case videoPlayer(PresentationAction<VideoPlayerFeature.Action>)
         }
 
         case view(ViewAction)
@@ -123,6 +128,9 @@ public enum AppFeature: Feature {
 
         @Dependency(\.databaseClient)
         var databaseClient
+
+        @Dependency(\.videoPlayerClient)
+        var videoPlayerClient
 
         public init() { }
     }

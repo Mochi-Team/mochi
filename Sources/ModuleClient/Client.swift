@@ -14,12 +14,14 @@ import WasmInterpreter
 import XCTestDynamicOverlay
 
 public struct ModuleClient: Sendable {
-    public let searchFilters: @Sendable (Module) async throws -> [SearchFilter]
-    public let search: @Sendable (Module, SearchQuery) async throws -> Paging<Playlist>
-    public let getDiscoverListings: @Sendable (Module) async throws -> [DiscoverListing]
-    public let getPlaylistDetails: @Sendable (Module, Playlist.ID) async throws -> Playlist.Details
+    public var initialize: @Sendable () async throws -> Void
+    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> ModuleHandler
+}
 
-    public let getPlaylistVideos: @Sendable (Module, Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse
+extension ModuleClient {
+    public func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleHandler) async throws -> R) async throws -> R {
+        try await work(self.getModule(id))
+    }
 }
 
 extension ModuleClient {
@@ -30,6 +32,7 @@ extension ModuleClient {
         case swiftSoup(for: String = #function, SwiftSoup.Exception)
         case indexOutOfBounds(for: String = #function)
         case unknown(for: String = #function)
+        case moduleNotFound
     }
 }
 
@@ -44,11 +47,8 @@ extension SwiftSoup.Exception: Equatable {
 
 extension ModuleClient: TestDependencyKey {
     public static let testValue = Self(
-        searchFilters: unimplemented(),
-        search: unimplemented(),
-        getDiscoverListings: unimplemented(),
-        getPlaylistDetails: unimplemented(),
-        getPlaylistVideos: unimplemented()
+        initialize: unimplemented(),
+        getModule: unimplemented()
     )
 }
 
