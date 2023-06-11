@@ -31,7 +31,7 @@ extension ModuleClient {
         case castError(for: String = #function, got: String = "", expected: String = "")
         case swiftSoup(for: String = #function, SwiftSoup.Exception)
         case indexOutOfBounds(for: String = #function)
-        case unknown(for: String = #function)
+        case unknown(for: String = #function, msg: String = "")
         case moduleNotFound
     }
 }

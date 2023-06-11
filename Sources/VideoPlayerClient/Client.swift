@@ -13,20 +13,24 @@ import Foundation
 import XCTestDynamicOverlay
 
 public struct VideoPlayerClient: Sendable {
-    // TODO: Add client interface types
 //    let status: @Sendable () -> AsyncStream<Status>
-//    let load: @Sendable () async throws -> Void
-//    let play: @Sendable () async throws -> Void
-//    let resume: @Sendable () async throws -> Void
-//    let pause: @Sendable () async throws -> Void
-//    let seek: @Sendable (_ progress: Double) async throws -> Void
-//    let volume: @Sendable (_ amount: Double) async throws -> Void
-//    let reset: @Sendable () async throws -> Void
+    public let load: @Sendable (URL) async throws -> Void
+    public let play: @Sendable () async -> Void
+    public let pause: @Sendable () async -> Void
+    public let seek: @Sendable (_ progress: Double) async -> Void
+    public let volume: @Sendable (_ amount: Double) async -> Void
+    public let clear: @Sendable () async -> Void
     public let player: AVPlayer
 }
 
 extension VideoPlayerClient: TestDependencyKey {
     public static let testValue = Self(
+        load: unimplemented(),
+        play: unimplemented(),
+        pause: unimplemented(),
+        seek: unimplemented(),
+        volume: unimplemented(),
+        clear: unimplemented(),
         player: unimplemented()
     )
 }

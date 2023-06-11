@@ -21,7 +21,7 @@ public enum RepoPackagesFeature {
     public struct State: FeatureState, Identifiable {
         public init(
             repo: Repo,
-            modules: Loadable<[Module.Manifest], RepoClient.Error> = .pending,
+            modules: Loadable<[Module.Manifest]> = .pending,
             installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:]
         ) {
             self.repo = repo
@@ -32,11 +32,11 @@ public enum RepoPackagesFeature {
         public var id: Repo.ID { repo.id }
 
         public var repo: Repo
-        public var modules: Loadable<[Module.Manifest], RepoClient.Error>
+        public var modules: Loadable<[Module.Manifest]>
         public var installingModules: [Module.ID: RepoClient.RepoModuleDownloadState]
 
-        public var packages: Loadable<[Package], RepoClient.Error> {
-            modules.mapValue { manifests in
+        public var packages: Loadable<[Package]> {
+            modules.map { manifests in
                 Dictionary(grouping: manifests, by: \.id)
                     .map(\.value)
                     .filter { !$0.isEmpty }

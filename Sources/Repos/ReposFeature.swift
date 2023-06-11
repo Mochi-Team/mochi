@@ -17,14 +17,14 @@ import ViewComponents
 
 public enum ReposFeature: Feature {
     public struct RepoURLState: Equatable, Sendable {
-        public var repo: Loadable<RepoClient.RepoPayload, RepoURLState.Error>
+        public var repo: Loadable<RepoClient.RepoPayload>
 
         @BindingState
         public var url: String
 
         public init(
             url: String = "",
-            repo: Loadable<RepoClient.RepoPayload, ReposFeature.RepoURLState.Error> = .pending
+            repo: Loadable<RepoClient.RepoPayload> = .pending
         ) {
             self.repo = repo
             self.url = url
@@ -39,7 +39,7 @@ public enum ReposFeature: Feature {
         @SelectableState
         public var repos: IdentifiedArrayOf<Repo>
         public var urlRepoState: RepoURLState
-        public var repoModules: [Repo.ID: Loadable<[Module.Manifest], RepoClient.Error>]
+        public var repoModules: [Repo.ID: Loadable<[Module.Manifest]>]
         public var installingModules: [RepoModuleID: RepoClient.RepoModuleDownloadState] = [:]
 
         public var selected: RepoPackagesFeature.State? {
@@ -57,7 +57,7 @@ public enum ReposFeature: Feature {
 
         public init(
             repos: SelectableState<Repo> = .init(),
-            repoModules: [Repo.ID: Loadable<[Module.Manifest], RepoClient.Error>] = [:],
+            repoModules: [Repo.ID: Loadable<[Module.Manifest]>] = [:],
             repoURLState: RepoURLState = .init()
         ) {
             self._repos = repos
@@ -84,8 +84,8 @@ public enum ReposFeature: Feature {
 
         public enum InternalAction: SendableAction {
             case animateSelectRepo(Repo.ID?)
-            case validateRepoURL(Loadable<RepoClient.RepoPayload, RepoURLState.Error>)
-            case loadableModules(Repo.ID, Loadable<[Module.Manifest], RepoClient.Error>)
+            case validateRepoURL(Loadable<RepoClient.RepoPayload>)
+            case loadableModules(Repo.ID, Loadable<[Module.Manifest]>)
             case observeReposResult([Repo])
             case observeInstalls([RepoModuleID: RepoClient.RepoModuleDownloadState])
         }

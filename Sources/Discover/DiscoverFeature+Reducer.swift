@@ -98,7 +98,7 @@ extension DiscoverFeature.State {
         var moduleClient
 
         guard let selectedModule else {
-            self.listings = .failed(.system(.moduleNotSelected))
+            self.listings = .failed(DiscoverFeature.Error.system(.moduleNotSelected))
             return .none
         }
 

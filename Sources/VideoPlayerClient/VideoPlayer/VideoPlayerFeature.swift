@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import LoggerClient
 import ModuleClient
 import SharedModels
 import SwiftUI
@@ -23,7 +24,7 @@ public enum VideoPlayerFeature: Feature {
                 case episodes = "Episodes"
                 case sourcesAndServers = "Sources and Servers"
                 case speed = "Speed"
-                case audioAndSubtitles = "Quality and Subtitles"
+                case qualityAndSubtitles = "Quality and Subtitles"
                 case settings = "Settings"
             }
         }
@@ -33,6 +34,7 @@ public enum VideoPlayerFeature: Feature {
         public var contents: Contents
         public var selected: SelectedContent
         public var overlay: Overlay?
+        public var player: PlayerReducer.State
 
         public init(
             repoModuleID: RepoModuleID,
@@ -40,7 +42,8 @@ public enum VideoPlayerFeature: Feature {
             contents: Contents,
             groupId: Playlist.Group.ID,
             episodeId: Playlist.Item.ID,
-            overlay: Overlay? = .tools
+            overlay: Overlay? = .tools,
+            player: PlayerReducer.State = .init()
         ) {
             self.repoModuleID = repoModuleID
             self.playlist = playlist
@@ -50,6 +53,7 @@ public enum VideoPlayerFeature: Feature {
                 episodeId: episodeId
             )
             self.overlay = overlay
+            self.player = player
         }
     }
 
@@ -60,19 +64,24 @@ public enum VideoPlayerFeature: Feature {
             case didTapMoreButton
             case didTapPlayer
             case didSelectMoreTab(State.Overlay.MoreTab)
-            case didTapPlayButton
+            case didTapGoForwards
+            case didTapGoBackwards
+            case didStartedSeeking
+            case didFinishedSeekingTo(CGFloat)
             case didTapCloseMoreOverlay
             case didTapPlayEpisode(Playlist.Group.ID, Playlist.Item.ID)
             case didTapSource(Playlist.EpisodeSource.ID)
             case didTapServer(Playlist.EpisodeServer.ID)
+            case didTapLink(Playlist.EpisodeServer.Link.ID)
         }
 
         public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
-            case groupResponse(groupId: Playlist.Group.ID, _ response: Loadable<Playlist.ItemsResponse, ModuleClient.Error>)
-            case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource], ModuleClient.Error>)
-            case serversResponse(episodeId: Playlist.Item.ID, sourceId: Playlist.EpisodeSource.ID, _ response: Loadable<Playlist.EpisodeServerResponse, ModuleClient.Error>)
+            case groupResponse(groupId: Playlist.Group.ID, _ response: Loadable<Playlist.ItemsResponse>)
+            case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource]>)
+            case serverResponse(sourceId: Playlist.EpisodeSource.ID, _ response: Loadable<Playlist.EpisodeServerResponse>)
+            case player(PlayerReducer.Action)
         }
 
         case view(ViewAction)
@@ -105,6 +114,9 @@ public enum VideoPlayerFeature: Feature {
         @Dependency(\.moduleClient)
         var moduleClient
 
+        @Dependency(\.logger)
+        var logger
+
         @Dependency(\.videoPlayerClient)
         var videoPlayerClient
 
@@ -118,61 +130,64 @@ extension VideoPlayerFeature.State {
         public var episodeId: Playlist.Item.ID
         public var sourceId: Playlist.EpisodeSource.ID?
         public var serverId: Playlist.EpisodeServer.ID?
+        public var linkId: Playlist.EpisodeServer.Link.ID?
 
         public init(
             groupId: Playlist.Group.ID,
             episodeId: Playlist.Item.ID,
             sourceId: Playlist.EpisodeSource.ID? = nil,
-            serverId: Playlist.EpisodeServer.ID? = nil
+            serverId: Playlist.EpisodeServer.ID? = nil,
+            linkId: Playlist.EpisodeServer.Link.ID? = nil
         ) {
             self.groupId = groupId
             self.episodeId = episodeId
             self.sourceId = sourceId
             self.serverId = serverId
+            self.linkId = linkId
         }
     }
 
     public struct Contents: Equatable, Sendable {
-        public var allGroups = Loadable<[Playlist.Group], ModuleClient.Error>.pending
-        public var groups = [Playlist.Group.ID: Loadable<Playlist.Group.Content, ModuleClient.Error>]()
-        public var sources = [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource], ModuleClient.Error>]()
-        public var servers = [Playlist.EpisodeSource.ID: Loadable<Playlist.EpisodeServerResponse, ModuleClient.Error>]()
+        public var allGroups = Loadable<[Playlist.Group]>.pending
+        public var groups = [Playlist.Group.ID: Loadable<Playlist.Group.Content>]()
+        public var sources = [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>]()
+        public var serverLinks = [Playlist.EpisodeSource.ID: Loadable<Playlist.EpisodeServerResponse>]()
 
-        subscript(groupId groupId: Playlist.Group.ID) -> Loadable<Playlist.Group.Content, ModuleClient.Error> {
+        subscript(groupId groupId: Playlist.Group.ID) -> Loadable<Playlist.Group.Content> {
             get { groups[groupId] ?? .pending }
             set { groups[groupId] = newValue }
         }
 
-        subscript(episodeId episodeId: Playlist.Item.ID) -> Loadable<[Playlist.EpisodeSource], ModuleClient.Error> {
+        subscript(episodeId episodeId: Playlist.Item.ID) -> Loadable<[Playlist.EpisodeSource]> {
             get { sources[episodeId] ?? .pending }
             set { sources[episodeId] = newValue }
         }
 
-        subscript(sourceId sourceId: Playlist.EpisodeSource.ID) -> Loadable<Playlist.EpisodeServerResponse, ModuleClient.Error> {
-            get { servers[sourceId] ?? .pending }
-            set { servers[sourceId] = newValue }
+        subscript(sourceId sourceId: Playlist.EpisodeSource.ID) -> Loadable<Playlist.EpisodeServerResponse> {
+            get { serverLinks[sourceId] ?? .pending }
+            set { serverLinks[sourceId] = newValue }
         }
 
         public init(
-            allGroups: Loadable<[Playlist.Group], ModuleClient.Error> = .pending,
-            groups: [Playlist.Group.ID: Loadable<Playlist.Group.Content, ModuleClient.Error>] = [:],
-            sources: [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource], ModuleClient.Error>] = [:],
-            servers: [Playlist.EpisodeSource.ID: Loadable<Playlist.EpisodeServerResponse, ModuleClient.Error>] = [:]
+            allGroups: Loadable<[Playlist.Group]> = .pending,
+            groups: [Playlist.Group.ID: Loadable<Playlist.Group.Content>] = [:],
+            sources: [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>] = [:],
+            servers: [Playlist.EpisodeSource.ID: Loadable<Playlist.EpisodeServerResponse>] = [:]
         ) {
             self.allGroups = allGroups
             self.groups = groups
             self.sources = sources
-            self.servers = servers
+            self.serverLinks = servers
         }
 
         public mutating func update(
             with groupId: Playlist.Group.ID,
-            response: Loadable<Playlist.ItemsResponse, ModuleClient.Error>
+            response: Loadable<Playlist.ItemsResponse>
         ) {
-            groups[groupId] = response.mapValue(\.content)
+            groups[groupId] = response.map(\.content)
 
             if groups.allSatisfy({ $1.error != nil }) {
-                allGroups = .failed(.unknown())
+                allGroups = .failed(ModuleClient.Error.unknown())
             } else {
                 switch (allGroups, response) {
                 case let (_, .loaded(value)):
@@ -185,9 +200,20 @@ extension VideoPlayerFeature.State {
 
         public mutating func update(
             with episodeId: Playlist.Item.ID,
-            response: Loadable<[Playlist.EpisodeSource], ModuleClient.Error>
+            response: Loadable<[Playlist.EpisodeSource]>
         ) {
             sources[episodeId] = response
+        }
+
+        public mutating func update(
+            with sourceId: Playlist.EpisodeSource.ID,
+            response: Loadable<Playlist.EpisodeServerResponse>
+        ) {
+            serverLinks[sourceId] = response
+        }
+
+        public mutating func clearServers() {
+            serverLinks.removeAll()
         }
     }
 }

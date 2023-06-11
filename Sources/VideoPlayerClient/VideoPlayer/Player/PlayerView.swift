@@ -12,8 +12,7 @@ import Foundation
 import SwiftUI
 import ViewComponents
 
-struct VideoPlayer: PlatformAgnosticViewRepresentable {
-
+struct PlayerView: PlatformAgnosticViewRepresentable {
     private let player: AVPlayer
 
     @Binding
@@ -36,14 +35,14 @@ struct VideoPlayer: PlatformAgnosticViewRepresentable {
         .init(self)
     }
 
-    func makePlatformView(context: Context) -> PlayerView {
-        let view = PlayerView(player: player)
+    func makePlatformView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView(player: player)
         context.coordinator.updateController(view)
         return view
     }
 
     func updatePlatformView(
-        _ platformView: PlayerView,
+        _ platformView: AVPlayerView,
         context: Context
     ) {
         if platformView.videoGravity != gravity {
@@ -62,17 +61,17 @@ struct VideoPlayer: PlatformAgnosticViewRepresentable {
     }
 }
 
-extension VideoPlayer {
+extension PlayerView {
     final class Coordinator: NSObject {
-        var videoPlayer: VideoPlayer
+        var videoPlayer: PlayerView
         var controller: AVPictureInPictureController?
 
-        init(_ videoPlayer: VideoPlayer) {
+        init(_ videoPlayer: PlayerView) {
             self.videoPlayer = videoPlayer
             super.init()
         }
 
-        func updateController(_ view: PlayerView) {
+        func updateController(_ view: AVPlayerView) {
             guard controller == nil else {
                 return
             }
@@ -83,7 +82,7 @@ extension VideoPlayer {
     }
 }
 
-extension VideoPlayer.Coordinator: AVPictureInPictureControllerDelegate {
+extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
     public func pictureInPictureControllerWillStartPictureInPicture(_: AVPictureInPictureController) {
 //        videoPlayer.onPictureInPictureStatusChangedCallback?(.willStart)
     }
@@ -116,7 +115,7 @@ extension VideoPlayer.Coordinator: AVPictureInPictureControllerDelegate {
     }
 }
 
-final class PlayerView: PlatformView {
+final class AVPlayerView: PlatformView {
     // swiftlint:disable force_cast
     var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
 

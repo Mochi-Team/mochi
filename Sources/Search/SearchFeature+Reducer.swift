@@ -131,8 +131,8 @@ extension SearchFeature.Reducer: Reducer {
             case let .internal(.loadedItems(.success(items))):
                 state.items = .loaded(items)
 
-            case .internal(.loadedItems(.failure)):
-                state.items = .failed(.unknown())
+            case let .internal(.loadedItems(.failure(error))):
+                state.items = .failed(error)
 
             case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, groupId, itemId)))))):
                 return .send(

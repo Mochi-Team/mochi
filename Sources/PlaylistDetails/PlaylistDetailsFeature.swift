@@ -20,18 +20,18 @@ public enum PlaylistDetailsFeature: Feature {
     public struct State: FeatureState {
         public let repoModuleId: RepoModuleID
         public let playlist: Playlist
-        public var details: Loadable<Playlist.Details, ModuleClient.Error>
-        public var contents: Loadable<PlaylistContents, ModuleClient.Error>
+        public var details: Loadable<Playlist.Details>
+        public var contents: Loadable<PlaylistContents>
 
-        var playlistInfo: Loadable<PlaylistInfo, ModuleClient.Error> {
-            details.mapValue { .init(playlist: playlist, details: $0) }
+        var playlistInfo: Loadable<PlaylistInfo> {
+            details.map { .init(playlist: playlist, details: $0) }
         }
 
         public init(
             repoModuleID: RepoModuleID,
             playlist: Playlist,
-            details: Loadable<Playlist.Details, ModuleClient.Error> = .pending,
-            contents: Loadable<PlaylistContents, ModuleClient.Error> = .pending
+            details: Loadable<Playlist.Details> = .pending,
+            contents: Loadable<PlaylistContents> = .pending
         ) {
             self.repoModuleId = repoModuleID
             self.playlist = playlist
@@ -81,8 +81,8 @@ public enum PlaylistDetailsFeature: Feature {
         }
 
         public enum InternalAction: SendableAction {
-            case playlistDetailsResponse(Loadable<Playlist.Details, ModuleClient.Error>)
-            case playlistItemsResponse(Loadable<Playlist.ItemsResponse, ModuleClient.Error>)
+            case playlistDetailsResponse(Loadable<Playlist.Details>)
+            case playlistItemsResponse(Loadable<Playlist.ItemsResponse>)
         }
 
         case view(ViewAction)

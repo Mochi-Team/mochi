@@ -71,7 +71,7 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                 state.details = loadable
 
             case let .internal(.playlistItemsResponse(loadable)):
-                state.contents = loadable.mapValue { .init($0) }
+                state.contents = loadable.map { .init($0) }
 
             case .delegate:
                 break
@@ -114,7 +114,7 @@ extension PlaylistDetailsFeature.State {
                     if let error = error as? ModuleClient.Error {
                         await send(.internal(.playlistDetailsResponse(.failed(error))))
                     } else {
-                        await send(.internal(.playlistDetailsResponse(.failed(.unknown()))))
+                        await send(.internal(.playlistDetailsResponse(.failed(ModuleClient.Error.unknown()))))
                     }
                 }
             )
@@ -137,7 +137,7 @@ extension PlaylistDetailsFeature.State {
                     if let error = error as? ModuleClient.Error {
                         await send(.internal(.playlistItemsResponse(.failed(error))))
                     } else {
-                        await send(.internal(.playlistItemsResponse(.failed(.unknown()))))
+                        await send(.internal(.playlistItemsResponse(.failed(ModuleClient.Error.unknown()))))
                     }
                 }
             )
@@ -149,7 +149,7 @@ extension PlaylistDetailsFeature.State {
 
 extension PlaylistDetailsFeature.State {
     public struct PlaylistContents: Equatable, Sendable {
-        public typealias LoadableResponse = Loadable<Playlist.Group.Content, ModuleClient.Error>
+        public typealias LoadableResponse = Loadable<Playlist.Group.Content>
 
         public var loadables = [Playlist.Group.ID: LoadableResponse]()
         public let allGroups: [Playlist.Group]

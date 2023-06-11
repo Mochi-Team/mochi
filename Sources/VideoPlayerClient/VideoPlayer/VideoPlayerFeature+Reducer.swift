@@ -8,22 +8,34 @@
 
 import Architecture
 import ComposableArchitecture
+import LoggerClient
 import ModuleClient
 
-private enum Cancellables: Hashable {
+private enum Cancellables: Hashable, CaseIterable {
+    case fetchingContents
+    case fetchingSources
+    case fetchingServer
 }
 
 extension VideoPlayerFeature.Reducer: Reducer {
     public var body: some ReducerOf<Self> {
+        Scope(state: \.player, action: /Action.internal .. Action.InternalAction.player) {
+            PlayerReducer()
+        }
+
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
                 return state.fetchGroupsWithContentIfNecessary()
 
             case .view(.didTapBackButton):
-                return .run {
-                    await dismiss()
-                }
+                return .merge(
+                    .cancel(ids: Cancellables.allCases),
+                    .run { _ in
+                        await videoPlayerClient.clear()
+                        await dismiss()
+                    }
+                )
 
             case .view(.didTapMoreButton):
                 state.overlay = .more(.episodes)
@@ -37,9 +49,23 @@ extension VideoPlayerFeature.Reducer: Reducer {
             case .view(.didTapCloseMoreOverlay):
                 state.overlay = .tools
 
-            case .view(.didTapPlayButton):
-                return .run {
-//                    await videoPlayerClient.play()
+            case .view(.didTapGoBackwards):
+                return .run { _ in
+                }
+
+            case .view(.didTapGoForwards):
+                return .run { _ in
+                }
+
+            case .view(.didStartedSeeking):
+                return .run { _ in
+                    await videoPlayerClient.pause()
+                }
+
+            case let .view(.didFinishedSeekingTo(value)):
+                return .run { _ in
+                    await videoPlayerClient.seek(value)
+                    await videoPlayerClient.play()
                 }
 
             case let .view(.didTapPlayEpisode(groupId, itemId)):
@@ -51,6 +77,9 @@ extension VideoPlayerFeature.Reducer: Reducer {
 
             case let .view(.didTapServer(serverId)):
                 state.selected.serverId = serverId
+
+            case let .view(.didTapLink(linkId)):
+                state.selected.linkId = linkId
 
             case let .internal(.groupResponse(groupId, .loaded(response))):
                 state.contents.update(with: groupId, response: .loaded(response))
@@ -72,10 +101,22 @@ extension VideoPlayerFeature.Reducer: Reducer {
             case let .internal(.sourcesResponse(episodeId, response)):
                 state.contents.update(with: episodeId, response: response)
 
-            case let .internal(.serversResponse(episodeId, sourceId, .loaded(response))):
-                break
+            case let .internal(.serverResponse(sourceId, response)):
+                state.contents.update(with: sourceId, response: response)
 
-            case let .internal(.serversResponse(episodeId, sourceId, response)):
+                if case let .loaded(response) = response, state.selected.sourceId == sourceId {
+                    state.selected.linkId = response.links.first?.id
+                    if let link = response.links.first {
+                        return .run { _ in
+                            try await videoPlayerClient.load(link.url)
+                            await videoPlayerClient.play()
+                        }
+                    }
+                } else if case let .failed(error) = response {
+                    logger.warning("There was an error retrieving video server response: \(error)")
+                }
+
+            case .internal(.player):
                 break
 
             case .delegate:
@@ -98,21 +139,23 @@ extension VideoPlayerFeature.State {
         if !contents[groupId: groupId].hasInitialized {
             self.contents.update(with: groupId, response: .loading)
             return .run { send in
-                let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                    try await module.playlistVideos(
-                        .init(
-                            playlistId: playlist.id,
-                            playlistItemGroup: groupId
+                try await withTaskCancellation(id: Cancellables.fetchingContents, cancelInFlight: true) {
+                    let value = try await moduleClient.withModule(id: repoModuleId) { module in
+                        try await module.playlistVideos(
+                            .init(
+                                playlistId: playlist.id,
+                                playlistItemGroup: groupId
+                            )
                         )
-                    )
-                }
+                    }
 
-                await send(.internal(.groupResponse(groupId: groupId, .loaded(value))))
+                    await send(.internal(.groupResponse(groupId: groupId, .loaded(value))))
+                }
             } catch: { error, send in
                 if let error = error as? ModuleClient.Error {
                     await send(.internal(.groupResponse(groupId: groupId, .failed(error))))
                 } else {
-                    await send(.internal(.groupResponse(groupId: groupId, .failed(.unknown()))))
+                    await send(.internal(.groupResponse(groupId: groupId, .failed(ModuleClient.Error.unknown()))))
                 }
             }
         }
@@ -128,24 +171,26 @@ extension VideoPlayerFeature.State {
         let playlist = playlist
         let episodeId = selected.episodeId
 
-        if contents.sources[episodeId] == nil || contents.sources[episodeId]?.hasInitialized == false {
+        if !contents[episodeId: episodeId].hasInitialized {
             self.contents.update(with: episodeId, response: .loading)
             return .run { send in
-                let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                    try await module.playlistVideoSources(
-                        .init(
-                            playlistId: playlist.id,
-                            episodeId: episodeId
+                try await withTaskCancellation(id: Cancellables.fetchingSources, cancelInFlight: true) {
+                    let value = try await moduleClient.withModule(id: repoModuleId) { module in
+                        try await module.playlistVideoSources(
+                            .init(
+                                playlistId: playlist.id,
+                                episodeId: episodeId
+                            )
                         )
-                    )
-                }
+                    }
 
-                await send(.internal(.sourcesResponse(episodeId: episodeId, .loaded(value))))
+                    await send(.internal(.sourcesResponse(episodeId: episodeId, .loaded(value))))
+                }
             } catch: { error, send in
                 if let error = error as? ModuleClient.Error {
                     await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(error))))
                 } else {
-                    await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(.unknown()))))
+                    await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(ModuleClient.Error.unknown()))))
                 }
             }
         }
@@ -157,10 +202,45 @@ extension VideoPlayerFeature.State {
         @Dependency(\.moduleClient)
         var moduleClient
 
-//        let repoModuleId = repoModuleID
-//        let playlist = playlist
-//        let groupId = selected.groupId
-//        let episodeId = selected.episodeId
+        let repoModuleId = repoModuleID
+        let playlist = playlist
+        let episodeId = selected.episodeId
+        let sourceId = selected.sourceId
+        let serverId = selected.serverId
+
+        guard let sourceId else {
+            return .none
+        }
+
+        guard let serverId else {
+            return .none
+        }
+
+        if !contents[sourceId: sourceId].hasInitialized {
+            contents.update(with: sourceId, response: .loading)
+            return .run { send in
+                try await withTaskCancellation(id: Cancellables.fetchingServer, cancelInFlight: true) {
+                    let value = try await moduleClient.withModule(id: repoModuleId) { module in
+                        try await module.playlistVideoServer(
+                            .init(
+                                playlistId: playlist.id,
+                                episodeId: episodeId,
+                                sourceId: sourceId,
+                                serverId: serverId
+                            )
+                        )
+                    }
+
+                    await send(.internal(.serverResponse(sourceId: sourceId, .loaded(value))))
+                }
+            } catch: { error, send in
+                if let error = error as? ModuleClient.Error {
+                    await send(.internal(.serverResponse(sourceId: sourceId, .failed(error))))
+                } else {
+                    await send(.internal(.serverResponse(sourceId: sourceId, .failed(ModuleClient.Error.unknown()))))
+                }
+            }
+        }
 
         return .none
     }

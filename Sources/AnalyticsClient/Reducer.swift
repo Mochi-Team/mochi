@@ -26,13 +26,15 @@ public struct AnalyticsReducer<State, Action>: Reducer {
     var analyticsClient
 
     @inlinable
-    public func reduce(into state: inout State, action: Action) -> Effect<Action> {
-        guard let event = toAnalyticsAction(state, action) else {
-            return .none
-        }
+    public var body: some Reducer<State, Action> {
+        Reduce { state, action in
+            guard let event = toAnalyticsAction(state, action) else {
+                return .none
+            }
 
-        return .run { _ in
-            analyticsClient.sendAnalytics(event)
+            return .run { _ in
+                analyticsClient.sendAnalytics(event)
+            }
         }
     }
 }

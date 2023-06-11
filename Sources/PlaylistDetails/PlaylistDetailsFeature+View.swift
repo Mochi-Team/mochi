@@ -331,7 +331,7 @@ extension PlaylistDetailsFeature.View {
     @ViewBuilder
     func buildVideoContents(
         _ playlistDetails: Self.State.PlaylistInfo,
-        _ content: Loadable<Playlist.Group.Content, ModuleClient.Error>
+        _ content: Loadable<Playlist.Group.Content>
     ) -> some View {
         ZStack {
             if content.error != nil {
@@ -390,7 +390,7 @@ extension PlaylistDetailsFeature.View {
     @ViewBuilder
     func buildImageTextContents(
         _ playlistDetails: Self.State.PlaylistInfo,
-        _ content: Loadable<Playlist.Group.Content, ModuleClient.Error>
+        _ content: Loadable<Playlist.Group.Content>
     ) -> some View {
         if content.error != nil {
         } else {
@@ -604,7 +604,7 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         title: "Playlist Demo",
                         type: .video
                     ),
-                    details: .failed(.unknown())
+                    details: .failed(ModuleClient.Error.unknown())
                 ),
                 reducer: EmptyReducer()
             )

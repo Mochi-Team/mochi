@@ -8,11 +8,30 @@
 
 import Foundation
 
-public enum Loadable<T, E> {
+public enum Loadable<T: Sendable>: Sendable {
     case pending
     case loading
     case loaded(T)
-    case failed(E)
+    case failed(Error)
+
+    public init(catching body: @Sendable () async throws -> T) async {
+        self = .loading
+        do {
+            self = .loaded(try await body())
+        } catch {
+            self = .failed(error)
+        }
+    }
+
+    @inlinable
+    public init<Failure>(_ result: Result<T, Failure>) {
+        switch result {
+        case let .success(value):
+            self = .loaded(value)
+        case let .failure(error):
+            self = .failed(error)
+        }
+    }
 
     public var didFinish: Bool {
         switch self {
@@ -23,6 +42,7 @@ public enum Loadable<T, E> {
         }
     }
 
+    @inlinable
     public var value: T? {
         if case let .loaded(value) = self {
             return value
@@ -30,7 +50,7 @@ public enum Loadable<T, E> {
         return nil
     }
 
-    public var error: E? {
+    public var error: Error? {
         if case let .failed(error) = self {
             return error
         }
@@ -43,10 +63,9 @@ public enum Loadable<T, E> {
         }
         return true
     }
-}
 
-public extension Loadable {
-    func mapValue<V>(_ block: @escaping (T) -> V) -> Loadable<V, E> {
+    @inlinable
+    public func map<V>(_ block: @escaping (T) -> V) -> Loadable<V> {
         switch self {
         case .pending:
             return .pending
@@ -59,45 +78,61 @@ public extension Loadable {
         }
     }
 
-    func mapError<V>(_ block: @escaping (E) -> V) -> Loadable<T, V> {
+    @inlinable
+    public func flatMap<V>(_ transform: (T) -> Loadable<V>) -> Loadable<V> {
         switch self {
         case .pending:
             return .pending
         case .loading:
             return .loading
-        case .loaded(let t):
-            return .loaded(t)
-        case let .failed(e):
-            return .failed(block(e))
+        case let .loaded(value):
+            return transform(value)
+        case let .failed(error):
+            return .failed(error)
         }
     }
 }
 
-extension Loadable: Sendable where T: Sendable, E: Sendable {}
-extension Loadable: Equatable where T: Equatable, E: Equatable {}
-extension Loadable: Hashable where T: Hashable, E: Hashable {}
+extension Loadable: Hashable where T: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        switch self {
+        case .pending:
+            hasher.combine(0)
+        case .loading:
+            hasher.combine(1)
+        case let .loaded(value):
+            hasher.combine(value)
+            hasher.combine(2)
+        case let .failed(error):
+            if let error = (error as Any) as? AnyHashable {
+                hasher.combine(error)
+                hasher.combine(3)
+            }
+        }
+    }
+}
 
-extension Loadable: Comparable where T: Comparable, E: Comparable {
-    public static func < (lhs: Self, rhs: Self) -> Bool {
+extension Loadable: Equatable where T: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
-        case (.pending, .loading):
+        case let (.loaded(lhs), .loaded(rhs)):
+            return lhs == rhs
+        case let (.failed(lhs), .failed(rhs)):
+            return _isEqual(lhs, rhs)
+        case (.loading, .loading), (.pending, .pending):
             return true
-        case (.pending, .loaded):
-            return true
-        case (.pending, .failed):
-            return true
-        case (.loading, .loaded):
-            return true
-        case (.loading, .failed):
-            return true
-        case (.loaded, .failed):
-            return true
-        case let (.loaded(lhsValue), .loaded(rhsValue)):
-            return lhsValue < rhsValue
-        case let (.failed(lhsValue), .failed(rhsValue)):
-            return lhsValue < rhsValue
         default:
             return false
         }
+    }
+}
+
+private func _isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+  (lhs as? any Equatable)?.isEqual(other: rhs) ?? false
+}
+
+private extension Equatable {
+    func isEqual(other: Any) -> Bool {
+        self == other as? Self
     }
 }

@@ -59,7 +59,7 @@ public enum DiscoverFeature: Feature {
     }
 
     public struct State: FeatureState {
-        public var listings: Loadable<[DiscoverListing], Error>
+        public var listings: Loadable<[DiscoverListing]>
         public var selectedRepoModule: RepoClient.SelectedModule?
         public var screens: StackState<Screens.State>
 
@@ -69,7 +69,7 @@ public enum DiscoverFeature: Feature {
         public var moduleLists: ModuleListsFeature.State?
 
         public init(
-            listings: Loadable<[DiscoverListing], Error> = .pending,
+            listings: Loadable<[DiscoverListing]> = .pending,
             selectedRepoModule: RepoClient.SelectedModule? = nil,
             screens: StackState<Screens.State> = .init(),
             moduleLists: ModuleListsFeature.State? = nil

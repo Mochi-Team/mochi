@@ -91,12 +91,10 @@ extension HostModuleInterop {
     ) -> Int32 {
         handleErrorAlloc { alloc in
             let links = (alloc[links_ptr] as? [Any?])?
-                .compactMap { $0 as? Int }
-                .compactMap { alloc[Int32($0)] as? Playlist.EpisodeServer.Link }
+                .compactMap { $0 as? Playlist.EpisodeServer.Link }
 
             let subtitles = (alloc[subtitles_ptr] as? [Any?])?
-                .compactMap { $0 as? Int }
-                .compactMap { alloc[Int32($0)] as? Playlist.EpisodeServer.Subtitle }
+                .compactMap { $0 as? Playlist.EpisodeServer.Subtitle }
 
             return alloc.add(
                 Playlist.EpisodeServerResponse(

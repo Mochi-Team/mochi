@@ -76,7 +76,8 @@ extension Playlist {
             self.description = description
         }
 
-        public struct Link: Sendable, Equatable {
+        public struct Link: Sendable, Equatable, Identifiable {
+            public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let quality: Quality
 
@@ -89,7 +90,7 @@ extension Playlist {
             }
         }
 
-        public enum Quality: RawRepresentable, Sendable, Equatable {
+        public enum Quality: RawRepresentable, Sendable, Equatable, CustomStringConvertible {
             case auto
             case q1080
             case q720
@@ -129,6 +130,23 @@ extension Playlist {
                     return 360
                 case let .custom(res):
                     return res
+                }
+            }
+
+            public var description: String {
+                switch self {
+                case .auto:
+                    return "Auto"
+                case .q1080:
+                    return "1080p"
+                case .q720:
+                    return "720p"
+                case .q480:
+                    return "480p"
+                case .q360:
+                    return "360p"
+                case let .custom(resolution):
+                    return "\(resolution)p"
                 }
             }
         }

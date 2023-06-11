@@ -41,7 +41,7 @@ public enum SearchFeature: Feature {
         public var searchQuery: SearchQuery
         public var searchFilters: [SearchFilter]
         public var selectedModule: RepoClient.SelectedModule?
-        public var items: Loadable<Paging<Playlist>, ModuleClient.Error>
+        public var items: Loadable<Paging<Playlist>>
         public var screens: StackState<Screens.State>
 
         @PresentationState
@@ -53,7 +53,7 @@ public enum SearchFeature: Feature {
             searchQuery: SearchQuery = .init(query: ""),
             searchFilters: [SearchFilter] = [],
             selectedModule: RepoClient.SelectedModule? = nil,
-            items: Loadable<Paging<Playlist>, ModuleClient.Error> = .pending,
+            items: Loadable<Paging<Playlist>> = .pending,
             screens: StackState<Screens.State> = .init()
         ) {
             self.searchQuery = searchQuery

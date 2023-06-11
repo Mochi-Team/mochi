@@ -9,6 +9,7 @@
 #if os(iOS)
 
 import Architecture
+import AVKit
 import ComposableArchitecture
 import Styling
 import SwiftUI
@@ -19,7 +20,7 @@ extension VideoPlayerFeature.View: View {
     @MainActor
     public var body: some View {
         ZStack {
-            VideoPlayer(player: player)
+            PlayerView(player: player)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
                 .ignoresSafeArea(.all, edges: .all)
@@ -29,14 +30,17 @@ extension VideoPlayerFeature.View: View {
                 }
 
             WithViewStore(store.viewAction, observe: \.overlay) { viewStore in
-                switch viewStore.state {
-                case .none:
-                    EmptyView()
-                case .tools:
-                    toolsOverlay
-                case let .more(tab):
-                    moreOverlay(tab)
+                Group {
+                    switch viewStore.state {
+                    case .none:
+                        EmptyView()
+                    case .tools:
+                        toolsOverlay
+                    case let .more(tab):
+                        moreOverlay(tab)
+                    }
                 }
+                .animation(.easeInOut, value: viewStore.state == .none)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -60,12 +64,22 @@ extension VideoPlayerFeature.View {
         VStack {
             topBar
             Spacer()
-            controlsBar
-            Spacer()
             bottomBar
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .center) {
+            controlsBar
+                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
+        }
+        .background {
+            Color.black
+                .opacity(0.2)
+                .ignoresSafeArea()
+                .edgesIgnoringSafeArea(.all)
+                .allowsHitTesting(false)
+        }
     }
 
     @MainActor
@@ -98,7 +112,8 @@ extension VideoPlayerFeature.View {
                     id: \.self
                 ) { tab in
                     Button {
-                        ViewStore(store.viewAction.stateless).send(.didSelectMoreTab(tab))
+                        ViewStore(store.viewAction.stateless)
+                            .send(.didSelectMoreTab(tab))
                     } label: {
                         Text(tab.rawValue)
                     }
@@ -121,6 +136,8 @@ extension VideoPlayerFeature.View {
             Spacer()
 
             Button {
+                ViewStore(store.viewAction.stateless)
+                    .send(.didTapGoBackwards)
             } label: {
                 Image(systemName: "gobackward")
                     .font(.title2.weight(.bold))
@@ -129,16 +146,27 @@ extension VideoPlayerFeature.View {
             }
             .buttonStyle(.plain)
 
-            Button {
-            } label: {
-                Image(systemName: "play.fill")
-                    .font(.largeTitle)
-                    .foregroundColor(.white)
-                    .contentShape(Rectangle())
+            WithViewStore(
+                store.internalAction.scope(
+                    state: \.player,
+                    action: Action.InternalAction.player
+                ),
+                observe: \.isPlaying
+            ) { isPlayingState in
+                Button {
+                    isPlayingState.send(.didTogglePlayButton)
+                } label: {
+                    Image(systemName: isPlayingState.state ? "pause.fill" : "play.fill")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             Button {
+                ViewStore(store.viewAction.stateless)
+                    .send(.didTapGoForwards)
             } label: {
                 Image(systemName: "goforward")
                     .font(.title2.weight(.bold))
@@ -153,28 +181,160 @@ extension VideoPlayerFeature.View {
 
     @MainActor
     var bottomBar: some View {
-        HStack {
+        ProgressBar(player: player) {
+            ViewStore(store.viewAction.stateless)
+                .send(.didStartedSeeking)
+        } didFinishedSeekingTo: { seek in
+            ViewStore(store.viewAction.stateless)
+                .send(.didFinishedSeekingTo(seek))
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+extension VideoPlayerFeature.View {
+    struct ProgressBar: View {
+        let player: AVPlayer
+        var aboutToSeek: (() -> Void)?
+        var didFinishedSeekingTo: (CGFloat) -> Void
+
+        @SwiftUI.State
+        private var canUseControls = false
+
+        @SwiftUI.State
+        private var progress = CGFloat.zero
+
+        @SwiftUI.State
+        private var isDragging = false
+
+        @SwiftUI.State
+        private var timeObserverToken: Any?
+
+        var body: some View {
+            VStack(alignment: .leading) {
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        ZStack(alignment: .leading) {
+                            Color.gray.opacity(0.35)
+                            Color.white
+                                .frame(
+                                    width: proxy.size.width * progress,
+                                    height: proxy.size.height,
+                                    alignment: .leading
+                                )
+                        }
+                        .frame(
+                            width: proxy.size.width,
+                            height: isDragging ? 12 : 8
+                        )
+                        .clipShape(Capsule(style: .continuous))
+                    }
+                    .frame(
+                        width: proxy.size.width,
+                        height: proxy.size.height
+                    )
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                if !isDragging {
+                                    isDragging = true
+                                    aboutToSeek?()
+                                }
+
+                                let locationX = value.location.x
+                                let percentage = locationX / proxy.size.width
+                                progress = max(0, min(1.0, percentage))
+                            }
+                            .onEnded { _ in
+                                isDragging = false
+                                didFinishedSeekingTo(progress)
+                            }
+                    )
+                    .animation(.spring(response: 0.3), value: isDragging)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 24)
+            }
+            .onReceive(player.publisher(for: \.currentItem)) { item in
+                if let item {
+                    let timeScale = CMTimeScale(NSEC_PER_SEC)
+                    let time = CMTime(seconds: 0.5, preferredTimescale: timeScale)
+                    timeObserverToken = player.addPeriodicTimeObserver(forInterval: time, queue: .main) { time in
+                        if !isDragging {
+                            progress = time.seconds / max(item.duration.seconds, 1)
+                        }
+                    }
+                } else {
+                    progress = .zero
+                }
+            }
+            .onReceive(player.publisher(for: \.status)) { status in
+                switch status {
+                case .readyToPlay:
+                    canUseControls = true
+                    progress = .zero
+                case .unknown, .failed:
+                    canUseControls = false
+                    progress = .zero
+                @unknown default:
+                    canUseControls = false
+                    progress = .zero
+                }
+            }
+            .onDisappear {
+                if let timeObserverToken {
+                    player.removeTimeObserver(timeObserverToken)
+                    self.timeObserverToken = nil
+                }
+            }
+            .disabled(!canUseControls)
         }
     }
 }
 
 extension VideoPlayerFeature.View {
+    private struct SplitListingsView<LeadingContents: View, TrailingContents: View>: View {
+        let leadingContents: () -> LeadingContents
+        let trailingContents: () -> TrailingContents
+
+        var body: some View {
+            GeometryReader { proxy in
+                if proxy.size.width < proxy.size.height {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            leadingContents()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            trailingContents()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        leadingContents()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        trailingContents()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+            }
+        }
+    }
+
     @MainActor
     func moreOverlay(_ selected: VideoPlayerFeature.State.Overlay.MoreTab) -> some View {
         GeometryReader { proxy in
             DynamicStack(stackType: proxy.size.width < proxy.size.height ? .vstack() : .hstack()) {
                 VStack(alignment: .trailing) {
-                    if proxy.size.width > proxy.size.height {
-                            Button {
-                            ViewStore(store.viewAction.stateless)
-                                .send(.didTapCloseMoreOverlay)
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.title3.weight(.semibold))
-                                .padding([.top, .trailing], 20)
-                        }
-                        .buttonStyle(.plain)
+                    Button {
+                        ViewStore(store.viewAction.stateless)
+                            .send(.didTapCloseMoreOverlay)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.title3.weight(.semibold))
+                            .padding([.top, .trailing], 20)
                     }
+                    .buttonStyle(.plain)
 
                     Spacer()
 
@@ -186,8 +346,8 @@ extension VideoPlayerFeature.View {
                             sourcesAndServers
                         case .speed:
                             speed
-                        case .audioAndSubtitles:
-                            audioAndSubtitles
+                        case .qualityAndSubtitles:
+                            qualityAndSubtitles
                         case .settings:
                             settings
                         }
@@ -196,19 +356,6 @@ extension VideoPlayerFeature.View {
                 }
                 .padding(.horizontal)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .safeAreaInset(edge: .top, alignment: .trailing) {
-                if proxy.size.width < proxy.size.height {
-                    Button {
-                        ViewStore(store.viewAction.stateless)
-                            .send(.didTapCloseMoreOverlay)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.title3.weight(.semibold))
-                            .padding(20)
-                    }
-                    .buttonStyle(.plain)
-                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -260,7 +407,7 @@ extension VideoPlayerFeature.View {
                             LoadableView(loadable: groupStore.state) { group in
                                 ScrollView(.vertical, showsIndicators: false) {
                                     Spacer()
-                                        .frame(height: 12)
+                                        .frame(height: 24)
 
                                     LazyVGrid(columns: [.init(), .init(), .init()]) {
                                         ForEach(group.items) { item in
@@ -315,7 +462,7 @@ extension VideoPlayerFeature.View {
             state.contents[episodeId: state.selected.episodeId]
         } content: { loadableSourcesStore in
             LoadableView(loadable: loadableSourcesStore.state) { sources in
-                HStack {
+                SplitListingsView {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Sources")
                             .font(.title2.weight(.semibold))
@@ -357,7 +504,7 @@ extension VideoPlayerFeature.View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                } trailingContents: {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Servers")
                             .font(.title2.weight(.semibold))
@@ -423,8 +570,75 @@ extension VideoPlayerFeature.View {
     }
 
     @MainActor
-    var audioAndSubtitles: some View {
-        EmptyView()
+    var qualityAndSubtitles: some View {
+        WithViewStore(store.viewAction) { state in
+            state.selected.sourceId.flatMap { state.contents[sourceId: $0] } ?? .pending
+        } content: { loadableServerResponseState in
+            LoadableView(loadable: loadableServerResponseState.state) { response in
+                SplitListingsView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Quality")
+                            .font(.title2.weight(.semibold))
+                        Spacer()
+                            .frame(height: 12)
+                        Divider()
+
+                        if !response.links.isEmpty {
+                            WithViewStore(store.viewAction, observe: \.selected.linkId) { selectedLinkIdState in
+                                ScrollView {
+                                    VStack(alignment: .leading) {
+                                        Spacer()
+                                            .frame(height: 12)
+
+                                        ForEach(response.links) { link in
+                                            VStack(alignment: .leading) {
+                                                Text(link.quality.description)
+                                                    .foregroundColor(selectedLinkIdState.state == link.id ? .white : .gray)
+                                            }
+                                            .padding(12)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                selectedLinkIdState.send(.didTapLink(link.id))
+                                            }
+                                        }
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            }
+                        } else {
+                            Spacer()
+                            Text("No Links Available")
+                            Spacer()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } trailingContents: {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Subtitles")
+                            .font(.title2.weight(.semibold))
+                        Spacer()
+                            .frame(height: 12)
+                        Divider()
+
+                        if !response.subtitles.isEmpty {
+                            Text("Todo")
+                        } else {
+                            Spacer()
+                            Text("No Subtitles Available")
+                            Spacer()
+                        }
+                    }
+                }
+            } failedView: { _ in
+                Text("Failed to load server contents.")
+            } waitingView: {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @MainActor

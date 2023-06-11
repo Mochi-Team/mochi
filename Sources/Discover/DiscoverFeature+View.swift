@@ -50,8 +50,8 @@ extension DiscoverFeature.View: View {
                             Spacer()
 
                             Image(systemName: "exclamationmark.triangle.fill")
-                            Text(error.description)
-                                .font(.body.weight(.semibold))
+//                            Text(error.description)
+//                                .font(.body.weight(.semibold))
 
                             Spacer()
                         }
@@ -372,7 +372,7 @@ extension DiscoverFeature.View {
     }
 }
 
-private extension Loadable<[DiscoverListing], DiscoverFeature.Error> {
+private extension Loadable<[DiscoverListing]> {
     var shouldIgnoreTop: Bool {
         switch self {
         case .pending, .loading:

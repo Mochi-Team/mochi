@@ -14,17 +14,17 @@ import SwiftUI
 // MARK: - LoadableView
 
 @MainActor
-public struct LoadableView<T, E, Loaded: View, Failed: View, Loading: View, Pending: View>: View {
-    let loadable: Loadable<T, E>
+public struct LoadableView<T, Loaded: View, Failed: View, Loading: View, Pending: View>: View {
+    let loadable: Loadable<T>
     let loadedView: (T) -> Loaded
-    let failedView: (E) -> Failed
+    let failedView: (Error) -> Failed
     let loadingView: () -> Loading
     let pendingView: () -> Pending
 
     public init(
-        loadable: Loadable<T, E>,
+        loadable: Loadable<T>,
         @ViewBuilder loadedView: @escaping (T) -> Loaded,
-        @ViewBuilder failedView: @escaping (E) -> Failed,
+        @ViewBuilder failedView: @escaping (Error) -> Failed,
         @ViewBuilder loadingView: @escaping () -> Loading,
         @ViewBuilder pendingView: @escaping () -> Pending
     ) {
@@ -52,7 +52,7 @@ public struct LoadableView<T, E, Loaded: View, Failed: View, Loading: View, Pend
 
 public extension LoadableView {
     init(
-        loadable: Loadable<T, E>,
+        loadable: Loadable<T>,
         @ViewBuilder loadedView: @escaping (T) -> Loaded
     ) where Loading == EmptyView, Failed == EmptyView, Pending == EmptyView {
         self.init(
@@ -65,9 +65,9 @@ public extension LoadableView {
     }
 
     init(
-        loadable: Loadable<T, E>,
+        loadable: Loadable<T>,
         @ViewBuilder loadedView: @escaping (T) -> Loaded,
-        @ViewBuilder failedView: @escaping (E) -> Failed
+        @ViewBuilder failedView: @escaping (Error) -> Failed
     ) where Loading == EmptyView, Pending == EmptyView {
         self.init(
             loadable: loadable,
@@ -81,9 +81,9 @@ public extension LoadableView {
     }
 
     init(
-        loadable: Loadable<T, E>,
+        loadable: Loadable<T>,
         @ViewBuilder loadedView: @escaping (T) -> Loaded,
-        @ViewBuilder failedView: @escaping (E) -> Failed,
+        @ViewBuilder failedView: @escaping (Error) -> Failed,
         @ViewBuilder waitingView: @escaping () -> Loading
     ) where Loading == Pending {
         self.init(
@@ -98,17 +98,17 @@ public extension LoadableView {
 
 // MARK: - LoadableStore
 
-public struct LoadableStore<T, E, Action, Loaded: View, Failed: View, Loading: View, Pending: View>: View {
-    let store: Store<Loadable<T, E>, Action>
+public struct LoadableStore<T, Action, Loaded: View, Failed: View, Loading: View, Pending: View>: View {
+    let store: Store<Loadable<T>, Action>
     let loadedView: (Store<T, Action>) -> Loaded
-    let failedView: (Store<E, Action>) -> Failed
+    let failedView: (Store<Error, Action>) -> Failed
     let loadingView: (Store<Void, Action>) -> Loading
     let pendingView: (Store<Void, Action>) -> Pending
 
     public init(
-        store: Store<Loadable<T, E>, Action>,
+        store: Store<Loadable<T>, Action>,
         @ViewBuilder loadedView: @escaping (Store<T, Action>) -> Loaded,
-        @ViewBuilder failedView: @escaping (Store<E, Action>) -> Failed,
+        @ViewBuilder failedView: @escaping (Store<Error, Action>) -> Failed,
         @ViewBuilder loadingView: @escaping (Store<Void, Action>) -> Loading,
         @ViewBuilder pendingView: @escaping (Store<Void, Action>) -> Pending
     ) {
@@ -121,17 +121,17 @@ public struct LoadableStore<T, E, Action, Loaded: View, Failed: View, Loading: V
 
     public var body: some View {
         SwitchStore(store) {
-            CaseLet(state: /Loadable<T, E>.loaded, then: loadedView)
-            CaseLet(state: /Loadable<T, E>.failed, then: failedView)
-            CaseLet(state: /Loadable<T, E>.loading, then: loadingView)
-            CaseLet(state: /Loadable<T, E>.pending, then: pendingView)
+            CaseLet(state: /Loadable<T>.loaded, then: loadedView)
+            CaseLet(state: /Loadable<T>.failed, then: failedView)
+            CaseLet(state: /Loadable<T>.loading, then: loadingView)
+            CaseLet(state: /Loadable<T>.pending, then: pendingView)
         }
     }
 }
 
 public extension LoadableStore where Loading == EmptyView, Failed == EmptyView, Pending == EmptyView {
     init(
-        store: Store<Loadable<T, E>, Action>,
+        store: Store<Loadable<T>, Action>,
         @ViewBuilder loadedView: @escaping (Store<T, Action>) -> Loaded
     ) {
         self.store = store

@@ -122,7 +122,7 @@ extension ReposFeature.Reducer: Reducer {
                     }
                 } catch: { error, send in
                     print(error)
-                    await send(.internal(.validateRepoURL(.failed(.notValidRepo))))
+                    await send(.internal(.validateRepoURL(.failed(ReposFeature.RepoURLState.Error.notValidRepo))))
                 }
 
             case .view(.binding):
@@ -184,7 +184,7 @@ extension ReposFeature.Reducer: Reducer {
                     await send(.internal(.loadableModules(repo.id, .loaded(modules))))
                 } catch {
                     print(error)
-                    await send(.internal(.loadableModules(repo.id, .failed(.failedToFindRepo))))
+                    await send(.internal(.loadableModules(repo.id, .failed(RepoClient.Error.failedToFindRepo))))
                 }
             }
         }
