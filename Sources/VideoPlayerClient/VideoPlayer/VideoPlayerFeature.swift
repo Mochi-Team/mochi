@@ -64,10 +64,6 @@ public enum VideoPlayerFeature: Feature {
             case didTapMoreButton
             case didTapPlayer
             case didSelectMoreTab(State.Overlay.MoreTab)
-            case didTapGoForwards
-            case didTapGoBackwards
-            case didStartedSeeking
-            case didFinishedSeekingTo(CGFloat)
             case didTapCloseMoreOverlay
             case didTapPlayEpisode(Playlist.Group.ID, Playlist.Item.ID)
             case didTapSource(Playlist.EpisodeSource.ID)

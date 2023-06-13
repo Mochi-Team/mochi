@@ -7,6 +7,7 @@
 //
 
 import CommonCrypto
+import CryptoKit
 import Foundation
 
 // swiftlint:disable function_parameter_count
@@ -183,14 +184,14 @@ extension HostModuleInterop {
                 keySize = key.count
             }
 
-            guard iv.count == kCCBlockSizeAES128 else {
+            guard iv.isEmpty || iv.count == kCCBlockSizeAES128 else {
                 throw ModuleClient.Error.unknown(msg: "block size not equal to aes128: \(iv.count)")
             }
 
             var outLength = 0
             var outBytes = [UInt8](repeating: 0, count: encryptedMessage.count + kCCBlockSizeAES128)
 
-            _ = encryptedMessage.withUnsafeBytes { msgPtr in
+            let status = encryptedMessage.withUnsafeBytes { msgPtr in
                 key.withUnsafeBytes { keyPtr in
                     iv.withUnsafeBytes { ivPtr in
                         CCCrypt(
@@ -210,7 +211,82 @@ extension HostModuleInterop {
                 }
             }
 
+            guard status == kCCSuccess else {
+                throw ModuleClient.Error.unknown(msg: "decryption failed with status: \(status)")
+            }
+
             return alloc.add(Data(bytes: outBytes, count: outLength))
+        }
+    }
+}
+
+extension HostModuleInterop {
+    public func crypto_pbkdf2(
+        hash_algorithm: CCPBKDFAlgorithm,
+        password_ptr: Int32,
+        password_len: Int32,
+        salt_ptr: Int32,
+        salt_len: Int32,
+        rounds: Int32,
+        key_count: Int32
+    ) -> Int32 {
+        handleErrorAlloc { alloc in
+            let password = try memory.string(byteOffset: .init(password_ptr), length: .init(password_len))
+            let salt = try memory.data(byteOffset: .init(salt_ptr), length: .init(salt_len))
+
+            var derivedKeyData = Data(repeating: 0, count: .init(key_count))
+            let derivedCount = derivedKeyData.count
+
+            let status = derivedKeyData.withUnsafeMutableBytes { derivedKeyDataPtr in
+                salt.withUnsafeBytes { saltPtr in
+                    CCKeyDerivationPBKDF(
+                        CCPBKDFAlgorithm(kCCPBKDF2),
+                        password,
+                        password.count,
+                        saltPtr.baseAddress,
+                        salt.count,
+                        hash_algorithm,
+                        .init(rounds),
+                        derivedKeyDataPtr.baseAddress,
+                        derivedCount
+                    )
+                }
+            }
+
+            if status != kCCSuccess {
+                Swift.print("Failed to generate pbkdf2, status: \(status)")
+            }
+
+            return alloc.add(derivedKeyData)
+        }
+    }
+
+    public func crypto_generate_random_bytes(
+        count: Int32
+    ) -> Int32 {
+        hostAllocations.withValue { alloc in
+            var bytes = Data(count: .init(count))
+            bytes.withUnsafeMutableBytes { pointer in
+                guard let address = pointer.baseAddress else {
+                    return
+                }
+                _ = SecRandomCopyBytes(kSecRandomDefault, .init(count), address)
+            }
+            return alloc.add(bytes)
+        }
+    }
+}
+
+extension HostModuleInterop {
+    public func crypto_md5_hash(
+        input_ptr: Int32,
+        input_len: Int32
+    ) -> Int32 {
+        handleErrorAlloc { alloc in
+            let data = try memory.data(byteOffset: .init(input_ptr), length: .init(input_len))
+            var function = Insecure.MD5()
+            function.update(data: data)
+            return alloc.add(Data(function.finalize()))
         }
     }
 }

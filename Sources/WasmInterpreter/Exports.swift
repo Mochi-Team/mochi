@@ -82,9 +82,15 @@ extension WasmInstance.Exports {
 
     private func function(name: String) throws -> IM3Function {
         var function: IM3Function?
-        try WasmInstance.check(m3_FindFunction(&function, _runtime, name))
-        guard let function else {
-            throw WasmInstance.Error.functions(.failedToFindFunction(named: name))
+
+        let result = m3_FindFunction(&function, _runtime, name)
+        guard let function, result == nil else {
+            throw WasmInstance.Error.functions(
+                .failedToFindFunction(
+                    named: name,
+                    error: result.flatMap { String(cString: $0) } ?? ""
+                )
+            )
         }
         return function
     }

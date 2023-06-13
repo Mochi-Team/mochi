@@ -118,6 +118,7 @@ public extension ModuleHandler {
 extension ModuleHandler {
     func initializeImports() {
         try? self.instance.importFunctions {
+            self.envImports()
             self.coreImports()
             self.httpImports()
             self.jsonImports()
@@ -125,6 +126,16 @@ extension ModuleHandler {
             self.cryptoImports()
             self.metaStructsImports()
             self.videoStructsImports()
+        }
+    }
+}
+
+extension ModuleHandler {
+    func envImports() -> WasmInstance.Import {
+        WasmInstance.Import(namespace: "env") {
+            WasmInstance.Function("print") { (string_ptr: Int32, string_len: Int32) in
+                hostModuleComms.print(string_ptr: string_ptr, string_len: string_len)
+            }
         }
     }
 }
@@ -688,6 +699,39 @@ extension ModuleHandler {
                     value_ptr: valuePtr,
                     value_len: valueLen
                 )
+            }
+
+            WasmInstance.Function("crypto_pbkdf2") { [self] (
+                hashFunction: Int32,
+                passwordPtr: Int32,
+                passwordLen: Int32,
+                saltPtr: Int32,
+                saltLen: Int32,
+                rounds: Int32,
+                keyCount: Int32
+            ) -> Int32 in
+                hostModuleComms.crypto_pbkdf2(
+                    hash_algorithm: .init(hashFunction),
+                    password_ptr: passwordPtr,
+                    password_len: passwordLen,
+                    salt_ptr: saltPtr,
+                    salt_len: saltLen,
+                    rounds: rounds,
+                    key_count: keyCount
+                )
+            }
+
+            WasmInstance.Function("crypto_md5_hash") { [self] (
+                inputPtr: Int32,
+                inputLen: Int32
+            ) -> Int32 in
+                hostModuleComms.crypto_md5_hash(input_ptr: .init(inputPtr), input_len: .init(inputLen))
+            }
+
+            WasmInstance.Function("crypto_generate_random_bytes") { [self] (
+                count: Int32
+            ) -> Int32 in
+                hostModuleComms.crypto_generate_random_bytes(count: count)
             }
 
             WasmInstance.Function("crypto_aes_encrypt") { [self] (

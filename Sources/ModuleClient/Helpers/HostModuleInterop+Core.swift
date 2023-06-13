@@ -12,6 +12,14 @@ import SwiftSoup
 // MARK: - Core Imports
 
 extension HostModuleInterop {
+    func print(
+        string_ptr: Int32,
+        string_len: Int32
+    ) {
+        let string = try? memory.string(byteOffset: .init(string_ptr), length: .init(string_len))
+        Swift.print(string ?? "")
+    }
+
     func copy(ptr: PtrRef) -> PtrRef {
         self.handleErrorAlloc { alloc in
             guard ptr >= 0 else {

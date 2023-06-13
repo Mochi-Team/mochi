@@ -33,7 +33,7 @@ public extension WasmInstance.Error {
     }
 
     enum FunctionsError: Error, Equatable, Sendable {
-        case failedToFindFunction(named: String)
+        case failedToFindFunction(named: String, error: String)
         case invalidFunctionReturnType
         case onCallFunction(String)
         case invalidStackPointer

@@ -64,15 +64,12 @@ extension VideoPlayerFeature.View {
         VStack {
             topBar
             Spacer()
+            controlsBar
+            Spacer()
             bottomBar
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .overlay(alignment: .center) {
-            controlsBar
-                .edgesIgnoringSafeArea(.all)
-                .ignoresSafeArea()
-        }
         .background {
             Color.black
                 .opacity(0.2)
@@ -96,6 +93,15 @@ extension VideoPlayerFeature.View {
             .buttonStyle(.plain)
 
             Spacer()
+
+            Button {
+            } label: {
+                Image(systemName: "rectangle.inset.bottomright.filled")
+                    .foregroundColor(.white)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
 
             Button {
             } label: {
@@ -132,93 +138,105 @@ extension VideoPlayerFeature.View {
 
     @MainActor
     var controlsBar: some View {
-        HStack(spacing: 24) {
-            Spacer()
+        WithViewStore(
+            store.internalAction.scope(
+                state: \.player,
+                action: Action.InternalAction.player
+            ),
+            observe: \.rate
+        ) { isPlayingState in
+            HStack(spacing: 0) {
+                Spacer()
 
-            Button {
-                ViewStore(store.viewAction.stateless)
-                    .send(.didTapGoBackwards)
-            } label: {
-                Image(systemName: "gobackward")
-                    .font(.title2.weight(.bold))
-                    .foregroundColor(.white)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            WithViewStore(
-                store.internalAction.scope(
-                    state: \.player,
-                    action: Action.InternalAction.player
-                ),
-                observe: \.isPlaying
-            ) { isPlayingState in
                 Button {
-                    isPlayingState.send(.didTogglePlayButton)
+                    isPlayingState.send(.view(.didTapGoBackwards))
                 } label: {
-                    Image(systemName: isPlayingState.state ? "pause.fill" : "play.fill")
-                        .font(.largeTitle)
+                    Image(systemName: "gobackward")
+                        .font(.title2.weight(.bold))
                         .foregroundColor(.white)
+                        .padding(12)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-            }
 
-            Button {
-                ViewStore(store.viewAction.stateless)
-                    .send(.didTapGoForwards)
-            } label: {
-                Image(systemName: "goforward")
-                    .font(.title2.weight(.bold))
-                    .foregroundColor(.white)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+                Button {
+                    isPlayingState.send(.view(.didTogglePlayButton))
+                } label: {
+                    Image(systemName: isPlayingState.state > .zero ? "pause.fill" : "play.fill")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
 
-            Spacer()
+                Button {
+                    isPlayingState.send(.view(.didTapGoForwards))
+                } label: {
+                    Image(systemName: "goforward")
+                        .font(.title2.weight(.bold))
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+            }
         }
     }
 
     @MainActor
     var bottomBar: some View {
-        ProgressBar(player: player) {
-            ViewStore(store.viewAction.stateless)
-                .send(.didStartedSeeking)
-        } didFinishedSeekingTo: { seek in
-            ViewStore(store.viewAction.stateless)
-                .send(.didFinishedSeekingTo(seek))
-        }
+        ProgressBar(
+            store.internalAction.scope(
+                state: \.player,
+                action: Action.InternalAction.player
+            )
+        )
         .frame(maxWidth: .infinity)
     }
 }
 
 extension VideoPlayerFeature.View {
     struct ProgressBar: View {
-        let player: AVPlayer
-        var aboutToSeek: (() -> Void)?
-        var didFinishedSeekingTo: (CGFloat) -> Void
+        init(_ store: StoreOf<PlayerReducer>) {
+            self.viewStore = .init(
+                store.scope(
+                    state: \.`self`,
+                    action: PlayerReducer.Action.view
+                ),
+                observe: \.`self`
+            )
+        }
+
+        @ObservedObject
+        var viewStore: ViewStore<PlayerReducer.State, PlayerReducer.Action.ViewAction>
+
+        private var progress: Double {
+            min(1.0, max(0, viewStore.progress.seconds / viewStore.duration.seconds))
+        }
 
         @SwiftUI.State
-        private var canUseControls = false
+        private var dragProgress: Double?
 
-        @SwiftUI.State
-        private var progress = CGFloat.zero
+        private var isDragging: Bool {
+            dragProgress != nil
+        }
 
-        @SwiftUI.State
-        private var isDragging = false
-
-        @SwiftUI.State
-        private var timeObserverToken: Any?
+        private var canUseControls: Bool {
+            viewStore.duration != .zero
+        }
 
         var body: some View {
-            VStack(alignment: .leading) {
+            HStack(alignment: .center, spacing: 12) {
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
                         ZStack(alignment: .leading) {
                             Color.gray.opacity(0.35)
                             Color.white
                                 .frame(
-                                    width: proxy.size.width * progress,
+                                    width: proxy.size.width * (isDragging ? dragProgress ?? progress : progress),
                                     height: proxy.size.height,
                                     alignment: .leading
                                 )
@@ -238,55 +256,37 @@ extension VideoPlayerFeature.View {
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
                                 if !isDragging {
-                                    isDragging = true
-                                    aboutToSeek?()
+                                    viewStore.send(.didStartedSeeking)
+                                    dragProgress = progress
                                 }
 
                                 let locationX = value.location.x
                                 let percentage = locationX / proxy.size.width
-                                progress = max(0, min(1.0, percentage))
+
+                                dragProgress = max(0, min(1.0, percentage))
                             }
                             .onEnded { _ in
-                                isDragging = false
-                                didFinishedSeekingTo(progress)
+                                if let dragProgress {
+                                    viewStore.send(.didFinishedSeekingTo(dragProgress))
+                                }
+                                dragProgress = nil
                             }
                     )
                     .animation(.spring(response: 0.3), value: isDragging)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 24)
-            }
-            .onReceive(player.publisher(for: \.currentItem)) { item in
-                if let item {
-                    let timeScale = CMTimeScale(NSEC_PER_SEC)
-                    let time = CMTime(seconds: 0.5, preferredTimescale: timeScale)
-                    timeObserverToken = player.addPeriodicTimeObserver(forInterval: time, queue: .main) { time in
-                        if !isDragging {
-                            progress = time.seconds / max(item.duration.seconds, 1)
-                        }
+
+                Group {
+                    if viewStore.duration > .zero {
+                        Text(viewStore.progress.displayTime ?? "00:00") +
+                        Text(" / ") +
+                        Text(viewStore.duration.displayTime ?? "--.--")
+                    } else {
+                        Text("--.-- / --.--")
                     }
-                } else {
-                    progress = .zero
                 }
-            }
-            .onReceive(player.publisher(for: \.status)) { status in
-                switch status {
-                case .readyToPlay:
-                    canUseControls = true
-                    progress = .zero
-                case .unknown, .failed:
-                    canUseControls = false
-                    progress = .zero
-                @unknown default:
-                    canUseControls = false
-                    progress = .zero
-                }
-            }
-            .onDisappear {
-                if let timeObserverToken {
-                    player.removeTimeObserver(timeObserverToken)
-                    self.timeObserverToken = nil
-                }
+                .font(.caption.monospacedDigit())
             }
             .disabled(!canUseControls)
         }

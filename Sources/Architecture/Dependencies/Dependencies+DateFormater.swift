@@ -9,8 +9,20 @@
 import ComposableArchitecture
 import Foundation
 
+@dynamicMemberLookup
+public struct SingleInstanceDateFormatter {
+    let dateFormatter: LockIsolated<DateFormatter>
+
+    subscript<Value>(dynamicMember dynamicMember: KeyPath<DateFormatter, Value>) -> Value {
+        dateFormatter.value[keyPath: dynamicMember]
+    }
+}
+
 public struct DateFormatterKey: DependencyKey {
-    public static let liveValue = DateFormatter()
+    public static let liveValue: DateFormatter = {
+        let locked = LockIsolated(DateFormatter())
+        return locked.value
+    }()
 }
 
 public extension DependencyValues {

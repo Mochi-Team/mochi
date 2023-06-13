@@ -20,7 +20,7 @@ public struct VideoPlayerClient: Sendable {
     public let seek: @Sendable (_ progress: Double) async -> Void
     public let volume: @Sendable (_ amount: Double) async -> Void
     public let clear: @Sendable () async -> Void
-    public let player: AVPlayer
+    let player: AVPlayer
 }
 
 extension VideoPlayerClient: TestDependencyKey {

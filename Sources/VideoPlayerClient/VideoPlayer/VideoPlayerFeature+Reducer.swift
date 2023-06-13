@@ -26,7 +26,11 @@ extension VideoPlayerFeature.Reducer: Reducer {
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                return state.fetchGroupsWithContentIfNecessary()
+                let effect = state.fetchGroupsWithContentIfNecessary()
+                return .merge(
+                    effect,
+                    .send(.internal(.player(.initialize)))
+                )
 
             case .view(.didTapBackButton):
                 return .merge(
@@ -49,34 +53,18 @@ extension VideoPlayerFeature.Reducer: Reducer {
             case .view(.didTapCloseMoreOverlay):
                 state.overlay = .tools
 
-            case .view(.didTapGoBackwards):
-                return .run { _ in
-                }
-
-            case .view(.didTapGoForwards):
-                return .run { _ in
-                }
-
-            case .view(.didStartedSeeking):
-                return .run { _ in
-                    await videoPlayerClient.pause()
-                }
-
-            case let .view(.didFinishedSeekingTo(value)):
-                return .run { _ in
-                    await videoPlayerClient.seek(value)
-                    await videoPlayerClient.play()
-                }
-
             case let .view(.didTapPlayEpisode(groupId, itemId)):
                 state.selected.groupId = groupId
                 state.selected.episodeId = itemId
+                return state.clearForNewEpisodeIfNeeded()
 
             case let .view(.didTapSource(sourceId)):
                 state.selected.sourceId = sourceId
+                return state.clearForChangedServerIfNeeded()
 
             case let .view(.didTapServer(serverId)):
                 state.selected.serverId = serverId
+                return state.clearForChangedServerIfNeeded()
 
             case let .view(.didTapLink(linkId)):
                 state.selected.linkId = linkId
@@ -128,6 +116,16 @@ extension VideoPlayerFeature.Reducer: Reducer {
 }
 
 extension VideoPlayerFeature.State {
+    mutating func clearForNewEpisodeIfNeeded() -> Effect<VideoPlayerFeature.Action> {
+        contents.serverLinks = .init()
+        return fetchSourcesIfNecessary()
+    }
+
+    mutating func clearForChangedServerIfNeeded() -> Effect<VideoPlayerFeature.Action> {
+        contents.serverLinks = .init()
+        return fetchServerIfNecessary()
+    }
+
     mutating func fetchGroupsWithContentIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
         @Dependency(\.moduleClient)
         var moduleClient
@@ -152,11 +150,7 @@ extension VideoPlayerFeature.State {
                     await send(.internal(.groupResponse(groupId: groupId, .loaded(value))))
                 }
             } catch: { error, send in
-                if let error = error as? ModuleClient.Error {
-                    await send(.internal(.groupResponse(groupId: groupId, .failed(error))))
-                } else {
-                    await send(.internal(.groupResponse(groupId: groupId, .failed(ModuleClient.Error.unknown()))))
-                }
+                await send(.internal(.groupResponse(groupId: groupId, .failed(error))))
             }
         }
 
@@ -187,11 +181,7 @@ extension VideoPlayerFeature.State {
                     await send(.internal(.sourcesResponse(episodeId: episodeId, .loaded(value))))
                 }
             } catch: { error, send in
-                if let error = error as? ModuleClient.Error {
-                    await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(error))))
-                } else {
-                    await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(ModuleClient.Error.unknown()))))
-                }
+                await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(error))))
             }
         }
 
@@ -234,11 +224,7 @@ extension VideoPlayerFeature.State {
                     await send(.internal(.serverResponse(sourceId: sourceId, .loaded(value))))
                 }
             } catch: { error, send in
-                if let error = error as? ModuleClient.Error {
-                    await send(.internal(.serverResponse(sourceId: sourceId, .failed(error))))
-                } else {
-                    await send(.internal(.serverResponse(sourceId: sourceId, .failed(ModuleClient.Error.unknown()))))
-                }
+                await send(.internal(.serverResponse(sourceId: sourceId, .failed(error))))
             }
         }
 
