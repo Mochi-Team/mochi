@@ -77,6 +77,7 @@ public enum VideoPlayerFeature: Feature {
         public enum DelegateAction: SendableAction {}
 
         public enum InternalAction: SendableAction {
+            case hideToolsOverlay
             case groupResponse(groupId: Playlist.Group.ID, _ response: Loadable<Playlist.ItemsResponse>)
             case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource]>)
             case serverResponse(sourceId: Playlist.EpisodeSource.ID, _ response: Loadable<Playlist.EpisodeServerResponse>)

@@ -78,7 +78,13 @@ public enum PlayerFeature: Feature {
             case duration(CMTime)
         }
 
-        public enum DelegateAction: SendableAction {}
+        public enum DelegateAction: SendableAction {
+            case didStartedSeeking
+            case didFinishedSeekingTo(CGFloat)
+            case didTapGoForwards
+            case didTapGoBackwards
+            case didTogglePlayButton
+        }
 
         case view(ViewAction)
         case `internal`(InternalAction)
@@ -122,14 +128,12 @@ public enum PlayerFeature: Feature {
 
                 case .view(.didTogglePlayButton):
                     let isPlaying = state.rate != .zero
-                    return .run { _ in
-                        await isPlaying ? playerClient.pause() : playerClient.play()
-                    }
-
-                case .view(.didStartedSeeking):
-                    return .run { _ in
-                        await playerClient.pause()
-                    }
+                    return .merge(
+                        .send(.delegate(.didTogglePlayButton)),
+                        .run { _ in
+                            await isPlaying ? playerClient.pause() : playerClient.play()
+                        }
+                    )
 
                 case .view(.didTogglePictureInPicture):
                     state.pipState.enabled.toggle()
@@ -138,24 +142,41 @@ public enum PlayerFeature: Feature {
                     let newProgress = max(0, state.progress.seconds - 15)
                     let duration = state.duration.seconds
                     state.progress = .init(seconds: newProgress, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                    return .run { _ in
-                        await playerClient.seek(newProgress / duration)
-                    }
+                    return .merge(
+                        .send(.delegate(.didTapGoBackwards)),
+                        .run { _ in
+                            await playerClient.seek(newProgress / duration)
+                        }
+                    )
 
                 case .view(.didTapGoForwards):
                     let newProgress = min(state.duration.seconds, state.progress.seconds + 15)
                     let duration = state.duration.seconds
                     state.progress = .init(seconds: newProgress, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                    return .run { _ in
-                        await playerClient.seek(newProgress / duration)
-                    }
+                    return .merge(
+                        .send(.delegate(.didTapGoBackwards)),
+                        .run { _ in
+                            await playerClient.seek(newProgress / duration)
+                        }
+                    )
+
+                case .view(.didStartedSeeking):
+                    return .merge(
+                        .send(.delegate(.didStartedSeeking)),
+                        .run { _ in
+                           await playerClient.pause()
+                       }
+                    )
 
                 case let .view(.didFinishedSeekingTo(progress)):
                     state.progress = .init(seconds: progress * state.duration.seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                    return .run { _ in
-                        await playerClient.seek(progress)
-                        await playerClient.play()
-                    }
+                    return .merge(
+                        .send(.delegate(.didFinishedSeekingTo(progress))),
+                        .run { _ in
+                            await playerClient.seek(progress)
+                            await playerClient.play()
+                        }
+                    )
 
                 case .view(.binding(\.$pipState.isActive)):
                     if state.pipState.enabled, !state.pipState.isActive {
@@ -173,6 +194,9 @@ public enum PlayerFeature: Feature {
 
                 case let .internal(.duration(duration)):
                     state.duration = duration
+
+                case .delegate:
+                    break
                 }
                 return .none
             }

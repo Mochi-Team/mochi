@@ -16,6 +16,7 @@ import SharedModels
 // MARK: - Cancellables
 
 private enum Cancellables: Hashable, CaseIterable {
+    case delayCloseTab
     case fetchingContents
     case fetchingSources
     case fetchingServer
@@ -45,15 +46,19 @@ extension VideoPlayerFeature.Reducer: Reducer {
 
             case .view(.didTapMoreButton):
                 state.overlay = .more(.episodes)
+                return .cancel(id: Cancellables.delayCloseTab)
 
             case let .view(.didSelectMoreTab(tab)):
                 state.overlay = .more(tab)
+                return .cancel(id: Cancellables.delayCloseTab)
 
             case .view(.didTapPlayer):
-                state.overlay = state.overlay == .none ? .tools : .none
+                state.overlay = state.overlay == nil ? .tools : nil
+                return state.delayDismissOverlayIfNeeded()
 
             case .view(.didTapCloseMoreOverlay):
                 state.overlay = .tools
+                return state.delayDismissOverlayIfNeeded()
 
             case let .view(.didTapPlayEpisode(groupId, itemId)):
                 return state.clearForNewEpisodeIfNeeded(groupId, itemId)
@@ -66,6 +71,9 @@ extension VideoPlayerFeature.Reducer: Reducer {
 
             case let .view(.didTapLink(linkId)):
                 return state.clearForChangedLinkIfNeeded(linkId)
+
+            case .internal(.hideToolsOverlay):
+                state.overlay = state.overlay == .tools ? nil : state.overlay
 
             case let .internal(.groupResponse(groupId, .loaded(response))):
                 state.contents.update(with: groupId, response: .loaded(response))
@@ -102,6 +110,15 @@ extension VideoPlayerFeature.Reducer: Reducer {
                     logger.warning("There was an error retrieving video server response: \(error)")
                 }
 
+            case .internal(.player(.delegate(.didStartedSeeking))):
+                return .cancel(id: Cancellables.delayCloseTab)
+
+            case .internal(.player(.delegate(.didTapGoForwards))),
+                    .internal(.player(.delegate(.didTapGoBackwards))),
+                    .internal(.player(.delegate(.didTogglePlayButton))),
+                    .internal(.player(.delegate(.didFinishedSeekingTo))):
+                return state.delayDismissOverlayIfNeeded()
+
             case .internal(.player):
                 break
 
@@ -109,6 +126,21 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 break
             }
             return .none
+        }
+    }
+}
+
+extension VideoPlayerFeature.State {
+    func delayDismissOverlayIfNeeded() -> Effect<VideoPlayerFeature.Action> {
+        if overlay == .tools {
+            return .run { send in
+                try await withTaskCancellation(id: Cancellables.delayCloseTab, cancelInFlight: true) {
+                    try await Task.sleep(nanoseconds: 1_000_000_000 * 5)
+                    await send(.internal(.hideToolsOverlay))
+                }
+            }
+        } else {
+            return .cancel(id: Cancellables.delayCloseTab)
         }
     }
 }

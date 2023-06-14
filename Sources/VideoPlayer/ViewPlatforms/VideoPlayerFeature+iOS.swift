@@ -11,6 +11,7 @@ import Architecture
 import AVKit
 import ComposableArchitecture
 import PlayerClient
+import SharedModels
 import Styling
 import SwiftUI
 import ViewComponents
@@ -34,7 +35,8 @@ extension VideoPlayerFeature.View: View {
                 .onTapGesture {
                     viewStore.send(.didTapPlayer)
                 }
-
+            }
+            .overlay {
                 WithViewStore(store.viewAction, observe: \.overlay) { viewStore in
                     ZStack {
                         switch viewStore.state {
@@ -74,24 +76,35 @@ extension VideoPlayerFeature.View {
         VStack {
             topBar
             Spacer()
-            controlsBar
-            Spacer()
             bottomBar
         }
+        .overlay { controlsBar }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
             Color.black
-                .opacity(0.2)
+                .opacity(0.35)
                 .ignoresSafeArea()
                 .edgesIgnoringSafeArea(.all)
                 .allowsHitTesting(false)
         }
     }
 
+    private struct PlaylistDisplayState: Equatable, Sendable {
+        let playlist: Playlist
+        let group: Loadable<Playlist.Group?>
+        let episode: Loadable<Playlist.Item?>
+
+        init(_ state: VideoPlayerFeature.State) {
+            playlist = state.playlist
+            group = state.contents.allGroups.map { $0[id: state.selected.groupId] }
+            episode = state.contents.groups[state.selected.groupId]?.map { $0.items[id: state.selected.episodeId] } ?? .pending
+        }
+    }
+
     @MainActor
     var topBar: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 12) {
             Button {
                 ViewStore(store.viewAction.stateless).send(.didTapBackButton)
             } label: {
@@ -101,6 +114,48 @@ extension VideoPlayerFeature.View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            WithViewStore(store.viewAction, observe: PlaylistDisplayState.init) { viewStore in
+                VStack(alignment: .leading, spacing: 0) {
+                    Group {
+                        switch viewStore.group {
+                        case .pending, .loading:
+                            Text("Loading...")
+                        case let .loaded(group):
+                            if let group {
+                                Group {
+                                    switch viewStore.episode {
+                                    case .pending, .loading:
+                                        Text("Loading..")
+                                    case let .loaded(.some(item)):
+                                        Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
+                                    case .loaded(.none):
+                                        Text("Unknown")
+                                    case .failed:
+                                        Text("Failed to load")
+                                    }
+                                }
+                                .font(.callout.weight(.semibold))
+                                .foregroundColor(nil)
+
+                                Text("S\(group.id.withoutTrailingZeroes) \u{2022} E\(viewStore.episode.value??.number.withoutTrailingZeroes ?? "0")")
+                            } else {
+                                Text("Unknown")
+                            }
+                        case .failed:
+                            Text("Failed to Load")
+                        }
+                    }
+                    .foregroundColor(.init(white: 0.78))
+                    .font(.caption.weight(.semibold))
+
+                    Spacer()
+                        .frame(height: 2)
+
+//                    Text(viewStore.playlist.title ?? "No title")
+//                        .font(.footnote)
+                }
+            }
 
             Spacer()
 
@@ -225,7 +280,11 @@ extension VideoPlayerFeature.View {
         var viewStore: ViewStore<PlayerFeature.State, PlayerFeature.Action.ViewAction>
 
         private var progress: Double {
-            min(1.0, max(0, viewStore.progress.seconds / viewStore.duration.seconds))
+            if canUseControls {
+                return min(1.0, max(0, viewStore.progress.seconds / viewStore.duration.seconds))
+            } else {
+                return .zero
+            }
         }
 
         @SwiftUI.State
@@ -236,7 +295,7 @@ extension VideoPlayerFeature.View {
         }
 
         private var canUseControls: Bool {
-            viewStore.duration.isValid && viewStore.duration != .zero
+            viewStore.duration.isValid && !viewStore.duration.seconds.isNaN && viewStore.duration != .zero
         }
 
         init(_ store: StoreOf<PlayerFeature.Reducer>) {
@@ -294,7 +353,7 @@ extension VideoPlayerFeature.View {
 
                 Group {
                     if canUseControls {
-                        Text(viewStore.progress.displayTime ?? "00:00") +
+                        Text(progressDisplayTime) +
                             Text(" / ") +
                             Text(viewStore.duration.displayTime ?? "--.--")
                     } else {
@@ -304,6 +363,31 @@ extension VideoPlayerFeature.View {
                 .font(.caption.monospacedDigit())
             }
             .disabled(!canUseControls)
+        }
+
+        private var progressDisplayTime: String {
+            if canUseControls {
+                if isDragging {
+                    @Dependency(\.dateComponentsFormatter)
+                    var formatter
+
+                    formatter.unitsStyle = .positional
+                    formatter.zeroFormattingBehavior = .pad
+
+                    let time = (dragProgress ?? .zero) * viewStore.duration.seconds
+
+                    if time < 60 * 60 {
+                        formatter.allowedUnits = [.minute, .second]
+                    } else {
+                        formatter.allowedUnits = [.hour, .minute, .second]
+                    }
+
+                    return formatter.string(from: time) ?? "00:00"
+                } else {
+                    return viewStore.progress.displayTime ?? "00:00"
+                }
+            }
+            return "00:00"
         }
     }
 }

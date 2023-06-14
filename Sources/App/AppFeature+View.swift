@@ -71,13 +71,21 @@ extension AppFeature.View: View {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
         .overlay {
-            IfLetStore(
-                store.internalAction.scope(
-                    state: \.$videoPlayer,
-                    action: Action.InternalAction.videoPlayer
-                ),
-                then: VideoPlayerFeature.View.init(store:)
-            )
+            WithViewStore(store) { state in
+                state.videoPlayer != nil
+            } content: { isVisible in
+                IfLetStore(
+                    store.internalAction.scope(
+                        state: \.$videoPlayer,
+                        action: Action.InternalAction.videoPlayer
+                    )
+                ) { store in
+                    VideoPlayerFeature.View(store: store)
+                }
+                .blur(radius: isVisible.state ? 0.0 : 30)
+                .opacity(isVisible.state ? 1.0 : 0.0)
+                .animation(.easeInOut, value: isVisible.state)
+            }
         }
     }
 }
