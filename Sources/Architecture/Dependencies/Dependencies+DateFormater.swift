@@ -1,13 +1,15 @@
 //
 //  Dependencies+DateFormatter.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/2/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import Foundation
+
+// MARK: - SingleInstanceDateFormatter
 
 @dynamicMemberLookup
 public struct SingleInstanceDateFormatter {
@@ -17,6 +19,8 @@ public struct SingleInstanceDateFormatter {
         dateFormatter.value[keyPath: dynamicMember]
     }
 }
+
+// MARK: - DateFormatterKey
 
 public struct DateFormatterKey: DependencyKey {
     public static let liveValue: DateFormatter = {

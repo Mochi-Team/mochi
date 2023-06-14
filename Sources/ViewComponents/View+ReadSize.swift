@@ -1,13 +1,15 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/21/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - SizeInset
 
 public struct SizeInset {
     public let size: CGSize
@@ -26,43 +28,47 @@ public struct SizeInset {
     }
 }
 
+// MARK: Equatable
+
 extension SizeInset: Equatable {}
+
+// MARK: Sendable
+
 extension SizeInset: Sendable {}
 
 public extension View {
     @MainActor
     func readSize(_ callback: @escaping (SizeInset) -> Void) -> some View {
-        self
-            .background(
-                GeometryReader { geometryProxy in
-                    Color.clear
-                        .onAppear {
-                            callback(
-                                .init(
-                                    size: geometryProxy.size,
-                                    safeAreaInsets: geometryProxy.safeAreaInsets
-                                )
+        background(
+            GeometryReader { geometryProxy in
+                Color.clear
+                    .onAppear {
+                        callback(
+                            .init(
+                                size: geometryProxy.size,
+                                safeAreaInsets: geometryProxy.safeAreaInsets
                             )
-                        }
-                        #if os(iOS)
-                        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                            callback(
-                                .init(
-                                    size: geometryProxy.size,
-                                    safeAreaInsets: geometryProxy.safeAreaInsets
-                                )
+                        )
+                    }
+                #if os(iOS)
+                    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                        callback(
+                            .init(
+                                size: geometryProxy.size,
+                                safeAreaInsets: geometryProxy.safeAreaInsets
                             )
-                        }
-                        #endif
-                        .onChange(of: geometryProxy.size) { newValue in
-                            callback(
-                                .init(
-                                    size: newValue,
-                                    safeAreaInsets: geometryProxy.safeAreaInsets
-                                )
+                        )
+                    }
+                #endif
+                    .onChange(of: geometryProxy.size) { newValue in
+                        callback(
+                            .init(
+                                size: newValue,
+                                safeAreaInsets: geometryProxy.safeAreaInsets
                             )
-                        }
-                }
-            )
+                        )
+                    }
+            }
+        )
     }
 }

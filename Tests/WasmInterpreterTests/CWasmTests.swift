@@ -1,6 +1,8 @@
 @testable import CWasm3
 import XCTest
 
+// MARK: - CWasm3Tests
+
 final class CWasm3Tests: XCTestCase {
     func testCanCreateEnvironmentAndRuntime() throws {
         let environment = m3_NewEnvironment()
@@ -287,7 +289,7 @@ private func importedWrite(
         return UnsafeRawPointer(m3Err_trapUnreachable)
     }
 
-    guard let memory = memory else {
+    guard let memory else {
         return UnsafeRawPointer(m3Err_wasmMemoryOverflow)
     }
 
@@ -329,7 +331,7 @@ private func importedAdd(
     return nil
 }
 
-private extension Optional where Wrapped == IM3Runtime {
+private extension IM3Runtime? {
     func stringFromHeap(
         offset: Int,
         length: Int,
@@ -360,8 +362,9 @@ extension CWasm3Tests {
 
     private func addWasm() throws -> [UInt8] {
         let base64 = "AGFzbQEAAAABBwFgAn9/AX8DAgEABwcBA2FkZAAACgkBBwAgACABags="
-        guard let data = Data(base64Encoded: base64)
-        else { throw TestError.couldNotDecodeWasm("add.wasm") }
+        guard let data = Data(base64Encoded: base64) else {
+            throw TestError.couldNotDecodeWasm("add.wasm")
+        }
         return [UInt8](data)
     }
 
@@ -369,32 +372,36 @@ extension CWasm3Tests {
         // swiftlint:disable line_length
         let base64 =
             "AGFzbQEAAAABBQFgAAF/AwIBAAeSAQsKY29uc3RhbnRfMQAACmNvbnN0YW50XzIAAApjb25zdGFudF8zAAAKY29uc3RhbnRfNAAACmNvbnN0YW50XzUAAApjb25zdGFudF82AAAKY29uc3RhbnRfNwAACmNvbnN0YW50XzgAAApjb25zdGFudF85AAALY29uc3RhbnRfMTAAAAtjb25zdGFudF8xMQAACggBBgBBgIAECw=="
-        guard let data = Data(base64Encoded: base64)
-        else { throw TestError.couldNotDecodeWasm("constant.wasm") }
+        guard let data = Data(base64Encoded: base64) else {
+            throw TestError.couldNotDecodeWasm("constant.wasm")
+        }
         return [UInt8](data)
     }
 
     private func fibonacciWasm() throws -> [UInt8] {
         let base64 =
             "AGFzbQEAAAABBgFgAX4BfgMCAQAHBwEDZmliAAAKHwEdACAAQgJUBEAgAA8LIABCAn0QACAAQgF9EAB8Dws="
-        guard let data = Data(base64Encoded: base64)
-        else { throw TestError.couldNotDecodeWasm("fib64.wasm") }
+        guard let data = Data(base64Encoded: base64) else {
+            throw TestError.couldNotDecodeWasm("fib64.wasm")
+        }
         return [UInt8](data)
     }
 
     private func importedAddWasm() throws -> [UInt8] {
         let base64 =
             "AGFzbQEAAAABCwJgAn9+AX9gAAF/Ah0BB2ltcG9ydHMRaW1wb3J0ZWRfYWRkX2Z1bmMAAAMCAQEHGQEVaW50ZWdlcl9wcm92aWRlcl9mdW5jAAEKCwEJAEH7ZUIqEAAL"
-        guard let data = Data(base64Encoded: base64)
-        else { throw TestError.couldNotDecodeWasm("imported-add.wasm") }
+        guard let data = Data(base64Encoded: base64) else {
+            throw TestError.couldNotDecodeWasm("imported-add.wasm")
+        }
         return [UInt8](data)
     }
 
     private func memoryWasm() throws -> [UInt8] {
         let base64 =
             "AGFzbQEAAAABDQNgAn9/AGAAAGABfwACEAEGbmF0aXZlBXdyaXRlAAADAwIBAgUDAQABBxwCCndyaXRlX3V0ZjgAAQttb2RpZnlfdXRmOAACChoCCABBAEENEAALDwAgACAAKAIAQQFqNgIACw=="
-        guard let data = Data(base64Encoded: base64)
-        else { throw TestError.couldNotDecodeWasm("memory.wasm") }
+        guard let data = Data(base64Encoded: base64) else {
+            throw TestError.couldNotDecodeWasm("memory.wasm")
+        }
         return [UInt8](data)
     }
 }

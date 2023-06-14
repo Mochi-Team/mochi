@@ -1,9 +1,9 @@
 //
 //  PlayerFeature.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/10/23.
-//  
+//
 //
 
 import Architecture
@@ -158,7 +158,7 @@ public enum PlayerFeature: Feature {
                     }
 
                 case .view(.binding(\.$pipState.isActive)):
-                    if state.pipState.enabled && !state.pipState.isActive {
+                    if state.pipState.enabled, !state.pipState.isActive {
                         state.pipState.enabled = false
                     }
 

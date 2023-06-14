@@ -1,9 +1,9 @@
 //
 //  PlayerView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/31/23.
-//  
+//
 //
 
 import AVFoundation
@@ -12,6 +12,8 @@ import Combine
 import Foundation
 import SwiftUI
 import ViewComponents
+
+// MARK: - PIPStatus
 
 public enum PIPStatus: Equatable, Sendable {
     case willStart
@@ -28,10 +30,10 @@ public enum PIPStatus: Equatable, Sendable {
     public static func == (lhs: PIPStatus, rhs: PIPStatus) -> Bool {
         switch (lhs, rhs) {
         case (.willStart, .willStart),
-            (.didStart, .didStart),
-            (.willStop, .willStop),
-            (.didStop, .didStop),
-            (.restoreUI, .restoreUI):
+             (.didStart, .didStart),
+             (.willStop, .willStop),
+             (.didStop, .didStop),
+             (.restoreUI, .restoreUI):
             return true
         case let (.failed(lhsError), .failed(rhsError)):
             return _isEqual(lhsError, rhsError)
@@ -40,6 +42,8 @@ public enum PIPStatus: Equatable, Sendable {
         }
     }
 }
+
+// MARK: - PlayerView
 
 struct PlayerView: PlatformAgnosticViewRepresentable {
     private let player: AVPlayer
@@ -85,7 +89,7 @@ struct PlayerView: PlatformAgnosticViewRepresentable {
         }
 
         if enablePIP {
-            if !pipController.isPictureInPictureActive && pipController.isPictureInPicturePossible {
+            if !pipController.isPictureInPictureActive, pipController.isPictureInPicturePossible {
                 pipController.startPictureInPicture()
             }
         } else {
@@ -121,6 +125,8 @@ extension PlayerView {
         return view
     }
 }
+
+// MARK: PlayerView.Coordinator
 
 extension PlayerView {
     final class Coordinator: NSObject {
@@ -164,6 +170,8 @@ extension PlayerView {
         }
     }
 }
+
+// MARK: - PlayerView.Coordinator + AVPictureInPictureControllerDelegate
 
 extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
     public func pictureInPictureControllerWillStartPictureInPicture(_: AVPictureInPictureController) {
@@ -210,6 +218,8 @@ extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
     }
 }
 
+// MARK: - AVPlayerView
+
 final class AVPlayerView: PlatformView {
     // swiftlint:disable force_cast
     var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
@@ -245,7 +255,7 @@ final class AVPlayerView: PlatformView {
 }
 
 private func _isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
-  (lhs as? any Equatable)?.isEqual(other: rhs) ?? false
+    (lhs as? any Equatable)?.isEqual(other: rhs) ?? false
 }
 
 private extension Equatable {

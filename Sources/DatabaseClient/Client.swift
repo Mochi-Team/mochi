@@ -1,6 +1,6 @@
 //
 //  Client.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
@@ -10,6 +10,8 @@ import CoreORM
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay
+
+// MARK: - DatabaseClient
 
 public struct DatabaseClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
@@ -29,20 +31,22 @@ public struct DatabaseClient: Sendable {
 
 public extension DatabaseClient {
     func fetch<T: Entity>(_ request: Request<T>) async throws -> [T] {
-        ((try await self.fetch(T.self, request)) as? [T]) ?? []
+        try await (fetch(T.self, request) as? [T]) ?? []
     }
 
     func observe<T: Entity>(_ request: Request<T>) -> AsyncStream<[T]> {
-        self.observe(T.self, request)
+        observe(T.self, request)
             .compactMap { $0 as? [T] }
             .eraseToStream()
     }
 }
 
+// MARK: DependencyKey
+
 extension DatabaseClient: DependencyKey {}
 
-extension DependencyValues {
-    public var databaseClient: DatabaseClient {
+public extension DependencyValues {
+    var databaseClient: DatabaseClient {
         get { self[DatabaseClient.self] }
         set { self[DatabaseClient.self] = newValue }
     }

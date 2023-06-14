@@ -1,13 +1,15 @@
 //
 //  ElasticParallaxView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/19/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - ElasticParallaxView
 
 struct ElasticParallaxView: ViewModifier {
     func body(content: Content) -> some View {

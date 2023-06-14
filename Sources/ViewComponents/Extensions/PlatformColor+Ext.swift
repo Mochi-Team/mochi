@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/21/23.
-//  
+//
 //
 
 import Foundation
@@ -23,17 +23,17 @@ extension PlatformColor {
         var green: CGFloat = 0
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
-        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
         let conversion: (CGFloat) -> CGFloat = { value in
-            value <= 0.03928 ? (value / 12.92) : pow(((value + 0.055) / 1.055), 2.4)
+            value <= 0.03928 ? (value / 12.92) : pow((value + 0.055) / 1.055, 2.4)
         }
         return (0.2126 * conversion(red)) + (0.7152 * conversion(green)) + (0.0722 * conversion(blue))
     }
 
     /// https://www.w3.org/TR/WCAG20/#contrast-ratiodef
     func contrastRatio(to otherColor: PlatformColor) -> CGFloat {
-        let ourLuminance = self.luminance
+        let ourLuminance = luminance
         let theirLuminance = otherColor.luminance
         let lighterColor = min(ourLuminance, theirLuminance)
         let darkerColor = max(ourLuminance, theirLuminance)

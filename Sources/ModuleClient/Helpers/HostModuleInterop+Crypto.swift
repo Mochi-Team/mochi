@@ -1,9 +1,9 @@
 //
 //  HostModuleInterop+Crypto.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/7/23.
-//  
+//
 //
 
 import CommonCrypto
@@ -221,7 +221,7 @@ extension HostModuleInterop {
 }
 
 extension HostModuleInterop {
-    public func crypto_pbkdf2(
+    func crypto_pbkdf2(
         hash_algorithm: CCPBKDFAlgorithm,
         password_ptr: Int32,
         password_len: Int32,
@@ -261,7 +261,7 @@ extension HostModuleInterop {
         }
     }
 
-    public func crypto_generate_random_bytes(
+    func crypto_generate_random_bytes(
         count: Int32
     ) -> Int32 {
         hostAllocations.withValue { alloc in
@@ -278,7 +278,7 @@ extension HostModuleInterop {
 }
 
 extension HostModuleInterop {
-    public func crypto_md5_hash(
+    func crypto_md5_hash(
         input_ptr: Int32,
         input_len: Int32
     ) -> Int32 {

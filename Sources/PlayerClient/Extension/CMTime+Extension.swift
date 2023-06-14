@@ -1,17 +1,17 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/11/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import CoreMedia
 import Foundation
 
-extension CMTime {
-    public var displayTime: String? {
+public extension CMTime {
+    var displayTime: String? {
         @Dependency(\.dateComponentsFormatter)
         var formatter
 

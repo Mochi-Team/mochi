@@ -1,13 +1,15 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/23/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - Theme
 
 public struct Theme: Hashable {
     public let primaryColor: Color = .green

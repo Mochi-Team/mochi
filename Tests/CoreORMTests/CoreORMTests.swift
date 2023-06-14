@@ -1,9 +1,9 @@
 //
 //  CoreORMTests.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/17/23.
-//  
+//
 //
 
 @testable

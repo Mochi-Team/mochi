@@ -12,16 +12,20 @@ import Foundation
 import Semaphore
 import SharedModels
 
+// MARK: - ModuleClient + DependencyKey
+
 extension ModuleClient: DependencyKey {
     public static let liveValue: Self = {
         let cached = ModulesCache()
 
-        return  Self(
+        return Self(
             initialize: cached.initialize,
             getModule: cached.getCached
         )
     }()
 }
+
+// MARK: - ModulesCache
 
 private actor ModulesCache {
     private var cached: [RepoModuleID: Module] = [:]
@@ -62,8 +66,7 @@ private actor ModulesCache {
         }
 
         guard let repo = try await databaseClient.fetch(.all.where(\Repo.$baseURL == id.repoId.rawValue)).first,
-              let module: Module = repo.modules.first(where: { $0.id == id.moduleId })
-        else {
+              let module: Module = repo.modules.first(where: { $0.id == id.moduleId }) else {
             throw ModuleClient.Error.moduleNotFound
         }
 

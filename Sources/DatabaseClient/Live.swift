@@ -1,6 +1,6 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
@@ -11,8 +11,8 @@ import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
-extension DatabaseClient {
-    public static var liveValue: DatabaseClient = {
+public extension DatabaseClient {
+    static var liveValue: DatabaseClient = {
         let core = CoreORM<MochiSchema>()
         return .init {
             try await core.load()
@@ -43,13 +43,15 @@ extension DatabaseClient {
     }()
 }
 
+// MARK: - DatabaseClientError
+
 enum DatabaseClientError: Error {
     case invalidRequestCastType
 }
 
 extension CoreORM {
     func observe<Instance: Entity>(_: Instance.Type, _ request: Any) -> AsyncStream<[Entity]> {
-        self.observe((request as? Request<Instance>) ?? .all)
+        observe((request as? Request<Instance>) ?? .all)
             .map { $0 as [Entity] }
             .eraseToStream()
     }
@@ -57,6 +59,6 @@ extension CoreORM {
 
 extension CoreTransaction {
     func fetch<Instance: Entity>(_: Instance.Type, _ request: Any) async throws -> [Instance] {
-        try await self.fetch((request as? Request<Instance>) ?? .all)
+        try await fetch((request as? Request<Instance>) ?? .all)
     }
 }

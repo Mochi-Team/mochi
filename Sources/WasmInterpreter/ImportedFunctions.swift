@@ -1,9 +1,9 @@
 //
 //  ImportedFunctions.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/5/23.
-//  
+//
 //
 
 import CWasm3
@@ -91,7 +91,7 @@ func handleImportedFunction(
 
 extension NSLock {
     func locked<R>(_ block: () -> R) -> R {
-        self.lock()
+        lock()
         defer { self.unlock() }
         return block()
     }

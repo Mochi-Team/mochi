@@ -6,11 +6,11 @@ public struct FibonacciModule {
 
     init() throws {
 //        _vm = try .init(module: Self.wasmURL, stackSize: 1 * 1024 * 1024)
-        _vm = try .init(module: Self.wasm, stackSize: 1 * 1_024 * 1_024)
+        self._vm = try .init(module: Self.wasm, stackSize: 1 * 1_024 * 1_024)
     }
 
     func calculateValue(at index: Int) throws -> Int {
-        Int(try _vm.exports.fib(Int64(index)) as Int64)
+        try Int(_vm.exports.fib(Int64(index)) as Int64)
     }
 
     // `wat2wasm -o >(base64) Tests/WasmInterpreterTests/Resources/fib64.wat | pbcopy`

@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/20/23.
-//  
+//
 //
 //  Ported from https://github.com/larsenwork/postcss-easing-gradients
 
@@ -11,6 +11,8 @@ import Easing
 import Foundation
 import RealModule
 import SwiftUI
+
+// MARK: - EasingCurveFunction
 
 public struct EasingCurveFunction<T: Real>: Sendable {
     let curve: Easing.Curve<T>

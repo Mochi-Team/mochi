@@ -1,16 +1,16 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import CoreData
 import Foundation
 
 extension NSManagedObjectModel {
-    convenience init<SomeSchema: Schema>(_ schemaType: SomeSchema.Type = SomeSchema.self) {
+    convenience init<SomeSchema: Schema>(_: SomeSchema.Type = SomeSchema.self) {
         self.init()
 
         var entitiesMap = [String: EntityDescriptor]()

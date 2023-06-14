@@ -1,6 +1,6 @@
 //
 //  ModuleListsFeature+View.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/23/23.
 //  Copyright © 2023. All rights reserved.
@@ -11,6 +11,8 @@ import ComposableArchitecture
 import NukeUI
 import SharedModels
 import SwiftUI
+
+// MARK: - ModuleListsFeature.View + View
 
 extension ModuleListsFeature.View: View {
     @MainActor
@@ -152,29 +154,31 @@ extension ModuleListsFeature.View {
 
 import Styling
 
+// MARK: - ModuleListsFeatureView_Previews
+
 struct ModuleListsFeatureView_Previews: PreviewProvider {
     static var previews: some View {
 //        SheetView(isPresenting: .constant(true)) {
-            ModuleListsFeature.View(
-                store: .init(
-                    initialState: .init(
-                        repos: [
-                            .init(
-                                baseURL: .init(string: "/").unsafelyUnwrapped,
-                                dateAdded: .init(),
-                                lastRefreshed: .init(),
-                                manifest: .init(
-                                    name: "Local Repo",
-                                    author: "errorerrorerror",
-                                    description: "This is a local repo"
-                                )
+        ModuleListsFeature.View(
+            store: .init(
+                initialState: .init(
+                    repos: [
+                        .init(
+                            baseURL: .init(string: "/").unsafelyUnwrapped,
+                            dateAdded: .init(),
+                            lastRefreshed: .init(),
+                            manifest: .init(
+                                name: "Local Repo",
+                                author: "errorerrorerror",
+                                description: "This is a local repo"
                             )
-                        ],
-                        selected: nil
-                    ),
-                    reducer: EmptyReducer()
-                )
+                        )
+                    ],
+                    selected: nil
+                ),
+                reducer: EmptyReducer()
             )
+        )
 //        }
         .previewLayout(.sizeThatFits)
     }

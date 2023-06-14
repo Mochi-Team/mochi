@@ -1,9 +1,9 @@
 //
 //  HostModuleInterop+Http.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/9/23.
-//  
+//
 //
 
 import Foundation
@@ -12,13 +12,13 @@ import Foundation
 
 extension HostModuleInterop {
     func request_create(method: Int32) -> ReqRef {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc.add(WasmRequest(method: .init(rawValue: method) ?? .GET))
         }
     }
 
     func request_send(ptr: ReqRef) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard var request = alloc[ptr] as? WasmRequest else {
                 return
             }
@@ -62,11 +62,11 @@ extension HostModuleInterop {
     }
 
     func request_close(ptr: ReqRef) {
-        self.hostAllocations.withValue { $0[ptr] = nil }
+        hostAllocations.withValue { $0[ptr] = nil }
     }
 
     func request_set_url(ptr: ReqRef, url_ptr: RawPtr, url_len: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard var request = alloc[ptr] as? WasmRequest else {
                 return
             }
@@ -81,7 +81,7 @@ extension HostModuleInterop {
     }
 
     func request_set_header(ptr: ReqRef, key_ptr: RawPtr, key_len: Int32, value_ptr: RawPtr, value_len: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard var request = alloc[ptr] as? WasmRequest else {
                 return
             }
@@ -107,7 +107,7 @@ extension HostModuleInterop {
     }
 
     func request_set_body(ptr: ReqRef, data_ptr: PtrRef, data_len: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard var request = alloc[ptr] as? WasmRequest else {
                 return
             }
@@ -122,7 +122,7 @@ extension HostModuleInterop {
     }
 
     func request_set_method(ptr: ReqRef, method: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard var request = alloc[ptr] as? WasmRequest else {
                 return
             }
@@ -134,7 +134,7 @@ extension HostModuleInterop {
     }
 
     func request_get_method(ptr: ReqRef) -> Int32 {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard let request = alloc[ptr] as? WasmRequest else {
                 return WasmRequest.Method.GET.rawValue
             }
@@ -143,7 +143,7 @@ extension HostModuleInterop {
     }
 
     func request_get_url(ptr: ReqRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard let request = alloc[ptr] as? WasmRequest else {
                 throw ModuleClient.Error.castError()
             }
@@ -157,7 +157,7 @@ extension HostModuleInterop {
     }
 
     func request_get_header(ptr: ReqRef, key_ptr: RawPtr, key_len: Int32) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard let request = alloc[ptr] as? WasmRequest else {
                 throw ModuleClient.Error.castError()
             }
@@ -176,7 +176,7 @@ extension HostModuleInterop {
     }
 
     func request_get_status_code(ptr: ReqRef) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard let request = alloc[ptr] as? WasmRequest else {
                 throw ModuleClient.Error.castError()
             }
@@ -190,7 +190,7 @@ extension HostModuleInterop {
     }
 
     func request_get_data_len(ptr: ReqRef) -> Int32 {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard let request = alloc[ptr] as? WasmRequest else {
                 return 0
             }
@@ -204,7 +204,7 @@ extension HostModuleInterop {
     }
 
     func request_get_data(ptr: ReqRef, arr_ptr: PtrRef, arr_len: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard let request = alloc[ptr] as? WasmRequest else {
                 return
             }
@@ -260,14 +260,14 @@ struct WasmRequest: KVAccess {
     }
 
     func generateURLRequest() -> URLRequest? {
-        guard let url = self.url, let url = URL(string: url) else {
+        guard let url, let url = URL(string: url) else {
             return nil
         }
 
         var request = URLRequest(url: url)
-        request.httpMethod = self.method.description
-        self.body.flatMap { request.httpBody = $0 }
-        self.headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.httpMethod = method.description
+        body.flatMap { request.httpBody = $0 }
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
 
         return request
     }

@@ -1,9 +1,9 @@
 //
 //  DiscoverFeature.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/5/23.
-//  
+//
 //
 
 import Architecture
@@ -117,7 +117,7 @@ public enum DiscoverFeature: Feature {
         @InsetValue(\.tabNavigation)
         var bottomNavigationSize
 
-        nonisolated public init(store: FeatureStoreOf<DiscoverFeature>) {
+        public nonisolated init(store: FeatureStoreOf<DiscoverFeature>) {
             self.store = store
         }
     }

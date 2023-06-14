@@ -14,6 +14,8 @@ import PlaylistDetails
 import RepoClient
 import SharedModels
 
+// MARK: - DiscoverFeature.Reducer + ReducerProtocol
+
 extension DiscoverFeature.Reducer: ReducerProtocol {
     enum Cancellables: Hashable {
         case fetchDiscoverList
@@ -98,11 +100,11 @@ extension DiscoverFeature.State {
         var moduleClient
 
         guard let selectedModule else {
-            self.listings = .failed(DiscoverFeature.Error.system(.moduleNotSelected))
+            listings = .failed(DiscoverFeature.Error.system(.moduleNotSelected))
             return .none
         }
 
-        self.listings = .loading
+        listings = .loading
 
         return .run { send in
             try await withTaskCancellation(id: DiscoverFeature.Reducer.Cancellables.fetchDiscoverList) {
@@ -118,7 +120,7 @@ extension DiscoverFeature.State {
                                     switch (leftElement.type, rightElement.type) {
                                     case (.featured, .featured):
                                         return true
-                                    case (_, .`featured`):
+                                    case (_, .featured):
                                         return false
                                     default:
                                         return true

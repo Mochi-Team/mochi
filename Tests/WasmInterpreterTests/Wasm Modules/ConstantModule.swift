@@ -5,11 +5,11 @@ public struct ConstantModule {
     private let _vm: WasmInstance
 
     init() throws {
-        _vm = try .init(module: Self.wasm)
+        self._vm = try .init(module: Self.wasm)
     }
 
     func constant(version: Int) throws -> Int {
-        Int(try _vm.exports[dynamicMember: "constant_\(version)"]() as Int32)
+        try Int(_vm.exports[dynamicMember: "constant_\(version)"]() as Int32)
     }
 
     // `wat2wasm -o >(base64) Tests/WasmInterpreterTests/Resources/constant.wat | pbcopy`

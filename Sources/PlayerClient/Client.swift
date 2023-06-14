@@ -1,6 +1,6 @@
 //
 //  Client.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/26/23.
 //  Copyright © 2023. All rights reserved.
@@ -12,6 +12,8 @@ import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
+// MARK: - PlayerClient
+
 public struct PlayerClient: Sendable {
 //    let status: @Sendable () -> AsyncStream<Status>
     public let load: @Sendable (URL) async throws -> Void
@@ -22,6 +24,8 @@ public struct PlayerClient: Sendable {
     public let clear: @Sendable () async -> Void
     let player: AVPlayer
 }
+
+// MARK: TestDependencyKey
 
 extension PlayerClient: TestDependencyKey {
     public static let testValue = Self(
@@ -35,8 +39,8 @@ extension PlayerClient: TestDependencyKey {
     )
 }
 
-extension DependencyValues {
-    public var playerClient: PlayerClient {
+public extension DependencyValues {
+    var playerClient: PlayerClient {
         get { self[PlayerClient.self] }
         set { self[PlayerClient.self] = newValue }
     }

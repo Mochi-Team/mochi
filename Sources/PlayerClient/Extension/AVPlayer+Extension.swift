@@ -1,9 +1,9 @@
 //
 //  AVPlayer+AsyncStream.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/10/23.
-//  
+//
 //
 
 import AVKit

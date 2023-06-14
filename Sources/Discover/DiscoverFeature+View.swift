@@ -15,6 +15,8 @@ import Styling
 import SwiftUI
 import ViewComponents
 
+// MARK: - DiscoverFeature.View + View
+
 extension DiscoverFeature.View: View {
     @MainActor
     public var body: some View {
@@ -44,7 +46,7 @@ extension DiscoverFeature.View: View {
                             }
                         }
                         .transition(.opacity)
-                    } failedView: { error in
+                    } failedView: { _ in
                         // TODO: Add error state depending on module or system fetching
                         VStack(spacing: 12) {
                             Spacer()
@@ -136,8 +138,8 @@ extension DiscoverFeature.View: View {
                 case .playlistDetails:
                     CaseLet(
                         /DiscoverFeature.Screens.State.playlistDetails,
-                         action: DiscoverFeature.Screens.Action.playlistDetails,
-                         then: PlaylistDetailsFeature.View.init
+                        action: DiscoverFeature.Screens.Action.playlistDetails,
+                        then: PlaylistDetailsFeature.View.init
                     )
                 }
             }
@@ -183,8 +185,7 @@ extension DiscoverFeature.View {
                 Spacer()
 
                 if listing.paging.nextPage != nil {
-                    Button {
-                    } label: {
+                    Button {} label: {
                         Text("Show All")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.gray)
@@ -256,8 +257,7 @@ extension DiscoverFeature.View {
                 Spacer()
 
                 if listing.paging.nextPage != nil {
-                    Button {
-                    } label: {
+                    Button {} label: {
                         Text("Show All")
                             .font(.footnote.weight(.bold))
                             .foregroundColor(.gray)
@@ -285,13 +285,13 @@ extension DiscoverFeature.View {
                     alignment: .top,
                     spacing: 20,
                     edgeInsets: .init(trailing: 40),
-                    items: Array(0 ... sections)
+                    items: Array(0...sections)
                 ) { col in
                     let start = col * rowCount
                     let end = start + min(rowCount, listing.items.count - start)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        ForEach(start ..< end, id: \.self) { idx in
+                        ForEach(start..<end, id: \.self) { idx in
                             let playlist = listing.items[idx]
                             HStack(alignment: .center, spacing: 8) {
                                 Text("\(idx + 1)")
@@ -377,13 +377,15 @@ private extension Loadable<[DiscoverListing]> {
         switch self {
         case .pending, .loading:
             return true
-        case .loaded(let t):
+        case let .loaded(t):
             return t.contains(where: \.type == .featured)
         case .failed:
             return false
         }
     }
 }
+
+// MARK: - DiscoverView_Previews
 
 struct DiscoverView_Previews: PreviewProvider {
     static var previews: some View {

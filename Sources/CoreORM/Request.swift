@@ -56,7 +56,7 @@ extension Request {
     func makeFetchRequest<ResultType: NSFetchRequestResult>(ofType resultType: NSFetchRequestResultType = .managedObjectResultType) -> NSFetchRequest<ResultType> {
         let instance = SomeEntity()
 
-        let properties = instance.properties.filter { $0 is any OpaqueAttribute }.compactMap { $0.name.value }
+        let properties = instance.properties.filter { $0 is any OpaqueAttribute }.compactMap(\.name.value)
 
         let fetchRequest = NSFetchRequest<ResultType>(entityName: SomeEntity.entityName)
         fetchRequest.resultType = resultType
@@ -233,8 +233,8 @@ public extension Optional where Wrapped: PrimitiveType & Comparable {
 // MARK: - internal
 
 internal extension ComparisonPredicate {
-    convenience init<Primitive: PrimitiveType, Value>(
-        _ keyPath: KeyPath<Root, Attribute<Primitive, Value>>,
+    convenience init<Value>(
+        _ keyPath: KeyPath<Root, Attribute<some PrimitiveType, Value>>,
         _ op: NSComparisonPredicate.Operator,
         _ value: Value?
     ) {

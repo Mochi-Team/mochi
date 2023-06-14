@@ -28,7 +28,7 @@ struct SheetPresentation<Content: View>: UIViewControllerRepresentable {
         self.content = content
     }
 
-    func makeUIViewController(context: Context) -> UIViewController {
+    func makeUIViewController(context _: Context) -> UIViewController {
         let viewController = UIViewController()
         viewController.view.backgroundColor = .clear
         return viewController
@@ -64,7 +64,7 @@ extension SheetPresentation {
         func presentationController(
             forPresented presented: UIViewController,
             presenting: UIViewController?,
-            source: UIViewController
+            source _: UIViewController
         ) -> UIPresentationController? {
             let controller = SheetPresentationController(presentedViewController: presented, presenting: presenting)
             controller.delegate = self
@@ -72,26 +72,26 @@ extension SheetPresentation {
         }
 
         func animationController(
-            forPresented presented: UIViewController,
-            presenting: UIViewController,
-            source: UIViewController
+            forPresented _: UIViewController,
+            presenting _: UIViewController,
+            source _: UIViewController
         ) -> UIViewControllerAnimatedTransitioning? {
             transition.isPresented = true
             transition.wantsInteractiveStart = false
             return transition
         }
 
-        func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        func animationController(forDismissed _: UIViewController) -> UIViewControllerAnimatedTransitioning? {
             transition.isPresented = false
             return transition
         }
 
-        func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        func interactionControllerForDismissal(using _: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
             transition.isPresented = false
             return transition
         }
 
-        func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        func presentationControllerDidDismiss(_: UIPresentationController) {
             if parent.isPresented {
                 parent.isPresented = false
             }
@@ -111,8 +111,9 @@ private final class CustomHostingController<Content: View>: UIHostingController<
         }
     }
 
+    @available(*, unavailable)
     @MainActor
-    dynamic required init?(coder aDecoder: NSCoder) {
+    dynamic required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
@@ -253,8 +254,8 @@ final class SheetPresentationController: UIPresentationController {
                 return
             }
 
-            self.presentedView?.layer.cornerRadius = self.cornerRadius
-            self.backgroundView.effect = self.visualEffect
+            presentedView?.layer.cornerRadius = cornerRadius
+            backgroundView.effect = visualEffect
         }
     }
 
@@ -283,8 +284,8 @@ final class SheetPresentationController: UIPresentationController {
                 return
             }
 
-            self.presentedView?.layer.cornerRadius = .zero
-            self.backgroundView.effect = nil
+            presentedView?.layer.cornerRadius = .zero
+            backgroundView.effect = nil
         }
     }
 
@@ -336,16 +337,16 @@ final class SheetPresentationController: UIPresentationController {
     /// - Parameter isInteractive: Whether the transition should be started interactively by the user.
     private func dismiss(interactively isInteractive: Bool) {
         transitioningDelegate?.transition.wantsInteractiveStart = isInteractive
-        self.delegate?.presentationControllerWillDismiss?(self)
+        delegate?.presentationControllerWillDismiss?(self)
         presentedViewController.dismiss(animated: true) { [weak self] in
-            guard let `self` = self else {
+            guard let self else {
                 return
             }
 
             if !isInteractive || presentedViewController.presentingViewController == nil {
-                self.delegate?.presentationControllerDidDismiss?(self)
+                delegate?.presentationControllerDidDismiss?(self)
             } else {
-                self.delegate?.presentationControllerDidAttemptToDismiss?(self)
+                delegate?.presentationControllerDidAttemptToDismiss?(self)
             }
         }
     }
@@ -443,7 +444,7 @@ extension SheetPresentationController: UIScrollViewDelegate {
         updateTransitionProgress(for: translation)
     }
 
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_: UIScrollView, willDecelerate _: Bool) {
         handleEndedInteraction()
     }
 }
@@ -473,7 +474,7 @@ final class SheetTransition: UIPercentDrivenInteractiveTransition, UIViewControl
 
     // MARK: - Functions
 
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+    func transitionDuration(using _: UIViewControllerContextTransitioning?) -> TimeInterval {
         animationDuration
     }
 

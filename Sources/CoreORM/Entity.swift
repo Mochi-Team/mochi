@@ -1,15 +1,19 @@
 //
 //  Entity.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import CoreData
 import Foundation
 
+// MARK: - Entity
+
 public protocol Entity: OpaqueEntity {}
+
+// MARK: - OpaqueEntity
 
 public protocol OpaqueEntity {
     init()
@@ -17,8 +21,8 @@ public protocol OpaqueEntity {
     static var entityName: String { get }
 }
 
-extension OpaqueEntity {
-    public static var entityName: String {
+public extension OpaqueEntity {
+    static var entityName: String {
         String(describing: Self.self)
     }
 
@@ -60,12 +64,13 @@ extension OpaqueEntity {
     }
 }
 
+// MARK: - EntityError
+
 public enum EntityError: Error {
     case managedObjectIdIsNotPermanent
 }
 
 extension OpaqueEntity {
-
     /// Decodes an NSManagedObject data to Entity type
     ///
     init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
@@ -90,7 +95,7 @@ extension OpaqueEntity {
     func copy(
         to managedObjectId: NSManagedObjectID,
         context: NSManagedObjectContext,
-        createNewRelations: Bool = true
+        createNewRelations _: Bool = true
     ) throws {
         try properties.forEach { property in
             try property.encode(with: managedObjectId, context: context)

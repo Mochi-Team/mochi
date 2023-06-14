@@ -1,6 +1,6 @@
 //
 //  VideoPlayerFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/26/23.
 //  Copyright © 2023. All rights reserved.
@@ -14,6 +14,8 @@ import PlayerClient
 import SharedModels
 import SwiftUI
 import Tagged
+
+// MARK: - VideoPlayerFeature
 
 public enum VideoPlayerFeature: Feature {
     public struct State: FeatureState {
@@ -90,7 +92,7 @@ public enum VideoPlayerFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<VideoPlayerFeature>
 
-        nonisolated public init(store: FeatureStoreOf<VideoPlayerFeature>) {
+        public nonisolated init(store: FeatureStoreOf<VideoPlayerFeature>) {
             self.store = store
         }
     }
@@ -115,8 +117,8 @@ public enum VideoPlayerFeature: Feature {
     }
 }
 
-extension VideoPlayerFeature.State {
-    public struct SelectedContent: Equatable, Sendable {
+public extension VideoPlayerFeature.State {
+    struct SelectedContent: Equatable, Sendable {
         public var groupId: Playlist.Group.ID
         public var episodeId: Playlist.Item.ID
         public var sourceId: Playlist.EpisodeSource.ID?
@@ -138,7 +140,7 @@ extension VideoPlayerFeature.State {
         }
     }
 
-    public struct Contents: Equatable, Sendable {
+    struct Contents: Equatable, Sendable {
         public var allGroups = Loadable<[Playlist.Group]>.pending
         public var groups = [Playlist.Group.ID: Loadable<Playlist.Group.Content>]()
         public var sources = [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>]()

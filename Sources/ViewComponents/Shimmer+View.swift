@@ -7,11 +7,14 @@
 
 import SwiftUI
 
+// MARK: - Shimmer
+
 /// A view modifier that applies an animated "shimmer" to any view, typically to show that
 /// an operation is in progress.
 public struct Shimmer: ViewModifier {
     let animation: Animation
-    @State private var phase: CGFloat = 0
+    @State
+    private var phase: CGFloat = 0
 
     /// Initializes his modifier with a custom animation,
     /// - Parameter animation: A custom animation. The default animation is
@@ -63,7 +66,8 @@ public struct Shimmer: ViewModifier {
         let phase: CGFloat
         let centerColor = Color.black
         let edgeColor = Color.black.opacity(0.3)
-        @Environment(\.layoutDirection) private var layoutDirection
+        @Environment(\.layoutDirection)
+        private var layoutDirection
 
         var body: some View {
             let isRightToLeft = layoutDirection == .rightToLeft
@@ -114,7 +118,7 @@ public extension View {
         animation: Animation = Shimmer.defaultAnimation
     ) -> some View {
         if active {
-            self.redacted(reason: .placeholder)
+            redacted(reason: .placeholder)
                 .modifier(Shimmer(animation: animation))
         } else {
             self

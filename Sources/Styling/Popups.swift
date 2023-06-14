@@ -1,21 +1,25 @@
 //
 //  Popups.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/20/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import Foundation
 import SwiftUI
 
+// MARK: - PopupView
+
 public struct PopupView<C: View>: View {
     let content: () -> C
     let dismiss: () -> Void
 
-    @GestureState private var gestureTranslation: CGFloat = 0
-    @Binding private var isPresenting: Bool
+    @GestureState
+    private var gestureTranslation: CGFloat = 0
+    @Binding
+    private var isPresenting: Bool
 
     public init(
         isPresenting: Binding<Bool>,
@@ -33,24 +37,24 @@ public struct PopupView<C: View>: View {
 
             if isPresenting {
                 content()
-                .background(
-                    Color(uiColor: .secondarySystemBackground)
-                        .gesture(
-                            DragGesture(coordinateSpace: .global)
-                                .updating($gestureTranslation) { value, state, _ in
-                                    state = value.translation.height > 0 ?
-                                        value.translation.height : -log10(abs(value.translation.height))
-                                }
-                                .onEnded { value in
-                                    if value.translation.height > 0 || value.predictedEndTranslation.height > 0 {
-                                        isPresenting = false
+                    .background(
+                        Color(uiColor: .secondarySystemBackground)
+                            .gesture(
+                                DragGesture(coordinateSpace: .global)
+                                    .updating($gestureTranslation) { value, state, _ in
+                                        state = value.translation.height > 0 ?
+                                            value.translation.height : -log10(abs(value.translation.height))
                                     }
-                                }
-                        )
-                )
-                .cornerRadius(12)
-                .offset(y: gestureTranslation)
-                .transition(.opacity)
+                                    .onEnded { value in
+                                        if value.translation.height > 0 || value.predictedEndTranslation.height > 0 {
+                                            isPresenting = false
+                                        }
+                                    }
+                            )
+                    )
+                    .cornerRadius(12)
+                    .offset(y: gestureTranslation)
+                    .transition(.opacity)
             }
 
             Spacer()
@@ -85,7 +89,7 @@ public extension View {
         isPresenting: Binding<Bool>,
         content: @escaping () -> some View
     ) -> some View {
-        self.overlay(
+        overlay(
             PopupView(
                 isPresenting: isPresenting,
                 content: content
@@ -97,7 +101,7 @@ public extension View {
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         @ViewBuilder content: @escaping (Store<State, Action>) -> some View
     ) -> some View {
-        self.modifier(
+        modifier(
             PopupViewModifier(
                 store: store,
                 state: { $0 },
@@ -107,13 +111,13 @@ public extension View {
         )
     }
 
-    func popupView<State: Equatable, Action, DestinationState, DestinationAction, Content: View>(
+    func popupView<State: Equatable, Action, DestinationState, DestinationAction>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         state toDestinationState: @escaping (State) -> DestinationState?,
         action fromDestinationAction: @escaping (DestinationAction) -> Action,
-        @ViewBuilder content: @escaping (Store<DestinationState, DestinationAction>) -> Content
+        @ViewBuilder content: @escaping (Store<DestinationState, DestinationAction>) -> some View
     ) -> some View {
-        self.modifier(
+        modifier(
             PopupViewModifier(
                 store: store,
                 state: toDestinationState,
@@ -123,6 +127,8 @@ public extension View {
         )
     }
 }
+
+// MARK: - PopupViewModifier
 
 private struct PopupViewModifier<
     State: Equatable,
@@ -156,7 +162,7 @@ private struct PopupViewModifier<
             isPresenting: .init(
                 get: { viewStore.wrappedValue.flatMap(toDestinationState) != nil },
                 set: { newValue in
-                    if viewStore.wrappedValue != nil && !newValue {
+                    if viewStore.wrappedValue != nil, !newValue {
                         viewStore.send(.dismiss)
                     }
                 }
@@ -164,14 +170,16 @@ private struct PopupViewModifier<
         ) {
             IfLetStore(
                 store.scope(
-                    state: { $0.wrappedValue.flatMap(self.toDestinationState) },
-                    action: { .presented(self.fromDestinationAction($0)) }
+                    state: { $0.wrappedValue.flatMap(toDestinationState) },
+                    action: { .presented(fromDestinationAction($0)) }
                 ),
                 then: sheetContent
             )
         }
     }
 }
+
+// MARK: - PopupView_Previews
 
 struct PopupView_Previews: PreviewProvider {
     static var previews: some View {

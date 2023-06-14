@@ -9,6 +9,8 @@
 import Foundation
 import SwiftUI
 
+// MARK: - SnapScroll
+
 public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T.Index == Int {
     @State
     var position: T.Index
@@ -88,8 +90,10 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
     }
 }
 
-extension SnapScroll {
-    public struct EdgeInsets {
+// MARK: SnapScroll.EdgeInsets
+
+public extension SnapScroll {
+    struct EdgeInsets {
         public let leading: CGFloat
         public let trailing: CGFloat
 
@@ -105,9 +109,11 @@ extension SnapScroll {
 
 extension SnapScroll.EdgeInsets {
     var horizontal: CGFloat {
-        self.leading + self.trailing
+        leading + trailing
     }
 }
+
+// MARK: - SnapScroll_Previews
 
 struct SnapScroll_Previews: PreviewProvider {
     static var previews: some View {

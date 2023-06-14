@@ -5,7 +5,7 @@ public struct MemoryModule {
     private let _vm: WasmInstance
 
     init() throws {
-        _vm = try .init(module: Self.wasm)
+        self._vm = try .init(module: Self.wasm)
     }
 
     func string(at byteOffset: Int, length: Int) throws -> String {
@@ -13,13 +13,13 @@ public struct MemoryModule {
     }
 
     func integers(at byteOffset: Int, length: Int) throws -> [Int] {
-        (try _vm.memory.values(byteOffset: byteOffset, length: length) as [Int32])
+        try (_vm.memory.values(byteOffset: byteOffset, length: length) as [Int32])
             .map(Int.init)
     }
 
     func asciiString(at byteOffset: Int, length: Int) throws -> String {
-        String(
-            try _vm.memory.bytes(byteOffset: byteOffset, length: length)
+        try String(
+            _vm.memory.bytes(byteOffset: byteOffset, length: length)
                 .map(UnicodeScalar.init)
                 .map(Character.init)
         )

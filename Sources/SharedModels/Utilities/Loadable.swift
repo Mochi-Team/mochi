@@ -8,6 +8,8 @@
 
 import Foundation
 
+// MARK: - Loadable
+
 public enum Loadable<T: Sendable>: Sendable {
     case pending
     case loading
@@ -17,14 +19,14 @@ public enum Loadable<T: Sendable>: Sendable {
     public init(catching body: @Sendable () async throws -> T) async {
         self = .loading
         do {
-            self = .loaded(try await body())
+            self = try await .loaded(body())
         } catch {
             self = .failed(error)
         }
     }
 
     @inlinable
-    public init<Failure>(_ result: Result<T, Failure>) {
+    public init(_ result: Result<T, some Any>) {
         switch result {
         case let .success(value):
             self = .loaded(value)
@@ -71,7 +73,7 @@ public enum Loadable<T: Sendable>: Sendable {
             return .pending
         case .loading:
             return .loading
-        case .loaded(let t):
+        case let .loaded(t):
             return .loaded(block(t))
         case let .failed(e):
             return .failed(e)
@@ -93,6 +95,8 @@ public enum Loadable<T: Sendable>: Sendable {
     }
 }
 
+// MARK: Hashable
+
 extension Loadable: Hashable where T: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {
@@ -112,6 +116,8 @@ extension Loadable: Hashable where T: Hashable {
     }
 }
 
+// MARK: Equatable
+
 extension Loadable: Equatable where T: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
@@ -128,7 +134,7 @@ extension Loadable: Equatable where T: Equatable {
 }
 
 private func _isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
-  (lhs as? any Equatable)?.isEqual(other: rhs) ?? false
+    (lhs as? any Equatable)?.isEqual(other: rhs) ?? false
 }
 
 private extension Equatable {

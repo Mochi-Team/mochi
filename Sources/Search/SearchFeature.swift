@@ -1,6 +1,6 @@
 //
 //  SearchFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/18/23.
 //  Copyright © 2023. All rights reserved.
@@ -104,7 +104,7 @@ public enum SearchFeature: Feature {
         @InsetValue(\.tabNavigation)
         var bottomNavInsetSize
 
-        nonisolated public init(store: FeatureStoreOf<SearchFeature>) {
+        public nonisolated init(store: FeatureStoreOf<SearchFeature>) {
             self.store = store
         }
     }

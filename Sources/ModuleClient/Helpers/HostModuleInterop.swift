@@ -24,6 +24,8 @@ typealias PtrRef = Int32
 ///
 typealias ReqRef = Int32
 
+// MARK: - PtrKind
+
 enum PtrKind: Int32 {
     case unknown
     case null
@@ -35,6 +37,8 @@ enum PtrKind: Int32 {
     case node
 }
 
+// MARK: - HTTPMethod
+
 enum HTTPMethod: Int32 {
     case get
     case post
@@ -42,6 +46,8 @@ enum HTTPMethod: Int32 {
     case patch
     case delete
 }
+
+// MARK: - HostModuleInterop
 
 /// This class allows testability of models memory/transformations.
 ///
@@ -70,10 +76,10 @@ struct HostModuleInterop<M: MemoryInstance> {
 
 extension HostModuleInterop {
     func handleErrorAlloc<R: WasmValue>(
-        func: String = #function,
+        func _: String = #function,
         _ callback: (inout [PtrRef: Any?]) throws -> R
     ) -> R {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             do {
                 return try callback(&alloc)
             } catch let error as SwiftSoup.Exception {

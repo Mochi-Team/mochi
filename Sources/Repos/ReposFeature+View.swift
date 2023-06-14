@@ -1,6 +1,6 @@
 //
 //  ReposFeature+View.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/18/23.
 //  Copyright © 2023. All rights reserved.
@@ -12,6 +12,8 @@ import SharedModels
 import Styling
 import SwiftUI
 import ViewComponents
+
+// MARK: - ReposFeature.View + View
 
 extension ReposFeature.View: View {
     @MainActor
@@ -260,6 +262,8 @@ extension ReposFeature.View {
         .padding(.vertical, 14)
     }
 }
+
+// MARK: - ReposFeatureView_Previews
 
 struct ReposFeatureView_Previews: PreviewProvider {
     static var previews: some View {

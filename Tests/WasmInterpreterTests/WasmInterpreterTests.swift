@@ -5,7 +5,7 @@ final class WasmInterpreterTests: XCTestCase {
     func testCallingTwoFunctionsWithSameImplementation() throws {
         let mod = try ConstantModule()
 
-        try (1 ... 10).forEach { XCTAssertEqual(65_536, try mod.constant(version: $0)) }
+        try (1...10).forEach { XCTAssertEqual(65_536, try mod.constant(version: $0)) }
 
         XCTAssertThrowsError(try mod.constant(version: 11)) { error in
             guard case let .wasm3Error(msg) = error as? WasmInstance.Error else {
@@ -99,7 +99,6 @@ final class WasmInterpreterTests: XCTestCase {
             guard case .memory(.invalidMemoryAccess) = wasmError else {
                 return XCTFail("unknown wasm error occured \(wasmError.localizedDescription)")
             }
-
         }
 
         // Ensure memory hasn't been modified

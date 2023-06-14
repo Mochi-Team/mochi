@@ -1,17 +1,20 @@
 //
 //  ExpandableText.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/23/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
 
+// MARK: - ExpandableText
+
 public struct ExpandableText: View {
     private let callback: () -> Void
-    @State private var truncated = false
+    @State
+    private var truncated = false
 
     private var lineLimit: Int?
 
@@ -32,9 +35,9 @@ public struct ExpandableText: View {
                         .background(
                             GeometryReader { visibleTextGeometry in
                                 ZStack {
-                                    Text(self.text)
+                                    Text(text)
                                         .readSize { size in
-                                            self.truncated = size.size.height > visibleTextGeometry.size.height
+                                            truncated = size.size.height > visibleTextGeometry.size.height
                                         }
                                 }
                                 .frame(height: .greatestFiniteMagnitude)

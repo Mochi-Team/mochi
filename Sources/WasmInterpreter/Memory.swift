@@ -1,16 +1,18 @@
 //
 //  File 2.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/5/23.
-//  
+//
 //
 
 import CWasm3
 import Foundation
 
-extension WasmInstance {
-    public final class Memory {
+// MARK: - WasmInstance.Memory
+
+public extension WasmInstance {
+    final class Memory {
         private let _runtime: IM3Runtime
 
         init(runtime: IM3Runtime) {
@@ -137,7 +139,7 @@ extension WasmInstance.Memory {
         let size: Int
 
         func isValid(byteOffset: Int, length: Int) -> Bool {
-            0 <= byteOffset + length && byteOffset + length <= size
+            byteOffset + length >= 0 && byteOffset + length <= size
         }
     }
 

@@ -1,6 +1,6 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/6/23.
 //  Copyright © 2023. All rights reserved.
@@ -8,6 +8,8 @@
 
 import Dependencies
 import Foundation
+
+// MARK: - UserDefaultsClient + DependencyKey
 
 extension UserDefaultsClient: DependencyKey {
     public static let liveValue = Self(
@@ -22,5 +24,7 @@ extension UserDefaultsClient: DependencyKey {
         remove: { UserDefaults.standard.removeObject(forKey: $0) }
     )
 }
+
+// MARK: - UserDefaults + Sendable
 
 extension UserDefaults: @unchecked Sendable {}

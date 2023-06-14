@@ -1,6 +1,6 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
@@ -112,7 +112,7 @@ extension RepoClient: DependencyKey {
                             self.id = id
                         }
 
-                        func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+                        func urlSession(_: URLSession, didCreateTask task: URLSessionTask) {
                             observation = task.observe(\.progress) { [weak self] _, changed in
                                 if !Task.isCancelled, let id = self?.id {
                                     moduleDownloadProgress.value[id] = .downloading(percent: changed.newValue?.fractionCompleted ?? 0.0)
@@ -173,7 +173,7 @@ extension RepoClient: DependencyKey {
                 try await databaseClient.insertOrUpdate(repo)
             }
 
-            if Self.selectedModule.value?.repoId == repoId && Self.selectedModule.value?.module.id == moduleId {
+            if Self.selectedModule.value?.repoId == repoId, Self.selectedModule.value?.module.id == moduleId {
                 Self.selectedModule.send(nil)
             }
         },

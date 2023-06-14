@@ -1,9 +1,9 @@
 //
 //  NSManagedObject.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import CoreData
@@ -40,7 +40,7 @@ extension NSManagedObject {
             throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
         }
 
-        self.encode(attribute.wrappedValue as? A.Value, forKey: key)
+        encode(attribute.wrappedValue as? A.Value, forKey: key)
     }
 
     func encode<R: OpaqueRelation>(_ relation: R) throws {
@@ -50,16 +50,16 @@ extension NSManagedObject {
 
         switch relation.relationType {
         case .toOne:
-            try self.encodeToOne(relation.wrappedValue as? R.DestinationEntity, forKey: key)
+            try encodeToOne(relation.wrappedValue as? R.DestinationEntity, forKey: key)
         case .toMany:
             if !relation.isOrdered {
-                try self.encodeToManyUnordered(
+                try encodeToManyUnordered(
                     R.DestinationEntity.self,
                     relation.wrappedValue as? Set<AnyHashable>,
                     forKey: key
                 )
             } else {
-                try self.encodeToManyOrdered(
+                try encodeToManyOrdered(
                     relation.wrappedValue as? [R.DestinationEntity],
                     forKey: key
                 )
@@ -79,21 +79,21 @@ extension NSManagedObject {
         defer { didChangeValue(forKey: key) }
 
         guard let entity else {
-            self.setValue(nil, forKey: key)
+            setValue(nil, forKey: key)
             return
         }
 
         if let entityManagedObjectId = entity.mainManagedObjectId {
             try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
             willChangeValue(forKey: key)
-       } else {
+        } else {
             let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
                 forEntityName: DestinationEntity.entityName,
                 into: managedObjectContext
             )
             try entity.copy(to: managedObject.objectID, context: managedObjectContext)
             willChangeValue(forKey: key)
-            self.setValue(managedObject, forKey: key)
+            setValue(managedObject, forKey: key)
         }
     }
 
@@ -105,7 +105,7 @@ extension NSManagedObject {
         defer { didChangeValue(forKey: key) }
 
         guard let array else {
-            self.setValue(nil, forKey: key)
+            setValue(nil, forKey: key)
             return
         }
 
@@ -115,17 +115,17 @@ extension NSManagedObject {
             if let entityManagedObjectId = entity.mainManagedObjectId {
                 try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
                 cocoaArray.add(managedObjectContext.object(with: entityManagedObjectId))
-           } else {
+            } else {
                 let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
                     forEntityName: DestinationEntity.entityName,
                     into: managedObjectContext
                 )
                 try entity.copy(to: managedObject.objectID, context: managedObjectContext)
-               cocoaArray.add(managedObject)
+                cocoaArray.add(managedObject)
             }
         }
 
-        self.setValue(cocoaArray, forKey: key)
+        setValue(cocoaArray, forKey: key)
     }
 
     func encodeToManyUnordered<DestinationEntity: OpaqueEntity>(
@@ -140,7 +140,7 @@ extension NSManagedObject {
         defer { didChangeValue(forKey: key) }
 
         guard let set else {
-            self.setValue(nil, forKey: key)
+            setValue(nil, forKey: key)
             return
         }
 
@@ -160,7 +160,7 @@ extension NSManagedObject {
             }
         }
 
-        self.setValue(cocoaSet, forKey: key)
+        setValue(cocoaSet, forKey: key)
     }
 
     func decode<A: OpaqueAttribute>(_ attribute: A) throws -> A.WrappedValue {
@@ -168,7 +168,7 @@ extension NSManagedObject {
             throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
         }
 
-        return try cast(try self.decode(A.Value.self, forKey: key), to: A.WrappedValue.self)
+        return try cast(decode(A.Value.self, forKey: key), to: A.WrappedValue.self)
     }
 
     func decode<R: OpaqueRelation>(_ relation: R) throws -> R.WrappedValue {
@@ -178,13 +178,13 @@ extension NSManagedObject {
 
         switch relation.relationType {
         case .toOne:
-            return try cast(try self.decodeToOne(R.DestinationEntity.self, forKey: key), to: R.WrappedValue.self)
+            return try cast(decodeToOne(R.DestinationEntity.self, forKey: key), to: R.WrappedValue.self)
         case .toMany:
             if relation.isOrdered {
-                return try cast(try self.decodeToManyOrdered(R.DestinationEntity.self, forKey: key), to: R.WrappedValue.self)
+                return try cast(decodeToManyOrdered(R.DestinationEntity.self, forKey: key), to: R.WrappedValue.self)
             } else {
                 return try cast(
-                    try self.decodeToManyUnordered(
+                    decodeToManyUnordered(
                         R.DestinationEntity.self,
                         forKey: key
                     ),
@@ -198,8 +198,8 @@ extension NSManagedObject {
         try? T.decode(self[primitiveValue: key])
     }
 
-    func decodeToOne<SomeEntity: OpaqueEntity>(_ entityType: SomeEntity.Type, forKey: String) throws -> SomeEntity? {
-        guard let managedObjectContext = managedObjectContext else {
+    func decodeToOne<SomeEntity: OpaqueEntity>(_: SomeEntity.Type, forKey: String) throws -> SomeEntity? {
+        guard let managedObjectContext else {
             throw Error.contextIsNotAvailable
         }
 
@@ -211,7 +211,7 @@ extension NSManagedObject {
         _: SomeEntity.Type,
         forKey key: String
     ) throws -> [SomeEntity]? {
-        guard let managedObjectContext = managedObjectContext else {
+        guard let managedObjectContext else {
             throw Error.contextIsNotAvailable
         }
 
@@ -227,7 +227,7 @@ extension NSManagedObject {
         _: SomeEntity.Type,
         forKey key: String
     ) throws -> Set<AnyHashable>? {
-        guard let managedObjectContext = managedObjectContext else {
+        guard let managedObjectContext else {
             throw Error.contextIsNotAvailable
         }
 

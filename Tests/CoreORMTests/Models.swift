@@ -1,13 +1,15 @@
 //
 //  CoreORM.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/19/23.
-//  
+//
 //
 
 import CoreORM
 import Foundation
+
+// MARK: - TestSchema
 
 struct TestSchema: Schema {
     @SchemaBuilder
@@ -16,6 +18,8 @@ struct TestSchema: Schema {
         Child.self
     }
 }
+
+// MARK: - Parent
 
 struct Parent: Entity {
     @Attribute
@@ -33,6 +37,8 @@ struct Parent: Entity {
 //        @Relation
 //        var children = [Child]()
 }
+
+// MARK: - Child
 
 struct Child: Entity {
     @Attribute

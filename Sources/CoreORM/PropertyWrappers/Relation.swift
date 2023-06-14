@@ -1,13 +1,15 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import CoreData
 import Foundation
+
+// MARK: - OpaqueRelation
 
 // swiftlint:disable type_name
 protocol OpaqueRelation: OpaqueProperty {
@@ -30,10 +32,14 @@ extension OpaqueRelation {
     }
 }
 
+// MARK: - _RelationType
+
 enum _RelationType {
     case toOne
     case toMany
 }
+
+// MARK: - Relation
 
 @propertyWrapper
 public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation {
@@ -149,13 +155,19 @@ public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation 
     }
 }
 
+// MARK: Sendable
+
 extension Relation: @unchecked Sendable where WrappedValue: Sendable {}
+
+// MARK: Equatable
 
 extension Relation: Equatable where WrappedValue: Equatable {
     public static func == (lhs: Relation<DestinationEntity, WrappedValue>, rhs: Relation<DestinationEntity, WrappedValue>) -> Bool {
         lhs.wrappedValue == rhs.wrappedValue
     }
 }
+
+// MARK: Hashable
 
 extension Relation: Hashable where WrappedValue: Hashable {
     public func hash(into hasher: inout Hasher) {

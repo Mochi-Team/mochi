@@ -1,6 +1,6 @@
 //
 //  SearchFeature+View.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/18/23.
 //  Copyright © 2023. All rights reserved.
@@ -13,6 +13,8 @@ import PlaylistDetails
 import Styling
 import SwiftUI
 import ViewComponents
+
+// MARK: - SearchFeature.View + View
 
 extension SearchFeature.View: View {
     @MainActor
@@ -137,8 +139,8 @@ extension SearchFeature.View: View {
                 case .playlistDetails:
                     CaseLet(
                         /SearchFeature.Screens.State.playlistDetails,
-                         action: SearchFeature.Screens.Action.playlistDetails,
-                         then: PlaylistDetailsFeature.View.init
+                        action: SearchFeature.Screens.Action.playlistDetails,
+                        then: PlaylistDetailsFeature.View.init
                     )
                 }
             }
@@ -153,6 +155,8 @@ extension SearchFeature.View: View {
         )
     }
 }
+
+// MARK: - SearchFeatureView_Previews
 
 struct SearchFeatureView_Previews: PreviewProvider {
     static var previews: some View {

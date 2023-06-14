@@ -1,6 +1,6 @@
 //
 //  Client.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/6/23.
 //  Copyright © 2023. All rights reserved.
@@ -9,6 +9,8 @@
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay
+
+// MARK: - UserDefaultsClient
 
 public struct UserDefaultsClient: Sendable {
     var doubleForKey: @Sendable (String) -> Double
@@ -24,6 +26,8 @@ public struct UserDefaultsClient: Sendable {
     var remove: @Sendable (String) async -> Void
 }
 
+// MARK: TestDependencyKey
+
 extension UserDefaultsClient: TestDependencyKey {
     public static let testValue = Self(
         doubleForKey: unimplemented("\(Self.self).doubleForKey is unimplemented."),
@@ -38,8 +42,8 @@ extension UserDefaultsClient: TestDependencyKey {
     )
 }
 
-extension DependencyValues {
-    public var userDefaults: UserDefaultsClient {
+public extension DependencyValues {
+    var userDefaults: UserDefaultsClient {
         get { self[UserDefaultsClient.self] }
         set { self[UserDefaultsClient.self] = newValue }
     }

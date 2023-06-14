@@ -1,6 +1,6 @@
 //
 //  ModuleListsFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/23/23.
 //  Copyright © 2023. All rights reserved.
@@ -60,7 +60,7 @@ public enum ModuleListsFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<ModuleListsFeature>
 
-        nonisolated public init(store: FeatureStoreOf<ModuleListsFeature>) {
+        public nonisolated init(store: FeatureStoreOf<ModuleListsFeature>) {
             self.store = store
         }
     }

@@ -1,14 +1,16 @@
 //
 //  Models.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/10/23.
-//  
+//
 //
 
 import Foundation
 import SharedModels
 import Tagged
+
+// MARK: - KVAccess
 
 protocol KVAccess {}
 
@@ -28,17 +30,35 @@ extension KVAccess {
     }
 }
 
+// MARK: - OpaqueTagged
+
 private protocol OpaqueTagged {
     associatedtype RawValue
     var rawValue: RawValue { get }
 }
 
+// MARK: - Tagged + OpaqueTagged
+
 extension Tagged: OpaqueTagged {}
 
+// MARK: - SearchQuery + KVAccess
+
 extension SearchQuery: KVAccess {}
+
+// MARK: - SearchQuery.Filter + KVAccess
+
 extension SearchQuery.Filter: KVAccess {}
+
+// MARK: - Playlist.ItemsRequest + KVAccess
+
 extension Playlist.ItemsRequest: KVAccess {}
+
+// MARK: - Playlist.EpisodeSourcesRequest + KVAccess
+
 extension Playlist.EpisodeSourcesRequest: KVAccess {}
+
+// MARK: - Playlist.EpisodeServerRequest + KVAccess
+
 extension Playlist.EpisodeServerRequest: KVAccess {}
 
 extension Paging {

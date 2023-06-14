@@ -1,15 +1,15 @@
 //
 //  Attrribute.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/3/23.
-//  
+//
 //
 
 import CoreData
 import Foundation
 
-// MARK: - AttributeError
+// MARK: - ConvertableValueError
 
 enum ConvertableValueError: Swift.Error {
     case failedToDecode(for: String, model: String)
@@ -72,25 +72,25 @@ public extension RawRepresentable where RawValue: TransformableValue {
     }
 }
 
-// MARK: - Int + PrimitiveType, ConvertableValue
+// MARK: - Int + PrimitiveType, TransformableValue
 
 extension Int: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .integer64AttributeType }
 }
 
-// MARK: - Int16 + PrimitiveType, ConvertableValue
+// MARK: - Int16 + PrimitiveType, TransformableValue
 
 extension Int16: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .integer16AttributeType }
 }
 
-// MARK: - Int32 + PrimitiveType, ConvertableValue
+// MARK: - Int32 + PrimitiveType, TransformableValue
 
 extension Int32: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .integer32AttributeType }
 }
 
-// MARK: - Int64 + PrimitiveType, ConvertableValue
+// MARK: - Int64 + PrimitiveType, TransformableValue
 
 extension Int64: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .integer64AttributeType }
@@ -104,53 +104,55 @@ extension Float16: PrimitiveType, TransformableValue {
 }
 #endif
 
+// MARK: - Float32 + PrimitiveType, TransformableValue
+
 extension Float32: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .floatAttributeType }
 }
 
-// MARK: - Double + PrimitiveType, ConvertableValue
+// MARK: - Double + PrimitiveType, TransformableValue
 
 extension Double: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .doubleAttributeType }
 }
 
-// MARK: - Decimal + PrimitiveType, ConvertableValue
+// MARK: - Decimal + PrimitiveType, TransformableValue
 
 extension Decimal: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .decimalAttributeType }
 }
 
-// MARK: - Bool + PrimitiveType, ConvertableValue
+// MARK: - Bool + PrimitiveType, TransformableValue
 
 extension Bool: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .booleanAttributeType }
 }
 
-// MARK: - Date + PrimitiveType, ConvertableValue
+// MARK: - Date + PrimitiveType, TransformableValue
 
 extension Date: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .dateAttributeType }
 }
 
-// MARK: - String + PrimitiveType, ConvertableValue
+// MARK: - String + PrimitiveType, TransformableValue
 
 extension String: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .stringAttributeType }
 }
 
-// MARK: - Data + PrimitiveType, ConvertableValue
+// MARK: - Data + PrimitiveType, TransformableValue
 
 extension Data: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .binaryDataAttributeType }
 }
 
-// MARK: - UUID + PrimitiveType, ConvertableValue
+// MARK: - UUID + PrimitiveType, TransformableValue
 
 extension UUID: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .UUIDAttributeType }
 }
 
-// MARK: - URL + PrimitiveType, ConvertableValue
+// MARK: - URL + PrimitiveType, TransformableValue
 
 extension URL: PrimitiveType, TransformableValue {
     public static var attributeType: NSAttributeType { .URIAttributeType }

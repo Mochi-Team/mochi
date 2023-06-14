@@ -1,9 +1,9 @@
 //
 //  HostModuleInterop+Structs.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/9/23.
-//  
+//
 //
 
 import Foundation
@@ -19,7 +19,7 @@ extension HostModuleInterop {
         name_ptr: RawPtr,
         name_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let optionIdStr = try memory.string(
                 byteOffset: Int(option_id_ptr),
                 length: Int(option_id_len)
@@ -48,7 +48,7 @@ extension HostModuleInterop {
         multiselect: Int32,
         required: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let idStr = try memory.string(
                 byteOffset: Int(id_ptr),
                 length: Int(id_len)
@@ -119,7 +119,7 @@ extension HostModuleInterop {
         listing_type: RawPtr,
         paging_ptr: PtrRef
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let title: String = try memory.string(
                 byteOffset: .init(title_ptr),
                 length: .init(title_len)
@@ -204,7 +204,7 @@ extension HostModuleInterop {
             )
 
             let alternativeTitles = (alloc[alternative_titles_ptr] as? [Any?])?
-                .compactMap { $0 as? String  }
+                .compactMap { $0 as? String }
 
             let alternativePosters = (alloc[alternative_posters_ptr] as? [Any?])?
                 .compactMap { $0 as? String }

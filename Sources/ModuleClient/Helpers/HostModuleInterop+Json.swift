@@ -1,9 +1,9 @@
 //
 //  HostModuleInterop+Json.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/9/23.
-//  
+//
 //
 
 import Foundation
@@ -12,7 +12,7 @@ import Foundation
 
 extension HostModuleInterop {
     func json_parse(buf_ptr: RawPtr, buf_len: Int32) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let jsonData = try memory.data(
                 byteOffset: Int(buf_ptr),
                 length: Int(buf_len)

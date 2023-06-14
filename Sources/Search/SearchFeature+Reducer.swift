@@ -1,6 +1,6 @@
 //
 //  SearchFeature+Reducer.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/18/23.
 //  Copyright © 2023. All rights reserved.

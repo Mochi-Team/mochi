@@ -15,6 +15,7 @@
 --fractiongrouping disabled
 --funcattributes prev-line
 --generictypes
+--guardelse same-line
 --hexgrouping 4,8
 --hexliteralcase uppercase
 --ifdef no-indent

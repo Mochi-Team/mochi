@@ -1,12 +1,14 @@
 //
 //  Models.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/26/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - PlayerClient.Status
 
 public extension PlayerClient {
     enum Status: Equatable, Sendable {
@@ -18,6 +20,8 @@ public extension PlayerClient {
         case error
     }
 }
+
+// MARK: - PlayerClient.Status.Playback
 
 public extension PlayerClient.Status {
     enum Playback: Equatable, Sendable {

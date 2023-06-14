@@ -8,8 +8,7 @@ enum NativeFunction {
         from stack: UnsafeMutablePointer<UInt64>?,
         at index: Int
     ) throws -> Arg {
-        guard let stack = UnsafeMutableRawPointer(stack)
-        else {
+        guard let stack = UnsafeMutableRawPointer(stack) else {
             throw WasmInstance.Error.functions(.invalidStackPointer)
         }
         guard isValidWasmType(Arg.self) else {

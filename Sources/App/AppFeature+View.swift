@@ -1,9 +1,9 @@
 //
 //  AppFeature+View.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/6/23.
-//  
+//
 //
 
 import Architecture
@@ -18,6 +18,8 @@ import Styling
 import SwiftUI
 import VideoPlayer
 import ViewComponents
+
+// MARK: - AppFeature.View + View
 
 extension AppFeature.View: View {
     @MainActor
@@ -139,6 +141,8 @@ extension AppFeature.View {
         }
     }
 }
+
+// MARK: - AppFeatureView_Previews
 
 struct AppFeatureView_Previews: PreviewProvider {
     static var previews: some View {

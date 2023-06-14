@@ -1,13 +1,15 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/12/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - SwipeToDismissModifier
 
 @MainActor
 public struct SwipeToDismissModifier: ViewModifier {
@@ -54,7 +56,7 @@ public struct SwipeToDismissModifier: ViewModifier {
             )
             .onChange(of: isDragActive) { newValue in
                 /// Handles cancelled gestures
-                if !newValue && offset != .zero && !didDismiss {
+                if !newValue, offset != .zero, !didDismiss {
                     offset = .zero
                 }
             }
@@ -64,6 +66,6 @@ public struct SwipeToDismissModifier: ViewModifier {
 public extension View {
     @MainActor
     func screenDismissed(_ onDismiss: @escaping () -> Void) -> some View {
-        self.modifier(SwipeToDismissModifier(onDismiss: onDismiss))
+        modifier(SwipeToDismissModifier(onDismiss: onDismiss))
     }
 }

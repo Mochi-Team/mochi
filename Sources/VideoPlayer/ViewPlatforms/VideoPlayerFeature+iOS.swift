@@ -1,6 +1,6 @@
 //
 //  VideoPlayerFeature+iOS.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/26/23.
 //  Copyright © 2023. All rights reserved.
@@ -125,8 +125,7 @@ extension VideoPlayerFeature.View {
                 }
             }
 
-            Button {
-            } label: {
+            Button {} label: {
                 Image(systemName: "airplayvideo")
                     .foregroundColor(.white)
                     .frame(width: 28, height: 28)
@@ -296,8 +295,8 @@ extension VideoPlayerFeature.View {
                 Group {
                     if canUseControls {
                         Text(viewStore.progress.displayTime ?? "00:00") +
-                        Text(" / ") +
-                        Text(viewStore.duration.displayTime ?? "--.--")
+                            Text(" / ") +
+                            Text(viewStore.duration.displayTime ?? "--.--")
                     } else {
                         Text("--.-- / --.--")
                     }
@@ -671,7 +670,7 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
                     repoModuleID: .init(
                         repoId: .init(
                             .init(string: "/")
-                            .unsafelyUnwrapped
+                                .unsafelyUnwrapped
                         ),
                         moduleId: ""
                     ),

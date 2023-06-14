@@ -1,6 +1,6 @@
 //
 //  PlaylistDetailsFeature+Reducer.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/19/23.
 //  Copyright © 2023. All rights reserved.
@@ -15,6 +15,8 @@ import ModuleClient
 import RepoClient
 import SharedModels
 import Tagged
+
+// MARK: - PlaylistDetailsFeature.Reducer + Reducer
 
 extension PlaylistDetailsFeature.Reducer: Reducer {
     enum Cancellables: Hashable, CaseIterable {
@@ -94,11 +96,11 @@ extension PlaylistDetailsFeature.State {
 
         var effects = [Effect<PlaylistDetailsFeature.Action>]()
 
-        let playlistId = self.playlist.id
-        let repoModuleId = self.repoModuleId
+        let playlistId = playlist.id
+        let repoModuleId = repoModuleId
 
-        if forced || !self.details.hasInitialized {
-            self.details = .loading
+        if forced || !details.hasInitialized {
+            details = .loading
 
             effects.append(
                 .run { send in
@@ -120,8 +122,8 @@ extension PlaylistDetailsFeature.State {
             )
         }
 
-        if forced || !self.contents.hasInitialized {
-            self.contents = .loading
+        if forced || !contents.hasInitialized {
+            contents = .loading
 
             effects.append(
                 .run { send in
@@ -147,8 +149,10 @@ extension PlaylistDetailsFeature.State {
     }
 }
 
-extension PlaylistDetailsFeature.State {
-    public struct PlaylistContents: Equatable, Sendable {
+// MARK: - PlaylistDetailsFeature.State.PlaylistContents
+
+public extension PlaylistDetailsFeature.State {
+    struct PlaylistContents: Equatable, Sendable {
         public typealias LoadableResponse = Loadable<Playlist.Group.Content>
 
         public var loadables = [Playlist.Group.ID: LoadableResponse]()
@@ -164,8 +168,8 @@ extension PlaylistDetailsFeature.State {
         }
 
         public init(_ response: Playlist.ItemsResponse) {
-            allGroups = response.allGroups
-            selectedGroupId = response.content.groupId
+            self.allGroups = response.allGroups
+            self.selectedGroupId = response.content.groupId
             loadables[response.content.groupId] = .loaded(response.content)
         }
 

@@ -204,7 +204,7 @@ let clientsTargets: [Target] = [
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
-    ),
+    )
 ]
 
 let clientsProducts: [Product] = clientsTargets
@@ -223,7 +223,7 @@ let miscTargets: [Target] = [
         name: "Architecture",
         dependencies: [
             "FoundationHelpers",
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
     ),
     .target(
@@ -267,10 +267,10 @@ let miscTargets: [Target] = [
     .target(
         name: "WasmInterpreter",
         dependencies: [
-            "CWasm3",
+            "CWasm3"
         ],
         cSettings: [
-            .define("APPLICATION_EXTENSION_API_ONLY", to: "YES"),
+            .define("APPLICATION_EXTENSION_API_ONLY", to: "YES")
         ]
     ),
     .binaryTarget(
@@ -291,7 +291,7 @@ let miscTargets: [Target] = [
             "Resources/imported-add.wat",
             "Resources/imported-add.wasm",
             "Resources/add.wat",
-            "Resources/add.wasm",
+            "Resources/add.wasm"
         ]
     )
 ]

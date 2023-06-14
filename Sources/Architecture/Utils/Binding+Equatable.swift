@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/20/23.
-//  
+//
 //
 
 import Foundation
@@ -22,6 +22,6 @@ public extension Binding where Value: Equatable {
     }
 
     func removeDuplicates() -> Binding<Value> {
-        self.removeDuplicates(by: ==)
+        removeDuplicates(by: ==)
     }
 }

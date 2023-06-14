@@ -1,15 +1,17 @@
 //
 //  Instance+Error.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/3/23.
-//  
+//
 //
 
 import Foundation
 
-extension WasmInstance {
-    public enum Error: Swift.Error, Equatable, Sendable {
+// MARK: - WasmInstance.Error
+
+public extension WasmInstance {
+    enum Error: Swift.Error, Equatable, Sendable {
         case environment(EnvironmentError)
         case runtime(RuntimeError)
         case module(ModuleRuntime)

@@ -1,9 +1,9 @@
 //
 //  AppFeature.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/6/23.
-//  
+//
 //
 
 import Architecture
@@ -68,9 +68,9 @@ public enum AppFeature: Feature {
                 case .discover:
                     return "doc.text.image.fill"
                 case .repos:
-                    return self.image
+                    return image
                 case .search:
-                    return self.image
+                    return image
                 case .settings:
                     return "gearshape.fill"
                 }
@@ -117,7 +117,7 @@ public enum AppFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<AppFeature>
 
-        nonisolated public init(store: FeatureStoreOf<AppFeature>) {
+        public nonisolated init(store: FeatureStoreOf<AppFeature>) {
             self.store = store
         }
     }
@@ -129,6 +129,6 @@ public enum AppFeature: Feature {
         @Dependency(\.databaseClient)
         var databaseClient
 
-        public init() { }
+        public init() {}
     }
 }

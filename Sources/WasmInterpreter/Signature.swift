@@ -1,19 +1,21 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Signature
 
 enum Signature {
     static func generate(
         args: WasmValueType...,
         ret: WasmValueType? = nil
     ) -> String {
-        self.generate(args: args, ret: ret)
+        generate(args: args, ret: ret)
     }
 
     static func generate(

@@ -1,6 +1,6 @@
 //
 //  ReposFeature+Reducer.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/18/23.
 //  Copyright © 2023. All rights reserved.
@@ -97,7 +97,7 @@ extension ReposFeature.Reducer: Reducer {
                 }
 
                 return .run {
-                   await repoClient.addModule(repoId, manifest)
+                    await repoClient.addModule(repoId, manifest)
                 }
 
             case let .view(.didTapRemoveModule(repoId, moduleId)):
@@ -163,7 +163,7 @@ extension ReposFeature.Reducer: Reducer {
                             await fetchRepoModules(
                                 repo,
                                 send,
-                                alreadyRequested: state.repoModules[repo.id].flatMap { $0.hasInitialized } ?? false,
+                                alreadyRequested: state.repoModules[repo.id].map(\.hasInitialized) ?? false,
                                 forced: forced
                             )
                         }

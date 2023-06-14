@@ -1,6 +1,6 @@
 //
 //  PlaylistDetailsFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/19/23.
 //  Copyright © 2023. All rights reserved.
@@ -100,7 +100,7 @@ public enum PlaylistDetailsFeature: Feature {
         @SwiftUI.State
         var imageDominatColor: Color?
 
-        nonisolated public init(store: FeatureStoreOf<PlaylistDetailsFeature>) {
+        public nonisolated init(store: FeatureStoreOf<PlaylistDetailsFeature>) {
             self.store = store
         }
     }

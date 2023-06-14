@@ -1,6 +1,6 @@
 //
 //  Client.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
@@ -13,8 +13,9 @@ import SharedModels
 import Tagged
 import XCTestDynamicOverlay
 
-public struct RepoClient: Sendable {
+// MARK: - RepoClient
 
+public struct RepoClient: Sendable {
     /// Shared select module
     ///
     /// Module must be installed in order to select it
@@ -76,6 +77,8 @@ public struct RepoClient: Sendable {
     public let modules: @Sendable (Repo.ID) -> AsyncStream<Set<Module>>
 }
 
+// MARK: TestDependencyKey
+
 extension RepoClient: TestDependencyKey {
     public static let testValue = Self(
         selectModule: unimplemented("\(Self.self).selectModule"),
@@ -93,8 +96,8 @@ extension RepoClient: TestDependencyKey {
     )
 }
 
-extension DependencyValues {
-    public var repoClient: RepoClient {
+public extension DependencyValues {
+    var repoClient: RepoClient {
         get { self[RepoClient.self] }
         set { self[RepoClient.self] = newValue }
     }

@@ -1,12 +1,14 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/18/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Paging
 
 public struct Paging<T> {
     public init(
@@ -24,5 +26,10 @@ public struct Paging<T> {
     public let nextPage: String?
 }
 
+// MARK: Equatable
+
 extension Paging: Equatable where T: Equatable {}
+
+// MARK: Sendable
+
 extension Paging: Sendable where T: Sendable {}

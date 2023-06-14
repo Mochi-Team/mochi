@@ -1,6 +1,6 @@
 //
 //  Client.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/30/23.
 //  Copyright © 2023. All rights reserved.
@@ -11,14 +11,16 @@ import Foundation
 import OSLog
 import XCTestDynamicOverlay
 
+// MARK: - LoggerClientKey
+
 public struct LoggerClientKey: DependencyKey {
     public static var previewValue = Logger(category: "preview")
     public static var liveValue = Logger()
     public static let testValue = Logger()
 }
 
-extension DependencyValues {
-    public var logger: Logger {
+public extension DependencyValues {
+    var logger: Logger {
         get { self[LoggerClientKey.self] }
         set { self[LoggerClientKey.self] = newValue }
     }

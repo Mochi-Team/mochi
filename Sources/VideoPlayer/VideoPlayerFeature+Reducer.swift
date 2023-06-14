@@ -1,6 +1,6 @@
 //
 //  VideoPlayerFeature+Reducer.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/26/23.
 //  Copyright © 2023. All rights reserved.
@@ -13,11 +13,15 @@ import ModuleClient
 import PlayerClient
 import SharedModels
 
+// MARK: - Cancellables
+
 private enum Cancellables: Hashable, CaseIterable {
     case fetchingContents
     case fetchingSources
     case fetchingServer
 }
+
+// MARK: - VideoPlayerFeature.Reducer + Reducer
 
 extension VideoPlayerFeature.Reducer: Reducer {
     public var body: some ReducerOf<Self> {
@@ -121,19 +125,19 @@ public extension VideoPlayerFeature.State {
 
         if repoModuleID != self.repoModuleID ||
             playlist.id != self.playlist.id ||
-            groupId != self.selected.groupId ||
+            groupId != selected.groupId ||
             episodeId != selected.episodeId {
             self.repoModuleID = repoModuleID
             self.playlist = playlist
-            self.selected.groupId = groupId
-            self.selected.episodeId = episodeId
-            self.selected.serverId = nil
-            self.selected.linkId = nil
-            self.selected.sourceId = nil
-            self.contents.allGroups = .pending
-            self.contents.groups.removeAll()
-            self.contents.serverLinks.removeAll()
-            self.contents.sources.removeAll()
+            selected.groupId = groupId
+            selected.episodeId = episodeId
+            selected.serverId = nil
+            selected.linkId = nil
+            selected.sourceId = nil
+            contents.allGroups = .pending
+            contents.groups.removeAll()
+            contents.serverLinks.removeAll()
+            contents.sources.removeAll()
             return .merge(
                 .run { await playerClient.clear() },
                 fetchGroupsWithContentIfNecessary()
@@ -234,7 +238,7 @@ public extension VideoPlayerFeature.State {
         let groupId = selected.groupId
 
         if forced || !contents[groupId: groupId].hasInitialized {
-            self.contents.update(with: groupId, response: .loading)
+            contents.update(with: groupId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingContents, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
@@ -253,7 +257,7 @@ public extension VideoPlayerFeature.State {
             }
         }
 
-        return self.fetchSourcesIfNecessary()
+        return fetchSourcesIfNecessary()
     }
 
     mutating func fetchSourcesIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
@@ -265,7 +269,7 @@ public extension VideoPlayerFeature.State {
         let episodeId = selected.episodeId
 
         if forced || !contents[episodeId: episodeId].hasInitialized {
-            self.contents.update(with: episodeId, response: .loading)
+            contents.update(with: episodeId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingSources, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
@@ -284,7 +288,7 @@ public extension VideoPlayerFeature.State {
             }
         }
 
-        return self.fetchServerIfNecessary()
+        return fetchServerIfNecessary()
     }
 
     mutating func fetchServerIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {

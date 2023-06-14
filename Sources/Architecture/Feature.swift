@@ -11,9 +11,15 @@ import Foundation
 @_exported import FoundationHelpers
 import SwiftUI
 
+// MARK: - SendableAction
+
 public protocol SendableAction: Equatable, Sendable {}
 
+// MARK: - FeatureState
+
 public protocol FeatureState: Equatable, Sendable {}
+
+// MARK: - FeatureAction
 
 public protocol FeatureAction: Equatable, Sendable {
     associatedtype ViewAction: SendableAction
@@ -35,6 +41,8 @@ public protocol FeatureAction: Equatable, Sendable {
     static func `internal`(_: InternalAction) -> Self
 }
 
+// MARK: - FeatureView
+
 public protocol FeatureView: View {
     associatedtype State: FeatureState
     associatedtype Action: FeatureAction
@@ -43,12 +51,16 @@ public protocol FeatureView: View {
     init(store: Store<State, Action>)
 }
 
+// MARK: - FeatureReducer
+
 public protocol FeatureReducer: Reducer {
     associatedtype State
     associatedtype Action
 
     init()
 }
+
+// MARK: - Feature
 
 public protocol Feature {
     associatedtype State: FeatureState

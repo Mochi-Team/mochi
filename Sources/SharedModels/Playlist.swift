@@ -1,13 +1,15 @@
 //
 //  Playlist.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/29/23.
-//  
+//
 //
 
 import Foundation
 import Tagged
+
+// MARK: - Playlist
 
 public struct Playlist: Sendable, Identifiable, Equatable {
     public let id: Tagged<Self, String>
@@ -39,8 +41,10 @@ public struct Playlist: Sendable, Identifiable, Equatable {
     }
 }
 
-extension Playlist {
-    public struct Details: Sendable, Equatable {
+// MARK: Playlist.Details
+
+public extension Playlist {
+    struct Details: Sendable, Equatable {
         public let contentDescription: String?
         public let alternativeTitles: [String]
         public let alternativePosters: [URL]
@@ -72,8 +76,10 @@ extension Playlist {
     }
 }
 
-extension Playlist {
-    public struct Item: Sendable, Equatable, Identifiable {
+// MARK: Playlist.Item
+
+public extension Playlist {
+    struct Item: Sendable, Equatable, Identifiable {
         public let id: Tagged<Self, String>
         public let title: String?
         public let description: String?
@@ -102,8 +108,10 @@ extension Playlist {
     }
 }
 
-extension Playlist {
-    public struct Preview: Sendable, Equatable {
+// MARK: Playlist.Preview
+
+public extension Playlist {
+    struct Preview: Sendable, Equatable {
         public let title: String?
         public let description: String?
         public let thumbnail: URL?
@@ -131,8 +139,8 @@ extension Playlist {
     }
 }
 
-extension Playlist {
-    public struct ItemsRequest {
+public extension Playlist {
+    struct ItemsRequest {
         public let playlistId: Playlist.ID
         public let playlistItemNumber: Double?
         public let playlistItemGroup: Playlist.Group.ID?
@@ -148,7 +156,7 @@ extension Playlist {
         }
     }
 
-    public struct ItemsResponse: Equatable, Sendable {
+    struct ItemsResponse: Equatable, Sendable {
         public let content: Group.Content
         public let allGroups: [Group]
 
@@ -161,7 +169,7 @@ extension Playlist {
         }
     }
 
-    public struct Group: Sendable, Hashable, Identifiable {
+    struct Group: Sendable, Hashable, Identifiable {
         public let id: Tagged<Self, Double>
         public let displayTitle: String?
 

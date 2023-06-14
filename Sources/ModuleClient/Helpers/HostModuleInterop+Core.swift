@@ -1,9 +1,9 @@
 //
 //  HostModuleInterop+Core.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/9/23.
-//  
+//
 //
 
 import Foundation
@@ -21,7 +21,7 @@ extension HostModuleInterop {
     }
 
     func copy(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -34,23 +34,23 @@ extension HostModuleInterop {
     }
 
     func destroy(ptr: PtrRef) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc[ptr] = nil
         }
     }
 
     func create_array() -> PtrRef {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc.add([AnyHashable?]())
         }
     }
 
     func create_obj() -> PtrRef {
-        self.hostAllocations.withValue { $0.add([AnyHashable: AnyHashable]()) }
+        hostAllocations.withValue { $0.add([AnyHashable: AnyHashable]()) }
     }
 
     func create_string(buf_ptr: RawPtr, buf_len: Int32) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let string = try memory.string(
                 byteOffset: Int(buf_ptr),
                 length: Int(buf_len)
@@ -61,31 +61,31 @@ extension HostModuleInterop {
     }
 
     func create_bool(value: Int32) -> PtrRef {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc.add(value != 0)
         }
     }
 
     func create_float(value: Float64) -> PtrRef {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc.add(Float(value))
         }
     }
 
     func create_int(value: Int64) -> PtrRef {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc.add(Int(value))
         }
     }
 
     func create_error() -> PtrRef {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             alloc.addError(.unknown())
         }
     }
 
     func ptr_kind(ptr: PtrRef) -> Int32 {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0 else {
                 return PtrKind.null.rawValue
             }
@@ -112,7 +112,7 @@ extension HostModuleInterop {
     }
 
     func string_len(ptr: PtrRef) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -130,7 +130,7 @@ extension HostModuleInterop {
     }
 
     func read_string(ptr: PtrRef, buf_ptr: RawPtr, len: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, len >= 0 else {
                 return
             }
@@ -147,7 +147,7 @@ extension HostModuleInterop {
     }
 
     func read_int(ptr: PtrRef) -> Int64 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return Int64(ptr)
             }
@@ -173,7 +173,7 @@ extension HostModuleInterop {
     }
 
     func read_float(ptr: PtrRef) -> Float64 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return .init(ptr)
             }
@@ -199,7 +199,7 @@ extension HostModuleInterop {
     }
 
     func read_bool(ptr: PtrRef) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0, let value = alloc[ptr] else {
                 return 0
             }
@@ -216,7 +216,7 @@ extension HostModuleInterop {
     }
 
     func obj_len(ptr: PtrRef) -> Int32 {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, let obj = alloc[ptr] else {
                 return 0
             }
@@ -226,7 +226,7 @@ extension HostModuleInterop {
     }
 
     func obj_get(ptr: PtrRef, key_ptr: RawPtr, key_len: Int32) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -251,7 +251,7 @@ extension HostModuleInterop {
     }
 
     func obj_set(ptr: PtrRef, key_ptr: RawPtr, key_len: Int32, value_ptr: PtrRef) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, var obj = alloc[ptr] as? [String: Any?] else {
                 return
             }
@@ -273,7 +273,7 @@ extension HostModuleInterop {
     }
 
     func obj_remove(ptr: PtrRef, key_ptr: RawPtr, key_len: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, var obj = alloc[ptr] as? [String: Any?] else {
                 return
             }
@@ -291,7 +291,7 @@ extension HostModuleInterop {
     }
 
     func obj_keys(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -309,7 +309,7 @@ extension HostModuleInterop {
     }
 
     func obj_values(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -327,7 +327,7 @@ extension HostModuleInterop {
     }
 
     func array_len(ptr: PtrRef) -> Int32 {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, let array = alloc[ptr] as? [Any?] else {
                 return 0
             }
@@ -337,7 +337,7 @@ extension HostModuleInterop {
     }
 
     func array_get(ptr: PtrRef, idx: Int32) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -363,7 +363,7 @@ extension HostModuleInterop {
     }
 
     func array_set(ptr: PtrRef, idx: Int32, value_ptr: PtrRef) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, idx >= 0, value_ptr >= 0 else {
                 return
             }
@@ -384,7 +384,7 @@ extension HostModuleInterop {
     }
 
     func array_append(ptr: PtrRef, value_ptr: PtrRef) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, value_ptr >= 0 else {
                 return
             }
@@ -403,7 +403,7 @@ extension HostModuleInterop {
     }
 
     func array_remove(ptr: PtrRef, idx: Int32) {
-        self.hostAllocations.withValue { alloc in
+        hostAllocations.withValue { alloc in
             guard ptr >= 0, idx >= 0 else {
                 return
             }

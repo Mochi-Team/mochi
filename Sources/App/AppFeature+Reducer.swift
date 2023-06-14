@@ -1,9 +1,9 @@
 //
 //  AppFeature+Reducer.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/6/23.
-//  
+//
 //
 
 import Architecture
@@ -16,9 +16,9 @@ import Search
 import Settings
 import VideoPlayer
 
-extension AppFeature.Reducer {
+public extension AppFeature.Reducer {
     @ReducerBuilder<State, Action>
-    public var body: some ReducerOf<Self> {
+    var body: some ReducerOf<Self> {
         Scope(state: \.settings.userSettings, action: /Action.InternalAction.appDelegate) {
             AppDelegateFeature.Reducer()
         }
@@ -35,7 +35,7 @@ extension AppFeature.Reducer {
                 break
 
             case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))),
-                let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
+                 let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
                 let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
                     repoModuleID: repoModuleID,
                     playlist: playlist,

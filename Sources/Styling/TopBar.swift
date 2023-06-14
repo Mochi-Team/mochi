@@ -1,20 +1,24 @@
 //
 //  TopBar.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/25/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
 import ViewComponents
 
+// MARK: - TopBarBackgroundStyle
+
 public enum TopBarBackgroundStyle {
     case system
     case blurred
     case clear
 }
+
+// MARK: - TopBarView
 
 public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
     public init(
@@ -91,8 +95,8 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
     }
 }
 
-extension TopBarView {
-    public init(
+public extension TopBarView {
+    init(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil
@@ -104,7 +108,7 @@ extension TopBarView {
         }
     }
 
-    public init(
+    init(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
@@ -117,7 +121,7 @@ extension TopBarView {
         }
     }
 
-    public init(
+    init(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
@@ -132,14 +136,14 @@ extension TopBarView {
 }
 
 public extension View {
-    func topBar<TrailingAccessory: View, BottomAccessory: View>(
+    func topBar(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
-        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
-        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
+        @ViewBuilder trailingAccessory: @escaping () -> some View,
+        @ViewBuilder bottomAccessory: @escaping () -> some View
     ) -> some View {
-        self.safeAreaInset(edge: .top) {
+        safeAreaInset(edge: .top) {
             TopBarView(
                 title: title,
                 backgroundStyle: backgroundStyle,
@@ -156,31 +160,31 @@ public extension View {
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil
     ) -> some View {
-        self.topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
+        topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             EmptyView()
         } bottomAccessory: {
             EmptyView()
         }
     }
 
-    func topBar<TrailingAccessory: View>(
+    func topBar(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
-        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
+        @ViewBuilder trailingAccessory: @escaping () -> some View
     ) -> some View {
-        self.topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback, trailingAccessory: trailingAccessory) {
+        topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback, trailingAccessory: trailingAccessory) {
             EmptyView()
         }
     }
 
-    func topBar<BottomAccessory: View>(
+    func topBar(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
-        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
+        @ViewBuilder bottomAccessory: @escaping () -> some View
     ) -> some View {
-        self.topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
+        topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             EmptyView()
         } bottomAccessory: {
             bottomAccessory()
@@ -192,10 +196,13 @@ public extension ButtonStyle where Self == MaterialToolbarImageButtonStyle {
     static var materialToolbarImage: MaterialToolbarImageButtonStyle { .init() }
 }
 
+// MARK: - MaterialToolbarImageButtonStyle
+
 public struct MaterialToolbarImageButtonStyle: ButtonStyle {
     public init() {}
 
-    @ScaledMetric var size = 28.0
+    @ScaledMetric
+    var size = 28.0
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration
@@ -212,6 +219,8 @@ public struct MaterialToolbarImageButtonStyle: ButtonStyle {
 public extension MenuStyle where Self == MaterialToolbarButtonMenuStyle {
     static var materialToolbarImage: MaterialToolbarButtonMenuStyle { .init() }
 }
+
+// MARK: - MaterialToolbarButtonMenuStyle
 
 public struct MaterialToolbarButtonMenuStyle: MenuStyle {
     public init() {}

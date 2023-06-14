@@ -1,21 +1,23 @@
 //
 //  Reducer.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/19/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import Foundation
 
-extension Reducer {
-    public func analytics(
+public extension Reducer {
+    func analytics(
         _ toEvent: @escaping (State, Action) -> AnalyticsClient.Action? = { _, _ in nil }
     ) -> some Reducer {
         AnalyticsReducer<State, Action>(toAnalyticsAction: toEvent)
     }
 }
+
+// MARK: - AnalyticsReducer
 
 public struct AnalyticsReducer<State, Action>: Reducer {
     @usableFromInline

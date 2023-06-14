@@ -1,6 +1,6 @@
 //
 //  PlaylistDetailsFeature+View.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/19/23.
 //  Copyright © 2023. All rights reserved.
@@ -14,6 +14,8 @@ import SharedModels
 import Styling
 import SwiftUI
 import ViewComponents
+
+// MARK: - PlaylistDetailsFeature.View + View
 
 extension PlaylistDetailsFeature.View: View {
     @MainActor
@@ -81,14 +83,12 @@ extension PlaylistDetailsFeature.View: View {
             ViewStore(store.stateless.viewAction).send(.didTappedBackButton)
         } trailingAccessory: {
             // TODO: Make this change depending if it's in library already or not
-            Button {
-            } label: {
+            Button {} label: {
                 Image(systemName: "plus")
             }
             .buttonStyle(.materialToolbarImage)
 
-            Menu {
-            } label: {
+            Menu {} label: {
                 Image(systemName: "ellipsis")
             }
             .menuStyle(.materialToolbarImage)
@@ -158,8 +158,7 @@ extension PlaylistDetailsFeature.View {
                 Spacer()
                     .frame(height: 12)
 
-                Button {
-                } label: {
+                Button {} label: {
                     HStack {
                         Image(systemName: "play.fill")
                         Text("Play")
@@ -190,7 +189,6 @@ extension PlaylistDetailsFeature.View {
     @MainActor
     func contentView(_ playlistInfo: Self.State.PlaylistInfo) -> some View {
         LazyVStack(spacing: 24) {
-
             // Description
 
             HeaderWithContent(title: "Description") {
@@ -246,8 +244,7 @@ extension PlaylistDetailsFeature.View {
                     if let value = viewStore.state.value, value.allGroups.count > 1 {
                         Menu {
                             ForEach(value.allGroups, id: \.id) { group in
-                                Button {
-                                } label: {
+                                Button {} label: {
                                     Text(
                                         group.displayTitle ?? (
                                             playlistInfo.playlist.type == .video ?
@@ -389,7 +386,7 @@ extension PlaylistDetailsFeature.View {
     @MainActor
     @ViewBuilder
     func buildImageTextContents(
-        _ playlistDetails: Self.State.PlaylistInfo,
+        _: Self.State.PlaylistInfo,
         _ content: Loadable<Playlist.Group.Content>
     ) -> some View {
         if content.error != nil {
@@ -426,6 +423,8 @@ extension PlaylistDetailsFeature.View {
         }
     }
 }
+
+// MARK: - PlaylistDetailsFeature.View.HeaderWithContent
 
 extension PlaylistDetailsFeature.View {
     @MainActor
@@ -479,6 +478,8 @@ extension PlaylistDetailsFeature.View {
     }
 }
 
+// MARK: - PlaylistDetailsFeatureView_Previews
+
 struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
     static var previews: some View {
         PlaylistDetailsFeature.View(
@@ -517,8 +518,8 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                             yearReleased: 2_023,
                             previews: []
                         )
-                    )
-                    ,
+                    ),
+
                     contents: .pending
                 ),
                 reducer: EmptyReducer()

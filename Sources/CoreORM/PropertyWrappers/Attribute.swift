@@ -1,13 +1,15 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/17/23.
-//  
+//
 //
 
 import CoreData
 import Foundation
+
+// MARK: - OpaqueAttribute
 
 protocol OpaqueAttribute: OpaqueProperty {
     associatedtype Value: TransformableValue
@@ -18,6 +20,8 @@ extension OpaqueAttribute {
         Value.self
     }
 }
+
+// MARK: - Attribute
 
 @propertyWrapper
 public struct Attribute<Value: TransformableValue, WrappedValue>: OpaqueAttribute {
@@ -88,7 +92,7 @@ public struct Attribute<Value: TransformableValue, WrappedValue>: OpaqueAttribut
 extension Attribute {
     static subscript<EscapingSelf: Entity>(
         _ instance: EscapingSelf,
-        wrapper wrapperKeyPath: ReferenceWritableKeyPath<EscapingSelf, WrappedValue>,
+        wrapper _: ReferenceWritableKeyPath<EscapingSelf, WrappedValue>,
         storage storageKeyPath: ReferenceWritableKeyPath<EscapingSelf, Attribute<Value, WrappedValue>>
     ) -> WrappedValue {
         get { instance[keyPath: storageKeyPath].wrappedValue }
@@ -96,13 +100,19 @@ extension Attribute {
     }
 }
 
+// MARK: Sendable
+
 extension Attribute: @unchecked Sendable where WrappedValue: Sendable {}
+
+// MARK: Equatable
 
 extension Attribute: Equatable where WrappedValue: Equatable {
     public static func == (lhs: Attribute<Value, WrappedValue>, rhs: Attribute<Value, WrappedValue>) -> Bool {
         lhs.wrappedValue == rhs.wrappedValue
     }
 }
+
+// MARK: Hashable
 
 extension Attribute: Hashable where WrappedValue: Hashable {
     public func hash(into hasher: inout Hasher) {

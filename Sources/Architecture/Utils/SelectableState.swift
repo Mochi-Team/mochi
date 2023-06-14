@@ -1,9 +1,9 @@
 //
 //  SelectableState.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/11/23.
-//  
+//
 //
 //
 
@@ -11,6 +11,8 @@ import ComposableArchitecture
 import Foundation
 import IdentifiedCollections
 import SwiftUI
+
+// MARK: - SelectableState
 
 @propertyWrapper
 public struct SelectableState<Element: Identifiable> {
@@ -26,7 +28,7 @@ public struct SelectableState<Element: Identifiable> {
     }
 
     public var wrappedValue: IdentifiedArrayOf<Element> {
-        get { _wrappedValue  }
+        get { _wrappedValue }
         set { update(newValue) }
     }
 
@@ -50,12 +52,22 @@ public struct SelectableState<Element: Identifiable> {
             self._selected = newValue[id: _selected]?.id
         }
 
-        self._wrappedValue = newValue
+        _wrappedValue = newValue
     }
 }
 
+// MARK: - IdentifiedArray + Sendable
+
 extension IdentifiedArray: Sendable where Element: Sendable, ID: Sendable {}
 
+// MARK: - SelectableState + Equatable
+
 extension SelectableState: Equatable where Element: Equatable {}
+
+// MARK: - SelectableState + Hashable
+
 extension SelectableState: Hashable where Element: Hashable {}
+
+// MARK: - SelectableState + Sendable
+
 extension SelectableState: Sendable where Element: Sendable, Element.ID: Sendable {}

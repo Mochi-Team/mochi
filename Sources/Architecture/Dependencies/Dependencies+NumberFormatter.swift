@@ -1,13 +1,15 @@
 //
 //  Dependencies+DateFormatter.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/2/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import Foundation
+
+// MARK: - NumberFormatterKey
 
 public struct NumberFormatterKey: DependencyKey {
     public static let liveValue = NumberFormatter()
@@ -29,6 +31,6 @@ public extension Double {
         formatter.maximumFractionDigits = 2
 
         let number = NSNumber(value: self)
-        return formatter.string(from: number) ?? self.description
+        return formatter.string(from: number) ?? description
     }
 }

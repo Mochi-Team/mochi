@@ -1,17 +1,19 @@
 //
 //  Exports.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/4/23.
-//  
+//
 //
 
 import CWasm3
 import Foundation
 
-extension WasmInstance {
+// MARK: - WasmInstance.Exports
+
+public extension WasmInstance {
     @dynamicMemberLookup
-    public final class Exports {
+    final class Exports {
         private let _runtime: IM3Runtime
 
         init(runtime: IM3Runtime) {

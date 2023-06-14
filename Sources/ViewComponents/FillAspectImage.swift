@@ -9,6 +9,8 @@
 import NukeUI
 import SwiftUI
 
+// MARK: - FillAspectImage
+
 public struct FillAspectImage: View {
     let url: URL?
     var averageColor: ((Color?) -> Void)?

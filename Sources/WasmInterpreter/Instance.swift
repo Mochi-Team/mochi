@@ -1,13 +1,15 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/3/23.
-//  
+//
 //
 
 import CWasm3
 import Foundation
+
+// MARK: - WasmInstance
 
 public final class WasmInstance {
     public let exports: Exports
@@ -27,8 +29,8 @@ public final class WasmInstance {
         stackSize: UInt32 = 512 * 1_024,
         _ imports: [Import] = []
     ) throws {
-        id = nextInstanceIdentifier
-        idPointer = .allocate(
+        self.id = nextInstanceIdentifier
+        self.idPointer = .allocate(
             byteCount: MemoryLayout<UInt64>.size,
             alignment: MemoryLayout<UInt64>.alignment
         )
@@ -53,12 +55,12 @@ public final class WasmInstance {
         }
         try Self.check(m3_LoadModule(runtime, module))
 
-        _environment = environment
-        _runtime = runtime
-        moduleAndBytes = (module, bytes)
+        self._environment = environment
+        self._runtime = runtime
+        self.moduleAndBytes = (module, bytes)
 
-        exports = .init(runtime: _runtime)
-        memory = .init(runtime: _runtime)
+        self.exports = .init(runtime: _runtime)
+        self.memory = .init(runtime: _runtime)
 
         try importNativeFunctions(imports)
     }
@@ -71,9 +73,9 @@ public final class WasmInstance {
     }
 }
 
-extension WasmInstance {
+public extension WasmInstance {
     @resultBuilder
-    public enum ImportsResultBuilder {
+    enum ImportsResultBuilder {
         public static func buildEither(first component: [Import]) -> [Import] {
             component
         }
@@ -90,7 +92,7 @@ extension WasmInstance {
             [expression]
         }
 
-        public static func buildExpression(_ expression: ()) -> [Import] {
+        public static func buildExpression(_: ()) -> [Import] {
             []
         }
 
@@ -103,15 +105,15 @@ extension WasmInstance {
         }
     }
 
-    public convenience init(
+    convenience init(
         module: URL,
         stackSize: UInt32 = 512 * 1_024,
         @ImportsResultBuilder _ imports: () -> [Import] = { [] }
     ) throws {
-        try self.init(module: [UInt8](try Data(contentsOf: module)), stackSize: stackSize, imports())
+        try self.init(module: [UInt8](Data(contentsOf: module)), stackSize: stackSize, imports())
     }
 
-    public convenience init(
+    convenience init(
         module: [UInt8],
         stackSize: UInt32 = 512 * 1_024,
         @ImportsResultBuilder _ imports: () -> [Import] = { [] }
@@ -119,7 +121,7 @@ extension WasmInstance {
         try self.init(module: module, stackSize: stackSize, imports())
     }
 
-    public convenience init(
+    convenience init(
         module: Data,
         stackSize: UInt32 = 512 * 1_024,
         @ImportsResultBuilder _ imports: () -> [Import] = { [] }
@@ -127,7 +129,7 @@ extension WasmInstance {
         try self.init(module: .init(module), stackSize: stackSize, imports())
     }
 
-    public func importFunctions(
+    func importFunctions(
         @ImportsResultBuilder _ imports: () -> [Import] = { [] }
     ) throws {
         try importNativeFunctions(imports())

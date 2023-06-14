@@ -1,6 +1,6 @@
 //
 //  SettingsFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/8/23.
 //  Copyright © 2023. All rights reserved.
@@ -39,7 +39,7 @@ public enum SettingsFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<SettingsFeature>
 
-        nonisolated public init(store: FeatureStoreOf<SettingsFeature>) {
+        public nonisolated init(store: FeatureStoreOf<SettingsFeature>) {
             self.store = store
         }
     }

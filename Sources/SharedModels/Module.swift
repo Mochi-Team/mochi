@@ -1,9 +1,9 @@
 //
 //  Module.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/17/23.
-//  
+//
 //
 
 import CoreORM
@@ -11,6 +11,8 @@ import Foundation
 @preconcurrency
 import Semver
 import Tagged
+
+// MARK: - Module
 
 @dynamicMemberLookup
 public struct Module: Entity, Hashable, Sendable {
@@ -26,6 +28,8 @@ public struct Module: Entity, Hashable, Sendable {
     public init() {}
 }
 
+// MARK: Identifiable
+
 extension Module: Identifiable {
     public var id: Manifest.ID {
         get { manifest.id }
@@ -33,8 +37,8 @@ extension Module: Identifiable {
     }
 }
 
-extension Module {
-    public init(
+public extension Module {
+    init(
         binaryModule: Data,
         installDate: Date,
         manifest: Module.Manifest
@@ -44,14 +48,16 @@ extension Module {
         self.manifest = manifest
     }
 
-    public subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Manifest, Value>) -> Value {
+    subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Manifest, Value>) -> Value {
         get { manifest[keyPath: dynamicMember] }
         set { manifest[keyPath: dynamicMember] = newValue }
     }
 }
 
-extension Module {
-    public struct Manifest: Hashable, Identifiable, Sendable, Codable {
+// MARK: Module.Manifest
+
+public extension Module {
+    struct Manifest: Hashable, Identifiable, Sendable, Codable {
         public var id: Tagged<Self, String>
         public var name: String
         public var description: String?
@@ -100,15 +106,19 @@ extension Module {
     }
 }
 
+// MARK: - Semver + TransformableValue
+
 extension Semver: TransformableValue {
     public func encode() -> String {
-        self.description
+        description
     }
 
     public static func decode(value: String) throws -> Semver {
         try Semver(value)
     }
 }
+
+// MARK: - TransformableValue + TransformableValue
 
 extension [Module.Manifest.Meta]: TransformableValue {
     public func encode() -> Data {
@@ -120,6 +130,8 @@ extension [Module.Manifest.Meta]: TransformableValue {
     }
 }
 
+// MARK: - Module.Manifest + TransformableValue
+
 extension Module.Manifest: TransformableValue {
     public func encode() -> Data {
         (try? JSONEncoder().encode(self)) ?? .init()
@@ -129,5 +141,7 @@ extension Module.Manifest: TransformableValue {
         (try? JSONDecoder().decode(Self.self, from: value)) ?? .init()
     }
 }
+
+// MARK: - Tagged + TransformableValue
 
 extension Tagged: TransformableValue where RawValue: TransformableValue {}

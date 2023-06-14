@@ -1,15 +1,17 @@
 //
 //  Import.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/4/23.
-//  
+//
 //
 
 import Foundation
 
-extension WasmInstance {
-    public struct Import {
+// MARK: - WasmInstance.Import
+
+public extension WasmInstance {
+    struct Import {
         let namespace: String
         var functions: [Function] = []
 
@@ -23,9 +25,9 @@ extension WasmInstance {
     }
 }
 
-extension WasmInstance.Import {
+public extension WasmInstance.Import {
     @resultBuilder
-    public enum FunctionsResultBuilder {
+    enum FunctionsResultBuilder {
         public static func buildBlock(_ components: WasmInstance.Function...) -> [WasmInstance.Function] {
             components
         }
@@ -43,7 +45,7 @@ extension WasmInstance.Import {
         }
     }
 
-    public init(
+    init(
         namespace: String,
         @FunctionsResultBuilder _ functions: () -> [WasmInstance.Function]
     ) {

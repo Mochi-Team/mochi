@@ -9,6 +9,8 @@
 import Foundation
 import Tagged
 
+// MARK: - DiscoverListing
+
 public struct DiscoverListing: Sendable, Equatable {
     public let title: String
     public let type: ListingType
@@ -34,6 +36,8 @@ public struct DiscoverListing: Sendable, Equatable {
         self.paging = paging
     }
 }
+
+// MARK: - SearchFilter
 
 public struct SearchFilter: Identifiable, Equatable, Sendable {
     public let id: Tagged<Self, String>
@@ -69,6 +73,8 @@ public struct SearchFilter: Identifiable, Equatable, Sendable {
         }
     }
 }
+
+// MARK: - SearchQuery
 
 public struct SearchQuery: Equatable, Sendable {
     public init(

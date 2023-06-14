@@ -1,12 +1,14 @@
 //
 //  Schema.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Schema
 
 public protocol Schema {
     static var schemaName: String { get }
@@ -20,6 +22,8 @@ public protocol Schema {
 public extension Schema {
     static var schemaName: String { String(describing: Self.self) }
 }
+
+// MARK: - SchemaBuilder
 
 @resultBuilder
 public enum SchemaBuilder {

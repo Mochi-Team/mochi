@@ -1,14 +1,16 @@
 //
 //  Repo.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/10/23.
-//  
+//
 //
 
 import CoreORM
 import Foundation
 import Tagged
+
+// MARK: - Repo
 
 @dynamicMemberLookup
 public struct Repo: Entity, Equatable, Sendable {
@@ -46,12 +48,14 @@ public extension Repo {
     }
 }
 
+// MARK: Identifiable
+
 extension Repo: Identifiable {
     public var id: Tagged<Self, URL> { .init(baseURL) }
 }
 
-extension Repo {
-    public var iconURL: URL? {
+public extension Repo {
+    var iconURL: URL? {
         manifest.icon
             .flatMap { URL(string: $0) }
             .flatMap { url in
@@ -89,6 +93,8 @@ public extension Repo {
         }
     }
 }
+
+// MARK: - Repo.Manifest + TransformableValue
 
 extension Repo.Manifest: TransformableValue {
     public func encode() -> Data {

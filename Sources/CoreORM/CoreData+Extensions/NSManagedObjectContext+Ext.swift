@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/3/23.
-//  
+//
 //
 
 import CoreData
@@ -14,7 +14,7 @@ extension NSManagedObjectContext {
         NSEntityDescription.insertNewObject(forEntityName: type.entityName, into: self)
     }
 
-    func fetch<T: Entity>(_ request: Request<T>) throws -> [NSManagedObject] {
+    func fetch(_ request: Request<some Entity>) throws -> [NSManagedObject] {
         try fetch(request.makeFetchRequest())
     }
 

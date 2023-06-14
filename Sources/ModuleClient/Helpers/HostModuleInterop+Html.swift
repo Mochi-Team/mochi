@@ -1,9 +1,9 @@
 //
 //  HostModuleInterop+Html.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/9/23.
-//  
+//
 //
 
 import Foundation
@@ -16,7 +16,7 @@ extension HostModuleInterop {
         string_ptr: RawPtr,
         string_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let data = try memory.string(
                 byteOffset: .init(string_ptr),
                 length: .init(string_len)
@@ -32,7 +32,7 @@ extension HostModuleInterop {
         base_uri_ptr: RawPtr,
         base_uri_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let data = try memory.string(
                 byteOffset: .init(string_ptr),
                 length: .init(string_len)
@@ -54,7 +54,7 @@ extension HostModuleInterop {
         string_ptr: RawPtr,
         string_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let data = try memory.string(
                 byteOffset: .init(string_ptr),
                 length: .init(string_len)
@@ -70,7 +70,7 @@ extension HostModuleInterop {
         base_uri_ptr: RawPtr,
         base_uri_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             let data = try memory.string(
                 byteOffset: .init(string_ptr),
                 length: .init(string_len)
@@ -93,7 +93,7 @@ extension HostModuleInterop {
         selector_ptr: RawPtr,
         selector_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -118,7 +118,7 @@ extension HostModuleInterop {
         selector_ptr: RawPtr,
         selector_len: Int32
     ) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -143,7 +143,7 @@ extension HostModuleInterop {
         text: RawPtr,
         text_len: Int32
     ) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.unknown()
             }
@@ -166,7 +166,7 @@ extension HostModuleInterop {
         html: RawPtr,
         html_len: Int32
     ) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -189,7 +189,7 @@ extension HostModuleInterop {
         html: RawPtr,
         html_len: Int32
     ) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
@@ -212,7 +212,7 @@ extension HostModuleInterop {
         html: RawPtr,
         html_len: Int32
     ) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
@@ -231,7 +231,7 @@ extension HostModuleInterop {
     }
 
     func scraper_first(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
@@ -246,7 +246,7 @@ extension HostModuleInterop {
     }
 
     func scraper_last(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
@@ -261,7 +261,7 @@ extension HostModuleInterop {
     }
 
     func scraper_next(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
@@ -276,7 +276,7 @@ extension HostModuleInterop {
     }
 
     func scraper_previous(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
@@ -291,7 +291,7 @@ extension HostModuleInterop {
     }
 
     func scraper_base_uri(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -305,7 +305,7 @@ extension HostModuleInterop {
     }
 
     func scraper_body(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -327,7 +327,7 @@ extension HostModuleInterop {
     }
 
     func scraper_text(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -355,7 +355,7 @@ extension HostModuleInterop {
     }
 
     func scraper_untrimmed_text(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -378,7 +378,7 @@ extension HostModuleInterop {
     }
 
     func scraper_own_text(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -397,7 +397,7 @@ extension HostModuleInterop {
     }
 
     func scraper_data(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -416,7 +416,7 @@ extension HostModuleInterop {
     }
 
     func scraper_array(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -433,7 +433,7 @@ extension HostModuleInterop {
     }
 
     func scraper_html(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -454,7 +454,7 @@ extension HostModuleInterop {
     }
 
     func scraper_outer_html(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -475,7 +475,7 @@ extension HostModuleInterop {
     }
 
     func scraper_escape(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -498,7 +498,7 @@ extension HostModuleInterop {
     }
 
     func scraper_unescape(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -521,7 +521,7 @@ extension HostModuleInterop {
     }
 
     func scraper_id(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -538,7 +538,7 @@ extension HostModuleInterop {
     }
 
     func scraper_tag_name(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -555,7 +555,7 @@ extension HostModuleInterop {
     }
 
     func scraper_class_name(ptr: PtrRef) -> PtrRef {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return ptr
             }
@@ -577,7 +577,7 @@ extension HostModuleInterop {
         class_name_ptr: RawPtr,
         class_name_length: Int32
     ) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return 0
             }
@@ -606,7 +606,7 @@ extension HostModuleInterop {
         attr_name_ptr: RawPtr,
         attr_name_length: Int32
     ) -> Int32 {
-        self.handleErrorAlloc { alloc in
+        handleErrorAlloc { alloc in
             guard ptr >= 0 else {
                 return 0
             }

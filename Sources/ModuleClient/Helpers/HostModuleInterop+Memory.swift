@@ -1,14 +1,16 @@
 //
 //  HostModuleInterop+Memory.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/25/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import Foundation
 import WasmInterpreter
+
+// MARK: - MemoryInstance
 
 /// MemoryInstance Protocol
 ///
@@ -27,9 +29,13 @@ protocol MemoryInstance {
     func string(byteOffset: Int, length: Int) throws -> String
 }
 
+// MARK: - WasmInstance.Memory + MemoryInstance
+
 /// Wasm Instance memory access
 ///
 extension WasmInstance.Memory: MemoryInstance {}
+
+// MARK: - LocalMemoryInstance
 
 /// Local memory instance which simulates a module memory
 ///
@@ -87,7 +93,7 @@ class LocalMemoryInstance: MemoryInstance {
         }
     }
 
-    func bytes(byteOffset: Int, length: Int) throws -> [UInt8] {
+    func bytes(byteOffset: Int, length _: Int) throws -> [UInt8] {
         try storage.withValue { alloc in
             guard let bytes = alloc[byteOffset] else {
                 throw WasmInstance.Error.memory(.invalidMemoryAccess)
@@ -96,7 +102,7 @@ class LocalMemoryInstance: MemoryInstance {
         }
     }
 
-    func data(byteOffset: Int, length: Int) throws -> Data {
+    func data(byteOffset: Int, length _: Int) throws -> Data {
         try storage.withValue { alloc in
             guard var value = alloc[byteOffset] else {
                 throw WasmInstance.Error.memory(.invalidMemoryAccess)

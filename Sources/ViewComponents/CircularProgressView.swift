@@ -1,16 +1,17 @@
 //
 //  CircularProgressView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/5/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
 
-public struct CircularProgressView<BarColor: ShapeStyle, Accessory: View>: View {
+// MARK: - CircularProgressView
 
+public struct CircularProgressView<BarColor: ShapeStyle, Accessory: View>: View {
     public struct BarStyle<BarColor: ShapeStyle> {
         public init(
             fill: BarColor,
@@ -82,8 +83,8 @@ public struct CircularProgressView<BarColor: ShapeStyle, Accessory: View>: View 
     }
 }
 
-extension CircularProgressView {
-    public init(
+public extension CircularProgressView {
+    init(
         progress: Double,
         barStyle: BarStyle<BarColor>
     ) where Accessory == EmptyView {
@@ -95,6 +96,8 @@ extension CircularProgressView {
         }
     }
 }
+
+// MARK: - ArcShape
 
 struct ArcShape: Shape {
     let percentage: CGFloat
@@ -114,6 +117,8 @@ struct ArcShape: Shape {
         return path
     }
 }
+
+// MARK: - CircularProgressView_Previews
 
 struct CircularProgressView_Previews: PreviewProvider {
     static var previews: some View {

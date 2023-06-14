@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import CoreData
@@ -16,7 +16,7 @@ final class EntityDescriptor: NSEntityDescription {
         let instance = type.init()
         let properties = instance.properties
 
-        opaquePropertyDescriptors = [:]
+        self.opaquePropertyDescriptors = [:]
 
         super.init()
 
@@ -32,7 +32,8 @@ final class EntityDescriptor: NSEntityDescription {
         }
     }
 
-    required init?(coder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

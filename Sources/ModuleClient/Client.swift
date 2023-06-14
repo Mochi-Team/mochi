@@ -1,6 +1,6 @@
 //
 //  Client.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/10/23.
 //  Copyright © 2023. All rights reserved.
@@ -13,19 +13,23 @@ import SwiftSoup
 import WasmInterpreter
 import XCTestDynamicOverlay
 
+// MARK: - ModuleClient
+
 public struct ModuleClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
     var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> ModuleHandler
 }
 
-extension ModuleClient {
-    public func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleHandler) async throws -> R) async throws -> R {
-        try await work(self.getModule(id))
+public extension ModuleClient {
+    func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleHandler) async throws -> R) async throws -> R {
+        try await work(getModule(id))
     }
 }
 
-extension ModuleClient {
-    public enum Error: Swift.Error, Equatable, Sendable {
+// MARK: ModuleClient.Error
+
+public extension ModuleClient {
+    enum Error: Swift.Error, Equatable, Sendable {
         case wasm3(WasmInstance.Error)
         case nullPtr(for: String = #function, message: String = "")
         case castError(for: String = #function, got: String = "", expected: String = "")
@@ -36,6 +40,8 @@ extension ModuleClient {
     }
 }
 
+// MARK: - SwiftSoup.Exception + Equatable
+
 extension SwiftSoup.Exception: Equatable {
     public static func == (lhs: Exception, rhs: Exception) -> Bool {
         switch (lhs, rhs) {
@@ -45,6 +51,8 @@ extension SwiftSoup.Exception: Equatable {
     }
 }
 
+// MARK: - ModuleClient + TestDependencyKey
+
 extension ModuleClient: TestDependencyKey {
     public static let testValue = Self(
         initialize: unimplemented(),
@@ -52,8 +60,8 @@ extension ModuleClient: TestDependencyKey {
     )
 }
 
-extension DependencyValues {
-    public var moduleClient: ModuleClient {
+public extension DependencyValues {
+    var moduleClient: ModuleClient {
         get { self[ModuleClient.self] }
         set { self[ModuleClient.self] = newValue }
     }

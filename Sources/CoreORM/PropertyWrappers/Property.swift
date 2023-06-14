@@ -1,17 +1,21 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/15/23.
-//  
+//
 //
 
 import CoreData
 import Foundation
 
+// MARK: - PropertyError
+
 enum PropertyError: Error {
     case invalidPropertyType
 }
+
+// MARK: - OpaqueProperty
 
 protocol OpaqueProperty {
     associatedtype WrappedValue
@@ -39,7 +43,6 @@ extension OpaqueProperty {
 }
 
 extension OpaqueProperty {
-
     /// Encodes a Property to NSManagedObject
     ///
     func encode(with id: NSManagedObjectID, context: NSManagedObjectContext) throws {
@@ -54,12 +57,14 @@ extension OpaqueProperty {
     ///
     func decode(from id: NSManagedObjectID, context: NSManagedObjectContext) throws {
         if let attribute = self as? any OpaqueAttribute {
-            self.internalValue.value = try cast(try context.object(with: id).decode(attribute), to: WrappedValue.self)
+            internalValue.value = try cast(context.object(with: id).decode(attribute), to: WrappedValue.self)
         } else if let relation = self as? any OpaqueRelation {
-            self.internalValue.value = try cast(try context.object(with: id).decode(relation), to: WrappedValue.self)
+            internalValue.value = try cast(context.object(with: id).decode(relation), to: WrappedValue.self)
         }
     }
 }
+
+// MARK: - PropertyTrait
 
 public enum PropertyTrait {
     case transient

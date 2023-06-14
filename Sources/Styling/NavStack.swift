@@ -1,9 +1,9 @@
 //
 //  NavStack.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/20/23.
-//  
+//
 //
 
 import ComposableArchitecture
@@ -16,11 +16,14 @@ public extension Animation {
     static var navStackTransion: Animation { .timingCurve(0.31, 0.47, 0.31, 1, duration: 0.4) }
 }
 
+// MARK: - NavStack
+
 public struct NavStack<State: Equatable, Action, Root: View, Destination: View>: View {
     private let store: Store<StackState<State>, StackAction<State, Action>>
     private let root: Root
     private let destination: (Store<State, Action>) -> Destination
-    @StateObject private var viewStore: ViewStore<StackState<State>, StackAction<State, Action>>
+    @StateObject
+    private var viewStore: ViewStore<StackState<State>, StackAction<State, Action>>
 
     public init(
         _ store: Store<StackState<State>, StackAction<State, Action>>,

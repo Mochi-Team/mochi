@@ -1,14 +1,16 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/13/23.
-//  
+//
 //
 
 @preconcurrency
 import CoreData
 import Foundation
+
+// MARK: - CoreORM
 
 public final class CoreORM<SomeSchema: Schema>: @unchecked Sendable {
     private var pc: NSPersistentContainer
@@ -56,9 +58,9 @@ public final class CoreORM<SomeSchema: Schema>: @unchecked Sendable {
             }
         }
 
-        self.pc = .init(
-            name: self.pc.name,
-            managedObjectModel: self.pc.managedObjectModel
+        pc = .init(
+            name: pc.name,
+            managedObjectModel: pc.managedObjectModel
         )
     }
 }
@@ -96,16 +98,18 @@ extension CoreORM {
     }
 }
 
+// MARK: - CoreTransaction
+
 public struct CoreTransaction<SomeSchema: Schema>: Sendable {
     let persistenceContainer: NSPersistentContainer
 
-    public func create<Instance: Entity>(_ type: Instance.Type = Instance.self) async throws -> Instance {
-        try await self.create(Instance())
+    public func create<Instance: Entity>(_: Instance.Type = Instance.self) async throws -> Instance {
+        try await create(Instance())
     }
 
     @discardableResult
     public func create<Instance: Entity>(_ instance: Instance) async throws -> Instance {
-        let managed = try await self.persistenceContainer.schedule { context in
+        let managed = try await persistenceContainer.schedule { context in
             let managed = context.insert(entity: Instance.self)
             try instance.copy(to: managed.objectID, context: context)
             return managed
@@ -117,7 +121,7 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
 
         let managedId = managed.objectID
 
-        return try await self.persistenceContainer.schedule { context in
+        return try await persistenceContainer.schedule { context in
             try .init(id: managedId, context: context)
         }
     }
@@ -133,7 +137,7 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
 
     @discardableResult
     public func update<Instance: Entity>(_ instance: Instance) async throws -> Instance {
-        try await self.persistenceContainer.schedule { context in
+        try await persistenceContainer.schedule { context in
             guard let objectId = instance.mainManagedObjectId else {
                 throw Error.managedContextNotAvailable
             }
@@ -143,8 +147,8 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
         }
     }
 
-    public func delete<Instance: Entity>(_ instance: Instance) async throws {
-        try await self.persistenceContainer.schedule { context in
+    public func delete(_ instance: some Entity) async throws {
+        try await persistenceContainer.schedule { context in
             guard let objectId = instance.mainManagedObjectId else {
                 throw Error.managedContextNotAvailable
             }
@@ -164,7 +168,7 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
     public func observe<Instance: Entity>(request: Request<Instance>) -> AsyncStream<[Instance]> {
         .init { continuation in
             let cancellable = Task.detached {
-                let values = try? await self.fetch(request)
+                let values = try? await fetch(request)
                 continuation.yield(values ?? [])
 
                 let notifications = NotificationCenter.default.notifications(
@@ -182,7 +186,7 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
                     } ?? false
 
                     if hasChanges {
-                        let values = try? await self.fetch(request)
+                        let values = try? await fetch(request)
                         continuation.yield(values ?? [])
                     }
                 }
@@ -194,8 +198,10 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
     }
 }
 
-extension CoreTransaction {
-    public enum Error: Swift.Error {
+// MARK: CoreTransaction.Error
+
+public extension CoreTransaction {
+    enum Error: Swift.Error {
         case failedToCreateInstance
         case managedContextNotAvailable
         case managedObjectIdIsTemporary

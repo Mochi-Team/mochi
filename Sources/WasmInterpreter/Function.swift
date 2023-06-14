@@ -1,16 +1,18 @@
 //
 //  Function.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/7/23.
-//  
+//
 //
 
 import Foundation
 
+// MARK: - WasmInstance.Function
+
 // swiftlint:disable line_length
-extension WasmInstance {
-    public struct Function {
+public extension WasmInstance {
+    struct Function {
         public typealias ImportHandler = (UnsafeMutablePointer<UInt64>?, UnsafeMutableRawPointer?) -> UnsafeRawPointer?
 
         let name: String
@@ -65,7 +67,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue> (
+    init<A: WasmValue>(
         _ name: String,
         _ block: @escaping (A) throws -> Void
     ) {
@@ -83,7 +85,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, R: WasmValue> (
+    init<A: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A) throws -> R
     ) {
@@ -102,7 +104,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue> (
+    init<A: WasmValue, B: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B) throws -> Void
     ) {
@@ -121,7 +123,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B) throws -> R
     ) {
@@ -144,7 +146,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C) throws -> Void
     ) {
@@ -164,7 +166,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C) throws -> R
     ) {
@@ -188,7 +190,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D) throws -> Void
     ) {
@@ -209,7 +211,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D) throws -> R
     ) {
@@ -234,7 +236,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E) throws -> Void
     ) {
@@ -256,7 +258,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E) throws -> R
     ) {
@@ -282,7 +284,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F) throws -> Void
     ) {
@@ -305,7 +307,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F) throws -> R
     ) {
@@ -332,7 +334,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G) throws -> Void
     ) {
@@ -356,7 +358,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G) throws -> R
     ) {
@@ -384,7 +386,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H) throws -> Void
     ) {
@@ -409,7 +411,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H) throws -> R
     ) {
@@ -438,7 +440,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I) throws -> Void
     ) {
@@ -464,7 +466,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I) throws -> R
     ) {
@@ -494,7 +496,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J) throws -> Void
     ) {
@@ -521,7 +523,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J) throws -> R
     ) {
@@ -552,7 +554,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K) throws -> Void
     ) {
@@ -582,7 +584,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K) throws -> R
     ) {
@@ -614,7 +616,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L) throws -> Void
     ) {
@@ -645,7 +647,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, R: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, R: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L) throws -> R
     ) {
@@ -678,7 +680,7 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue> (
+    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue>(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L, M) throws -> Void
     ) {
@@ -710,7 +712,22 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue, R: WasmValue> (
+    init<
+        A: WasmValue,
+        B: WasmValue,
+        C: WasmValue,
+        D: WasmValue,
+        E: WasmValue,
+        F: WasmValue,
+        G: WasmValue,
+        H: WasmValue,
+        I: WasmValue,
+        J: WasmValue,
+        K: WasmValue,
+        L: WasmValue,
+        M: WasmValue,
+        R: WasmValue
+    >(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L, M) throws -> R
     ) {
@@ -744,7 +761,22 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue, N: WasmValue> (
+    init<
+        A: WasmValue,
+        B: WasmValue,
+        C: WasmValue,
+        D: WasmValue,
+        E: WasmValue,
+        F: WasmValue,
+        G: WasmValue,
+        H: WasmValue,
+        I: WasmValue,
+        J: WasmValue,
+        K: WasmValue,
+        L: WasmValue,
+        M: WasmValue,
+        N: WasmValue
+    >(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L, M, N) throws -> Void
     ) {
@@ -777,7 +809,23 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue, N: WasmValue, R: WasmValue> (
+    init<
+        A: WasmValue,
+        B: WasmValue,
+        C: WasmValue,
+        D: WasmValue,
+        E: WasmValue,
+        F: WasmValue,
+        G: WasmValue,
+        H: WasmValue,
+        I: WasmValue,
+        J: WasmValue,
+        K: WasmValue,
+        L: WasmValue,
+        M: WasmValue,
+        N: WasmValue,
+        R: WasmValue
+    >(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L, M, N) throws -> R
     ) {
@@ -812,7 +860,23 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue, N: WasmValue, O: WasmValue> (
+    init<
+        A: WasmValue,
+        B: WasmValue,
+        C: WasmValue,
+        D: WasmValue,
+        E: WasmValue,
+        F: WasmValue,
+        G: WasmValue,
+        H: WasmValue,
+        I: WasmValue,
+        J: WasmValue,
+        K: WasmValue,
+        L: WasmValue,
+        M: WasmValue,
+        N: WasmValue,
+        O: WasmValue
+    >(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) throws -> Void
     ) {
@@ -846,14 +910,32 @@ public extension WasmInstance.Function {
         }
     }
 
-    init<A: WasmValue, B: WasmValue, C: WasmValue, D: WasmValue, E: WasmValue, F: WasmValue, G: WasmValue, H: WasmValue, I: WasmValue, J: WasmValue, K: WasmValue, L: WasmValue, M: WasmValue, N: WasmValue, O: WasmValue, R: WasmValue> (
+    init<
+        A: WasmValue,
+        B: WasmValue,
+        C: WasmValue,
+        D: WasmValue,
+        E: WasmValue,
+        F: WasmValue,
+        G: WasmValue,
+        H: WasmValue,
+        I: WasmValue,
+        J: WasmValue,
+        K: WasmValue,
+        L: WasmValue,
+        M: WasmValue,
+        N: WasmValue,
+        O: WasmValue,
+        R: WasmValue
+    >(
         _ name: String,
         _ block: @escaping (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) throws -> R
     ) {
         self.init(
             name: name,
             signature: Signature.generate(
-                args: A.wasmType, B.wasmType, C.wasmType, D.wasmType, E.wasmType, F.wasmType, G.wasmType, H.wasmType, I.wasmType, J.wasmType, K.wasmType, L.wasmType, M.wasmType, N.wasmType, O.wasmType,
+                args: A.wasmType, B.wasmType, C.wasmType, D.wasmType, E.wasmType, F.wasmType, G.wasmType, H.wasmType, I.wasmType, J.wasmType, K.wasmType, L.wasmType, M.wasmType, N.wasmType,
+                O.wasmType,
                 ret: R.wasmType
             )
         ) { stack, _ in

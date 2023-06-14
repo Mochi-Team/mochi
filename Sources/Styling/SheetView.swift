@@ -1,22 +1,22 @@
 //
 //  SheetView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/31/23.
-//  
+//
 //
 
 import ComposableArchitecture
 import Foundation
 import SwiftUI
 
-extension View {
+public extension View {
     @MainActor
-    func sheetPresentation(
+    internal func sheetPresentation(
         isPresenting: Binding<Bool>,
         content: @escaping () -> some View
     ) -> some View {
-        self.background(
+        background(
             SheetPresentation(
                 isPresented: isPresenting,
                 content: content
@@ -25,11 +25,11 @@ extension View {
     }
 
     @MainActor
-    public func sheetPresentation<State: Equatable, Action>(
+    func sheetPresentation<State: Equatable, Action>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         @ViewBuilder content: @escaping (Store<State, Action>) -> some View
     ) -> some View {
-        self.modifier(
+        modifier(
             SheetViewModifier(
                 store: store,
                 state: { $0 },
@@ -40,13 +40,13 @@ extension View {
     }
 
     @MainActor
-    public func sheetView<State: Equatable, Action, DestinationState, DestinationAction>(
+    func sheetView<State: Equatable, Action, DestinationState, DestinationAction>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         state toDestinationState: @escaping (State) -> DestinationState?,
         action fromDestinationAction: @escaping (DestinationAction) -> Action,
         @ViewBuilder content: @escaping (Store<DestinationState, DestinationAction>) -> some View
     ) -> some View {
-        self.modifier(
+        modifier(
             SheetViewModifier(
                 store: store,
                 state: toDestinationState,
@@ -56,6 +56,8 @@ extension View {
         )
     }
 }
+
+// MARK: - SheetViewModifier
 
 @MainActor
 private struct SheetViewModifier<
@@ -92,7 +94,7 @@ private struct SheetViewModifier<
             isPresenting: .init(
                 get: { viewStore.wrappedValue.flatMap(toDestinationState) != nil },
                 set: { newValue in
-                    if viewStore.wrappedValue != nil && !newValue {
+                    if viewStore.wrappedValue != nil, !newValue {
                         viewStore.send(.dismiss)
                     }
                 }
@@ -100,14 +102,16 @@ private struct SheetViewModifier<
         ) {
             IfLetStore(
                 store.scope(
-                    state: { $0.wrappedValue.flatMap(self.toDestinationState) },
-                    action: { .presented(self.fromDestinationAction($0)) }
+                    state: { $0.wrappedValue.flatMap(toDestinationState) },
+                    action: { .presented(fromDestinationAction($0)) }
                 ),
                 then: sheetContent
             )
         }
     }
 }
+
+// MARK: - SheetView_Previews
 
 struct SheetView_Previews: PreviewProvider {
     static var previews: some View {

@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/18/23.
-//  
+//
 //
 
 import Combine
@@ -11,10 +11,13 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
+// MARK: - InsetableValues
+
 public class InsetableValues: @unchecked Sendable, ObservableObject {
     static var _current = InsetableValues()
 
-    @Published var values = [ObjectIdentifier: CGSize]()
+    @Published
+    var values = [ObjectIdentifier: CGSize]()
 
     private init() {}
 
@@ -28,13 +31,18 @@ public class InsetableValues: @unchecked Sendable, ObservableObject {
     }
 }
 
+// MARK: - InsetableKey
+
 public protocol InsetableKey {
     static var defaultValue: CGSize { get }
 }
 
+// MARK: - InsetValue
+
 @propertyWrapper
 public struct InsetValue: @unchecked Sendable, DynamicProperty {
-    @ObservedObject var values = InsetableValues._current
+    @ObservedObject
+    var values = InsetableValues._current
 
     private let keyPath: KeyPath<InsetableValues, CGSize>
 
@@ -49,12 +57,12 @@ public struct InsetValue: @unchecked Sendable, DynamicProperty {
 
 public extension View {
     @MainActor
-    func inset<V: View>(
+    func inset(
         for key: WritableKeyPath<InsetableValues, CGSize>,
         alignment: SwiftUI.Alignment = .center,
-        _ content: V
+        _ content: some View
     ) -> some View {
-        self.overlay(alignment: alignment) {
+        overlay(alignment: alignment) {
             content
                 .readSize { size in
                     InsetableValues._current[keyPath: key] = size.size
@@ -63,11 +71,11 @@ public extension View {
     }
 
     @MainActor
-    func inset<V: View>(
+    func inset(
         for key: WritableKeyPath<InsetableValues, CGSize>,
         alignment: SwiftUI.Alignment = .center,
-        @ViewBuilder _ content: @escaping () -> V
+        @ViewBuilder _ content: @escaping () -> some View
     ) -> some View {
-        self.inset(for: key, alignment: .bottom, content())
+        inset(for: key, alignment: .bottom, content())
     }
 }

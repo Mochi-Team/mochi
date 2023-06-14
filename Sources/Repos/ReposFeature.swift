@@ -1,6 +1,6 @@
 //
 //  ReposFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 4/18/23.
 //  Copyright © 2023. All rights reserved.
@@ -105,7 +105,7 @@ public enum ReposFeature: Feature {
         @Dependency(\.dateFormatter)
         var dateFormatter
 
-        nonisolated public init(store: FeatureStoreOf<ReposFeature>) {
+        public nonisolated init(store: FeatureStoreOf<ReposFeature>) {
             self.store = store
         }
     }

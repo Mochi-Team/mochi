@@ -1,6 +1,6 @@
 //
 //  RepoPackagesFeature.swift
-//  
+//
 //
 //  Created ErrorErrorError on 5/4/23.
 //  Copyright © 2023. All rights reserved.
@@ -14,6 +14,8 @@ import SharedModels
 import SwiftUI
 import Tagged
 import ViewComponents
+
+// MARK: - RepoPackagesFeature
 
 public enum RepoPackagesFeature {
     public typealias Package = [Module.Manifest]
@@ -55,7 +57,7 @@ public enum RepoPackagesFeature {
     public struct View: FeatureView {
         public let store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>
 
-        nonisolated public init(store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>) {
+        public nonisolated init(store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>) {
             self.store = store
         }
     }

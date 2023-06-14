@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 5/16/23.
-//  
+//
 //
 
 import CoreData
@@ -51,6 +51,5 @@ extension NSPersistentStore {
                 try? fileManager.removeItem(at: ckAssetFilesURL)
             }
         }
-
     }
 }

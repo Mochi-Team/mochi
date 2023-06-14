@@ -1,9 +1,9 @@
 //
 //  Models.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/8/23.
-//  
+//
 //
 
 import DatabaseClient
@@ -11,8 +11,8 @@ import Foundation
 import SharedModels
 import Tagged
 
-extension RepoClient {
-    public enum Error: Swift.Error, Equatable, Sendable {
+public extension RepoClient {
+    enum Error: Swift.Error, Equatable, Sendable {
         case failedToFindRepo
         case failedToDownloadModule
         case failedToDownloadRepo
@@ -21,7 +21,7 @@ extension RepoClient {
         case failedToLoadPackages
     }
 
-    public enum RepoModuleDownloadState: Equatable, Sendable {
+    enum RepoModuleDownloadState: Equatable, Sendable {
         case pending
         case downloading(percent: Double)
         case installing
@@ -29,13 +29,13 @@ extension RepoClient {
         case failed(Error)
     }
 
-    public struct SelectedModule: Equatable, Sendable {
+    struct SelectedModule: Equatable, Sendable {
         public let repoId: Repo.ID
         public let module: Module.Manifest
     }
 
     @dynamicMemberLookup
-    public struct RepoPayload: Equatable, Sendable {
+    struct RepoPayload: Equatable, Sendable {
         public let remoteURL: URL
         public var iconURL: URL? {
             manifest.icon

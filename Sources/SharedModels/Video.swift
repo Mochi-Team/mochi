@@ -1,16 +1,16 @@
 //
 //  Playlist+Video.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 4/18/23.
-//  
+//
 //
 
 import Foundation
 import Tagged
 
-extension Playlist {
-    public struct EpisodeSourcesRequest: Sendable, Equatable {
+public extension Playlist {
+    struct EpisodeSourcesRequest: Sendable, Equatable {
         public let playlistId: Playlist.ID
         public let episodeId: Playlist.Item.ID
 
@@ -23,7 +23,7 @@ extension Playlist {
         }
     }
 
-    public struct EpisodeServerRequest: Sendable, Equatable {
+    struct EpisodeServerRequest: Sendable, Equatable {
         public let playlistId: Playlist.ID
         public let episodeId: Playlist.Item.ID
         public let sourceId: EpisodeSource.ID
@@ -42,7 +42,7 @@ extension Playlist {
         }
     }
 
-    public struct EpisodeSource: Sendable, Equatable, Identifiable {
+    struct EpisodeSource: Sendable, Equatable, Identifiable {
         public let id: Tagged<Self, String>
         public let displayName: String
         public let description: String?
@@ -61,7 +61,7 @@ extension Playlist {
         }
     }
 
-    public struct EpisodeServer: Sendable, Equatable, Identifiable {
+    struct EpisodeServer: Sendable, Equatable, Identifiable {
         public let id: Tagged<Self, String>
         public let displayName: String
         public let description: String?
@@ -182,7 +182,7 @@ extension Playlist {
         }
     }
 
-    public struct EpisodeServerResponse: Equatable, Sendable {
+    struct EpisodeServerResponse: Equatable, Sendable {
         public let links: [Playlist.EpisodeServer.Link]
         public let subtitles: [Playlist.EpisodeServer.Subtitle]
 

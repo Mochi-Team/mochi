@@ -15,6 +15,8 @@ import Styling
 import SwiftUI
 import ViewComponents
 
+// MARK: - RepoPackagesFeature.View + View
+
 extension RepoPackagesFeature.View: View {
     @MainActor
     public var body: some View {
@@ -359,6 +361,8 @@ extension RepoPackagesFeature.View {
         }
     }
 }
+
+// MARK: - RepoPackagesFeatureView_Previews
 
 struct RepoPackagesFeatureView_Previews: PreviewProvider {
     static var previews: some View {

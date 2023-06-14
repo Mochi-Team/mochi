@@ -3,7 +3,7 @@
 //  mochi
 //
 //  Created by ErrorErrorError on 5/19/23.
-//  
+//
 //
 
 #if os(iOS)
@@ -23,8 +23,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+        _: UIApplication,
+        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         viewStore.send(.internal(.appDelegate(.didFinishLaunching)))
         return true

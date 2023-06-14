@@ -5,7 +5,7 @@ public struct ImportedAddModule {
     private let _vm: WasmInstance
 
     init() throws {
-        _vm = try .init(module: Self.wasm) {
+        self._vm = try .init(module: Self.wasm) {
             WasmInstance.Import(namespace: "imports") {
                 WasmInstance.Function("imported_add_func") { (arg1: Int32, arg2: Int64) -> Int32 in
                     Int32(Int64(arg1) + arg2)
@@ -15,7 +15,7 @@ public struct ImportedAddModule {
     }
 
     func askModuleToCallImportedFunction() throws -> Int {
-        Int(try _vm.exports.integer_provider_func() as Int32)
+        try Int(_vm.exports.integer_provider_func() as Int32)
     }
 
     // `wat2wasm -o >(base64) Tests/WasmInterpreterTests/Resources/imported-add.wat | pbcopy`

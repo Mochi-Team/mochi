@@ -1,14 +1,16 @@
 //
 //  ModuleHandler.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/3/23.
-//  
+//
 //
 
 import Foundation
 import SharedModels
 import WasmInterpreter
+
+// MARK: - ModuleHandler
 
 public struct ModuleHandler {
     private let module: Module
@@ -27,7 +29,7 @@ public struct ModuleHandler {
 ///
 public extension ModuleHandler {
     func search(_ query: SearchQuery) async throws -> Paging<Playlist> {
-        let queryPtr = self.hostModuleComms.addToHostMemory(query)
+        let queryPtr = hostModuleComms.addToHostMemory(query)
         let resultsPtr: Int32 = try instance.exports.search(queryPtr)
 
         if let paging = hostModuleComms.getHostObject(resultsPtr) as? Paging<Any?> {
@@ -63,7 +65,7 @@ public extension ModuleHandler {
     }
 
     func playlistDetails(_ id: Playlist.ID) async throws -> Playlist.Details {
-        let idPtr = self.hostModuleComms.addToHostMemory(id)
+        let idPtr = hostModuleComms.addToHostMemory(id)
         let resultsPtr: Int32 = try instance.exports.playlist_details(idPtr)
 
         if let details = hostModuleComms.getHostObject(resultsPtr) as? Playlist.Details {
@@ -117,7 +119,7 @@ public extension ModuleHandler {
 
 extension ModuleHandler {
     func initializeImports() {
-        try? self.instance.importFunctions {
+        try? instance.importFunctions {
             self.envImports()
             self.coreImports()
             self.httpImports()

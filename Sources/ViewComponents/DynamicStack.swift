@@ -1,9 +1,9 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/7/23.
-//  
+//
 //
 
 import Foundation
@@ -31,9 +31,9 @@ public struct DynamicStack<Content: View>: View {
 
     public var body: some View {
         switch stackType {
-        case .hstack(let alignment):
+        case let .hstack(alignment):
             HStack(alignment: alignment, spacing: spacing, content: content)
-        case .vstack(let alignment):
+        case let .vstack(alignment):
             VStack(alignment: alignment, spacing: spacing, content: content)
         }
     }
