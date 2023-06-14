@@ -86,8 +86,7 @@ extension HostModuleInterop {
 
     func create_episode_server_response(
         links_ptr: Int32,
-        subtitles_ptr: Int32,
-        format_type: Int32
+        subtitles_ptr: Int32
     ) -> Int32 {
         handleErrorAlloc { alloc in
             let links = (alloc[links_ptr] as? [Any?])?
@@ -99,8 +98,7 @@ extension HostModuleInterop {
             return alloc.add(
                 Playlist.EpisodeServerResponse(
                     links: links ?? [],
-                    subtitles: subtitles ?? [],
-                    formatType: .init(rawValue: format_type) ?? .hls
+                    subtitles: subtitles ?? []
                 )
             )
         }
@@ -109,7 +107,8 @@ extension HostModuleInterop {
     func create_episode_server_link(
         url_ptr: Int32,
         url_len: Int32,
-        quality: Int32
+        quality: Int32,
+        format: Int32
     ) -> Int32 {
         handleErrorAlloc { alloc in
             let url = try memory.string(
@@ -124,7 +123,8 @@ extension HostModuleInterop {
             return alloc.add(
                 Playlist.EpisodeServer.Link(
                     url: url,
-                    quality: .init(rawValue: .init(quality)) ?? .auto
+                    quality: .init(rawValue: .init(quality)) ?? .auto,
+                    format: .init(rawValue: format) ?? .hls
                 )
             )
         }
@@ -134,7 +134,8 @@ extension HostModuleInterop {
         url_ptr: Int32,
         url_len: Int32,
         language_ptr: Int32,
-        language_len: Int32
+        language_len: Int32,
+        format: Int32
     ) -> Int32 {
         handleErrorAlloc { alloc in
             let url = try memory.string(
@@ -154,7 +155,8 @@ extension HostModuleInterop {
             return alloc.add(
                 Playlist.EpisodeServer.Subtitle(
                     url: url,
-                    language: language
+                    language: language,
+                    format: .init(rawValue: format) ?? .vtt
                 )
             )
         }

@@ -162,3 +162,16 @@ public struct Case<ParentState, ParentAction, Child: Reducer>: Reducer where Chi
             .map(self.toChildAction.embed)
     }
 }
+
+extension ViewStore where ViewAction: FeatureAction {
+    public func binding<ParentState, Value>(
+        _ parentKeyPath: WritableKeyPath<ParentState, BindingState<Value>>,
+        keyPath: WritableKeyPath<ViewState, Value>
+    ) -> Binding<Value> where ViewAction.ViewAction: BindableAction, ViewAction.ViewAction.State == ParentState, Value: Equatable {
+        binding { viewState in
+            viewState[keyPath: keyPath]
+        } send: { value in
+            .view(.binding(.set(parentKeyPath, value)))
+        }
+    }
+}

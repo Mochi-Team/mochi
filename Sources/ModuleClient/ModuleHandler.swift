@@ -1028,25 +1028,25 @@ extension ModuleHandler {
 
             WasmInstance.Function("create_episode_server_response") { [self] (
                 linksPtr: Int32,
-                subtitlesPtr: Int32,
-                formatType: Int32
+                subtitlesPtr: Int32
             ) -> Int32 in
                 hostModuleComms.create_episode_server_response(
                     links_ptr: linksPtr,
-                    subtitles_ptr: subtitlesPtr,
-                    format_type: formatType
+                    subtitles_ptr: subtitlesPtr
                 )
             }
 
             WasmInstance.Function("create_episode_server_link") { [self] (
                 urlPtr: Int32,
                 urlLen: Int32,
-                quality: Int32
+                quality: Int32,
+                format: Int32
             ) -> Int32 in
                 hostModuleComms.create_episode_server_link(
                     url_ptr: urlPtr,
                     url_len: urlLen,
-                    quality: quality
+                    quality: quality,
+                    format: format
                 )
             }
 
@@ -1054,13 +1054,15 @@ extension ModuleHandler {
                 urlPtr: Int32,
                 urlLen: Int32,
                 languagePtr: Int32,
-                languageLen: Int32
+                languageLen: Int32,
+                format: Int32
             ) -> Int32 in
                 hostModuleComms.create_episode_server_subtitle(
                     url_ptr: urlPtr,
                     url_len: urlLen,
                     language_ptr: languagePtr,
-                    language_len: languageLen
+                    language_len: languageLen,
+                    format: format
                 )
             }
         }

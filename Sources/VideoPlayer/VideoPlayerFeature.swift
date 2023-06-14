@@ -10,6 +10,7 @@ import Architecture
 import ComposableArchitecture
 import LoggerClient
 import ModuleClient
+import PlayerClient
 import SharedModels
 import SwiftUI
 import Tagged
@@ -29,12 +30,12 @@ public enum VideoPlayerFeature: Feature {
             }
         }
 
-        public let repoModuleID: RepoModuleID
-        public let playlist: Playlist
+        public var repoModuleID: RepoModuleID
+        public var playlist: Playlist
         public var contents: Contents
         public var selected: SelectedContent
         public var overlay: Overlay?
-        public var player: PlayerReducer.State
+        public var player: PlayerFeature.State
 
         public init(
             repoModuleID: RepoModuleID,
@@ -43,7 +44,7 @@ public enum VideoPlayerFeature: Feature {
             groupId: Playlist.Group.ID,
             episodeId: Playlist.Item.ID,
             overlay: Overlay? = .tools,
-            player: PlayerReducer.State = .init()
+            player: PlayerFeature.State = .init()
         ) {
             self.repoModuleID = repoModuleID
             self.playlist = playlist
@@ -77,7 +78,7 @@ public enum VideoPlayerFeature: Feature {
             case groupResponse(groupId: Playlist.Group.ID, _ response: Loadable<Playlist.ItemsResponse>)
             case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource]>)
             case serverResponse(sourceId: Playlist.EpisodeSource.ID, _ response: Loadable<Playlist.EpisodeServerResponse>)
-            case player(PlayerReducer.Action)
+            case player(PlayerFeature.Action)
         }
 
         case view(ViewAction)
@@ -88,12 +89,6 @@ public enum VideoPlayerFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: FeatureStoreOf<VideoPlayerFeature>
-
-        @Dependency(\.videoPlayerClient.player)
-        var player
-
-        @SwiftUI.Environment(\.horizontalSizeClass)
-        var horizontalSizeClass
 
         nonisolated public init(store: FeatureStoreOf<VideoPlayerFeature>) {
             self.store = store
@@ -113,8 +108,8 @@ public enum VideoPlayerFeature: Feature {
         @Dependency(\.logger)
         var logger
 
-        @Dependency(\.videoPlayerClient)
-        var videoPlayerClient
+        @Dependency(\.playerClient)
+        var playerClient
 
         public init() {}
     }
@@ -206,10 +201,6 @@ extension VideoPlayerFeature.State {
             response: Loadable<Playlist.EpisodeServerResponse>
         ) {
             serverLinks[sourceId] = response
-        }
-
-        public mutating func clearServers() {
-            serverLinks.removeAll()
         }
     }
 }

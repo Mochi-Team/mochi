@@ -28,6 +28,7 @@ extension CMTime {
         } else {
             formatter.allowedUnits = [.hour, .minute, .second]
         }
-        return formatter.string(from: time) ?? nil
+
+        return formatter.string(from: time)
     }
 }

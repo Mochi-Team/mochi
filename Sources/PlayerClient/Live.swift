@@ -13,10 +13,11 @@ import Dependencies
 import Foundation
 import MediaPlayer
 
-extension VideoPlayerClient: DependencyKey {
+extension PlayerClient: DependencyKey {
     public static let liveValue: Self = {
         let player = AVQueuePlayer()
 
+        player.allowsExternalPlayback = true
         player.automaticallyWaitsToMinimizeStalling = true
         player.preventsDisplaySleepDuringVideoPlayback = true
         player.actionAtItemEnd = .pause
@@ -99,10 +100,10 @@ extension VideoPlayerClient: DependencyKey {
 
         return Self(
             load: { @MainActor link in
+                player.replaceCurrentItem(with: .init(url: link))
                 #if os(iOS)
                 try? session.setActive(true)
                 #endif
-                player.replaceCurrentItem(with: .init(url: link))
             },
             play: { @MainActor in
                 player.play()
@@ -112,7 +113,14 @@ extension VideoPlayerClient: DependencyKey {
             },
             seek: { @MainActor progress in
                 if let duration = player.currentItem?.duration, duration.seconds > .zero {
-                    player.seek(to: .init(seconds: duration.seconds * progress, preferredTimescale: 1))
+                    player.seek(
+                        to: .init(
+                            seconds: duration.seconds * progress,
+                            preferredTimescale: 1
+                        ),
+                        toleranceBefore: .zero,
+                        toleranceAfter: .zero
+                    )
                 }
             },
             volume: { @MainActor volume in
@@ -122,7 +130,7 @@ extension VideoPlayerClient: DependencyKey {
                 player.pause()
                 player.removeAllItems()
                 #if os(iOS)
-                try? session.setActive(true)
+                try? session.setActive(false, options: .notifyOthersOnDeactivation)
                 #endif
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
                 #if os(macOS)

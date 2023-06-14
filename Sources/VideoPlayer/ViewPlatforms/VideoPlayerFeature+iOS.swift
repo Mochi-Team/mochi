@@ -7,10 +7,10 @@
 //
 
 #if os(iOS)
-
 import Architecture
 import AVKit
 import ComposableArchitecture
+import PlayerClient
 import Styling
 import SwiftUI
 import ViewComponents
@@ -19,42 +19,52 @@ import ViewComponents
 extension VideoPlayerFeature.View: View {
     @MainActor
     public var body: some View {
-        ZStack {
-            PlayerView(player: player)
+        WithViewStore(store.viewAction, observe: \.player.pipState.status.isInPiP) { viewStore in
+            ZStack {
+                PlayerFeature.View(
+                    store: store.internalAction.scope(
+                        state: \.player,
+                        action: Action.InternalAction.player
+                    )
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
                 .ignoresSafeArea(.all, edges: .all)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    ViewStore(store.viewAction.stateless).send(.didTapPlayer)
+                    viewStore.send(.didTapPlayer)
                 }
 
-            WithViewStore(store.viewAction, observe: \.overlay) { viewStore in
-                Group {
-                    switch viewStore.state {
-                    case .none:
-                        EmptyView()
-                    case .tools:
-                        toolsOverlay
-                    case let .more(tab):
-                        moreOverlay(tab)
+                WithViewStore(store.viewAction, observe: \.overlay) { viewStore in
+                    ZStack {
+                        switch viewStore.state {
+                        case .none:
+                            EmptyView()
+                        case .tools:
+                            toolsOverlay
+                        case let .more(tab):
+                            moreOverlay(tab)
+                        }
                     }
+                    .animation(.easeInOut, value: viewStore.state == .none)
                 }
-                .animation(.easeInOut, value: viewStore.state == .none)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                Color.black
+                    .edgesIgnoringSafeArea(.all)
+                    .ignoresSafeArea(.all, edges: .all)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            )
+            .preferredColorScheme(.dark)
+            .blur(radius: viewStore.state ? 30 : 0)
+            .opacity(viewStore.state ? 0.0 : 1.0)
+            .animation(.easeInOut(duration: 0.35), value: viewStore.state)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            Color.black
-                .edgesIgnoringSafeArea(.all)
-                .ignoresSafeArea(.all, edges: .all)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        )
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
-        .preferredColorScheme(.dark)
     }
 }
 
@@ -94,14 +104,26 @@ extension VideoPlayerFeature.View {
 
             Spacer()
 
-            Button {
-            } label: {
-                Image(systemName: "rectangle.inset.bottomright.filled")
-                    .foregroundColor(.white)
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
+            WithViewStore(
+                store.internalAction.scope(
+                    state: \.player,
+                    action: Action.InternalAction.player
+                ),
+                observe: \.pipState
+            ) { viewStore in
+                if viewStore.isSupported {
+                    Button {
+                        viewStore.send(.view(.didTogglePictureInPicture))
+                    } label: {
+                        Image(systemName: "rectangle.inset.bottomright.filled")
+                            .foregroundColor(.white)
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!viewStore.isPossible)
+                }
             }
-            .buttonStyle(.plain)
 
             Button {
             } label: {
@@ -200,18 +222,8 @@ extension VideoPlayerFeature.View {
 
 extension VideoPlayerFeature.View {
     struct ProgressBar: View {
-        init(_ store: StoreOf<PlayerReducer>) {
-            self.viewStore = .init(
-                store.scope(
-                    state: \.`self`,
-                    action: PlayerReducer.Action.view
-                ),
-                observe: \.`self`
-            )
-        }
-
         @ObservedObject
-        var viewStore: ViewStore<PlayerReducer.State, PlayerReducer.Action.ViewAction>
+        var viewStore: ViewStore<PlayerFeature.State, PlayerFeature.Action.ViewAction>
 
         private var progress: Double {
             min(1.0, max(0, viewStore.progress.seconds / viewStore.duration.seconds))
@@ -225,7 +237,11 @@ extension VideoPlayerFeature.View {
         }
 
         private var canUseControls: Bool {
-            viewStore.duration != .zero
+            viewStore.duration.isValid && viewStore.duration != .zero
+        }
+
+        init(_ store: StoreOf<PlayerFeature.Reducer>) {
+            self.viewStore = .init(store.viewAction, observe: \.`self`)
         }
 
         var body: some View {
@@ -278,7 +294,7 @@ extension VideoPlayerFeature.View {
                 .frame(height: 24)
 
                 Group {
-                    if viewStore.duration > .zero {
+                    if canUseControls {
                         Text(viewStore.progress.displayTime ?? "00:00") +
                         Text(" / ") +
                         Text(viewStore.duration.displayTime ?? "--.--")

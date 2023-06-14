@@ -10,6 +10,8 @@ import Architecture
 import ComposableArchitecture
 import LoggerClient
 import ModuleClient
+import PlayerClient
+import SharedModels
 
 private enum Cancellables: Hashable, CaseIterable {
     case fetchingContents
@@ -20,23 +22,19 @@ private enum Cancellables: Hashable, CaseIterable {
 extension VideoPlayerFeature.Reducer: Reducer {
     public var body: some ReducerOf<Self> {
         Scope(state: \.player, action: /Action.internal .. Action.InternalAction.player) {
-            PlayerReducer()
+            PlayerFeature.Reducer()
         }
 
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                let effect = state.fetchGroupsWithContentIfNecessary()
-                return .merge(
-                    effect,
-                    .send(.internal(.player(.initialize)))
-                )
+                return state.fetchGroupsWithContentIfNecessary()
 
             case .view(.didTapBackButton):
                 return .merge(
                     .cancel(ids: Cancellables.allCases),
                     .run { _ in
-                        await videoPlayerClient.clear()
+                        await playerClient.clear()
                         await dismiss()
                     }
                 )
@@ -54,20 +52,16 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 state.overlay = .tools
 
             case let .view(.didTapPlayEpisode(groupId, itemId)):
-                state.selected.groupId = groupId
-                state.selected.episodeId = itemId
-                return state.clearForNewEpisodeIfNeeded()
+                return state.clearForNewEpisodeIfNeeded(groupId, itemId)
 
             case let .view(.didTapSource(sourceId)):
-                state.selected.sourceId = sourceId
-                return state.clearForChangedServerIfNeeded()
+                return state.clearForChangedSourceIfNeeded(sourceId)
 
             case let .view(.didTapServer(serverId)):
-                state.selected.serverId = serverId
-                return state.clearForChangedServerIfNeeded()
+                return state.clearForChangedServerIfNeeded(serverId)
 
             case let .view(.didTapLink(linkId)):
-                state.selected.linkId = linkId
+                return state.clearForChangedLinkIfNeeded(linkId)
 
             case let .internal(.groupResponse(groupId, .loaded(response))):
                 state.contents.update(with: groupId, response: .loaded(response))
@@ -96,8 +90,8 @@ extension VideoPlayerFeature.Reducer: Reducer {
                     state.selected.linkId = response.links.first?.id
                     if let link = response.links.first {
                         return .run { _ in
-                            try await videoPlayerClient.load(link.url)
-                            await videoPlayerClient.play()
+                            try await playerClient.load(link.url)
+                            await playerClient.play()
                         }
                     }
                 } else if case let .failed(error) = response {
@@ -115,15 +109,120 @@ extension VideoPlayerFeature.Reducer: Reducer {
     }
 }
 
-extension VideoPlayerFeature.State {
-    mutating func clearForNewEpisodeIfNeeded() -> Effect<VideoPlayerFeature.Action> {
-        contents.serverLinks = .init()
-        return fetchSourcesIfNecessary()
+public extension VideoPlayerFeature.State {
+    mutating func clearForNewPlaylistIfNeeded(
+        repoModuleID: RepoModuleID,
+        playlist: Playlist,
+        groupId: Playlist.Group.ID,
+        episodeId: Playlist.Item.ID
+    ) -> Effect<VideoPlayerFeature.Action> {
+        @Dependency(\.playerClient)
+        var playerClient
+
+        if repoModuleID != self.repoModuleID ||
+            playlist.id != self.playlist.id ||
+            groupId != self.selected.groupId ||
+            episodeId != selected.episodeId {
+            self.repoModuleID = repoModuleID
+            self.playlist = playlist
+            self.selected.groupId = groupId
+            self.selected.episodeId = episodeId
+            self.selected.serverId = nil
+            self.selected.linkId = nil
+            self.selected.sourceId = nil
+            self.contents.allGroups = .pending
+            self.contents.groups.removeAll()
+            self.contents.serverLinks.removeAll()
+            self.contents.sources.removeAll()
+            return .merge(
+                .run { await playerClient.clear() },
+                fetchGroupsWithContentIfNecessary()
+            )
+        }
+
+        return .none
     }
 
-    mutating func clearForChangedServerIfNeeded() -> Effect<VideoPlayerFeature.Action> {
-        contents.serverLinks = .init()
-        return fetchServerIfNecessary()
+    mutating func clearForNewEpisodeIfNeeded(
+        _ groupId: Playlist.Group.ID,
+        _ episodeId: Playlist.Item.ID
+    ) -> Effect<VideoPlayerFeature.Action> {
+        @Dependency(\.playerClient)
+        var playerClient
+
+        if selected.groupId != groupId || selected.episodeId != episodeId {
+            selected.groupId = groupId
+            selected.episodeId = episodeId
+            selected.sourceId = nil
+            selected.serverId = nil
+            selected.linkId = nil
+            contents.serverLinks = .init()
+            return .merge(
+                fetchSourcesIfNecessary(),
+                .run {
+                    await playerClient.clear()
+                }
+            )
+        }
+        return .none
+    }
+
+    mutating func clearForChangedSourceIfNeeded(_ sourceId: Playlist.EpisodeSource.ID) -> Effect<VideoPlayerFeature.Action> {
+        @Dependency(\.playerClient)
+        var playerClient
+
+        if selected.sourceId != sourceId {
+            selected.sourceId = sourceId
+
+            if let sources = contents[episodeId: selected.episodeId].value {
+                selected.serverId = sources.first { $0.id == sourceId }?.servers.first?.id
+            } else {
+                selected.serverId = nil
+            }
+            selected.linkId = nil
+            contents.serverLinks[sourceId] = nil
+
+            return .merge(
+                fetchSourcesIfNecessary(),
+                .run {
+                    await playerClient.clear()
+                }
+            )
+        }
+        return .none
+    }
+
+    mutating func clearForChangedServerIfNeeded(_ serverId: Playlist.EpisodeServer.ID) -> Effect<VideoPlayerFeature.Action> {
+        @Dependency(\.playerClient)
+        var playerClient
+
+        selected.serverId = serverId
+        selected.linkId = nil
+        selected.sourceId.flatMap { contents.serverLinks[$0] = nil }
+
+        return .merge(
+            fetchServerIfNecessary(),
+            .run {
+                await playerClient.clear()
+            }
+        )
+    }
+
+    mutating func clearForChangedLinkIfNeeded(_ linkId: Playlist.EpisodeServer.Link.ID) -> Effect<VideoPlayerFeature.Action> {
+        @Dependency(\.playerClient)
+        var playerClient
+
+        selected.linkId = linkId
+        if let sourceId = selected.sourceId {
+            if let link = contents.serverLinks[sourceId]?.value?.links.first(where: { $0.id == linkId }) {
+                return .run { _ in
+                    await playerClient.pause()
+                    try await playerClient.load(link.url)
+                    await playerClient.play()
+                }
+            }
+        }
+        return .none
     }
 
     mutating func fetchGroupsWithContentIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
@@ -134,7 +233,7 @@ extension VideoPlayerFeature.State {
         let playlist = playlist
         let groupId = selected.groupId
 
-        if !contents[groupId: groupId].hasInitialized {
+        if forced || !contents[groupId: groupId].hasInitialized {
             self.contents.update(with: groupId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingContents, cancelInFlight: true) {
@@ -165,7 +264,7 @@ extension VideoPlayerFeature.State {
         let playlist = playlist
         let episodeId = selected.episodeId
 
-        if !contents[episodeId: episodeId].hasInitialized {
+        if forced || !contents[episodeId: episodeId].hasInitialized {
             self.contents.update(with: episodeId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingSources, cancelInFlight: true) {
@@ -206,7 +305,7 @@ extension VideoPlayerFeature.State {
             return .none
         }
 
-        if !contents[sourceId: sourceId].hasInitialized {
+        if forced || !contents[sourceId: sourceId].hasInitialized {
             contents.update(with: sourceId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingServer, cancelInFlight: true) {

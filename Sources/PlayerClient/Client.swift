@@ -12,7 +12,7 @@ import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
-public struct VideoPlayerClient: Sendable {
+public struct PlayerClient: Sendable {
 //    let status: @Sendable () -> AsyncStream<Status>
     public let load: @Sendable (URL) async throws -> Void
     public let play: @Sendable () async -> Void
@@ -23,7 +23,7 @@ public struct VideoPlayerClient: Sendable {
     let player: AVPlayer
 }
 
-extension VideoPlayerClient: TestDependencyKey {
+extension PlayerClient: TestDependencyKey {
     public static let testValue = Self(
         load: unimplemented(),
         play: unimplemented(),
@@ -36,8 +36,8 @@ extension VideoPlayerClient: TestDependencyKey {
 }
 
 extension DependencyValues {
-    public var videoPlayerClient: VideoPlayerClient {
-        get { self[VideoPlayerClient.self] }
-        set { self[VideoPlayerClient.self] = newValue }
+    public var playerClient: PlayerClient {
+        get { self[PlayerClient.self] }
+        set { self[PlayerClient.self] = newValue }
     }
 }

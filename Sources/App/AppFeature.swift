@@ -16,7 +16,7 @@ import Search
 import Settings
 import SharedModels
 import SwiftUI
-import VideoPlayerClient
+import VideoPlayer
 
 public enum AppFeature: Feature {
     public struct State: FeatureState {
@@ -128,9 +128,6 @@ public enum AppFeature: Feature {
 
         @Dependency(\.databaseClient)
         var databaseClient
-
-        @Dependency(\.videoPlayerClient)
-        var videoPlayerClient
 
         public init() { }
     }

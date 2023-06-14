@@ -14,7 +14,7 @@ import ModuleLists
 import Repos
 import Search
 import Settings
-import VideoPlayerClient
+import VideoPlayer
 
 extension AppFeature.Reducer {
     @ReducerBuilder<State, Action>
@@ -34,29 +34,27 @@ extension AppFeature.Reducer {
             case .internal(.appDelegate):
                 break
 
-            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
-                state.videoPlayer = .init(
+            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))),
+                let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
+                let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
                     repoModuleID: repoModuleID,
                     playlist: playlist,
-                    contents: .init(),
                     groupId: groupId,
                     episodeId: itemId
                 )
+                .map { Action.internal(.videoPlayer(.presented($0))) }
 
-            case let .internal(.repos(.delegate(delegate))):
-                switch delegate {}
-
-            case let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
-                state.videoPlayer = .init(
-                    repoModuleID: repoModuleID,
-                    playlist: playlist,
-                    contents: .init(),
-                    groupId: groupId,
-                    episodeId: itemId
-                )
-
-            case let .internal(.settings(.delegate(delegate))):
-                switch delegate {}
+                if let effect {
+                    return effect
+                } else {
+                    state.videoPlayer = .init(
+                        repoModuleID: repoModuleID,
+                        playlist: playlist,
+                        contents: .init(),
+                        groupId: groupId,
+                        episodeId: itemId
+                    )
+                }
 
             case .internal(.discover):
                 break

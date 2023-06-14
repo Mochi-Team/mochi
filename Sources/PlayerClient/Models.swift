@@ -8,7 +8,7 @@
 
 import Foundation
 
-public extension VideoPlayerClient {
+public extension PlayerClient {
     enum Status: Equatable, Sendable {
         case idle
         case loading
@@ -19,7 +19,7 @@ public extension VideoPlayerClient {
     }
 }
 
-public extension VideoPlayerClient.Status {
+public extension PlayerClient.Status {
     enum Playback: Equatable, Sendable {
         case buffering
         case playing

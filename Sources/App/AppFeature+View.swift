@@ -16,7 +16,7 @@ import Search
 import Settings
 import Styling
 import SwiftUI
-import VideoPlayerClient
+import VideoPlayer
 import ViewComponents
 
 extension AppFeature.View: View {

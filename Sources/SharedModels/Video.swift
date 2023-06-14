@@ -80,109 +80,118 @@ extension Playlist {
             public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let quality: Quality
+            public let format: Format
 
             public init(
                 url: URL,
-                quality: Playlist.EpisodeServer.Quality
+                quality: Quality,
+                format: Format
             ) {
                 self.url = url
                 self.quality = quality
+                self.format = format
             }
-        }
 
-        public enum Quality: RawRepresentable, Sendable, Equatable, CustomStringConvertible {
-            case auto
-            case q1080
-            case q720
-            case q480
-            case q360
-            case custom(Int)
+            public enum Quality: RawRepresentable, Sendable, Equatable, CustomStringConvertible {
+                case auto
+                case q1080
+                case q720
+                case q480
+                case q360
+                case custom(Int)
 
-            public init?(rawValue: Int) {
-                if rawValue == Self.auto.rawValue {
-                    self = .auto
-                } else if rawValue == Self.q1080.rawValue {
-                    self = .q1080
-                } else if rawValue == Self.q720.rawValue {
-                    self = .q720
-                } else if rawValue == Self.q480.rawValue {
-                    self = .q480
-                } else if rawValue == Self.q360.rawValue {
-                    self = .q360
-                } else if rawValue > 0 {
-                    self = .custom(rawValue)
-                } else {
-                    return nil
+                public init?(rawValue: Int) {
+                    if rawValue == Self.auto.rawValue {
+                        self = .auto
+                    } else if rawValue == Self.q1080.rawValue {
+                        self = .q1080
+                    } else if rawValue == Self.q720.rawValue {
+                        self = .q720
+                    } else if rawValue == Self.q480.rawValue {
+                        self = .q480
+                    } else if rawValue == Self.q360.rawValue {
+                        self = .q360
+                    } else if rawValue > 0 {
+                        self = .custom(rawValue)
+                    } else {
+                        return nil
+                    }
+                }
+
+                public var rawValue: Int {
+                    switch self {
+                    case .auto:
+                        return Int.max
+                    case .q1080:
+                        return 1_080
+                    case .q720:
+                        return 720
+                    case .q480:
+                        return 480
+                    case .q360:
+                        return 360
+                    case let .custom(res):
+                        return res
+                    }
+                }
+
+                public var description: String {
+                    switch self {
+                    case .auto:
+                        return "Auto"
+                    case .q1080:
+                        return "1080p"
+                    case .q720:
+                        return "720p"
+                    case .q480:
+                        return "480p"
+                    case .q360:
+                        return "360p"
+                    case let .custom(resolution):
+                        return "\(resolution)p"
+                    }
                 }
             }
 
-            public var rawValue: Int {
-                switch self {
-                case .auto:
-                    return Int.max
-                case .q1080:
-                    return 1_080
-                case .q720:
-                    return 720
-                case .q480:
-                    return 480
-                case .q360:
-                    return 360
-                case let .custom(res):
-                    return res
-                }
-            }
-
-            public var description: String {
-                switch self {
-                case .auto:
-                    return "Auto"
-                case .q1080:
-                    return "1080p"
-                case .q720:
-                    return "720p"
-                case .q480:
-                    return "480p"
-                case .q360:
-                    return "360p"
-                case let .custom(resolution):
-                    return "\(resolution)p"
-                }
+            public enum Format: Int32, Equatable, Sendable {
+                case hls
+                case dash
             }
         }
 
         public struct Subtitle: Sendable, Equatable {
             public let url: URL
             public let language: String
+            public let format: Format
 
             public init(
                 url: URL,
-                language: String
+                language: String,
+                format: Format
             ) {
                 self.language = language
                 self.url = url
+                self.format = format
             }
-        }
 
-        public enum Format: Int32, Equatable, Sendable {
-            case hls
-            case dash
+            public enum Format: Int32, Sendable, Equatable {
+                case vtt
+                case ass
+                case srt
+            }
         }
     }
 
     public struct EpisodeServerResponse: Equatable, Sendable {
         public let links: [Playlist.EpisodeServer.Link]
         public let subtitles: [Playlist.EpisodeServer.Subtitle]
-        public let formatType: Playlist.EpisodeServer.Format
 
         public init(
             links: [Playlist.EpisodeServer.Link] = [],
-            subtitles: [Playlist.EpisodeServer.Subtitle] = [],
-            formatType: Playlist.EpisodeServer.Format = .hls
+            subtitles: [Playlist.EpisodeServer.Subtitle] = []
         ) {
             self.links = links
             self.subtitles = subtitles
-            self.formatType = formatType
         }
     }
 }
