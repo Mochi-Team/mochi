@@ -104,9 +104,10 @@ let featuresTargets: [Target] = [
         name: "VideoPlayer",
         dependencies: [
             "Architecture",
+            "LoggerClient",
+            "PlayerClient",
             "SharedModels",
             "UserSettingsClient",
-            "PlayerClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
         ]

@@ -44,7 +44,6 @@ public extension Scope where ParentAction: FeatureAction {
         action toChildAction: CasePath<ParentAction.InternalAction, ChildAction>,
         @ReducerBuilder<ChildState, ChildAction> child: () -> Child
     ) where ChildState == Child.State, ChildAction == Child.Action {
-        // swiftlint:disable operator_usage_whitespace
         self.init(
             state: toChildState,
             action: /ParentAction.internal .. toChildAction,
@@ -59,7 +58,6 @@ public extension Scope where ParentAction: FeatureAction {
         action toChildAction: CasePath<ParentAction.InternalAction, ChildAction>,
         @ReducerBuilder<ChildState, ChildAction> child: () -> Child
     ) where ChildState == Child.State, ChildAction == Child.Action {
-        // swiftlint:disable operator_usage_whitespace
         self.init(
             state: toChildState,
             action: /ParentAction.internal .. toChildAction,
@@ -74,8 +72,7 @@ public extension Reducer where Action: FeatureAction {
         action toPresentationAction: CasePath<Action.InternalAction, PresentationAction<DestinationAction>>,
         @ReducerBuilder<DestinationState, DestinationAction> destination: () -> Destination
     ) -> _PresentationReducer<Self, Destination> where Destination.State == DestinationState, Destination.Action == DestinationAction {
-        // swiftlint:disable operator_usage_whitespace
-        ifLet(
+        self.ifLet(
             toPresentationState,
             action: /Action.internal .. toPresentationAction,
             destination: destination
@@ -87,7 +84,7 @@ public extension Reducer where Action: FeatureAction {
         action toWrappedAction: CasePath<Action.InternalAction, WrappedAction>,
         @ReducerBuilder<WrappedState, WrappedAction> then wrapped: () -> Wrapped
     ) -> _IfLetReducer<Self, Wrapped> where WrappedState == Wrapped.State, WrappedAction == Wrapped.Action {
-        ifLet(
+        self.ifLet(
             toWrappedState,
             action: /Action.internal .. toWrappedAction,
             then: wrapped

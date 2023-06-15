@@ -63,7 +63,6 @@ opt_in_rules:
   - switch_case_on_newline
   - test_case_accessibility
   - toggle_bool
-  - trailing_closure
   - unneeded_parentheses_in_closure_argument
   - untyped_error_in_catch
   - vertical_parameter_alignment_on_call

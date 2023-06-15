@@ -254,8 +254,8 @@ final class SheetPresentationController: UIPresentationController {
                 return
             }
 
-            presentedView?.layer.cornerRadius = cornerRadius
-            backgroundView.effect = visualEffect
+            self.presentedView?.layer.cornerRadius = cornerRadius
+            self.backgroundView.effect = visualEffect
         }
     }
 
@@ -284,8 +284,8 @@ final class SheetPresentationController: UIPresentationController {
                 return
             }
 
-            presentedView?.layer.cornerRadius = .zero
-            backgroundView.effect = nil
+            self.presentedView?.layer.cornerRadius = .zero
+            self.backgroundView.effect = nil
         }
     }
 

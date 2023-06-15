@@ -48,17 +48,16 @@ extension VideoPlayerFeature.View: View {
                             moreOverlay(tab)
                         }
                     }
-                    .animation(.easeInOut, value: viewStore.state == .none)
+                    .animation(.easeInOut, value: viewStore.state)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
+            .background {
                 Color.black
                     .edgesIgnoringSafeArea(.all)
                     .ignoresSafeArea(.all, edges: .all)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            )
+            }
             .preferredColorScheme(.dark)
             .blur(radius: viewStore.state ? 30 : 0)
             .opacity(viewStore.state ? 0.0 : 1.0)
@@ -120,34 +119,38 @@ extension VideoPlayerFeature.View {
                     Group {
                         switch viewStore.group {
                         case .pending, .loading:
-                            Text("Loading...")
+                            EmptyView()
                         case let .loaded(group):
                             if let group {
                                 Group {
                                     switch viewStore.episode {
                                     case .pending, .loading:
-                                        Text("Loading..")
+                                        Text("Loading...")
                                     case let .loaded(.some(item)):
                                         Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
                                     case .loaded(.none):
                                         Text("Unknown")
                                     case .failed:
-                                        Text("Failed to load")
+                                        EmptyView()
                                     }
                                 }
-                                .font(.callout.weight(.semibold))
                                 .foregroundColor(nil)
 
-                                Text("S\(group.id.withoutTrailingZeroes) \u{2022} E\(viewStore.episode.value??.number.withoutTrailingZeroes ?? "0")")
+                                Group {
+                                    Text("S\(group.id.withoutTrailingZeroes)") +
+                                    Text("\u{2022}") +
+                                    Text("E\(viewStore.episode.value??.number.withoutTrailingZeroes ?? "0")")
+                                }
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(.init(white: 0.78))
                             } else {
                                 Text("Unknown")
                             }
                         case .failed:
-                            Text("Failed to Load")
+                            EmptyView()
                         }
                     }
-                    .foregroundColor(.init(white: 0.78))
-                    .font(.caption.weight(.semibold))
+                    .font(.callout.weight(.semibold))
 
                     Spacer()
                         .frame(height: 2)
@@ -180,7 +183,8 @@ extension VideoPlayerFeature.View {
                 }
             }
 
-            Button {} label: {
+            Button {
+            } label: {
                 Image(systemName: "airplayvideo")
                     .foregroundColor(.white)
                     .frame(width: 28, height: 28)
@@ -386,40 +390,14 @@ extension VideoPlayerFeature.View {
                 } else {
                     return viewStore.progress.displayTime ?? "00:00"
                 }
+            } else {
+                return "--:--"
             }
-            return "00:00"
         }
     }
 }
 
 extension VideoPlayerFeature.View {
-    private struct SplitListingsView<LeadingContents: View, TrailingContents: View>: View {
-        let leadingContents: () -> LeadingContents
-        let trailingContents: () -> TrailingContents
-
-        var body: some View {
-            GeometryReader { proxy in
-                if proxy.size.width < proxy.size.height {
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            leadingContents()
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            trailingContents()
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        }
-                    }
-                } else {
-                    HStack(spacing: 12) {
-                        leadingContents()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        trailingContents()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-            }
-        }
-    }
-
     @MainActor
     func moreOverlay(_ selected: VideoPlayerFeature.State.Overlay.MoreTab) -> some View {
         GeometryReader { proxy in
@@ -434,6 +412,7 @@ extension VideoPlayerFeature.View {
                             .padding([.top, .trailing], 20)
                     }
                     .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
 
                     Spacer()
 
@@ -459,10 +438,17 @@ extension VideoPlayerFeature.View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .edgesIgnoringSafeArea(.all)
-                .ignoresSafeArea(.all, edges: .all)
+            Group {
+                if selected == .episodes {
+                    Rectangle()
+                        .fill(.thinMaterial)
+                } else {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.35))
+                }
+            }
+            .edgesIgnoringSafeArea(.all)
+            .ignoresSafeArea(.all, edges: .all)
         }
         .foregroundColor(.white)
     }
@@ -471,11 +457,11 @@ extension VideoPlayerFeature.View {
     var episodes: some View {
         WithViewStore(store.viewAction, observe: \.contents.allGroups) { allGroupsStore in
             LoadableView(loadable: allGroupsStore.state) { allGroups in
-                VStack(spacing: 0) {
-                    WithViewStore(
-                        store,
-                        observe: \.selected.groupId
-                    ) { selectedGroupStore in
+                WithViewStore(
+                    store,
+                    observe: \.selected.groupId
+                ) { selectedGroupStore in
+                    VStack(spacing: 0) {
                         Menu {
                             ForEach(allGroups) { group in
                                 Text(group.displayTitle ?? "Season \(group.id)")
@@ -561,99 +547,39 @@ extension VideoPlayerFeature.View {
             state.contents[episodeId: state.selected.episodeId]
         } content: { loadableSourcesStore in
             LoadableView(loadable: loadableSourcesStore.state) { sources in
-                SplitListingsView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Sources")
-                            .font(.title2.weight(.semibold))
-                        Spacer()
-                            .frame(height: 12)
-                        Divider()
-                        if !sources.isEmpty {
-                            WithViewStore(store.viewAction, observe: \.selected.sourceId) { selectedSourceIdState in
-                                ScrollView {
-                                    VStack(alignment: .leading) {
-                                        Spacer()
-                                            .frame(height: 12)
-
-                                        ForEach(sources) { source in
-                                            VStack(alignment: .leading) {
-                                                Text(source.displayName)
-                                                    .foregroundColor(selectedSourceIdState.state == source.id ? .white : .gray)
-                                                if let description = source.description {
-                                                    Text(description)
-                                                        .font(.footnote)
-                                                        .foregroundColor(.gray)
-                                                }
-                                            }
-                                            .padding(12)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                selectedSourceIdState.send(.didTapSource(source.id))
-                                            }
-                                        }
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(alignment: .leading, spacing: 8) {
+                    WithViewStore(store.viewAction, observe: \.selected.sourceId) { selected in
+                        MoreListingRow(
+                            title: "Sources",
+                            selected: selected.state,
+                            items: sources,
+                            itemTitle: \.displayName,
+                            selectedCallback: { id in
+                                selected.send(.didTapSource(id))
                             }
-                        } else {
-                            Spacer()
-                            Text("No Sources Available")
-                            Spacer()
-                        }
+                        )
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } trailingContents: {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Servers")
-                            .font(.title2.weight(.semibold))
-                        Spacer()
-                            .frame(height: 12)
-                        Divider()
-                        WithViewStore(store) { state in
-                            state.selected.sourceId.flatMap { id in
-                                sources.first { $0.id == id }
-                            }
-                        } content: { selectedSourceState in
-                            if let source = selectedSourceState.state {
-                                WithViewStore(store.viewAction, observe: \.selected.serverId) { selectedServerIdState in
-                                    ScrollView {
-                                        VStack {
-                                            Spacer()
-                                                .frame(height: 12)
 
-                                            ForEach(source.servers) { server in
-                                                VStack(alignment: .leading) {
-                                                    Text(server.displayName)
-                                                        .foregroundColor(selectedServerIdState.state == server.id ? .white : .gray)
+                    Spacer()
+                        .frame(height: 2)
 
-                                                    if let description = server.description {
-                                                        Text(description)
-                                                            .font(.footnote)
-                                                            .foregroundColor(.gray)
-                                                    }
-                                                }
-                                                .padding(12)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    selectedServerIdState.send(.didTapServer(server.id))
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    WithViewStore(store.viewAction, observe: \.selected.sourceId) { selectedSourceIdState in
+                        WithViewStore(store.viewAction, observe: \.selected.serverId) { selectedServerIdState in
+                            MoreListingRow(
+                                title: "Servers",
+                                selected: selectedServerIdState.state,
+                                items: selectedSourceIdState.state.flatMap { sources[id: $0] }?.servers ?? [],
+                                itemTitle: \.displayName,
+                                selectedCallback: { id in
+                                    selectedServerIdState.send(.didTapServer(id))
                                 }
-                            } else {
-                                Spacer()
-                                Text("No Servers Available")
-                                Spacer()
-                            }
+                            )
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             } failedView: { _ in
-                Text("Failed to load Sources.")
+                Text("Failed to load sources.")
             } waitingView: {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -674,61 +600,34 @@ extension VideoPlayerFeature.View {
             state.selected.sourceId.flatMap { state.contents[sourceId: $0] } ?? .pending
         } content: { loadableServerResponseState in
             LoadableView(loadable: loadableServerResponseState.state) { response in
-                SplitListingsView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Quality")
-                            .font(.title2.weight(.semibold))
-                        Spacer()
-                            .frame(height: 12)
-                        Divider()
-
-                        if !response.links.isEmpty {
-                            WithViewStore(store.viewAction, observe: \.selected.linkId) { selectedLinkIdState in
-                                ScrollView {
-                                    VStack(alignment: .leading) {
-                                        Spacer()
-                                            .frame(height: 12)
-
-                                        ForEach(response.links) { link in
-                                            VStack(alignment: .leading) {
-                                                Text(link.quality.description)
-                                                    .foregroundColor(selectedLinkIdState.state == link.id ? .white : .gray)
-                                            }
-                                            .padding(12)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                selectedLinkIdState.send(.didTapLink(link.id))
-                                            }
-                                        }
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(alignment: .leading, spacing: 8) {
+                    WithViewStore(store.viewAction, observe: \.selected.linkId) { selectedState in
+                        MoreListingRow(
+                            title: "Quality",
+                            selected: selectedState.state,
+                            items: response.links,
+                            itemTitle: \.quality.description,
+                            selectedCallback: { id in
+                                selectedState.send(.didTapLink(id))
                             }
-                        } else {
-                            Spacer()
-                            Text("No Links Available")
-                            Spacer()
-                        }
+                        )
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } trailingContents: {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Subtitles")
-                            .font(.title2.weight(.semibold))
-                        Spacer()
-                            .frame(height: 12)
-                        Divider()
 
-                        if !response.subtitles.isEmpty {
-                            Text("Todo")
-                        } else {
-                            Spacer()
-                            Text("No Subtitles Available")
-                            Spacer()
+                    Spacer()
+                        .frame(height: 2)
+
+                    WithViewStore(store.viewAction, observe: \.selected.subtitleId) { selectedIdState in
+                        MoreListingRow(
+                            title: "Subtitles",
+                            selected: selectedIdState.state,
+                            items: response.subtitles,
+                            itemTitle: \.language
+                        ) {
+                        } selectedCallback: { _ in
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             } failedView: { _ in
                 Text("Failed to load server contents.")
             } waitingView: {
@@ -743,6 +642,87 @@ extension VideoPlayerFeature.View {
     @MainActor
     var settings: some View {
         EmptyView()
+    }
+
+    @MainActor
+    private struct MoreListingRow<T: Identifiable>: View {
+        var title: String
+        var selected: T.ID?
+        var items: [T]
+        let itemTitle: KeyPath<T, String>
+        var noneCallback: (() -> Void)?
+        var selectedCallback: ((T.ID) -> Void)?
+
+        private let textPadding = 12.0
+
+        init(
+            title: String,
+            selected: T.ID? = nil,
+            items: [T],
+            itemTitle: KeyPath<T, String>,
+            noneCallback: (() -> Void)? = nil,
+            selectedCallback: ((T.ID) -> Void)? = nil
+        ) {
+            self.title = title
+            self.selected = selected
+            self.items = items
+            self.itemTitle = itemTitle
+            self.noneCallback = noneCallback
+            self.selectedCallback = selectedCallback
+        }
+
+        @MainActor
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.headline.weight(.semibold))
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        if items.isEmpty || noneCallback != nil {
+                            Button {
+                                noneCallback?()
+                            } label: {
+                                LazyHStack {
+                                    if selected == nil || !items.contains(where: { $0.id == selected }) {
+                                        Image(systemName: "checkmark")
+                                    }
+                                    Text("None")
+                                }
+                                .foregroundColor(.white)
+                                .padding(textPadding)
+                                .background(Color(white: 0.2))
+                                .cornerRadius(6)
+                                .contentShape(Rectangle())
+                                .fixedSize(horizontal: true, vertical: true)
+                                .disabled(noneCallback == nil)
+                            }
+                        }
+
+                        ForEach(items) { item in
+                            Button {
+                                selectedCallback?(item.id)
+                            } label: {
+                                LazyHStack(alignment: .center) {
+                                    if selected == item.id {
+                                        Image(systemName: "checkmark")
+                                    }
+                                    Text(item[keyPath: itemTitle])
+                                }
+                                .foregroundColor(.white)
+                                .padding(textPadding)
+                                .background(Color(white: 0.2))
+                                .cornerRadius(6)
+                                .contentShape(Rectangle())
+                                .fixedSize(horizontal: true, vertical: true)
+                            }
+                        }
+                    }
+                }
+                .font(.callout.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+        }
     }
 }
 
@@ -760,14 +740,20 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
                     ),
                     playlist: .init(id: "0", type: .video),
                     contents: .init(
-                        allGroups: .loaded([.init(id: 0)]),
-                        groups: [0: .loading]
+                        allGroups: .pending,
+                        groups: [:],
+                        sources: ["0": .loaded([])],
+                        servers: ["0": .loaded(
+                            .init(
+                                links: [],
+                                subtitles: []
+                            )
+                        )]
                     ),
-                    groupId: 0,
-                    episodeId: "",
-                    overlay: .more(.episodes)
+                    selected: .init(groupId: 0, episodeId: "0", sourceId: "0", serverId: "0"),
+                    overlay: .more(.qualityAndSubtitles)
                 ),
-                reducer: VideoPlayerFeature.Reducer()
+                reducer: EmptyReducer()
             )
         )
         .previewInterfaceOrientation(.landscapeRight)

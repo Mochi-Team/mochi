@@ -42,7 +42,23 @@ public enum VideoPlayerFeature: Feature {
         public init(
             repoModuleID: RepoModuleID,
             playlist: Playlist,
-            contents: Contents,
+            contents: Contents = .init(),
+            selected: SelectedContent,
+            overlay: Overlay? = .tools,
+            player: PlayerFeature.State = .init()
+        ) {
+            self.repoModuleID = repoModuleID
+            self.playlist = playlist
+            self.contents = contents
+            self.selected = selected
+            self.overlay = overlay
+            self.player = player
+        }
+
+        public init(
+            repoModuleID: RepoModuleID,
+            playlist: Playlist,
+            contents: Contents = .init(),
             groupId: Playlist.Group.ID,
             episodeId: Playlist.Item.ID,
             overlay: Overlay? = .tools,
@@ -125,19 +141,22 @@ public extension VideoPlayerFeature.State {
         public var sourceId: Playlist.EpisodeSource.ID?
         public var serverId: Playlist.EpisodeServer.ID?
         public var linkId: Playlist.EpisodeServer.Link.ID?
+        public var subtitleId: Playlist.EpisodeServer.Subtitle.ID?
 
         public init(
             groupId: Playlist.Group.ID,
             episodeId: Playlist.Item.ID,
             sourceId: Playlist.EpisodeSource.ID? = nil,
             serverId: Playlist.EpisodeServer.ID? = nil,
-            linkId: Playlist.EpisodeServer.Link.ID? = nil
+            linkId: Playlist.EpisodeServer.Link.ID? = nil,
+            subtitleId: Playlist.EpisodeServer.Subtitle.ID? = nil
         ) {
             self.groupId = groupId
             self.episodeId = episodeId
             self.sourceId = sourceId
             self.serverId = serverId
             self.linkId = linkId
+            self.subtitleId = subtitleId
         }
     }
 

@@ -159,7 +159,8 @@ public extension Playlist {
             }
         }
 
-        public struct Subtitle: Sendable, Equatable {
+        public struct Subtitle: Sendable, Equatable, Identifiable {
+            public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let language: String
             public let format: Format
