@@ -14,27 +14,39 @@ import SwiftUI
 public enum PlayerFeature: Feature {
     public struct State: FeatureState {
         public var status: AVPlayer.Status
+        public var timeControlStatus: AVPlayer.TimeControlStatus
         public var rate: Float
         public var progress: CMTime
         public var duration: CMTime
         public var gravity: AVLayerVideoGravity
         @BindingState
         public var pipState: PIPState
+        public var isPlaybackBufferEmpty: Bool
+        public var isPlaybackBufferFull: Bool
+        public var isPlaybackLikelyToKeepUp: Bool
 
         public init(
             status: AVPlayer.Status = .unknown,
+            timeControlStatus: AVPlayer.TimeControlStatus = .waitingToPlayAtSpecifiedRate,
             rate: Float = 0.0,
             progress: CMTime = .zero,
             duration: CMTime = .zero,
             gravity: AVLayerVideoGravity = .resizeAspect,
-            pipState: PIPState = .init()
+            pipState: PIPState = .init(),
+            isPlaybackBufferEmpty: Bool = true,
+            isPlaybackBufferFull: Bool = false,
+            isPlaybackLikelyToKeepUp: Bool = false
         ) {
             self.status = status
+            self.timeControlStatus = timeControlStatus
             self.rate = rate
             self.progress = progress
             self.duration = duration
             self.gravity = gravity
             self.pipState = pipState
+            self.isPlaybackBufferEmpty = isPlaybackBufferEmpty
+            self.isPlaybackBufferFull = isPlaybackBufferFull
+            self.isPlaybackLikelyToKeepUp = isPlaybackLikelyToKeepUp
         }
 
         public struct PIPState: Equatable, Sendable {
@@ -73,9 +85,14 @@ public enum PlayerFeature: Feature {
         }
 
         public enum InternalAction: SendableAction {
+            case status(AVPlayer.Status)
             case rate(Float)
             case progress(CMTime)
             case duration(CMTime)
+            case timeControlStatus(AVPlayer.TimeControlStatus)
+            case playbackBufferFull(Bool)
+            case playbackBufferEmpty(Bool)
+            case playbackLikelyToKeepUp(Bool)
         }
 
         public enum DelegateAction: SendableAction {
@@ -122,6 +139,31 @@ public enum PlayerFeature: Feature {
                         .run { send in
                             for await time in playerClient.player.valueStream(\.currentItem?.duration) {
                                 await send(.internal(.duration(time ?? .zero)))
+                            }
+                        },
+                        .run { send in
+                            for await status in playerClient.player.valueStream(\.status) {
+                                await send(.internal(.status(status)))
+                            }
+                        },
+                        .run { send in
+                            for await status in playerClient.player.valueStream(\.timeControlStatus) {
+                                await send(.internal(.timeControlStatus(status)))
+                            }
+                        },
+                        .run { send in
+                            for await empty in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferEmpty) {
+                                await send(.internal(.playbackBufferEmpty(empty ?? true)))
+                            }
+                        },
+                        .run { send in
+                            for await full in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferFull) {
+                                await send(.internal(.playbackBufferFull(full ?? false)))
+                            }
+                        },
+                        .run { send in
+                            for await canKeepUp in playerClient.player.valueStream(\.currentItem?.isPlaybackLikelyToKeepUp) {
+                                await send(.internal(.playbackLikelyToKeepUp(canKeepUp ?? false)))
                             }
                         }
                     )
@@ -186,6 +228,12 @@ public enum PlayerFeature: Feature {
                 case .view(.binding):
                     break
 
+                case let .internal(.status(status)):
+                    state.status = status
+
+                case let .internal(.timeControlStatus(status)):
+                    state.timeControlStatus = status
+
                 case let .internal(.rate(rate)):
                     state.rate = rate
 
@@ -194,6 +242,15 @@ public enum PlayerFeature: Feature {
 
                 case let .internal(.duration(duration)):
                     state.duration = duration
+
+                case let .internal(.playbackBufferEmpty(empty)):
+                    state.isPlaybackBufferEmpty = empty
+
+                case let .internal(.playbackBufferFull(full)):
+                    state.isPlaybackBufferFull = full
+
+                case let .internal(.playbackLikelyToKeepUp(keepUp)):
+                    state.isPlaybackLikelyToKeepUp = keepUp
 
                 case .delegate:
                     break
@@ -249,5 +306,11 @@ public enum PlayerFeature: Feature {
                 }
             }
         }
+    }
+}
+
+public extension PlayerFeature.State {
+    var isBuffering: Bool {
+        !isPlaybackBufferFull && isPlaybackBufferEmpty || !isPlaybackLikelyToKeepUp
     }
 }

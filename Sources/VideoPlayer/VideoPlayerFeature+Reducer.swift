@@ -61,6 +61,7 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 return state.delayDismissOverlayIfNeeded()
 
             case let .view(.didTapPlayEpisode(groupId, itemId)):
+                state.overlay = .tools
                 return state.clearForNewEpisodeIfNeeded(groupId, itemId)
 
             case let .view(.didTapSource(sourceId)):

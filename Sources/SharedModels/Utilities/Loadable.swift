@@ -35,6 +35,7 @@ public enum Loadable<T: Sendable>: Sendable {
         }
     }
 
+    @inlinable
     public var didFinish: Bool {
         switch self {
         case .pending, .loading:

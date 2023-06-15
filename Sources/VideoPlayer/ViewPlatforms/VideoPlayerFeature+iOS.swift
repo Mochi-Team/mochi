@@ -201,6 +201,7 @@ extension VideoPlayerFeature.View {
                         ViewStore(store.viewAction.stateless)
                             .send(.didSelectMoreTab(tab))
                     } label: {
+                        tab.image
                         Text(tab.rawValue)
                     }
                     .buttonStyle(.plain)
@@ -216,6 +217,16 @@ extension VideoPlayerFeature.View {
         .font(.body.weight(.medium))
     }
 
+    private struct RateBufferingState: Equatable, Sendable {
+        let isPlaying: Bool
+        let isBuffering: Bool
+
+        init(_ state: PlayerFeature.State) {
+            isPlaying = state.rate != 0
+            isBuffering = state.isBuffering
+        }
+    }
+
     @MainActor
     var controlsBar: some View {
         WithViewStore(
@@ -223,13 +234,13 @@ extension VideoPlayerFeature.View {
                 state: \.player,
                 action: Action.InternalAction.player
             ),
-            observe: \.rate
-        ) { isPlayingState in
+            observe: RateBufferingState.init
+        ) { rateBufferingState in
             HStack(spacing: 0) {
                 Spacer()
 
                 Button {
-                    isPlayingState.send(.view(.didTapGoBackwards))
+                    rateBufferingState.send(.view(.didTapGoBackwards))
                 } label: {
                     Image(systemName: "gobackward")
                         .font(.title2.weight(.bold))
@@ -239,19 +250,29 @@ extension VideoPlayerFeature.View {
                 }
                 .buttonStyle(.plain)
 
-                Button {
-                    isPlayingState.send(.view(.didTogglePlayButton))
-                } label: {
-                    Image(systemName: isPlayingState.state > .zero ? "pause.fill" : "play.fill")
-                        .font(.largeTitle)
-                        .foregroundColor(.white)
-                        .padding(12)
-                        .contentShape(Rectangle())
+                Group {
+                    if rateBufferingState.isBuffering {
+                        ProgressView()
+                            .scaleEffect(1.25)
+                    } else {
+                        Button {
+                            rateBufferingState.send(.view(.didTogglePlayButton))
+                        } label: {
+                            Image(systemName: rateBufferingState.isPlaying ? "pause.fill" : "play.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .font(.largeTitle)
+                                .foregroundColor(.white)
+                                .padding(12)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .buttonStyle(.plain)
+                .frame(width: 54, height: 54)
 
                 Button {
-                    isPlayingState.send(.view(.didTapGoForwards))
+                    rateBufferingState.send(.view(.didTapGoForwards))
                 } label: {
                     Image(systemName: "goforward")
                         .font(.title2.weight(.bold))
@@ -275,6 +296,20 @@ extension VideoPlayerFeature.View {
             )
         )
         .frame(maxWidth: .infinity)
+    }
+
+    private struct ContentStatusState: Equatable, Sendable {
+        init?(_ state: VideoPlayerFeature.State) {
+        }
+    }
+
+    @MainActor
+    var contentStatusView: some View {
+        WithViewStore(store, observe: ContentStatusState.init) { viewStore in
+//            if viewStore.state {
+//                ProgressView("")
+//            }
+        }
     }
 }
 
@@ -691,7 +726,7 @@ extension VideoPlayerFeature.View {
                                 }
                                 .foregroundColor(.white)
                                 .padding(textPadding)
-                                .background(Color(white: 0.2))
+                                .background(Color(white: 0.24))
                                 .cornerRadius(6)
                                 .contentShape(Rectangle())
                                 .fixedSize(horizontal: true, vertical: true)
@@ -711,7 +746,7 @@ extension VideoPlayerFeature.View {
                                 }
                                 .foregroundColor(.white)
                                 .padding(textPadding)
-                                .background(Color(white: 0.2))
+                                .background(Color(white: 0.24))
                                 .cornerRadius(6)
                                 .contentShape(Rectangle())
                                 .fixedSize(horizontal: true, vertical: true)
@@ -751,7 +786,7 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
                         )]
                     ),
                     selected: .init(groupId: 0, episodeId: "0", sourceId: "0", serverId: "0"),
-                    overlay: .more(.qualityAndSubtitles)
+                    overlay: .tools
                 ),
                 reducer: EmptyReducer()
             )

@@ -64,12 +64,12 @@ extension DiscoverFeature.Reducer: ReducerProtocol {
             case .internal(.moduleLists):
                 break
 
-            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, repoModuleID, playlist, groupId, itemId)))))):
+            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, groupId, itemId)))))):
                 return .send(
                     .delegate(
                         .playbackVideoItem(
                             items,
-                            repoModuleID: repoModuleID,
+                            repoModuleID: id,
                             playlist: playlist,
                             groupId: groupId,
                             itemId: itemId

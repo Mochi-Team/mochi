@@ -25,10 +25,25 @@ public enum VideoPlayerFeature: Feature {
 
             public enum MoreTab: String, Sendable, Equatable, CaseIterable {
                 case episodes = "Episodes"
-                case sourcesAndServers = "Sources and Servers"
+                case sourcesAndServers = "Sources & Servers"
+                case qualityAndSubtitles = "Quality & Subtitles"
                 case speed = "Speed"
-                case qualityAndSubtitles = "Quality and Subtitles"
                 case settings = "Settings"
+
+                var image: Image {
+                    switch self {
+                    case .episodes:
+                        return Image(systemName: "rectangle.stack.badge.play")
+                    case .sourcesAndServers:
+                        return Image(systemName: "server.rack")
+                    case .qualityAndSubtitles:
+                        return Image(systemName: "captions.bubble")
+                    case .speed:
+                        return Image(systemName: "speedometer")
+                    case .settings:
+                        return Image(systemName: "gearshape")
+                    }
+                }
             }
         }
 
