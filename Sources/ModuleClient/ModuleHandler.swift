@@ -21,7 +21,7 @@ public struct ModuleHandler {
         self.module = module
         self.instance = try .init(module: module.binaryModule)
         self.hostModuleComms = .init(memory: instance.memory)
-        initializeImports()
+        try initializeImports()
     }
 }
 
@@ -118,8 +118,8 @@ public extension ModuleHandler {
 }
 
 extension ModuleHandler {
-    func initializeImports() {
-        try? instance.importFunctions {
+    func initializeImports() throws {
+        try instance.importFunctions {
             self.envImports()
             self.coreImports()
             self.httpImports()

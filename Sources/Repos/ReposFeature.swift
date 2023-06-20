@@ -56,7 +56,7 @@ public enum ReposFeature: Feature {
         }
 
         public init(
-            repos: SelectableState<Repo> = .init(),
+            repos: SelectableState<IdentifiedArrayOf<Repo>> = .init(wrappedValue: []),
             repoModules: [Repo.ID: Loadable<[Module.Manifest]>] = [:],
             repoURLState: RepoURLState = .init()
         ) {

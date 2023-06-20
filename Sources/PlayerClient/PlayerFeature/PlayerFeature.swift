@@ -7,6 +7,7 @@
 //
 
 import Architecture
+@preconcurrency
 import AVKit
 import Foundation
 import SwiftUI
@@ -24,6 +25,9 @@ public enum PlayerFeature: Feature {
         public var isPlaybackBufferEmpty: Bool
         public var isPlaybackBufferFull: Bool
         public var isPlaybackLikelyToKeepUp: Bool
+
+        public var selectedSubtitle: AVMediaSelectionOption?
+        public var subtitles: AVMediaSelectionGroup?
 
         public init(
             status: AVPlayer.Status = .unknown,
@@ -81,6 +85,7 @@ public enum PlayerFeature: Feature {
             case didTogglePictureInPicture
             case didStartedSeeking
             case didFinishedSeekingTo(CGFloat)
+            case didTapSubtitle(for: AVMediaSelectionGroup, AVMediaSelectionOption?)
             case binding(BindingAction<State>)
         }
 
@@ -93,6 +98,8 @@ public enum PlayerFeature: Feature {
             case playbackBufferFull(Bool)
             case playbackBufferEmpty(Bool)
             case playbackLikelyToKeepUp(Bool)
+            case subtitles(AVMediaSelectionGroup?)
+            case selectedSubtitle(AVMediaSelectionOption?)
         }
 
         public enum DelegateAction: SendableAction {
@@ -101,6 +108,7 @@ public enum PlayerFeature: Feature {
             case didTapGoForwards
             case didTapGoBackwards
             case didTogglePlayButton
+            case didTapClosePiP
         }
 
         case view(ViewAction)
@@ -117,56 +125,89 @@ public enum PlayerFeature: Feature {
         @Dependency(\.playerClient)
         var playerClient
 
-        public var body: some ComposableArchitecture.Reducer<State, Action> {
-            Case(/Action.view) {
-                BindingReducer()
-            }
+        enum Cancellables: Hashable {
+            case initialize
+        }
 
+        public var body: some ComposableArchitecture.Reducer<State, Action> {
             Reduce { state, action in
                 switch action {
                 case .view(.didAppear):
-                    return .merge(
-                        .run { send in
-                            for await rate in playerClient.player.valueStream(\.rate) {
-                                await send(.internal(.rate(rate)))
-                            }
-                        },
-                        .run { send in
-                            for await time in playerClient.player.periodicTimeStream() {
-                                await send(.internal(.progress(time)))
-                            }
-                        },
-                        .run { send in
-                            for await time in playerClient.player.valueStream(\.currentItem?.duration) {
-                                await send(.internal(.duration(time ?? .zero)))
-                            }
-                        },
-                        .run { send in
-                            for await status in playerClient.player.valueStream(\.status) {
-                                await send(.internal(.status(status)))
-                            }
-                        },
-                        .run { send in
-                            for await status in playerClient.player.valueStream(\.timeControlStatus) {
-                                await send(.internal(.timeControlStatus(status)))
-                            }
-                        },
-                        .run { send in
-                            for await empty in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferEmpty) {
-                                await send(.internal(.playbackBufferEmpty(empty ?? true)))
-                            }
-                        },
-                        .run { send in
-                            for await full in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferFull) {
-                                await send(.internal(.playbackBufferFull(full ?? false)))
-                            }
-                        },
-                        .run { send in
-                            for await canKeepUp in playerClient.player.valueStream(\.currentItem?.isPlaybackLikelyToKeepUp) {
-                                await send(.internal(.playbackLikelyToKeepUp(canKeepUp ?? false)))
+                    return .run { send in
+                        await withTaskCancellation(id: Cancellables.initialize) {
+                            await withTaskGroup(of: Void.self) { group in
+                                group.addTask {
+                                    for await rate in playerClient.player.valueStream(\.rate) {
+                                        await send(.internal(.rate(rate)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await time in playerClient.player.periodicTimeStream() {
+                                        await send(.internal(.progress(time)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await time in playerClient.player.valueStream(\.currentItem?.duration) {
+                                        await send(.internal(.duration(time ?? .zero)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await status in playerClient.player.valueStream(\.status) {
+                                        await send(.internal(.status(status)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await status in playerClient.player.valueStream(\.timeControlStatus) {
+                                        await send(.internal(.timeControlStatus(status)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await empty in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferEmpty) {
+                                        await send(.internal(.playbackBufferEmpty(empty ?? true)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await full in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferFull) {
+                                        await send(.internal(.playbackBufferFull(full ?? false)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await canKeepUp in playerClient.player.valueStream(\.currentItem?.isPlaybackLikelyToKeepUp) {
+                                        await send(.internal(.playbackLikelyToKeepUp(canKeepUp ?? false)))
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await selection in playerClient.player.valueStream(\.currentItem?.currentMediaSelection) {
+                                        if let selection,
+                                           let group = playerClient.player.currentItem?.asset.mediaSelectionGroup(forMediaCharacteristic: .legible),
+                                           let option = selection.selectedMediaOption(in: group) {
+                                            await send(.internal(.selectedSubtitle(option)))
+                                        } else {
+                                            await send(.internal(.selectedSubtitle(nil)))
+                                        }
+                                    }
+                                }
+
+                                group.addTask {
+                                    for await asset in playerClient.player.valueStream(\.currentItem?.asset) {
+                                        if let asset, let group = asset.mediaSelectionGroup(forMediaCharacteristic: .legible) {
+                                            await send(.internal(.subtitles(group)))
+                                        } else {
+                                            await send(.internal(.subtitles(nil)))
+                                        }
+                                    }
+                                }
                             }
                         }
-                    )
+                    }
 
                 case .view(.didTogglePlayButton):
                     let isPlaying = state.rate != .zero
@@ -206,8 +247,8 @@ public enum PlayerFeature: Feature {
                     return .merge(
                         .send(.delegate(.didStartedSeeking)),
                         .run { _ in
-                           await playerClient.pause()
-                       }
+                            await playerClient.pause()
+                        }
                     )
 
                 case let .view(.didFinishedSeekingTo(progress)):
@@ -220,8 +261,19 @@ public enum PlayerFeature: Feature {
                         }
                     )
 
-                case .view(.binding(\.$pipState.isActive)):
-                    if state.pipState.enabled, !state.pipState.isActive {
+                case let .view(.didTapSubtitle(group, option)):
+                    return .run { _ in
+                        await playerClient.player.currentItem?.select(option, in: group)
+                    }
+
+                case .view(.binding(.set(\.$pipState.status, .willStop))):
+                    if state.pipState.status != .restoreUI {
+                        // This signifies that the X button was pressed, so should dismiss
+                        return .send(.delegate(.didTapClosePiP))
+                    }
+
+                case .view(.binding(.set(\.$pipState.isActive, false))):
+                    if state.pipState.enabled {
                         state.pipState.enabled = false
                     }
 
@@ -252,10 +304,20 @@ public enum PlayerFeature: Feature {
                 case let .internal(.playbackLikelyToKeepUp(keepUp)):
                     state.isPlaybackLikelyToKeepUp = keepUp
 
+                case let .internal(.subtitles(subtitles)):
+                    state.subtitles = subtitles
+
+                case let .internal(.selectedSubtitle(option)):
+                    state.selectedSubtitle = option
+
                 case .delegate:
                     break
                 }
                 return .none
+            }
+
+            Case(/Action.view) {
+                BindingReducer()
             }
         }
     }

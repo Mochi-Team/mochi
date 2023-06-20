@@ -81,6 +81,23 @@ public enum Loadable<T: Sendable>: Sendable {
         }
     }
 
+//    @inlinable
+//    public func compactMap<O, V>(_ block: @escaping (T) -> V) -> Loadable<V> where T == Optional<O> {
+//        switch self {
+//        case .pending:
+//            return .pending
+//        case .loading:
+//            return .loading
+//        case let .loaded(optional):
+//            if let optional {
+//                return .loaded(block(optional))
+//            } else {
+//            }
+//        case .failed(_):
+//            <#code#>
+//        }
+//    }
+
     @inlinable
     public func flatMap<V>(_ transform: (T) -> Loadable<V>) -> Loadable<V> {
         switch self {

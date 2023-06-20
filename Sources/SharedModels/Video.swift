@@ -186,6 +186,7 @@ public extension Playlist {
     struct EpisodeServerResponse: Equatable, Sendable {
         public let links: [Playlist.EpisodeServer.Link]
         public let subtitles: [Playlist.EpisodeServer.Subtitle]
+        // TODO: Pass headers required for url
 
         public init(
             links: [Playlist.EpisodeServer.Link] = [],

@@ -15,8 +15,7 @@ import XCTestDynamicOverlay
 // MARK: - PlayerClient
 
 public struct PlayerClient: Sendable {
-//    let status: @Sendable () -> AsyncStream<Status>
-    public let load: @Sendable (URL) async throws -> Void
+    public let load: @Sendable (VideoCompositionItem) async throws -> Void
     public let play: @Sendable () async -> Void
     public let pause: @Sendable () async -> Void
     public let seek: @Sendable (_ progress: Double) async -> Void

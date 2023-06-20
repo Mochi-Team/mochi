@@ -36,13 +36,7 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 return state.fetchGroupsWithContentIfNecessary()
 
             case .view(.didTapBackButton):
-                return .merge(
-                    .cancel(ids: Cancellables.allCases),
-                    .run { _ in
-                        await playerClient.clear()
-                        await dismiss()
-                    }
-                )
+                return state.dismiss()
 
             case .view(.didTapMoreButton):
                 state.overlay = .more(.episodes)
@@ -77,14 +71,16 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 state.overlay = state.overlay == .tools ? nil : state.overlay
 
             case let .internal(.groupResponse(groupId, .loaded(response))):
-                state.contents.update(with: groupId, response: .loaded(response))
+                state.loadables.update(with: groupId, response: .loaded(response))
                 return state.fetchSourcesIfNecessary()
 
             case let .internal(.groupResponse(groupId, response)):
-                state.contents.update(with: groupId, response: response)
+                state.loadables.update(with: groupId, response: response)
 
             case let .internal(.sourcesResponse(episodeId, .loaded(response))):
-                state.contents.update(with: episodeId, response: .loaded(response))
+                state.loadables.update(with: episodeId, response: .loaded(response))
+
+                // TODO: Select preferred quality or first link if available
                 if state.selected.sourceId == nil {
                     state.selected.sourceId = response.first?.id
                 }
@@ -94,18 +90,15 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 return state.fetchServerIfNecessary()
 
             case let .internal(.sourcesResponse(episodeId, response)):
-                state.contents.update(with: episodeId, response: response)
+                state.loadables.update(with: episodeId, response: response)
 
-            case let .internal(.serverResponse(sourceId, response)):
-                state.contents.update(with: sourceId, response: response)
+            case let .internal(.serverResponse(serverId, response)):
+                state.loadables.update(with: serverId, response: response)
 
-                if case let .loaded(response) = response, state.selected.sourceId == sourceId {
-                    state.selected.linkId = response.links.first?.id
-                    if let link = response.links.first {
-                        return .run { _ in
-                            try await playerClient.load(link.url)
-                            await playerClient.play()
-                        }
+                if case let .loaded(response) = response, state.selected.serverId == serverId {
+                    // TODO: Select preferred quality or first link if available
+                    if let id = response.links.first?.id {
+                        return state.clearForChangedLinkIfNeeded(id)
                     }
                 } else if case let .failed(error) = response {
                     logger.warning("There was an error retrieving video server response: \(error)")
@@ -119,6 +112,9 @@ extension VideoPlayerFeature.Reducer: Reducer {
                     .internal(.player(.delegate(.didTogglePlayButton))),
                     .internal(.player(.delegate(.didFinishedSeekingTo))):
                 return state.delayDismissOverlayIfNeeded()
+
+            case .internal(.player(.delegate(.didTapClosePiP))):
+                return state.dismiss()
 
             case .internal(.player):
                 break
@@ -147,6 +143,22 @@ extension VideoPlayerFeature.State {
 }
 
 public extension VideoPlayerFeature.State {
+    func dismiss() -> Effect<VideoPlayerFeature.Action> {
+        @Dependency(\.playerClient)
+        var playerClient
+
+        @Dependency(\.dismiss)
+        var dismiss
+
+        return .merge(
+            .cancel(ids: Cancellables.allCases),
+            .run { _ in
+                await playerClient.clear()
+                await dismiss()
+            }
+        )
+    }
+
     mutating func clearForNewPlaylistIfNeeded(
         repoModuleID: RepoModuleID,
         playlist: Playlist,
@@ -156,24 +168,47 @@ public extension VideoPlayerFeature.State {
         @Dependency(\.playerClient)
         var playerClient
 
-        if repoModuleID != self.repoModuleID ||
-            playlist.id != self.playlist.id ||
-            groupId != selected.groupId ||
-            episodeId != selected.episodeId {
+        var shouldClearContents = false
+        var shouldClearSources = false
+
+        if repoModuleID != self.repoModuleID {
             self.repoModuleID = repoModuleID
+            shouldClearSources = true
+            shouldClearContents = true
+        }
+
+        if playlist.id != self.playlist.id {
             self.playlist = playlist
-            selected.groupId = groupId
-            selected.episodeId = episodeId
+            shouldClearSources = true
+            shouldClearContents = true
+        }
+
+        if groupId != self.selected.groupId {
+            self.selected.groupId = groupId
+            shouldClearSources = true
+        }
+
+        if episodeId != self.selected.episodeId {
+            self.selected.episodeId = episodeId
+            shouldClearSources = true
+        }
+
+        if shouldClearSources {
             selected.serverId = nil
             selected.linkId = nil
             selected.sourceId = nil
-            contents.allGroups = .pending
-            contents.groups.removeAll()
-            contents.serverLinks.removeAll()
-            contents.sources.removeAll()
+
+            loadables.serverResponseLoadables.removeAll()
+            loadables.playlistItemSourcesLoadables.removeAll()
+
+            if shouldClearContents {
+                loadables.allGroupsLoadable = .pending
+                loadables.groupContentLoadables.removeAll()
+            }
+
             return .merge(
-                .run { await playerClient.clear() },
-                fetchGroupsWithContentIfNecessary()
+                fetchGroupsWithContentIfNecessary(),
+                .run { await playerClient.clear() }
             )
         }
 
@@ -193,7 +228,8 @@ public extension VideoPlayerFeature.State {
             selected.sourceId = nil
             selected.serverId = nil
             selected.linkId = nil
-            contents.serverLinks = .init()
+            loadables.serverResponseLoadables.removeAll()
+            loadables.playlistItemSourcesLoadables.removeAll()
             return .merge(
                 fetchSourcesIfNecessary(),
                 .run {
@@ -211,13 +247,13 @@ public extension VideoPlayerFeature.State {
         if selected.sourceId != sourceId {
             selected.sourceId = sourceId
 
-            if let sources = contents[episodeId: selected.episodeId].value {
+            if let sources = loadables[episodeId: selected.episodeId].value {
                 selected.serverId = sources.first { $0.id == sourceId }?.servers.first?.id
             } else {
                 selected.serverId = nil
             }
             selected.linkId = nil
-            contents.serverLinks[sourceId] = nil
+            loadables.serverResponseLoadables.removeAll()
 
             return .merge(
                 fetchSourcesIfNecessary(),
@@ -233,29 +269,54 @@ public extension VideoPlayerFeature.State {
         @Dependency(\.playerClient)
         var playerClient
 
-        selected.serverId = serverId
-        selected.linkId = nil
-        selected.sourceId.flatMap { contents.serverLinks[$0] = nil }
+        if serverId != selected.serverId {
+            selected.serverId = serverId
+            selected.linkId = nil
+            selected.serverId.flatMap { loadables.serverResponseLoadables[$0] = nil }
 
-        return .merge(
-            fetchServerIfNecessary(),
-            .run {
-                await playerClient.clear()
-            }
-        )
+            return .merge(
+                fetchServerIfNecessary(),
+                .run {
+                    await playerClient.clear()
+                }
+            )
+        }
+
+        return .none
     }
 
     mutating func clearForChangedLinkIfNeeded(_ linkId: Playlist.EpisodeServer.Link.ID) -> Effect<VideoPlayerFeature.Action> {
         @Dependency(\.playerClient)
         var playerClient
 
-        selected.linkId = linkId
-        if let sourceId = selected.sourceId {
-            if let link = contents.serverLinks[sourceId]?.value?.links.first(where: { $0.id == linkId }) {
+        if selected.linkId != linkId {
+            selected.linkId = linkId
+
+            if let server = selectedServerResponse.value.flatMap({ $0 }),
+               let link = server.links[id: linkId] {
+                let playlist = playlist
+                let episode = selectedEpisode.value.flatMap { $0 }
+
                 return .run { _ in
-                    await playerClient.pause()
-                    try await playerClient.load(link.url)
+                    await playerClient.clear()
+                    try await playerClient.load(
+                        .init(
+                            link: link.url,
+                            // TODO: Pass headers required by some servers
+                            headers: [:],
+                            subtitles: server.subtitles.map { .init(name: $0.language, link: $0.url) },
+                            metadata: .init(
+                                title: episode.flatMap { $0.title ?? "Episode \($0.number.withoutTrailingZeroes)" },
+                                artworkImage: episode?.thumbnail ?? playlist.posterImage,
+                                author: playlist.title
+                            )
+                        )
+                    )
                     await playerClient.play()
+                }
+            } else {
+                return .run {
+                    await playerClient.clear()
                 }
             }
         }
@@ -270,8 +331,8 @@ public extension VideoPlayerFeature.State {
         let playlist = playlist
         let groupId = selected.groupId
 
-        if forced || !contents[groupId: groupId].hasInitialized {
-            contents.update(with: groupId, response: .loading)
+        if forced || !loadables[groupId: groupId].hasInitialized {
+            loadables.update(with: groupId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingContents, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
@@ -301,8 +362,8 @@ public extension VideoPlayerFeature.State {
         let playlist = playlist
         let episodeId = selected.episodeId
 
-        if forced || !contents[episodeId: episodeId].hasInitialized {
-            contents.update(with: episodeId, response: .loading)
+        if forced || !loadables[episodeId: episodeId].hasInitialized {
+            loadables.update(with: episodeId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingSources, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
@@ -342,8 +403,8 @@ public extension VideoPlayerFeature.State {
             return .none
         }
 
-        if forced || !contents[sourceId: sourceId].hasInitialized {
-            contents.update(with: sourceId, response: .loading)
+        if forced || !loadables[serverId: serverId].hasInitialized {
+            loadables.update(with: serverId, response: .loading)
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingServer, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
@@ -357,10 +418,10 @@ public extension VideoPlayerFeature.State {
                         )
                     }
 
-                    await send(.internal(.serverResponse(sourceId: sourceId, .loaded(value))))
+                    await send(.internal(.serverResponse(serverId: serverId, .loaded(value))))
                 }
             } catch: { error, send in
-                await send(.internal(.serverResponse(sourceId: sourceId, .failed(error))))
+                await send(.internal(.serverResponse(serverId: serverId, .failed(error))))
             }
         }
 

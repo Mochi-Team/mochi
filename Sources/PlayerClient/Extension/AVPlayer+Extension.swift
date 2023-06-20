@@ -12,7 +12,7 @@ import Foundation
 extension AVPlayer {
     func valueStream<Value>(_ keyPath: KeyPath<AVPlayer, Value>) -> AsyncStream<Value> {
         .init(Value.self) { continuation in
-            let observation = self.observe(keyPath) { _, _ in
+            let observation = self.observe(keyPath, options: [.initial, .new]) { _, _ in
                 continuation.yield(self[keyPath: keyPath])
             }
 
