@@ -86,7 +86,9 @@ extension HostModuleInterop {
 
     func create_episode_server_response(
         links_ptr: Int32,
-        subtitles_ptr: Int32
+        subtitles_ptr: Int32,
+        skip_times_ptr: Int32,
+        headers_ptr: Int32
     ) -> Int32 {
         handleErrorAlloc { alloc in
             let links = (alloc[links_ptr] as? [Any?])?
@@ -95,10 +97,17 @@ extension HostModuleInterop {
             let subtitles = (alloc[subtitles_ptr] as? [Any?])?
                 .compactMap { $0 as? Playlist.EpisodeServer.Subtitle }
 
+            let skipTimes = (alloc[skip_times_ptr] as? [Any?])?
+                .compactMap { $0 as? Playlist.EpisodeServer.SkipTime }
+
+            let headers = (alloc[headers_ptr] as? [String: String])
+
             return alloc.add(
                 Playlist.EpisodeServerResponse(
                     links: links ?? [],
-                    subtitles: subtitles ?? []
+                    subtitles: subtitles ?? [],
+                    headers: headers ?? [:],
+                    skipTimes: skipTimes ?? []
                 )
             )
         }
@@ -133,9 +142,11 @@ extension HostModuleInterop {
     func create_episode_server_subtitle(
         url_ptr: Int32,
         url_len: Int32,
-        language_ptr: Int32,
-        language_len: Int32,
-        format: Int32
+        name_ptr: Int32,
+        name_len: Int32,
+        format: Int32,
+        default: Int32,
+        autoselect: Int32
     ) -> Int32 {
         handleErrorAlloc { alloc in
             let url = try memory.string(
@@ -147,16 +158,34 @@ extension HostModuleInterop {
                 throw ModuleClient.Error.castError(got: "Invalid String.type", expected: "URL.type")
             }
 
-            let language = try memory.string(
-                byteOffset: .init(language_ptr),
-                length: .init(language_len)
+            let name = try memory.string(
+                byteOffset: .init(name_ptr),
+                length: .init(name_len)
             )
 
             return alloc.add(
                 Playlist.EpisodeServer.Subtitle(
                     url: url,
-                    language: language,
-                    format: .init(rawValue: format) ?? .vtt
+                    name: name,
+                    format: .init(rawValue: format) ?? .vtt,
+                    default: `default` == 1,
+                    autoselect: autoselect == 1
+                )
+            )
+        }
+    }
+
+    func create_episode_server_skip_time(
+        start_time: Float32,
+        end_time: Float32,
+        skip_type: Int32
+    ) -> Int32 {
+        handleErrorAlloc { alloc in
+            alloc.add(
+                Playlist.EpisodeServer.SkipTime(
+                    startTime: .init(start_time),
+                    endTime: .init(end_time),
+                    type: .init(rawValue: skip_type) ?? .opening
                 )
             )
         }

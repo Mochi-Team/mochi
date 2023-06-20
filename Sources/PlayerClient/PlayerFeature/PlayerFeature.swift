@@ -86,6 +86,7 @@ public enum PlayerFeature: Feature {
             case didStartedSeeking
             case didFinishedSeekingTo(CGFloat)
             case didTapSubtitle(for: AVMediaSelectionGroup, AVMediaSelectionOption?)
+            case didSelectRate(Float)
             case binding(BindingAction<State>)
         }
 
@@ -260,6 +261,11 @@ public enum PlayerFeature: Feature {
                             await playerClient.play()
                         }
                     )
+
+                case let .view(.didSelectRate(rate)):
+                    return .run { _ in
+                        await playerClient.setRate(rate)
+                    }
 
                 case let .view(.didTapSubtitle(group, option)):
                     return .run { _ in

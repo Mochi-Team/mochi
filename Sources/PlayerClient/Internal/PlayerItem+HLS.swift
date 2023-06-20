@@ -184,14 +184,13 @@ extension PlayerItem {
             let m3u8Subtitles: OrderedDictionary = [
                 "TYPE": "SUBTITLES",
                 "GROUP-ID": "\"\(Self.hlsSubtitleGroupID)\"",
-                "NAME": "\"\(subtitle.name ?? "Unknown")\"",
+                "NAME": "\"\(subtitle.name)\"",
                 "CHARACTERISTICS": "\"public.accessibility.transcribes-spoken-dialog\"",
                 "DEFAULT": subtitle.default ? "YES" : "NO",
                 "AUTOSELECT": subtitle.autoselect ? "YES" : "NO",
                 "FORCED": subtitle.forced ? "YES" : "NO",
-                "URI": "\"\(Self.hlsSubtitlesScheme)://\(idx).subtitle.m3u8\""
-                // TODO: Get language properly
-//                , "LANGUAGE": "\"en\""
+                "URI": "\"\(Self.hlsSubtitlesScheme)://\(idx).subtitle.m3u8\"",
+                "LANGUAGE": "\"\(subtitle.name)\""
             ]
 
             let m3u8SubtitlesString = "#EXT-X-MEDIA:" + m3u8Subtitles.map { "\($0.key)=\($0.value)" }

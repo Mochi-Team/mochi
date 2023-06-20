@@ -32,23 +32,20 @@ public extension PlayerClient {
         }
 
         public struct Subtitle {
-            let name: String?
-            let locale: String?
+            let name: String
             let `default`: Bool
             let autoselect: Bool
             let forced: Bool
             let link: URL
 
             public init(
-                name: String? = nil,
-                locale: String? = nil,
-                `default`: Bool = false,
-                autoselect: Bool = false,
+                name: String,
+                `default`: Bool,
+                autoselect: Bool,
                 forced: Bool = false,
                 link: URL
             ) {
                 self.name = name
-                self.locale = locale
                 self.default = `default`
                 self.autoselect = autoselect
                 self.forced = forced

@@ -21,6 +21,7 @@ extension PlayerClient: DependencyKey {
 
         return Self(
             load: { @MainActor composition in try await impl.load(composition) },
+            setRate: { @MainActor rate in impl.setRate(rate) },
             play: { @MainActor in await impl.play() },
             pause: { @MainActor in await impl.pause() },
             seek: { @MainActor progress in await impl.seek(to: progress)},
@@ -57,6 +58,7 @@ private class InternalPlayer {
         player.automaticallyWaitsToMinimizeStalling = true
         player.preventsDisplaySleepDuringVideoPlayback = true
         player.actionAtItemEnd = .pause
+        player.appliesMediaSelectionCriteriaAutomatically = true
 
         self.initCommandCenter()
     }
@@ -71,6 +73,11 @@ private class InternalPlayer {
         #endif
 
         nowPlaying.update(with: item.metadata)
+    }
+
+    @MainActor
+    func setRate(_ rate: Float) {
+        player.rate = rate
     }
 
     @MainActor

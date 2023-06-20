@@ -117,6 +117,7 @@ public extension ModuleHandler {
     }
 }
 
+// swiftlint:disable file_length
 extension ModuleHandler {
     func initializeImports() throws {
         try instance.importFunctions {
@@ -131,6 +132,8 @@ extension ModuleHandler {
         }
     }
 }
+
+// MARK: Env Imports
 
 extension ModuleHandler {
     func envImports() -> WasmInstance.Import {
@@ -1030,11 +1033,15 @@ extension ModuleHandler {
 
             WasmInstance.Function("create_episode_server_response") { [self] (
                 linksPtr: Int32,
-                subtitlesPtr: Int32
+                subtitlesPtr: Int32,
+                skipTimesPtr: Int32,
+                headersPtr: Int32
             ) -> Int32 in
                 hostModuleComms.create_episode_server_response(
                     links_ptr: linksPtr,
-                    subtitles_ptr: subtitlesPtr
+                    subtitles_ptr: subtitlesPtr,
+                    skip_times_ptr: skipTimesPtr,
+                    headers_ptr: headersPtr
                 )
             }
 
@@ -1055,16 +1062,32 @@ extension ModuleHandler {
             WasmInstance.Function("create_episode_server_subtitle") { [self] (
                 urlPtr: Int32,
                 urlLen: Int32,
-                languagePtr: Int32,
-                languageLen: Int32,
-                format: Int32
+                namePtr: Int32,
+                nameLen: Int32,
+                format: Int32,
+                `default`: Int32,
+                autoselect: Int32
             ) -> Int32 in
                 hostModuleComms.create_episode_server_subtitle(
                     url_ptr: urlPtr,
                     url_len: urlLen,
-                    language_ptr: languagePtr,
-                    language_len: languageLen,
-                    format: format
+                    name_ptr: namePtr,
+                    name_len: nameLen,
+                    format: format,
+                    default: `default`,
+                    autoselect: autoselect
+                )
+            }
+
+            WasmInstance.Function("create_episode_server_skip_time") { [self] (
+                start_time: Float32,
+                end_time: Float32,
+                skip_type: Int32
+            ) -> Int32 in
+                hostModuleComms.create_episode_server_skip_time(
+                    start_time: start_time,
+                    end_time: end_time,
+                    skip_type: skip_type
                 )
             }
         }

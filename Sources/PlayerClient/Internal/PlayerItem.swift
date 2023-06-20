@@ -30,13 +30,6 @@ final class PlayerItem: AVPlayerItem {
         let headers = payload.headers
         let url: URL
 
-//        if payload.format == .mpd {
-//            url = payload.source.url.change(scheme: Self.dashCustomPlaylistScheme)
-//            //        } else if payload.subtitles.count > 0 {
-//            //            url = payload.source.url.change(scheme: Self.hlsCustomPlaylistScheme)
-//        } else {
-//        }
-
         if payload.subtitles.isEmpty {
             url = payload.link
         } else {
@@ -48,7 +41,14 @@ final class PlayerItem: AVPlayerItem {
             options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
         )
 
-        super.init(asset: asset, automaticallyLoadedAssetKeys: ["duration"])
+        super.init(
+            asset: asset,
+            automaticallyLoadedAssetKeys: [
+                "duration",
+                "availableMediaCharacteristicsWithMediaSelectionOptions"
+            ]
+        )
+
         asset.resourceLoader.setDelegate(self, queue: resourceQueue)
     }
 }

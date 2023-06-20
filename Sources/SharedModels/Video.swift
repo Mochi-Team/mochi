@@ -162,17 +162,23 @@ public extension Playlist {
         public struct Subtitle: Sendable, Equatable, Identifiable {
             public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
-            public let language: String
+            public let name: String
             public let format: Format
+            public let `default`: Bool
+            public let autoselect: Bool
 
             public init(
                 url: URL,
-                language: String,
-                format: Format
+                name: String,
+                format: Format,
+                default: Bool = false,
+                autoselect: Bool = false
             ) {
-                self.language = language
+                self.name = name
                 self.url = url
                 self.format = format
+                self.default = `default`
+                self.autoselect = autoselect
             }
 
             public enum Format: Int32, Sendable, Equatable {
@@ -181,19 +187,46 @@ public extension Playlist {
                 case srt
             }
         }
+
+        public struct SkipTime: Equatable, Sendable {
+            public let startTime: Double
+            public let endTime: Double
+            public let type: SkipType
+
+            public init(
+                startTime: Double,
+                endTime: Double,
+                type: Playlist.EpisodeServer.SkipTime.SkipType
+            ) {
+                self.startTime = startTime
+                self.endTime = endTime
+                self.type = type
+            }
+
+            public enum SkipType: Int32, Equatable, Sendable {
+                case opening
+                case ending
+                case recap
+            }
+        }
     }
 
     struct EpisodeServerResponse: Equatable, Sendable {
         public let links: [Playlist.EpisodeServer.Link]
         public let subtitles: [Playlist.EpisodeServer.Subtitle]
-        // TODO: Pass headers required for url
+        public let headers: [String: String]
+        public let skipTimes: [Playlist.EpisodeServer.SkipTime]
 
         public init(
             links: [Playlist.EpisodeServer.Link] = [],
-            subtitles: [Playlist.EpisodeServer.Subtitle] = []
+            subtitles: [Playlist.EpisodeServer.Subtitle] = [],
+            headers: [String: String],
+            skipTimes: [Playlist.EpisodeServer.SkipTime]
         ) {
             self.links = links
             self.subtitles = subtitles
-        }
+            self.headers = headers
+            self.skipTimes = skipTimes
+        }        
     }
 }

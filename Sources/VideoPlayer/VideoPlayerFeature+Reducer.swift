@@ -296,22 +296,28 @@ public extension VideoPlayerFeature.State {
                let link = server.links[id: linkId] {
                 let playlist = playlist
                 let episode = selectedEpisode.value.flatMap { $0 }
+                let loadItem = PlayerClient.VideoCompositionItem(
+                    link: link.url,
+                    headers: server.headers,
+                    subtitles: server.subtitles.map { subtitle in
+                        .init(
+                            name: subtitle.name,
+                            default: subtitle.default,
+                            autoselect: subtitle.autoselect,
+                            forced: false,
+                            link: subtitle.url
+                        )
+                    },
+                    metadata: .init(
+                        title: episode.flatMap { $0.title ?? "Episode \($0.number.withoutTrailingZeroes)" },
+                        artworkImage: episode?.thumbnail ?? playlist.posterImage,
+                        author: playlist.title
+                    )
+                )
 
                 return .run { _ in
                     await playerClient.clear()
-                    try await playerClient.load(
-                        .init(
-                            link: link.url,
-                            // TODO: Pass headers required by some servers
-                            headers: [:],
-                            subtitles: server.subtitles.map { .init(name: $0.language, link: $0.url) },
-                            metadata: .init(
-                                title: episode.flatMap { $0.title ?? "Episode \($0.number.withoutTrailingZeroes)" },
-                                artworkImage: episode?.thumbnail ?? playlist.posterImage,
-                                author: playlist.title
-                            )
-                        )
-                    )
+                    try await playerClient.load(loadItem)
                     await playerClient.play()
                 }
             } else {

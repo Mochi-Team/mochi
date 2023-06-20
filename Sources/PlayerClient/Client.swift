@@ -16,6 +16,7 @@ import XCTestDynamicOverlay
 
 public struct PlayerClient: Sendable {
     public let load: @Sendable (VideoCompositionItem) async throws -> Void
+    public let setRate: @Sendable (Float) async -> Void
     public let play: @Sendable () async -> Void
     public let pause: @Sendable () async -> Void
     public let seek: @Sendable (_ progress: Double) async -> Void
@@ -29,6 +30,7 @@ public struct PlayerClient: Sendable {
 extension PlayerClient: TestDependencyKey {
     public static let testValue = Self(
         load: unimplemented(),
+        setRate: unimplemented(),
         play: unimplemented(),
         pause: unimplemented(),
         seek: unimplemented(),

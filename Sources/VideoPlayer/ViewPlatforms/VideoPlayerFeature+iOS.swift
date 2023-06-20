@@ -186,6 +186,7 @@ extension VideoPlayerFeature.View {
             }
 
             PlayerRoutePickerView()
+                .scaleEffect(0.85)
                 .frame(width: 28, height: 28)
                 .fixedSize()
 
@@ -194,14 +195,41 @@ extension VideoPlayerFeature.View {
                     VideoPlayerFeature.State.Overlay.MoreTab.allCases,
                     id: \.self
                 ) { tab in
-                    Button {
-                        ViewStore(store.viewAction.stateless)
-                            .send(.didSelectMoreTab(tab))
-                    } label: {
-                        tab.image
-                        Text(tab.rawValue)
+                    if tab == .speed {
+                        WithViewStore(
+                            store.internalAction.scope(
+                                state: \.player,
+                                action: Action.InternalAction.player
+                            )
+                            .viewAction,
+                            observe: \.rate
+                        ) { viewStore in
+                            Menu {
+                                Picker(
+                                    tab.rawValue,
+                                    selection: viewStore.binding(get: \.`self`, send: { .didSelectRate($0) })
+                                ) {
+                                    let values: [Float] = [0.25, 0.50, 0.75, 1.0, 1.25, 1.50, 1.75, 2.0]
+                                    ForEach(values, id: \.self) { value in
+                                        Text(String(format: "%.2f", value) + "x")
+                                            .tag(value)
+                                    }
+                                }
+                            } label: {
+                                tab.image
+                                Text(tab.rawValue)
+                            }
+                        }
+                    } else {
+                        Button {
+                            ViewStore(store.viewAction.stateless)
+                                .send(.didSelectMoreTab(tab))
+                        } label: {
+                            tab.image
+                            Text(tab.rawValue)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             } label: {
                 Image(systemName: "ellipsis")
@@ -550,7 +578,7 @@ extension VideoPlayerFeature.View {
                         case .sourcesAndServers:
                             sourcesAndServers
                         case .speed:
-                            speed
+                            EmptyView()
                         case .qualityAndSubtitles:
                             qualityAndSubtitles
                         case .settings:
@@ -732,11 +760,6 @@ extension VideoPlayerFeature.View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    @MainActor
-    var speed: some View {
-        EmptyView()
-    }
-
     private struct SelectedSubtitle: Equatable {
         let selected: AVMediaSelectionOption?
         let group: AVMediaSelectionGroup?
@@ -779,7 +802,6 @@ extension VideoPlayerFeature.View {
                             title: "Subtitles",
                             selected: { $0 == viewStore.selected },
                             items: viewStore.group?.options ?? [],
-                            idKeyPath: \.displayName,
                             itemTitle: \.displayName,
                             noneCallback: viewStore.group.flatMap { group in
                                 group.allowsEmptySelection ? { viewStore.send(.didTapSubtitle(for: group, nil)) } : nil
@@ -810,12 +832,11 @@ extension VideoPlayerFeature.View {
     }
 
     @MainActor
-    private struct MoreListingRow<T, ID: Hashable>: View {
+    private struct MoreListingRow<T>: View {
         var title: String
-        var selected: (T) -> Bool
         var items: [T]
-        var idKeyPath: KeyPath<T, ID>
-        let itemTitle: KeyPath<T, String>
+        var selected: (T) -> Bool
+        let itemTitle: (T) -> String
         var noneCallback: (() -> Void)?
         var selectedCallback: ((T) -> Void)?
 
@@ -823,15 +844,13 @@ extension VideoPlayerFeature.View {
             title: String,
             selected: @escaping (T) -> Bool,
             items: [T],
-            idKeyPath: KeyPath<T, ID>,
-            itemTitle: KeyPath<T, String>,
+            itemTitle: @escaping (T) -> String,
             noneCallback: (() -> Void)? = nil,
             selectedCallback: ((T) -> Void)? = nil
         ) {
             self.title = title
             self.selected = selected
             self.items = items
-            self.idKeyPath = idKeyPath
             self.itemTitle = itemTitle
             self.noneCallback = noneCallback
             self.selectedCallback = selectedCallback
@@ -844,13 +863,12 @@ extension VideoPlayerFeature.View {
             itemTitle: KeyPath<T, String>,
             noneCallback: (() -> Void)? = nil,
             selectedCallback: ((T.ID) -> Void)? = nil
-        ) where T: Identifiable, T.ID == ID {
+        ) where T: Identifiable {
             self.init(
                 title: title,
                 selected: { $0.id == selected },
                 items: items,
-                idKeyPath: \.id,
-                itemTitle: itemTitle,
+                itemTitle: { $0[keyPath: itemTitle] },
                 noneCallback: noneCallback,
                 selectedCallback: selectedCallback.flatMap { callback in { callback($0.id) } }
             )
@@ -877,17 +895,17 @@ extension VideoPlayerFeature.View {
 
                         if let item = items.first(where: selected) {
                             makeTextButton(
-                                item[keyPath: itemTitle],
+                                itemTitle(item),
                                 isSelected: true
                             ) {
                                 selectedCallback?(item)
                             }
                         }
 
-                        ForEach(items, id: idKeyPath) { item in
+                        ForEach(Array(zip(items.indices, items)), id: \.0) { _, item in
                             if !selected(item) {
                                 makeTextButton(
-                                    item[keyPath: itemTitle],
+                                    itemTitle(item),
                                     isSelected: selected(item)
                                 ) {
                                     withAnimation(.easeInOut) {
@@ -901,7 +919,6 @@ extension VideoPlayerFeature.View {
                 }
             }
             .frame(maxWidth: .infinity)
-//            .animation(.easeInOut, value: selected)
         }
 
         @MainActor
