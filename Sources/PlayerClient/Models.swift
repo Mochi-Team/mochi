@@ -72,19 +72,4 @@ public extension PlayerClient {
             }
         }
     }
-
-    enum Status: Equatable, Sendable {
-        case idle
-        case loading
-        case loaded(duration: Double)
-        case playback(state: Playback)
-        case finished
-        case error
-
-        public enum Playback: Equatable, Sendable {
-            case buffering
-            case playing
-            case paused
-        }
-    }
 }

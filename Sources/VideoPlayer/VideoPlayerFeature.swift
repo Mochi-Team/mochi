@@ -27,7 +27,7 @@ public enum VideoPlayerFeature: Feature {
                 case episodes = "Episodes"
                 case sourcesAndServers = "Sources & Servers"
                 case qualityAndSubtitles = "Quality & Subtitles"
-                case speed = "Speed"
+                case speed = "Playback Speed"
                 case settings = "Settings"
 
                 var image: Image {
@@ -99,6 +99,7 @@ public enum VideoPlayerFeature: Feature {
             case didTapPlayer
             case didSelectMoreTab(State.Overlay.MoreTab)
             case didTapCloseMoreOverlay
+            case didSkipTo(time: CGFloat)
             case didTapPlayEpisode(Playlist.Group.ID, Playlist.Item.ID)
             case didTapSource(Playlist.EpisodeSource.ID)
             case didTapServer(Playlist.EpisodeServer.ID)

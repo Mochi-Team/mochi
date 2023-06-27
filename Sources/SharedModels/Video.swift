@@ -188,7 +188,7 @@ public extension Playlist {
             }
         }
 
-        public struct SkipTime: Equatable, Sendable {
+        public struct SkipTime: Hashable, Sendable {
             public let startTime: Double
             public let endTime: Double
             public let type: SkipType
@@ -203,10 +203,21 @@ public extension Playlist {
                 self.type = type
             }
 
-            public enum SkipType: Int32, Equatable, Sendable {
+            public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible {
                 case opening
                 case ending
                 case recap
+
+                public var description: String {
+                    switch self {
+                    case .opening:
+                        return "Skip Opening"
+                    case .ending:
+                        return "Skip Ending"
+                    case .recap:
+                        return "Skip Recap"
+                    }
+                }
             }
         }
     }

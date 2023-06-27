@@ -122,30 +122,43 @@ extension PlaylistDetailsFeature.State {
             )
         }
 
+        effects.append(fetchPlaylistItemsIfNecessary(forced))
+
+        return .merge(effects)
+    }
+
+    mutating func fetchPlaylistItemsIfNecessary(_ forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
+        @Dependency(\.moduleClient)
+        var moduleClient
+
+        @Dependency(\.logger)
+        var logger
+
+        let playlistId = playlist.id
+        let repoModuleId = repoModuleId
+
         if forced || !contents.hasInitialized {
             contents = .loading
 
-            effects.append(
-                .run { send in
-                    try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistItems) {
-                        let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                            try await module.playlistVideos(.init(playlistId: playlistId))
-                        }
+            return .run { send in
+                try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistItems) {
+                    let value = try await moduleClient.withModule(id: repoModuleId) { module in
+                        try await module.playlistVideos(.init(playlistId: playlistId))
+                    }
 
-                        await send(.internal(.playlistItemsResponse(.loaded(value))))
-                    }
-                } catch: { error, send in
-                    logger.error("\(#function) - \(error)")
-                    if let error = error as? ModuleClient.Error {
-                        await send(.internal(.playlistItemsResponse(.failed(error))))
-                    } else {
-                        await send(.internal(.playlistItemsResponse(.failed(ModuleClient.Error.unknown()))))
-                    }
+                    await send(.internal(.playlistItemsResponse(.loaded(value))))
                 }
-            )
+            } catch: { error, send in
+                logger.error("\(#function) - \(error)")
+                if let error = error as? ModuleClient.Error {
+                    await send(.internal(.playlistItemsResponse(.failed(error))))
+                } else {
+                    await send(.internal(.playlistItemsResponse(.failed(ModuleClient.Error.unknown()))))
+                }
+            }
         }
 
-        return .merge(effects)
+        return .none
     }
 }
 

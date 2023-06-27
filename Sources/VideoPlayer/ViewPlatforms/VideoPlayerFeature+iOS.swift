@@ -44,7 +44,13 @@ extension VideoPlayerFeature.View: View {
 
                         switch viewStore.state {
                         case .none:
-                            EmptyView()
+                            skipButtons
+                                .padding()
+                                .frame(
+                                    maxWidth: .infinity,
+                                    maxHeight: .infinity,
+                                    alignment: .bottomTrailing
+                                )
                         case .tools:
                             toolsOverlay
                         case let .more(tab):
@@ -64,7 +70,9 @@ extension VideoPlayerFeature.View: View {
             .blur(radius: viewStore.state ? 30 : 0)
             .opacity(viewStore.state ? 0.0 : 1.0)
             .animation(.easeInOut(duration: 0.35), value: viewStore.state)
+            .prefersHomeIndicatorAutoHidden(viewStore.state ? false : true)
         }
+        .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
         .onAppear {
             ViewStore(store.viewAction.stateless).send(.didAppear)
         }
@@ -77,6 +85,7 @@ extension VideoPlayerFeature.View {
         VStack {
             topBar
             Spacer()
+            skipButtons
             bottomBar
         }
         .overlay { controlsBar }
@@ -91,6 +100,133 @@ extension VideoPlayerFeature.View {
                     ViewStore(store.viewAction.stateless).send(.didTapPlayer)
                 }
         }
+    }
+
+    private struct SkipActionViewState: Equatable {
+        enum Action: Hashable, CustomStringConvertible {
+            case times(Playlist.EpisodeServer.SkipTime)
+            case next(Double, Playlist.Group.ID, Playlist.Item.ID)
+
+            var isEnding: Bool {
+                if case let .times(time) = self {
+                    return time.type == .ending
+                }
+                return false
+            }
+
+            var action: VideoPlayerFeature.Action {
+                switch self {
+                case let .next(_, groupId, itemId):
+                    return .view(.didTapPlayEpisode(groupId, itemId))
+                case let .times(time):
+                    return .view(.didSkipTo(time: time.endTime))
+                }
+            }
+
+            var description: String {
+                switch self {
+                case let .times(time):
+                    return time.type.description
+                case let .next(number, _, _):
+                    return "Play E\(number.withoutTrailingZeroes)"
+                }
+            }
+
+            var image: String {
+                switch self {
+                case .next:
+                    return "play.fill"
+                default:
+                    return "forward.fill"
+                }
+            }
+
+            var textColor: Color {
+                if case .next = self {
+                    return .black
+                }
+                return .white
+            }
+
+            var background: Color {
+                if case .next = self {
+                    return .white
+                }
+                return .init(white: 0.25)
+            }
+        }
+
+        var actions: [Action]
+        var canShowActions: Bool
+
+        var visible: Bool {
+            canShowActions && !actions.isEmpty
+        }
+
+        init(_ state: VideoPlayerFeature.State) {
+            self.canShowActions = state.player.duration.isValid && state.player.duration > .zero
+            self.actions = state.selectedServerResponse.value??.skipTimes
+                .filter { $0.startTime <= state.player.progress.seconds && state.player.progress.seconds <= $0.endTime }
+                .sorted(by: \.startTime)
+                .compactMap { .times($0) } ?? []
+
+            if let currentEpisode = state.selectedEpisode.value,
+               let episodes = state.selectedGroup.value?.items,
+               let index = episodes.firstIndex(where: { $0.id == currentEpisode?.id }), (index + 1) < episodes.endIndex {
+                let nextEpisode = episodes[index + 1]
+
+                if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {
+                    if state.player.progress.seconds >= type.startTime {
+                        actions.append(.next(nextEpisode.number, state.selected.groupId, nextEpisode.id))
+                    }
+                } else if state.player.progress.seconds >= (0.92 * state.player.duration.seconds) {
+                    actions.append(.next(nextEpisode.number, state.selected.groupId, nextEpisode.id))
+                }
+            }
+        }
+    }
+
+    @MainActor
+    var skipButtons: some View {
+        WithViewStore(
+            store,
+            observe: SkipActionViewState.init
+        ) { viewState in
+            ZStack {
+                if viewState.visible {
+                    HStack {
+                        Spacer()
+                        ForEach(viewState.actions, id: \.self) { action in
+                            Button {
+                                viewState.send(action.action)
+                            } label: {
+                                HStack {
+                                    Image(systemName: action.image)
+                                    Text(action.description)
+                                }
+                                .font(.system(size: 13).weight(.heavy))
+                                .foregroundColor(action.textColor)
+                                .padding(12)
+                                .background(action.background.opacity(0.8))
+                                .cornerRadius(6)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .shadow(color: Color.gray.opacity(0.25), radius: 6)
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                            .swipeable(.easeInOut(duration: 0.2))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
+            }
+            .animation(
+                .easeInOut(duration: 0.25),
+                value: viewState.state
+            )
+        }
+        .padding(.vertical, 4)
     }
 
     private struct PlaylistDisplayState: Equatable, Sendable {
@@ -464,7 +600,7 @@ extension VideoPlayerFeature.View {
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
                         ZStack(alignment: .leading) {
-                            Color.gray.opacity(0.35)
+                            BlurView(.systemUltraThinMaterialLight)
                             Color.white
                                 .frame(
                                     width: proxy.size.width * (isDragging ? dragProgress ?? progress : progress),

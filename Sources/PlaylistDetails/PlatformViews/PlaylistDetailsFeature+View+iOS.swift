@@ -1,11 +1,12 @@
 //
-//  PlaylistDetailsFeature+View.swift
+//  PlaylistDetailsFeature+View+iOS.swift
 //
 //
 //  Created ErrorErrorError on 5/19/23.
 //  Copyright © 2023. All rights reserved.
 //
 
+#if os(iOS)
 import Architecture
 import ComposableArchitecture
 import ModuleClient
@@ -23,7 +24,6 @@ extension PlaylistDetailsFeature.View: View {
         WithViewStore(store.viewAction, observe: \.playlistInfo) { viewStore in
             ZStack {
                 if viewStore.error != nil {
-                    // TODO: Add error
                     VStack(spacing: 14) {
                         Text("Failed to retrieve contents.")
                             .font(.body.bold())
@@ -612,3 +612,4 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
         )
     }
 }
+#endif

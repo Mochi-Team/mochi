@@ -67,6 +67,12 @@ extension VideoPlayerFeature.Reducer: Reducer {
             case let .view(.didTapLink(linkId)):
                 return state.clearForChangedLinkIfNeeded(linkId)
 
+            case let .view(.didSkipTo(time)):
+                let fraction = max(state.player.duration.seconds, 1)
+                return .run { _ in
+                    await playerClient.seek(time / fraction)
+                }
+
             case .internal(.hideToolsOverlay):
                 state.overlay = state.overlay == .tools ? nil : state.overlay
 
@@ -114,7 +120,8 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 return state.delayDismissOverlayIfNeeded()
 
             case .internal(.player(.delegate(.didTapClosePiP))):
-                return state.dismiss()
+//                return state.dismiss()
+                break
 
             case .internal(.player):
                 break
