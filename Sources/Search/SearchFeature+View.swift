@@ -174,19 +174,7 @@ struct SearchFeatureView_Previews: PreviewProvider {
                         )
                     ],
                     selectedModule: nil,
-                    items: .loaded(
-                        .init(
-                            items: [
-                                .init(
-                                    id: "playlist",
-                                    title: "Demo 1",
-                                    type: .video
-                                )
-                            ],
-                            currentPage: "1",
-                            nextPage: nil
-                        )
-                    )
+                    items: .pending
                 ),
                 reducer: EmptyReducer()
             )

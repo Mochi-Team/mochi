@@ -37,7 +37,7 @@ extension PlaylistDetailsFeature.View: View {
                                 .padding(12)
                                 .padding(.horizontal, 4)
                                 .background(Color.gray.opacity(0.2))
-                                .clipShape(Capsule())
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }
@@ -103,7 +103,10 @@ extension PlaylistDetailsFeature.View: View {
 extension PlaylistDetailsFeature.View {
     @MainActor
     func topView(_ playlistInfo: Self.State.PlaylistInfo) -> some View {
-        ZStack(alignment: .bottom) {
+        GeometryReader { reader in
+//            let frame = reader.frame(in: .global)
+//            let isOverscrolling = frame.minY > 0
+//            let overscrollOpacity = isOverscrolling ? 1.0 - (frame.height / reader.size.height / 4) : 1.0
             FillAspectImage(url: playlistInfo.posterImage) { color in
                 withAnimation(.easeIn(duration: 0.25)) {
                     imageDominatColor = color
@@ -111,75 +114,81 @@ extension PlaylistDetailsFeature.View {
             }
             .clipped()
             .contentShape(Rectangle())
-            .overlay {
-                LinearGradient(
-                    gradient: .easingLinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0.0),
-                            .init(color: imageDominatColor ?? .black, location: 1.0)
-                        ],
-                        easing: .init(curve: .exponential, function: .easeIn)
-                    ),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
+            .overlay(alignment: .bottom) {
+                VStack(spacing: 0) {
+                    Text(playlistInfo.title ?? "No Title")
+                        .font(.largeTitle.weight(.bold))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
 
-            VStack(spacing: 0) {
-                Text(playlistInfo.title ?? "Unknown Title")
-                    .font(.largeTitle.weight(.bold))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
+                    if !playlistInfo.genres.isEmpty || playlistInfo.yearReleased != nil {
+                        Spacer()
+                            .frame(height: 8)
+                        
+                        HStack(spacing: 4) {
+                            let genres = playlistInfo.genres.prefix(3)
+                            
+                            if let released = playlistInfo.yearReleased {
+                                Text(released.description)
+                                if !genres.isEmpty {
+                                    dotSpaced
+                                }
+                            }
+                            
+                            ForEach(genres, id: \.self) { genre in
+                                Text(genre)
+                                if genres.last != genre {
+                                    dotSpaced
+                                }
+                            }
+                        }
+                        .font(.caption.weight(.medium))
+                        .contrast(0.9)
+                    }
 
-                if !playlistInfo.genres.isEmpty || playlistInfo.yearReleased != nil {
                     Spacer()
-                        .frame(height: 8)
+                        .frame(height: 12)
 
-                    HStack(spacing: 4) {
-                        let genres = playlistInfo.genres.prefix(3)
-                        ForEach(genres, id: \.self) { genre in
-                            Text(genre)
-                            if genres.last != genre {
-                                dotSpaced
-                            }
+                    Button {
+                        // TODO: Handle resume play
+                    } label: {
+                        HStack {
+                            Image(systemName: "play.fill")
+                            Text("Play")
                         }
-
-                        if let released = playlistInfo.yearReleased {
-                            if !genres.isEmpty {
-                                dotSpaced
-                            }
-                            Text(released.description)
+                        .foregroundColor(.label)
+                        .font(.callout.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background {
+                            (imageDominatColor ?? .init(white: 0.5))
+                                .overlay(.regularMaterial)
+                                .cornerRadius(8)
                         }
                     }
-                    .font(.caption.weight(.medium))
-                    .contrast(0.9)
-                }
+                    .buttonStyle(.plain)
 
-                Spacer()
-                    .frame(height: 12)
-
-                Button {} label: {
-                    HStack {
-                        Image(systemName: "play.fill")
-                        Text("Play")
-                    }
-                    .foregroundColor(.label)
-                    .font(.callout.bold())
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background {
-                        (imageDominatColor ?? .init(white: 0.5))
-                            .overlay(.regularMaterial)
-                            .cornerRadius(8)
-                    }
+                    // TODO: Add progress
                 }
-                .buttonStyle(.plain)
+                .foregroundColor(readableColor)
+                .padding()
+                .background {
+                    LinearGradient(
+                        gradient: .easingLinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: imageDominatColor ?? .black, location: 1.0)
+                            ],
+                            easing: .init(curve: .quadratic, function: .easeIn)
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+//                .opacity(overscrollOpacity)
             }
-            .foregroundColor(readableColor)
-            .frame(maxWidth: .infinity)
-            .padding()
-
-            // TODO: Add progress
+            .frame(width: reader.size.width, height: reader.size.height)
         }
         .elasticParallax()
         .aspectRatio(5 / 7, contentMode: .fit)
@@ -244,7 +253,10 @@ extension PlaylistDetailsFeature.View {
                     if let value = viewStore.state.value, value.allGroups.count > 1 {
                         Menu {
                             ForEach(value.allGroups, id: \.id) { group in
-                                Button {} label: {
+                                Button {
+                                    // TODO: Select group to retrieve contents
+                                    viewStore.send(.didTapSelectGroup(group.id))
+                                } label: {
                                     Text(
                                         group.displayTitle ?? (
                                             playlistInfo.playlist.type == .video ?

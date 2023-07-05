@@ -66,6 +66,7 @@ public enum PlaylistDetailsFeature: Feature {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case didTappedBackButton
+            case didTapSelectGroup(Playlist.Group.ID)
             case didTapVideoItem(Playlist.Group.ID, Playlist.Item.ID)
             case binding(BindingAction<State>)
         }

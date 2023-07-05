@@ -47,6 +47,7 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                 guard let contents = state.contents.value else {
                     break
                 }
+
                 guard let content = contents[groupId: groupId]?.value else {
                     break
                 }
@@ -65,6 +66,8 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                         )
                     )
                 )
+            case let .view(.didTapSelectGroup(groupId)):
+                return state.fetchSelectedGroupIfNeeded(groupId)
 
             case .view(.binding):
                 break
@@ -158,6 +161,11 @@ extension PlaylistDetailsFeature.State {
             }
         }
 
+        return .none
+    }
+
+    // TODO: Handle changing group
+    mutating func fetchSelectedGroupIfNeeded(_ groupId: Playlist.Group.ID, forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
         return .none
     }
 }

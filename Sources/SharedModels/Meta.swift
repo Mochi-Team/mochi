@@ -11,7 +11,7 @@ import Tagged
 
 // MARK: - DiscoverListing
 
-public struct DiscoverListing: Sendable, Equatable {
+public struct DiscoverListing: Sendable, Hashable {
     public let title: String
     public let type: ListingType
     public var paging: Paging<Playlist>
@@ -20,7 +20,7 @@ public struct DiscoverListing: Sendable, Equatable {
         paging.items
     }
 
-    public enum ListingType: Int, Sendable, Equatable {
+    public enum ListingType: Int, Sendable, Hashable {
         case `default`
         case rank
         case featured

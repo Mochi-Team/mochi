@@ -13,14 +13,14 @@ import XCTestDynamicOverlay
 // MARK: - AnalyticsClient
 
 public struct AnalyticsClient: Sendable {
-    public var sendAnalytics: @Sendable (Action) -> Void
+    public var send: @Sendable (Action) -> Void
 }
 
 // MARK: TestDependencyKey
 
 extension AnalyticsClient: TestDependencyKey {
     public static let testValue = Self(
-        sendAnalytics: unimplemented()
+        send: unimplemented()
     )
 }
 

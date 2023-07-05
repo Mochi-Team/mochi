@@ -35,7 +35,7 @@ public struct AnalyticsReducer<State, Action>: Reducer {
             }
 
             return .run { _ in
-                analyticsClient.sendAnalytics(event)
+                analyticsClient.send(event)
             }
         }
     }

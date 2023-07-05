@@ -238,6 +238,15 @@ let miscTargets: [Target] = [
         ]
     ),
     .target(
+        name: "ContentFetchingLogic",
+        dependencies: [
+            "Architecture",
+            "FoundationHelpers",
+            .product(name: "Tagged", package: "swift-tagged"),
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
+    .target(
         name: "SharedModels",
         dependencies: [
             "CoreORM",
