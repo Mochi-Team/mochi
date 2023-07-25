@@ -182,12 +182,18 @@ extension HostModuleInterop {
                 length: .init(banner_image_len)
             )
 
+            // TODO: Add URL and Status
+//            let url = try memory.string(byteOffset: url_ptr, length: url_len)
+//            let status = Playlist.Status.init(rawValue: <#T##Int#>) ?? .unknown
+
             return alloc.add(
                 Playlist(
                     id: .init(idStr),
                     title: titleStr,
                     posterImage: posterImageStr.flatMap { .init(string: $0) },
                     bannerImage: bannerImageStr.flatMap { .init(string: $0) },
+                    url: .init(string: "/").unsafelyUnwrapped,
+                    status: .unknown,
                     type: Playlist.PlaylistType(rawValue: .init(type)) ?? .video
                 )
             )

@@ -1200,7 +1200,7 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
                         ),
                         moduleId: ""
                     ),
-                    playlist: .init(id: "0", type: .video),
+                    playlist: .empty,
                     loadables: .init(
                         contents: .pending,
                         playlistItemSourcesLoadables: ["0": .loaded([])]

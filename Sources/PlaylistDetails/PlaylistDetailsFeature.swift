@@ -104,6 +104,9 @@ public enum PlaylistDetailsFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<PlaylistDetailsFeature>
 
+        @Environment(\.openURL)
+        var openURL
+
         @InsetValue(\.tabNavigation)
         var tabNavigationInset
 

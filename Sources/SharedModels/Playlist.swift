@@ -22,11 +22,11 @@ public struct Playlist: Sendable, Identifiable, Hashable {
 
     public init(
         id: ID,
-        title: String? = nil,
-        posterImage: URL? = nil,
-        bannerImage: URL? = nil,
-        url: URL = .init(string: "/").unsafelyUnwrapped,
-        status: Status = .unknown,
+        title: String?,
+        posterImage: URL?,
+        bannerImage: URL?,
+        url: URL,
+        status: Status,
         type: PlaylistType
     ) {
         self.id = id
@@ -230,7 +230,7 @@ public struct PlaylistInfo: Equatable, Sendable {
     let details: Playlist.Details
 
     public init(
-        playlist: Playlist = .init(id: "", type: .video),
+        playlist: Playlist,
         details: Playlist.Details = .init()
     ) {
         self.playlist = playlist
@@ -243,5 +243,29 @@ public struct PlaylistInfo: Equatable, Sendable {
 
     public subscript<Value>(dynamicMember dynamicMember: KeyPath<Playlist.Details, Value>) -> Value {
         details[keyPath: dynamicMember]
+    }
+}
+
+public extension Playlist {
+    static let empty: Self = .init(
+        id: "",
+        title: "",
+        posterImage: nil,
+        bannerImage: nil,
+        url: .init(string: "/").unsafelyUnwrapped,
+        status: .unknown,
+        type: .video
+    )
+
+    static func placeholder(_ id: Int) -> Self {
+        .init(
+            id: "\(id)",
+            title: "Placeholder \(id)",
+            posterImage: nil,
+            bannerImage: nil,
+            url: .init(string: "/").unsafelyUnwrapped,
+            status: .unknown,
+            type: .video
+        )
     }
 }

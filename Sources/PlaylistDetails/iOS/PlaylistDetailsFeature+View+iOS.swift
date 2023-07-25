@@ -45,8 +45,8 @@ extension PlaylistDetailsFeature.View: View {
                 } else {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 16) {
-                            topView(viewStore.value ?? .init())
-                            contentView(viewStore.value ?? .init())
+                            topView(viewStore.value ?? .init(playlist: .placeholder(0)))
+                            contentView(viewStore.value ?? .init(playlist: .placeholder(0)))
                         }
                     }
                     .shimmering(active: !viewStore.didFinish)
@@ -84,12 +84,23 @@ extension PlaylistDetailsFeature.View: View {
             ViewStore(store.stateless.viewAction).send(.didTappedBackButton)
         } trailingAccessory: {
             // TODO: Make this change depending if it's in library already or not
-            Button {} label: {
+            Button {
+                
+            } label: {
                 Image(systemName: "plus")
             }
             .buttonStyle(.materialToolbarImage)
 
-            Menu {} label: {
+            Menu {
+                WithViewStore(store, observe: \.playlist.url) { viewStore in
+                    Button {
+                        openURL(viewStore.state)
+                    } label: {
+                        Image(systemName: "arrow.up.right.square.fill")
+                        Text("Open Playlist URL")
+                    }
+                }
+            } label: {
                 Image(systemName: "ellipsis")
             }
             .menuStyle(.materialToolbarImage)
@@ -562,11 +573,7 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
                         moduleId: ""
                     ),
-                    playlist: .init(
-                        id: "playlist-1",
-                        title: "Playlist Demo",
-                        type: .video
-                    ),
+                    playlist: .placeholder(0),
                     details: .pending,
                     content: .pending
                 ),
@@ -581,11 +588,7 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
                         moduleId: ""
                     ),
-                    playlist: .init(
-                        id: "playlist-1",
-                        title: "Playlist Demo",
-                        type: .video
-                    ),
+                    playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
@@ -606,11 +609,7 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
                         moduleId: ""
                     ),
-                    playlist: .init(
-                        id: "playlist-1",
-                        title: "Playlist Demo",
-                        type: .video
-                    ),
+                    playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
@@ -631,11 +630,7 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
                         moduleId: ""
                     ),
-                    playlist: .init(
-                        id: "playlist-1",
-                        title: "Playlist Demo",
-                        type: .video
-                    ),
+                    playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
@@ -656,11 +651,7 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
                         moduleId: ""
                     ),
-                    playlist: .init(
-                        id: "playlist-1",
-                        title: "Playlist Demo",
-                        type: .video
-                    ),
+                    playlist: .placeholder(0),
                     details: .failed(ModuleClient.Error.unknown())
                 ),
                 reducer: EmptyReducer()
