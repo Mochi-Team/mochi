@@ -31,11 +31,10 @@ final class ModuleClientTests: XCTestCase {
             )
         )
 
-        let moduleClient = ModuleClient.liveValue
+        let instance = try ModuleClient.Instance(module: module)
+        let items = try await instance.searchFilters()
 
-//        let items = try await moduleClient.search(module)
-
-//        XCTAssertEqual(items.count, 2)
+        XCTAssertEqual(items.count, 2)
     }
 
     func testModuleSearch() async throws {
@@ -52,11 +51,10 @@ final class ModuleClientTests: XCTestCase {
             )
         )
 
-        let moduleClient = ModuleClient.liveValue
+        let instance = try ModuleClient.Instance(module: module)
+        let listing = try await instance.search(.init(query: ""))
 
-//        let listing = try await moduleClient.search(module, .init(query: ""))
-
-//        XCTAssertNotNil(listing.items.first?.id)
+        XCTAssertNotNil(listing.items.first?.id)
     }
 
     func testModuleDiscoveryListing() async throws {
@@ -73,12 +71,11 @@ final class ModuleClientTests: XCTestCase {
             )
         )
 
-        let moduleClient = ModuleClient.liveValue
+        let instance = try ModuleClient.Instance(module: module)
+        let listing = try await instance.discoverListings()
 
-//        let listing = try await moduleClient.getDiscoverListings(module)
-
-//        XCTAssertEqual(listing.first?.title, "Hello")
-//        XCTAssertEqual(listing.first?.paging.currentPage, "1")
+        XCTAssertEqual(listing.first?.title, "Hello")
+        XCTAssertEqual(listing.first?.paging.id, "1")
     }
 
     func testModuleSearchParallel() async throws {

@@ -17,11 +17,11 @@ import XCTestDynamicOverlay
 
 public struct ModuleClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> ModuleHandler
+    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> Instance
 }
 
 public extension ModuleClient {
-    func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleHandler) async throws -> R) async throws -> R {
+    func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleClient.Instance) async throws -> R) async throws -> R {
         try await work(getModule(id))
     }
 }

@@ -60,18 +60,8 @@ extension DiscoverFeature.View: View {
                         }
                         .transition(.opacity)
                     } waitingView: {
-                        let placeholders: [Playlist] = [
-                            .init(id: "placeholder 1", type: .video),
-                            .init(id: "placeholder 2", type: .video),
-                            .init(id: "placeholder 3", type: .video),
-                            .init(id: "placeholder 4", type: .video),
-                            .init(id: "placeholder 5", type: .video),
-                            .init(id: "placeholder 6", type: .video),
-                            .init(id: "placeholder 7", type: .video),
-                            .init(id: "placeholder 8", type: .video),
-                            .init(id: "placeholder 9", type: .video),
-                            .init(id: "placeholder 10", type: .video)
-                        ]
+                        let placeholders: [Playlist] = (0..<10).map { .placeholder($0) }
+
                         buildListingsView(
                             [
                                 .init(
@@ -399,14 +389,7 @@ struct DiscoverView_Previews: PreviewProvider {
                             type: .featured,
                             paging: .init(
                                 id: "",
-                                items: [
-                                    .init(
-                                        id: "",
-                                        posterImage: .init(string: "/"),
-                                        bannerImage: .init(string: "/"),
-                                        type: .video
-                                    )
-                                ]
+                                items: [.empty]
                             )
                         )
                     ])

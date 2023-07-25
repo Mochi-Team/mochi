@@ -44,7 +44,7 @@ private actor ModulesCache {
     }
 
     @Sendable
-    func getCached(for id: RepoModuleID) async throws -> ModuleHandler {
+    func getCached(for id: RepoModuleID) async throws -> ModuleClient.Instance {
         if let module = cached[id] {
             return try .init(module: module)
         }
