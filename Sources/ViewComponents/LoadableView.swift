@@ -120,11 +120,17 @@ public struct LoadableStore<T, Action, Loaded: View, Failed: View, Loading: View
     }
 
     public var body: some View {
-        SwitchStore(store) {
-            CaseLet(state: /Loadable<T>.loaded, then: loadedView)
-            CaseLet(state: /Loadable<T>.failed, then: failedView)
-            CaseLet(state: /Loadable<T>.loading, then: loadingView)
-            CaseLet(state: /Loadable<T>.pending, then: pendingView)
+        SwitchStore(store) { state in
+            switch state {
+            case .loaded:
+                CaseLet(state: /Loadable<T>.loaded, then: loadedView)
+            case .failed:
+                CaseLet(state: /Loadable<T>.failed, then: failedView)
+            case .loading:
+                CaseLet(state: /Loadable<T>.loading, then: loadingView)
+            case .pending:
+                CaseLet(state: /Loadable<T>.pending, then: pendingView)
+            }
         }
     }
 }

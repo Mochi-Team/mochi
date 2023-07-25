@@ -11,13 +11,13 @@ import Architecture
 import AVFoundation
 import AVKit
 import ComposableArchitecture
+import ContentFetchingLogic
 import PlayerClient
 import SharedModels
 import Styling
 import SwiftUI
 import ViewComponents
 
-// TODO: Hide home indicator
 extension VideoPlayerFeature.View: View {
     @MainActor
     public var body: some View {
@@ -105,7 +105,7 @@ extension VideoPlayerFeature.View {
     private struct SkipActionViewState: Equatable {
         enum Action: Hashable, CustomStringConvertible {
             case times(Playlist.EpisodeServer.SkipTime)
-            case next(Double, Playlist.Group.ID, Playlist.Item.ID)
+            case next(Double, Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
 
             var isEnding: Bool {
                 if case let .times(time) = self {
@@ -116,8 +116,8 @@ extension VideoPlayerFeature.View {
 
             var action: VideoPlayerFeature.Action {
                 switch self {
-                case let .next(_, groupId, itemId):
-                    return .view(.didTapPlayEpisode(groupId, itemId))
+                case let .next(_, group, paging, itemId):
+                    return .view(.didTapPlayEpisode(group, paging, itemId))
                 case let .times(time):
                     return .view(.didSkipTo(time: time.endTime))
                 }
@@ -127,7 +127,7 @@ extension VideoPlayerFeature.View {
                 switch self {
                 case let .times(time):
                     return time.type.description
-                case let .next(number, _, _):
+                case let .next(number, _, _, _):
                     return "Play E\(number.withoutTrailingZeroes)"
                 }
             }
@@ -165,22 +165,22 @@ extension VideoPlayerFeature.View {
 
         init(_ state: VideoPlayerFeature.State) {
             self.canShowActions = state.player.duration.isValid && state.player.duration > .zero
-            self.actions = state.selectedServerResponse.value??.skipTimes
+            self.actions = state.selectedServerResponse.value?.skipTimes
                 .filter { $0.startTime <= state.player.progress.seconds && state.player.progress.seconds <= $0.endTime }
                 .sorted(by: \.startTime)
                 .compactMap { .times($0) } ?? []
 
-            if let currentEpisode = state.selectedEpisode.value,
-               let episodes = state.selectedGroup.value?.items,
-               let index = episodes.firstIndex(where: { $0.id == currentEpisode?.id }), (index + 1) < episodes.endIndex {
+            if let currentEpisode = state.selectedItem.value,
+               let episodes = state.selectedPage.value?.items,
+               let index = episodes.firstIndex(where: { $0.id == currentEpisode.id }), (index + 1) < episodes.endIndex {
                 let nextEpisode = episodes[index + 1]
 
                 if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {
                     if state.player.progress.seconds >= type.startTime {
-                        actions.append(.next(nextEpisode.number, state.selected.groupId, nextEpisode.id))
+                        actions.append(.next(nextEpisode.number, state.selected.group, state.selected.page, nextEpisode.id))
                     }
                 } else if state.player.progress.seconds >= (0.92 * state.player.duration.seconds) {
-                    actions.append(.next(nextEpisode.number, state.selected.groupId, nextEpisode.id))
+                    actions.append(.next(nextEpisode.number, state.selected.group, state.selected.page, nextEpisode.id))
                 }
             }
         }
@@ -231,13 +231,13 @@ extension VideoPlayerFeature.View {
 
     private struct PlaylistDisplayState: Equatable, Sendable {
         let playlist: Playlist
-        let group: Loadable<Playlist.Group?>
-        let episode: Loadable<Playlist.Item?>
+        let group: Loadable<Playlist.Group>
+        let episode: Loadable<Playlist.Item>
 
         init(_ state: VideoPlayerFeature.State) {
             playlist = state.playlist
-            group = state.loadables.allGroupsLoadable.map { $0[id: state.selected.groupId] }
-            episode = state.selectedEpisode
+            group = state.selectedGroup.flatMap { _ in .loaded(state.selected.group) }
+            episode = state.selectedItem
         }
     }
 
@@ -260,30 +260,24 @@ extension VideoPlayerFeature.View {
                         case .pending, .loading:
                             EmptyView()
                         case let .loaded(group):
-                            if let group {
-                                Group {
-                                    switch viewStore.episode {
-                                    case .pending, .loading:
-                                        Text("Loading...")
-                                    case let .loaded(.some(item)):
-                                        Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
-                                    case .loaded(.none):
-                                        Text("Unknown")
-                                    case .failed:
-                                        EmptyView()
-                                    }
+                            Group {
+                                switch viewStore.episode {
+                                case .pending, .loading:
+                                    Text("Loading...")
+                                case let .loaded(item):
+                                    Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
+                                case .failed:
+                                    EmptyView()
                                 }
-
-                                Group {
-                                    Text(group.displayTitle ?? "S\(group.id.withoutTrailingZeroes)") +
-                                    Text("\u{2022}") +
-                                    Text("E\(viewStore.episode.value??.number.withoutTrailingZeroes ?? "0")")
-                                }
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(.init(white: 0.78))
-                            } else {
-                                Text("Unknown")
                             }
+
+                            Group {
+                                Text(group.displayTitle ?? "S\(group.id.withoutTrailingZeroes)") +
+                                Text("\u{2022}") +
+                                Text("E\(viewStore.episode.value?.number.withoutTrailingZeroes ?? "0")")
+                            }
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.init(white: 0.78))
                         case .failed:
                             EmptyView()
                         }
@@ -516,6 +510,7 @@ extension VideoPlayerFeature.State {
 
         enum ContentType: String, Equatable {
             case group
+            case page
             case episode
             case source
             case server
@@ -528,7 +523,9 @@ extension VideoPlayerFeature.State {
     var videoPlayerStatus: VideoPlayerState? {
         if let content = selectedGroup.videoContentState(for: .group) {
             return content
-        } else if let content = selectedEpisode.videoContentState(for: .episode) {
+        } else if let content = selectedItem.videoContentState(for: .page) {
+            return content
+        } else if let content = selectedItem.videoContentState(for: .episode) {
             return content
         } else if let content = selectedSource.videoContentState(for: .source) {
             return content
@@ -539,15 +536,15 @@ extension VideoPlayerFeature.State {
         } else if let content = selectedLink.videoContentState(for: .link) {
             return content
         }
-        // else if  {
-        // TODO: Add video player error status
-        // }
+//         else if {
+//         TODO: Add video player error status
+//         }
 
         return nil
     }
 }
 
-extension Loadable {
+private extension Loadable {
     func videoContentState(for content: VideoPlayerFeature.State.VideoPlayerState.ContentType) -> VideoPlayerFeature.State.VideoPlayerState? {
         switch self {
         case .pending:
@@ -743,109 +740,225 @@ extension VideoPlayerFeature.View {
     }
 
     @MainActor
-    var episodes: some View {
-        WithViewStore(store.viewAction, observe: \.loadables.allGroupsLoadable) { allGroupsState in
-            LoadableView(loadable: allGroupsState.state) { groups in
-                WithViewStore(
-                    store,
-                    observe: \.selected.groupId
-                ) { selectedGroupStore in
-                    VStack(spacing: 0) {
-                        Menu {
-                            ForEach(groups) { group in
-                                Text(group.displayTitle ?? "Season \(group.id)")
+    private struct PlaylistVideoContentView: View {
+        let store: Store<ContentFetchingLogic.State, VideoPlayerFeature.Action>
+        let playlist: Playlist
+
+        @SwiftUI.State
+        private var selectedGroup: Playlist.Group?
+
+        @SwiftUI.State
+        private var selectedPage: Playlist.Group.Content.Page?
+
+        private static let placeholderItems = [
+            Playlist.Item(
+                id: "/1",
+                title: "Placeholder",
+                description: "Placeholder",
+                number: 1,
+                timestamp: "May 12, 2023",
+                tags: []
+            ),
+            Playlist.Item(
+                id: "/2",
+                title: "Placeholder",
+                description: "Placeholder",
+                number: 2,
+                timestamp: "May 12, 2023",
+                tags: []
+            ),
+            Playlist.Item(
+                id: "/3",
+                title: "Placeholder",
+                description: "Placeholder",
+                number: 3,
+                timestamp: "May 12, 2023",
+                tags: []
+            )
+        ]
+
+        @MainActor
+        var body: some View {
+            WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap { $0.keys.first }
+
+                let group = viewStore.state.flatMap { groups in
+                    defaultSelectedGroup.flatMap { groups[$0] } ?? groups.values.first ?? .loaded([:])
+                }
+
+                let defaultSelectedPage = selectedPage ?? group.value.flatMap { $0.keys.first }
+
+                let page = group.flatMap { pages in
+                    defaultSelectedPage.flatMap { pages[$0] } ?? pages.values.first ?? .loaded(.init(id: ""))
+                }
+
+                VStack(spacing: 8) {
+                    HStack {
+                        if let value = viewStore.state.value, value.keys.count > 1 {
+                            Menu {
+                                ForEach(value.keys, id: \.self) { group in
+                                    Button {
+                                        selectedGroup = group
+                                        viewStore.send(.didTapContentGroup(group))
+                                    } label: {
+                                        Text(group.displayTitle ?? "Group \(group.id.withoutTrailingZeroes)")
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    if let group = defaultSelectedGroup {
+                                        Text(group.displayTitle ?? "Group \(group.id.withoutTrailingZeroes)")
+                                    } else {
+                                        Text("Episodes")
+                                    }
+
+                                    if (viewStore.value?.count ?? 0) > 1 {
+                                        Image(systemName: "chevron.down")
+                                            .font(.footnote.weight(.bold))
+                                    }
+                                }
+                                .foregroundColor(.label)
                             }
-                        } label: {
-                            if groups.count == 1 {
-                                Text("Episodes")
-                            } else if let group = groups[id: selectedGroupStore.state] {
-                                Text(group.displayTitle ?? "Season \(group.id)")
-                            } else {
-                                Text("Unknown Group")
+                        } else {
+                            if let group = defaultSelectedGroup {
+                                Text(group.displayTitle ?? "Episodes")
                             }
                         }
-                        .disabled(groups.count <= 1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .font(.title2.weight(.semibold))
 
                         Spacer()
-                            .frame(height: 12)
 
-                        Divider()
+                        if let pages = group.value, pages.keys.count > 1 {
+                            Menu {
+                                ForEach(pages.keys, id: \.id) { page in
+                                    Button {
+                                        selectedPage = page
+                                        if let defaultSelectedGroup {
+                                            viewStore.send(.didTapContentGroupPage(defaultSelectedGroup, page))
+                                        }
+                                    } label: {
+                                        Text(page.displayName)
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(defaultSelectedPage?.displayName ?? "Unknown")
+                                        .font(.system(size: 14))
+                                    Image(systemName: "chevron.down")
+                                        .font(.footnote.weight(.semibold))
+                                }
+                                .foregroundColor(.label)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                                .background {
+                                    Capsule()
+                                        .fill(Color.gray.opacity(0.24))
+                                }
+                            }
+                        }
+                    }
 
-                        WithViewStore(
-                            store.viewAction,
-                            observe: \.loadables[groupId: selectedGroupStore.state]
-                        ) { groupStore in
-                            let playlist = ViewStore(store.actionless, observe: \.playlist).state
-                            let selectedEpisodeId = ViewStore(store.actionless, observe: \.selected.episodeId)
-                            LoadableView(loadable: groupStore.state) { group in
-                                ScrollViewReader { scrollReader in
-                                    ScrollView(.vertical, showsIndicators: false) {
-                                        Spacer()
-                                            .frame(height: 24)
+                    ZStack {
+                        if page.error != nil {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.red.opacity(0.16))
+                                .padding(.horizontal)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 125)
+                                .overlay {
+                                    Text("There was an error loading content.")
+                                        .font(.callout.weight(.semibold))
+                                }
+                        } else if page.didFinish, (page.value?.items.count ?? 0) == 0 {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.12))
+                                .padding(.horizontal)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 125)
+                                .overlay {
+                                    Text("There is no content available.")
+                                        .font(.callout.weight(.medium))
+                                }
+                        } else {
+                            ScrollViewReader { scrollReader in
+                                ScrollView(.vertical, showsIndicators: false) {
+                                    Spacer()
+                                        .frame(height: 24)
 
-                                        LazyVGrid(columns: [.init(), .init(), .init()]) {
-                                            ForEach(group.items) { item in
-                                                VStack(alignment: .leading, spacing: 0) {
-                                                    FillAspectImage(url: item.thumbnail ?? playlist.posterImage)
-                                                        .aspectRatio(16 / 9, contentMode: .fit)
-                                                        .cornerRadius(12)
+                                    LazyVGrid(columns: [.init(), .init(), .init()]) {
+                                        ForEach(page.value?.items ?? Self.placeholderItems, id: \.id) { item in
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                FillAspectImage(url: item.thumbnail ?? playlist.posterImage)
+                                                    .aspectRatio(16 / 9, contentMode: .fit)
+                                                    .cornerRadius(12)
 
-                                                    Spacer()
-                                                        .frame(height: 8)
+                                                Spacer()
+                                                    .frame(height: 8)
 
-                                                    Text("Episode \(item.number.withoutTrailingZeroes)")
-                                                        .font(.footnote.weight(.semibold))
-                                                        .foregroundColor(.init(white: 0.72))
+                                                Text("Episode \(item.number.withoutTrailingZeroes)")
+                                                    .font(.footnote.weight(.semibold))
+                                                    .foregroundColor(.init(white: 0.72))
 
-                                                    Spacer()
-                                                        .frame(height: 4)
+                                                Spacer()
+                                                    .frame(height: 4)
 
-                                                    Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
-                                                        .font(.callout.weight(.semibold))
-                                                }
-                                                .overlay(alignment: .topTrailing) {
-                                                    if item.id == selectedEpisodeId.state {
-                                                        Text("Playing")
-                                                            .font(.footnote.weight(.bold))
-                                                            .foregroundColor(.black)
-                                                            .padding(.horizontal, 8)
-                                                            .padding(.vertical, 4)
-                                                            .background(Capsule(style: .continuous).fill(Color.white))
-                                                            .padding(8)
-                                                    }
-                                                }
-                                                .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    groupStore.send(.didTapPlayEpisode(group.groupId, item.id))
+                                                Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
+                                                    .font(.callout.weight(.semibold))
+                                            }
+                                            .overlay(alignment: .topTrailing) {
+//                                                if item.id == selectedEpisodeId.state {
+//                                                    Text("Playing")
+//                                                        .font(.footnote.weight(.bold))
+//                                                        .foregroundColor(.black)
+//                                                        .padding(.horizontal, 8)
+//                                                        .padding(.vertical, 4)
+//                                                        .background(Capsule(style: .continuous).fill(Color.white))
+//                                                        .padding(8)
+//                                                }
+                                            }
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                if let group = defaultSelectedGroup, let page = defaultSelectedPage {
+                                                    viewStore.send(.didTapPlayEpisode(group, page, item.id))
                                                 }
                                             }
                                         }
                                     }
-                                    .onAppear {
-                                        scrollReader.scrollTo(selectedEpisodeId.state)
-                                    }
                                 }
-                            } failedView: { _ in
-                                Spacer()
-                                Text("Retry")
-                                Spacer()
-                            } waitingView: {
-                                Spacer()
-                                ProgressView()
-                                Spacer()
+                                .onAppear {
+//                                    scrollReader.scrollTo(selectedEpisodeId.state)
+                                }
                             }
+                            .frame(maxWidth: .infinity)
+                            .shimmering(active: !page.didFinish)
+                            .disabled(!page.didFinish)
                         }
                     }
+                    .animation(.easeInOut, value: viewStore.state)
+                    .animation(.easeInOut, value: selectedGroup)
+                    .animation(.easeInOut, value: selectedPage)
                 }
-            } failedView: { _ in
-                Text("Failed To Fetch Groups")
-                    .foregroundColor(.red)
+                .shimmering(active: !viewStore.didFinish)
+                .disabled(!viewStore.didFinish)
+                .onChange(of: selectedGroup) { _ in
+                    selectedPage = nil
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal)
+    }
+
+    @MainActor
+    var episodes: some View {
+        WithViewStore(store, observe: \.playlist) { viewStore in
+            PlaylistVideoContentView(
+                store: store.scope(
+                    state: \.loadables.contents,
+                    action: { $0 }
+                ),
+                playlist: viewStore.state
+            )
+        }
     }
 
     @MainActor
@@ -915,7 +1028,7 @@ extension VideoPlayerFeature.View {
                         MoreListingRow(
                             title: "Quality",
                             selected: selectedState.state,
-                            items: response?.links ?? [],
+                            items: response.links,
                             itemTitle: \.quality.description,
                             selectedCallback: { id in
                                 selectedState.send(.didTapLink(id))
@@ -1089,11 +1202,14 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
                     ),
                     playlist: .init(id: "0", type: .video),
                     loadables: .init(
-                        allGroupsLoadable: .pending,
-                        groupContentLoadables: [:],
+                        contents: .pending,
                         playlistItemSourcesLoadables: ["0": .loaded([])]
                     ),
-                    selected: .init(groupId: 0, episodeId: "0", sourceId: "0", serverId: "0"),
+                    selected: .init(
+                        group: .init(id: 0),
+                        page: .init(id: "", displayName: ""),
+                        episodeId: "0"
+                    ),
                     overlay: .tools
                 ),
                 reducer: EmptyReducer()

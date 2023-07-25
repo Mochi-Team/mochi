@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - Loadable
 
-public enum Loadable<T: Sendable>: Sendable {
+public enum Loadable<T> {
     case pending
     case loading
     case loaded(T)
@@ -26,7 +26,7 @@ public enum Loadable<T: Sendable>: Sendable {
     }
 
     @inlinable
-    public init(_ result: Result<T, some Any>) {
+    public init(_ result: Result<T, Error>) {
         switch result {
         case let .success(value):
             self = .loaded(value)
@@ -96,6 +96,23 @@ public enum Loadable<T: Sendable>: Sendable {
     }
 }
 
+// MARK: Equatable
+
+extension Loadable: Equatable where T: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case let (.loaded(lhs), .loaded(rhs)):
+            return lhs == rhs
+        case let (.failed(lhs), .failed(rhs)):
+            return _isEqual(lhs, rhs)
+        case (.loading, .loading), (.pending, .pending):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 // MARK: Hashable
 
 extension Loadable: Hashable where T: Hashable {
@@ -117,22 +134,9 @@ extension Loadable: Hashable where T: Hashable {
     }
 }
 
-// MARK: Equatable
+// MARK: Sendable
 
-extension Loadable: Equatable where T: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        case let (.loaded(lhs), .loaded(rhs)):
-            return lhs == rhs
-        case let (.failed(lhs), .failed(rhs)):
-            return _isEqual(lhs, rhs)
-        case (.loading, .loading), (.pending, .pending):
-            return true
-        default:
-            return false
-        }
-    }
-}
+extension Loadable: Sendable where T: Sendable {}
 
 private func _isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
     (lhs as? any Equatable)?.isEqual(other: rhs) ?? false

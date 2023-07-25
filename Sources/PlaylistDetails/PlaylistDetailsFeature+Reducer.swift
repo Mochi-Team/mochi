@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import ContentFetchingLogic
 import DatabaseClient
 import Foundation
 import LoggerClient
@@ -21,7 +22,6 @@ import Tagged
 extension PlaylistDetailsFeature.Reducer: Reducer {
     enum Cancellables: Hashable, CaseIterable {
         case fetchPlaylistDetails
-        case fetchPlaylistItems
     }
 
     @ReducerBuilder<State, Action>
@@ -30,44 +30,47 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
             BindingReducer()
         }
 
+        Scope(state: \.content, action: /Action.InternalAction.content) {
+            ContentFetchingLogic()
+        }
+
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                return state.fetchPlaylistContent()
+                return state.fetchPlaylistDetails()
 
             case .view(.didTappedBackButton):
                 return .concatenate(
-                    .cancel(ids: Cancellables.allCases),
-                    .run {
-                        await self.dismiss()
-                    }
+                    state.content.clear().map { .internal(.content($0)) },
+                    .merge(Cancellables.allCases.map { .cancel(id: $0) }),
+                    .run { await self.dismiss() }
                 )
 
-            case let .view(.didTapVideoItem(groupId, itemId)):
-                guard let contents = state.contents.value else {
-                    break
-                }
-
-                guard let content = contents[groupId: groupId]?.value else {
+            case let .view(.didTapVideoItem(group, page, itemId)):
+                guard state.content.value != nil else {
                     break
                 }
 
                 return .send(
                     .delegate(
                         .playbackVideoItem(
-                            Playlist.ItemsResponse(
-                                content: content,
-                                allGroups: contents.allGroups
-                            ),
+                            .init(contents: [], allGroups: []),
                             repoModuleID: state.repoModuleId,
                             playlist: state.playlist,
-                            groupId: groupId,
+                            group: group,
+                            paging: page,
                             itemId: itemId
                         )
                     )
                 )
-            case let .view(.didTapSelectGroup(groupId)):
-                return state.fetchSelectedGroupIfNeeded(groupId)
+
+            case let .view(.didTapContentGroup(group)):
+                return state.content.fetchPlaylistContentIfNecessary(state.repoModuleId, state.playlist.id, group)
+                    .map { .internal(.content($0)) }
+
+            case let .view(.didTapContentGroupPage(group, page)):
+                return state.content.fetchPlaylistContentIfNecessary(state.repoModuleId, state.playlist.id, group, page)
+                    .map { .internal(.content($0)) }
 
             case .view(.binding):
                 break
@@ -75,8 +78,8 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
             case let .internal(.playlistDetailsResponse(loadable)):
                 state.details = loadable
 
-            case let .internal(.playlistItemsResponse(loadable)):
-                state.contents = loadable.map { .init($0) }
+            case .internal(.content):
+                break
 
             case .delegate:
                 break
@@ -87,7 +90,7 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
 }
 
 extension PlaylistDetailsFeature.State {
-    mutating func fetchPlaylistContent(_ forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
+    mutating func fetchPlaylistDetails(_ forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
         @Dependency(\.databaseClient)
         var databaseClient
 
@@ -125,81 +128,7 @@ extension PlaylistDetailsFeature.State {
             )
         }
 
-        effects.append(fetchPlaylistItemsIfNecessary(forced))
-
+        effects.append(content.fetchPlaylistContentIfNecessary(repoModuleId, playlistId).map { .internal(.content($0)) })
         return .merge(effects)
-    }
-
-    mutating func fetchPlaylistItemsIfNecessary(_ forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
-        @Dependency(\.moduleClient)
-        var moduleClient
-
-        @Dependency(\.logger)
-        var logger
-
-        let playlistId = playlist.id
-        let repoModuleId = repoModuleId
-
-        if forced || !contents.hasInitialized {
-            contents = .loading
-
-            return .run { send in
-                try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistItems) {
-                    let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                        try await module.playlistVideos(.init(playlistId: playlistId))
-                    }
-
-                    await send(.internal(.playlistItemsResponse(.loaded(value))))
-                }
-            } catch: { error, send in
-                logger.error("\(#function) - \(error)")
-                if let error = error as? ModuleClient.Error {
-                    await send(.internal(.playlistItemsResponse(.failed(error))))
-                } else {
-                    await send(.internal(.playlistItemsResponse(.failed(ModuleClient.Error.unknown()))))
-                }
-            }
-        }
-
-        return .none
-    }
-
-    // TODO: Handle changing group
-    mutating func fetchSelectedGroupIfNeeded(_ groupId: Playlist.Group.ID, forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
-        return .none
-    }
-}
-
-// MARK: - PlaylistDetailsFeature.State.PlaylistContents
-
-public extension PlaylistDetailsFeature.State {
-    struct PlaylistContents: Equatable, Sendable {
-        public typealias LoadableResponse = Loadable<Playlist.Group.Content>
-
-        public var loadables = [Playlist.Group.ID: LoadableResponse]()
-        public let allGroups: [Playlist.Group]
-        public var selectedGroupId: Playlist.Group.ID
-
-        public var selectedContent: LoadableResponse {
-            loadables[selectedGroupId] ?? .pending
-        }
-
-        public var selectedGroup: Playlist.Group? {
-            allGroups[id: selectedGroupId]
-        }
-
-        public init(_ response: Playlist.ItemsResponse) {
-            self.allGroups = response.allGroups
-            self.selectedGroupId = response.content.groupId
-            loadables[response.content.groupId] = .loaded(response.content)
-        }
-
-        public mutating func update(with id: Playlist.Group.ID, loadable: LoadableResponse) {
-            loadables[id] = loadable
-        }
-
-        public subscript(groupId groupId: Playlist.Group.ID) -> LoadableResponse? {
-            loadables[groupId]
-        }
     }
 }

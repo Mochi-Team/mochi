@@ -9,8 +9,8 @@
 #if os(iOS)
 import Foundation
 import SwiftUI
-import ViewComponents
 import UIKit
+import ViewComponents
 
 final class HostingController: UIHostingController<AnyView> {
     override var prefersHomeIndicatorAutoHidden: Bool { _homeIndicatorAutoHidden }

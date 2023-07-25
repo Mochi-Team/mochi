@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import ContentFetchingLogic
 import LoggerClient
 import ModuleClient
 import PlayerClient
@@ -17,7 +18,6 @@ import SharedModels
 
 private enum Cancellables: Hashable, CaseIterable {
     case delayCloseTab
-    case fetchingContents
     case fetchingSources
     case fetchingServer
 }
@@ -30,10 +30,16 @@ extension VideoPlayerFeature.Reducer: Reducer {
             PlayerFeature.Reducer()
         }
 
+        Scope(state: \.loadables.contents, action: /Action.internal .. Action.InternalAction.content) {
+            ContentFetchingLogic()
+        }
+
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                return state.fetchGroupsWithContentIfNecessary()
+                return state.loadables.contents
+                    .fetchPlaylistContentIfNecessary(state.repoModuleID, state.playlist.id)
+                    .map { .internal(.content($0)) }
 
             case .view(.didTapBackButton):
                 return state.dismiss()
@@ -54,9 +60,17 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 state.overlay = .tools
                 return state.delayDismissOverlayIfNeeded()
 
-            case let .view(.didTapPlayEpisode(groupId, itemId)):
+            case let .view(.didTapContentGroup(groupId)):
+                return state.loadables.contents.fetchPlaylistContentIfNecessary(state.repoModuleID, state.playlist.id, groupId)
+                    .map { .internal(.content($0)) }
+
+            case let .view(.didTapContentGroupPage(groupId, pageId)):
+                return state.loadables.contents.fetchPlaylistContentIfNecessary(state.repoModuleID, state.playlist.id, groupId, pageId)
+                    .map { .internal(.content($0)) }
+
+            case let .view(.didTapPlayEpisode(group, page, itemId)):
                 state.overlay = .tools
-                return state.clearForNewEpisodeIfNeeded(groupId, itemId)
+                return state.clearForNewEpisodeIfNeeded(group, page, itemId)
 
             case let .view(.didTapSource(sourceId)):
                 return state.clearForChangedSourceIfNeeded(sourceId)
@@ -76,12 +90,8 @@ extension VideoPlayerFeature.Reducer: Reducer {
             case .internal(.hideToolsOverlay):
                 state.overlay = state.overlay == .tools ? nil : state.overlay
 
-            case let .internal(.groupResponse(groupId, .loaded(response))):
-                state.loadables.update(with: groupId, response: .loaded(response))
+            case .internal(.content(.update(_, _, .loaded))):
                 return state.fetchSourcesIfNecessary()
-
-            case let .internal(.groupResponse(groupId, response)):
-                state.loadables.update(with: groupId, response: response)
 
             case let .internal(.sourcesResponse(episodeId, .loaded(response))):
                 state.loadables.update(with: episodeId, response: .loaded(response))
@@ -126,6 +136,9 @@ extension VideoPlayerFeature.Reducer: Reducer {
             case .internal(.player):
                 break
 
+            case .internal(.content):
+                break
+
             case .delegate:
                 break
             }
@@ -158,7 +171,7 @@ public extension VideoPlayerFeature.State {
         var dismiss
 
         return .merge(
-            .cancel(ids: Cancellables.allCases),
+            .merge(Cancellables.allCases.map { .cancel(id: $0) }),
             .run { _ in
                 await playerClient.clear()
                 await dismiss()
@@ -169,7 +182,8 @@ public extension VideoPlayerFeature.State {
     mutating func clearForNewPlaylistIfNeeded(
         repoModuleID: RepoModuleID,
         playlist: Playlist,
-        groupId: Playlist.Group.ID,
+        group: Playlist.Group,
+        page: Playlist.Group.Content.Page,
         episodeId: Playlist.Item.ID
     ) -> Effect<VideoPlayerFeature.Action> {
         @Dependency(\.playerClient)
@@ -190,8 +204,13 @@ public extension VideoPlayerFeature.State {
             shouldClearContents = true
         }
 
-        if groupId != self.selected.groupId {
-            self.selected.groupId = groupId
+        if group != self.selected.group {
+            self.selected.group = group
+            shouldClearSources = true
+        }
+
+        if page != self.selected.page {
+            self.selected.page = page
             shouldClearSources = true
         }
 
@@ -208,13 +227,9 @@ public extension VideoPlayerFeature.State {
             loadables.serverResponseLoadables.removeAll()
             loadables.playlistItemSourcesLoadables.removeAll()
 
-            if shouldClearContents {
-                loadables.allGroupsLoadable = .pending
-                loadables.groupContentLoadables.removeAll()
-            }
-
             return .merge(
-                fetchGroupsWithContentIfNecessary(),
+                shouldClearContents ? loadables.contents.clear().map { .internal(.content($0)) } : .none,
+                loadables.contents.fetchPlaylistContentIfNecessary(repoModuleID, playlist.id).map { .internal(.content($0)) },
                 .run { await playerClient.clear() }
             )
         }
@@ -222,15 +237,17 @@ public extension VideoPlayerFeature.State {
         return .none
     }
 
-    mutating func clearForNewEpisodeIfNeeded(
-        _ groupId: Playlist.Group.ID,
+    fileprivate mutating func clearForNewEpisodeIfNeeded(
+        _ group: Playlist.Group,
+        _ page: Playlist.Group.Content.Page,
         _ episodeId: Playlist.Item.ID
     ) -> Effect<VideoPlayerFeature.Action> {
         @Dependency(\.playerClient)
         var playerClient
 
-        if selected.groupId != groupId || selected.episodeId != episodeId {
-            selected.groupId = groupId
+        if selected.group != group || selected.page != page || selected.episodeId != episodeId {
+            selected.group = group
+            selected.page = page
             selected.episodeId = episodeId
             selected.sourceId = nil
             selected.serverId = nil
@@ -299,10 +316,10 @@ public extension VideoPlayerFeature.State {
         if selected.linkId != linkId {
             selected.linkId = linkId
 
-            if let server = selectedServerResponse.value.flatMap({ $0 }),
+            if let server = selected.serverId.flatMap({ loadables[serverId: $0] })?.value,
                let link = server.links[id: linkId] {
                 let playlist = playlist
-                let episode = selectedEpisode.value.flatMap { $0 }
+                let episode = selectedItem.value.flatMap { $0 }
                 let loadItem = PlayerClient.VideoCompositionItem(
                     link: link.url,
                     headers: server.headers,
@@ -334,37 +351,6 @@ public extension VideoPlayerFeature.State {
             }
         }
         return .none
-    }
-
-    mutating func fetchGroupsWithContentIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
-        @Dependency(\.moduleClient)
-        var moduleClient
-
-        let repoModuleId = repoModuleID
-        let playlist = playlist
-        let groupId = selected.groupId
-
-        if forced || !loadables[groupId: groupId].hasInitialized {
-            loadables.update(with: groupId, response: .loading)
-            return .run { send in
-                try await withTaskCancellation(id: Cancellables.fetchingContents, cancelInFlight: true) {
-                    let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                        try await module.playlistVideos(
-                            .init(
-                                playlistId: playlist.id,
-                                playlistItemGroup: groupId
-                            )
-                        )
-                    }
-
-                    await send(.internal(.groupResponse(groupId: groupId, .loaded(value))))
-                }
-            } catch: { error, send in
-                await send(.internal(.groupResponse(groupId: groupId, .failed(error))))
-            }
-        }
-
-        return fetchSourcesIfNecessary()
     }
 
     mutating func fetchSourcesIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {

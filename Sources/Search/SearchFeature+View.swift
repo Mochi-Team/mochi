@@ -9,7 +9,9 @@
 import Architecture
 import ModuleLists
 import NukeUI
+import OrderedCollections
 import PlaylistDetails
+import SharedModels
 import Styling
 import SwiftUI
 import ViewComponents
@@ -25,111 +27,136 @@ extension SearchFeature.View: View {
                 action: Action.InternalAction.screens
             )
         ) {
-            WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
-                ScrollView(.vertical) {
-                    LazyVStack(spacing: 12) {
-                        LoadableView(loadable: viewStore.items) { paging in
-                            LazyVGrid(
-                                columns: .init(
-                                    repeating: .init(alignment: .top),
-                                    count: 3
-                                ),
-                                alignment: .leading
-                            ) {
-                                ForEach(paging.items) { item in
-                                    VStack(alignment: .leading) {
-                                        FillAspectImage(url: item.posterImage)
-                                            .aspectRatio(2 / 3, contentMode: .fit)
-                                            .cornerRadius(12)
+            ZStack {
+                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                    LoadableView(loadable: viewStore.items) { pagings in
+                        Group {
+                            if pagings.isEmpty {
+                                Text("No results found.")
+                            } else {
+                                ScrollView(.vertical) {
+                                    LazyVGrid(
+                                        columns: .init(
+                                            repeating: .init(alignment: .top),
+                                            count: 3
+                                        ),
+                                        alignment: .leading
+                                    ) {
+                                        let allItems = pagings.values.flatMap { $0.value?.items ?? [] }
+                                        ForEach(allItems) { item in
+                                            VStack(alignment: .leading) {
+                                                FillAspectImage(url: item.posterImage)
+                                                    .aspectRatio(2 / 3, contentMode: .fit)
+                                                    .cornerRadius(12)
 
-                                        Text(item.title ?? "Title Unavailable")
-                                            .font(.footnote)
+                                                Text(item.title ?? "Title Unavailable")
+                                                    .font(.footnote)
+                                            }
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                viewStore.send(.didTapPlaylist(item))
+                                            }
+                                        }
                                     }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        viewStore.send(.didTapPlaylist(item))
+                                    .padding(.horizontal)
+
+                                    if let lastPage = pagings.values.last {
+                                        LoadableView(loadable: lastPage) { page in
+                                            LazyView {
+                                                Spacer()
+                                                    .frame(height: 1)
+                                                    .onAppear {
+                                                        if let nextPageId = page.nextPage {
+                                                            store.viewAction.send(.didShowNextPageIndicator(nextPageId))
+                                                        }
+                                                    }
+                                            }
+                                        } failedView: { _ in
+                                            Text("Failed to retrieve content")
+                                                .foregroundColor(.red)
+                                        } waitingView: {
+                                            ProgressView()
+                                                .padding(.vertical, 8)
+                                        }
                                     }
                                 }
                             }
-                            .padding(.horizontal)
-                        } failedView: { _ in
-                            Rectangle()
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 100)
-                                .padding()
-                                .overlay(Text("Failed to fetch items"))
-                        } loadingView: {
-                            ProgressView()
-                        } pendingView: {
-                            Text("Type to search")
                         }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } failedView: { _ in
+                        Rectangle()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                            .padding()
+                            .overlay(Text("Failed to fetch items"))
+                    } loadingView: {
+                        ProgressView()
+                    } pendingView: {
+                        Text("Type to search")
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .topBar(title: "Search") {
-                    WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
-                        ModuleSelectionButton(module: viewStore.state?.module) {
-                            ViewStore(store.viewAction.stateless)
-                                .send(.didTapOpenModules)
-                        }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .topBar(title: "Search") {
+                WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
+                    ModuleSelectionButton(module: viewStore.state?.module) {
+                        ViewStore(store.viewAction.stateless)
+                            .send(.didTapOpenModules)
                     }
-                } bottomAccessory: {
-                    WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                }
+            } bottomAccessory: {
+                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                    HStack(spacing: 12) {
                         HStack(spacing: 12) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.gray)
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.gray)
 
-                                TextField(
-                                    "Search for content...",
-                                    text: viewStore.binding(\.$searchQuery.query)
-                                        .removeDuplicates()
-                                )
-                                .textFieldStyle(.plain)
-                                .font(.system(size: 16, weight: .regular))
-                                .frame(maxWidth: .infinity)
-
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(Color.gray)
-                                    .opacity(viewStore.searchQuery.query.isEmpty ? 0.0 : 1.0)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        viewStore.send(.didClearQuery)
-                                    }
-                            }
-                            .padding(.horizontal)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .foregroundColor(.gray.opacity(0.1))
+                            TextField(
+                                "Search for content...",
+                                text: viewStore.binding(\.$searchQuery)
+                                    .removeDuplicates()
                             )
-                            .frame(maxHeight: .infinity)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 16, weight: .regular))
+                            .frame(maxWidth: .infinity)
 
-                            if !viewStore.searchFilters.isEmpty {
-                                Button {
-                                    viewStore.send(.didTapFilterOptions)
-                                } label: {
-                                    Circle()
-                                        .fill(Color.gray.opacity(0.1))
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                        .fixedSize(horizontal: true, vertical: false)
-                                        .overlay(
-                                            Image(systemName: "line.horizontal.3.decrease")
-                                                .font(.system(size: 18, weight: .bold))
-                                                .contentShape(Rectangle())
-                                                .aspectRatio(contentMode: .fit)
-                                        )
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(Color.gray)
+                                .opacity(viewStore.searchQuery.isEmpty ? 0.0 : 1.0)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewStore.send(.didClearQuery)
                                 }
-                                .buttonStyle(.plain)
-                                .transition(.opacity)
-                            }
                         }
-                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .foregroundColor(.gray.opacity(0.1))
+                        )
+                        .frame(maxHeight: .infinity)
+
+                        if !viewStore.searchFilters.isEmpty {
+                            Button {
+                                viewStore.send(.didTapFilterOptions)
+                            } label: {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.1))
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .overlay(
+                                        Image(systemName: "line.horizontal.3.decrease")
+                                            .font(.system(size: 18, weight: .bold))
+                                            .contentShape(Rectangle())
+                                            .aspectRatio(contentMode: .fit)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .transition(.opacity)
+                        }
                     }
-                }
-                .onAppear {
-                    ViewStore(store.viewAction.stateless).send(.didAppear)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -145,7 +172,9 @@ extension SearchFeature.View: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            store.viewAction.send(.didAppear)
+        }
         .sheetPresentation(
             store: store.internalAction.scope(
                 state: \.$moduleLists,
@@ -156,6 +185,32 @@ extension SearchFeature.View: View {
     }
 }
 
+extension SearchFeature.View {
+    private enum SearchStatus {}
+}
+
+@MainActor
+private struct LazyView<Content: View>: View {
+    let build: () -> Content
+
+    @MainActor
+    init(@ViewBuilder _ build: @escaping () -> Content) {
+        self.build = build
+    }
+
+    @MainActor
+    init(_ build: @autoclosure @escaping () -> Content) {
+        self.build = build
+    }
+
+    @MainActor
+    var body: some View {
+        LazyVStack {
+            build()
+        }
+    }
+}
+
 // MARK: - SearchFeatureView_Previews
 
 struct SearchFeatureView_Previews: PreviewProvider {
@@ -163,15 +218,15 @@ struct SearchFeatureView_Previews: PreviewProvider {
         SearchFeature.View(
             store: .init(
                 initialState: .init(
-                    searchQuery: .init(query: "demo"),
+                    searchQuery: "demo",
                     searchFilters: [
-                        .init(
-                            id: "filter-one",
-                            displayName: "hehehe",
-                            multiSelect: false,
-                            required: true,
-                            options: []
-                        )
+//                        .init(
+//                            id: "filter-one",
+//                            displayName: "hehehe",
+//                            multiSelect: false,
+//                            required: true,
+//                            options: []
+//                        )
                     ],
                     selectedModule: nil,
                     items: .pending

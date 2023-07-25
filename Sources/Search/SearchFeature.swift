@@ -10,6 +10,7 @@ import Architecture
 import ComposableArchitecture
 import ModuleClient
 import ModuleLists
+import OrderedCollections
 import PlaylistDetails
 import RepoClient
 import SharedModels
@@ -38,10 +39,10 @@ public enum SearchFeature: Feature {
 
     public struct State: FeatureState {
         @BindingState
-        public var searchQuery: SearchQuery
+        public var searchQuery: String
         public var searchFilters: [SearchFilter]
         public var selectedModule: RepoClient.SelectedModule?
-        public var items: Loadable<Paging<Playlist>>
+        public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
         public var screens: StackState<Screens.State>
 
         @PresentationState
@@ -50,10 +51,10 @@ public enum SearchFeature: Feature {
         var hasLoaded = false
 
         public init(
-            searchQuery: SearchQuery = .init(query: ""),
+            searchQuery: String = "",
             searchFilters: [SearchFilter] = [],
             selectedModule: RepoClient.SelectedModule? = nil,
-            items: Loadable<Paging<Playlist>> = .pending,
+            items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending,
             screens: StackState<Screens.State> = .init()
         ) {
             self.searchQuery = searchQuery
@@ -71,6 +72,7 @@ public enum SearchFeature: Feature {
             case didTapOpenModules
             case didTapFilterOptions
             case didTapPlaylist(Playlist)
+            case didShowNextPageIndicator(PagingID)
             case binding(BindingAction<State>)
         }
 
@@ -79,7 +81,8 @@ public enum SearchFeature: Feature {
                 Playlist.ItemsResponse,
                 repoModuleID: RepoModuleID,
                 playlist: Playlist,
-                groupId: Playlist.Group.ID,
+                group: Playlist.Group,
+                paging: Playlist.Group.Content.Page,
                 itemId: Playlist.Item.ID
             )
         }
@@ -87,7 +90,8 @@ public enum SearchFeature: Feature {
         public enum InternalAction: SendableAction {
             case loadedSelectedModule(RepoClient.SelectedModule?)
             case loadedSearchFilters(TaskResult<[SearchFilter]>)
-            case loadedItems(TaskResult<Paging<Playlist>>)
+            case loadedItems(Loadable<Paging<Playlist>>)
+            case loadedPageResult(PagingID, Loadable<Paging<Playlist>>)
             case screens(StackAction<Screens.State, Screens.Action>)
             case moduleLists(PresentationAction<ModuleListsFeature.Action>)
         }
@@ -118,6 +122,9 @@ public enum SearchFeature: Feature {
 
         @Dependency(\.repoClient)
         var repoClient
+
+        @Dependency(\.logger)
+        var logger
 
         public init() {}
     }

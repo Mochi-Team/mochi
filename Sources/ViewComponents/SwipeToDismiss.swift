@@ -27,9 +27,10 @@ public struct SwipeToDismissModifier: ViewModifier {
     @MainActor
     public func body(content: Content) -> some View {
         content
+            .scaleEffect(1)
             .offset(x: offset.width)
             .animation(.interactiveSpring(), value: offset != .zero)
-            .highPriorityGesture(
+            .simultaneousGesture(
                 DragGesture(minimumDistance: 25, coordinateSpace: .global)
                     .updating($isDragActive) { _, state, _ in
                         state = true

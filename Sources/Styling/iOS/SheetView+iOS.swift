@@ -19,6 +19,11 @@ struct SheetPresentation<Content: View>: UIViewControllerRepresentable {
     @Binding
     private var isPresented: Bool
 
+    // TODO: Set these to user-customizable
+    private var presentationStyle: UIModalPresentationStyle = .automatic
+    private var detents: [UISheetPresentationController.Detent] = [.medium(), .large()]
+    private var prefersGrabberVisible = true
+
     @MainActor
     init(
         isPresented: Binding<Bool>,
@@ -37,10 +42,18 @@ struct SheetPresentation<Content: View>: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         if isPresented {
             if uiViewController.presentedViewController == nil {
-                let sheetViewController = CustomHostingController(innerView: content())
-                sheetViewController.modalPresentationStyle = .custom
+                let sheetViewController = UIHostingController(rootView: content())
+                sheetViewController.modalPresentationStyle = presentationStyle
                 sheetViewController.transitioningDelegate = context.coordinator
+                (sheetViewController.presentationController as? UISheetPresentationController)?.detents = detents
+                (sheetViewController.presentationController as? UISheetPresentationController)?.prefersGrabberVisible = prefersGrabberVisible
+                sheetViewController.presentationController?.delegate = context.coordinator
                 uiViewController.present(sheetViewController, animated: true)
+
+//                let sheetViewController = CustomHostingController(innerView: content())
+//                sheetViewController.modalPresentationStyle = .custom
+//                sheetViewController.transitioningDelegate = context.coordinator
+//                uiViewController.present(sheetViewController, animated: true)
             }
         } else {
             uiViewController.presentedViewController?.dismiss(animated: true, completion: nil)

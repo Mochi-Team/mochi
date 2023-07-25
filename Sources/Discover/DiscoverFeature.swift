@@ -62,11 +62,10 @@ public enum DiscoverFeature: Feature {
         public var listings: Loadable<[DiscoverListing]>
         public var selectedRepoModule: RepoClient.SelectedModule?
         public var screens: StackState<Screens.State>
-
-        var initialized = false
-
         @PresentationState
         public var moduleLists: ModuleListsFeature.State?
+
+        var initialized = false
 
         public init(
             listings: Loadable<[DiscoverListing]> = .pending,
@@ -93,7 +92,8 @@ public enum DiscoverFeature: Feature {
                 Playlist.ItemsResponse,
                 repoModuleID: RepoModuleID,
                 playlist: Playlist,
-                groupId: Playlist.Group.ID,
+                group: Playlist.Group,
+                paging: Playlist.Group.Content.Page,
                 itemId: Playlist.Item.ID
             )
         }

@@ -8,6 +8,7 @@
 
 import ComposableArchitecture
 import Foundation
+import NukeUI
 import SharedModels
 import SwiftUI
 
@@ -28,9 +29,21 @@ public struct ModuleSelectionButton: View {
             didTapped()
         } label: {
             HStack {
-                Text(module?.name ?? "Unselected")
+                LazyImage(url: module?.icon.flatMap { .init(string: $0) }) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                    } else {
+                        EmptyView()
+                    }
+                }
+
+            Text(module?.name ?? "Unselected")
                 Image(systemName: "chevron.up.chevron.down")
             }
+            .fixedSize(horizontal: false, vertical: true)
             .font(.footnote.weight(.semibold))
             .padding(8)
             .padding(.vertical, 2)

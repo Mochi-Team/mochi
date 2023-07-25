@@ -38,6 +38,7 @@ final class PlayerItem: AVPlayerItem {
 
         let asset = AVURLAsset(
             url: url,
+            // TODO: Validate if this is allowed or considered a private api
             options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
         )
 

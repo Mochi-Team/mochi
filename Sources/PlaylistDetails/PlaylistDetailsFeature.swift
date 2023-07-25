@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import ContentFetchingLogic
 import DatabaseClient
 import LoggerClient
 import ModuleClient
@@ -21,43 +22,49 @@ public enum PlaylistDetailsFeature: Feature {
         public let repoModuleId: RepoModuleID
         public let playlist: Playlist
         public var details: Loadable<Playlist.Details>
-        public var contents: Loadable<PlaylistContents>
+        public var content: ContentFetchingLogic.State
 
         var playlistInfo: Loadable<PlaylistInfo> {
             details.map { .init(playlist: playlist, details: $0) }
+        }
+
+        public var resumableState: Resumable {
+            content.didFinish ? (content.value == nil ? .unavailable : .start) : .loading
         }
 
         public init(
             repoModuleID: RepoModuleID,
             playlist: Playlist,
             details: Loadable<Playlist.Details> = .pending,
-            contents: Loadable<PlaylistContents> = .pending
+            content: ContentFetchingLogic.State = .pending
         ) {
             self.repoModuleId = repoModuleID
             self.playlist = playlist
             self.details = details
-            self.contents = contents
+            self.content = content
         }
 
-        @dynamicMemberLookup
-        struct PlaylistInfo: Equatable, Sendable {
-            let playlist: Playlist
-            let details: Playlist.Details
+        public enum Resumable: Equatable, Sendable {
+            case loading
+            case start
+            case `continue`(String, Double)
+            case unavailable
 
-            init(
-                playlist: Playlist = .init(id: "", type: .video),
-                details: Playlist.Details = .init()
-            ) {
-                self.playlist = playlist
-                self.details = details
+            var image: Image? {
+                self != .unavailable ? .init(systemName: "play.fill") : nil
             }
 
-            subscript<Value>(dynamicMember dynamicMember: KeyPath<Playlist, Value>) -> Value {
-                playlist[keyPath: dynamicMember]
-            }
-
-            subscript<Value>(dynamicMember dynamicMember: KeyPath<Playlist.Details, Value>) -> Value {
-                details[keyPath: dynamicMember]
+            var description: String {
+                switch self {
+                case .loading:
+                    return ""
+                case .start:
+                    return "Start"
+                case .continue:
+                    return "Continue"
+                case .unavailable:
+                    return "Unavailable"
+                }
             }
         }
     }
@@ -66,8 +73,9 @@ public enum PlaylistDetailsFeature: Feature {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case didTappedBackButton
-            case didTapSelectGroup(Playlist.Group.ID)
-            case didTapVideoItem(Playlist.Group.ID, Playlist.Item.ID)
+            case didTapContentGroup(Playlist.Group)
+            case didTapContentGroupPage(Playlist.Group, Playlist.Group.Content.Page)
+            case didTapVideoItem(Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
             case binding(BindingAction<State>)
         }
 
@@ -76,14 +84,15 @@ public enum PlaylistDetailsFeature: Feature {
                 Playlist.ItemsResponse,
                 repoModuleID: RepoModuleID,
                 playlist: Playlist,
-                groupId: Playlist.Group.ID,
+                group: Playlist.Group,
+                paging: Playlist.Group.Content.Page,
                 itemId: Playlist.Item.ID
             )
         }
 
         public enum InternalAction: SendableAction {
             case playlistDetailsResponse(Loadable<Playlist.Details>)
-            case playlistItemsResponse(Loadable<Playlist.ItemsResponse>)
+            case content(ContentFetchingLogic.Action)
         }
 
         case view(ViewAction)

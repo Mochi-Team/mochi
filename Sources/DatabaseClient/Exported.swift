@@ -6,5 +6,6 @@
 //
 //
 
-@_exported import CoreORM
+@_exported
+import CoreORM
 import Foundation

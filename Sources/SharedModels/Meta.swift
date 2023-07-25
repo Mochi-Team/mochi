@@ -77,19 +77,19 @@ public struct SearchFilter: Identifiable, Equatable, Sendable {
 // MARK: - SearchQuery
 
 public struct SearchQuery: Equatable, Sendable {
+    public var query: String
+    public var page: PagingID?
+    public var filters: [Filter]
+
     public init(
         query: String,
-        page: String? = nil,
+        page: PagingID? = nil,
         filters: [SearchQuery.Filter] = []
     ) {
         self.query = query
         self.page = page
         self.filters = filters
     }
-
-    public var query: String
-    public var page: String?
-    public var filters: [Filter]
 
     public struct Filter: Identifiable, Equatable, Sendable {
         public let id: SearchFilter.ID

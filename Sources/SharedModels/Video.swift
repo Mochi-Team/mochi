@@ -238,6 +238,6 @@ public extension Playlist {
             self.subtitles = subtitles
             self.headers = headers
             self.skipTimes = skipTimes
-        }        
+        }
     }
 }

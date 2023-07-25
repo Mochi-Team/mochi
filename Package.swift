@@ -53,6 +53,7 @@ let featuresTargets: [Target] = [
         name: "PlaylistDetails",
         dependencies: [
             "Architecture",
+            "ContentFetchingLogic",
             "LoggerClient",
             "ModuleClient",
             "RepoClient",
@@ -81,6 +82,7 @@ let featuresTargets: [Target] = [
         dependencies: [
             "Architecture",
             "PlaylistDetails",
+            "LoggerClient",
             "ModuleClient",
             "ModuleLists",
             "RepoClient",
@@ -104,6 +106,7 @@ let featuresTargets: [Target] = [
         name: "VideoPlayer",
         dependencies: [
             "Architecture",
+            "ContentFetchingLogic",
             "LoggerClient",
             "PlayerClient",
             "SharedModels",
@@ -242,6 +245,8 @@ let miscTargets: [Target] = [
         dependencies: [
             "Architecture",
             "FoundationHelpers",
+            "ModuleClient",
+            "LoggerClient",
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
         ]
@@ -267,8 +272,7 @@ let miscTargets: [Target] = [
         dependencies: [
             "SharedModels",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-            .product(name: "NukeUI", package: "Nuke"),
-            .product(name: "Easing", package: "Easing")
+            .product(name: "NukeUI", package: "Nuke")
         ]
     ),
     .target(
@@ -326,12 +330,11 @@ let package = Package(
     products: featuresProducts + clientsProducts + miscProducs,
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0"),
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "20b8d15ad176ef7e63fd48ba1b9f23bfed99dc23"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "5404b25b5454429a25f82f00a29794a0ad8aada1"),
         .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
-        .package(url: "https://github.com/manuelCarlos/Easing.git", exact: "2.1.6"),
         .package(url: "https://github.com/groue/Semaphore", exact: "0.0.8")
     ],
     targets: featuresTargets + clientsTargets + miscTargets

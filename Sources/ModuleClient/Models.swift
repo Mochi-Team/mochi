@@ -37,9 +37,17 @@ private protocol OpaqueTagged {
     var rawValue: RawValue { get }
 }
 
+extension OpaqueTagged where Self: RawRepresentable {}
+
 // MARK: - Tagged + OpaqueTagged
 
 extension Tagged: OpaqueTagged {}
+
+// MARK: - PagingID + OpaqueTagged
+
+extension PagingID: OpaqueTagged {
+    var rawValue: RawValue { self[dynamicMember: \.rawValue] }
+}
 
 // MARK: - SearchQuery + KVAccess
 
@@ -60,13 +68,3 @@ extension Playlist.EpisodeSourcesRequest: KVAccess {}
 // MARK: - Playlist.EpisodeServerRequest + KVAccess
 
 extension Playlist.EpisodeServerRequest: KVAccess {}
-
-extension Paging {
-    func into<V>(_: V.Type = V.self) -> Paging<V> {
-        .init(
-            items: items.compactMap { $0 as? V },
-            currentPage: currentPage,
-            nextPage: nextPage
-        )
-    }
-}

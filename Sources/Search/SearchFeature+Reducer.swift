@@ -8,7 +8,9 @@
 
 import Architecture
 import ComposableArchitecture
+import LoggerClient
 import ModuleLists
+import OrderedCollections
 import SharedModels
 
 extension SearchFeature.Reducer: Reducer {
@@ -39,12 +41,52 @@ extension SearchFeature.Reducer: Reducer {
             case .view(.didTapOpenModules):
                 state.moduleLists = .init()
 
+            case let .view(.didShowNextPageIndicator(pagingId)):
+                guard var value = state.items.value, value[pagingId] == nil else {
+                    break
+                }
+
+                guard let selected = state.selectedModule else {
+                    break
+                }
+
+                let searchQuery = state.searchQuery
+
+                value[pagingId] = .loading
+                state.items = .loaded(value)
+
+                logger.debug("Requesting search page: \(pagingId.rawValue)")
+
+                return .run { send in
+                    await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
+                        await send(
+                            .internal(
+                                .loadedPageResult(
+                                    pagingId,
+                                    .init {
+                                        try await moduleClient.withModule(id: .init(repoId: selected.repoId, moduleId: selected.module.id)) { module in
+                                            try await module.search(
+                                                .init(
+                                                    query: searchQuery,
+                                                    page: pagingId
+                                                )
+                                            )
+                                        }
+                                    }
+                                )
+                            )
+                        )
+                    }
+                } catch: { error, _ in
+                    logger.error("There was an error fetching page w/ id: \(pagingId.rawValue) - \(error.localizedDescription)")
+                }
+
             case .view(.didTapFilterOptions):
 //                return .send(.delegate(.tappedFilterOptions))
                 break
 
             case .view(.didClearQuery):
-                state.searchQuery.query = ""
+                state.searchQuery = ""
                 state.items = .pending
                 return .cancel(id: Cancellables.fetchingItemsDebounce)
 
@@ -63,7 +105,7 @@ extension SearchFeature.Reducer: Reducer {
                     )
                 }
 
-            case .view(.binding(\.$searchQuery.query)):
+            case .view(.binding(\.$searchQuery)):
                 guard let selected = state.selectedModule else {
                     state.items = .pending
                     return .cancel(id: Cancellables.fetchingItemsDebounce)
@@ -71,7 +113,7 @@ extension SearchFeature.Reducer: Reducer {
 
                 let searchQuery = state.searchQuery
 
-                guard !searchQuery.query.isEmpty else {
+                guard !searchQuery.isEmpty else {
                     state.items = .pending
                     return .cancel(id: Cancellables.fetchingItemsDebounce)
                 }
@@ -87,13 +129,15 @@ extension SearchFeature.Reducer: Reducer {
                                 .loadedItems(
                                     .init {
                                         try await moduleClient.withModule(id: .init(repoId: selected.repoId, moduleId: selected.module.id)) { module in
-                                            try await module.search(searchQuery)
+                                            try await module.search(.init(query: searchQuery))
                                         }
                                     }
                                 )
                             )
                         )
                     }
+                } catch: { error, _ in
+                    logger.error("There was an error fetching page \(error.localizedDescription)")
                 }
 
             case .view(.binding):
@@ -102,7 +146,7 @@ extension SearchFeature.Reducer: Reducer {
             case let .internal(.loadedSelectedModule(selectedModule)):
                 state.selectedModule = selectedModule
                 state.items = .pending
-                state.searchQuery = .init(query: "")
+                state.searchQuery = ""
                 return .merge(
                     .cancel(id: Cancellables.fetchingItemsDebounce),
                     .run { send in
@@ -128,20 +172,24 @@ extension SearchFeature.Reducer: Reducer {
             case .internal(.loadedSearchFilters(.failure)):
                 state.searchFilters = []
 
-            case let .internal(.loadedItems(.success(items))):
-                state.items = .loaded(items)
+            case let .internal(.loadedItems(loadable)):
+                state.items = loadable.map { [$0.id: .loaded($0)] }
 
-            case let .internal(.loadedItems(.failure(error))):
-                state.items = .failed(error)
+            case let .internal(.loadedPageResult(pagingId, loadable)):
+                if var value = state.items.value {
+                    value[pagingId] = loadable
+                    state.items = .loaded(value)
+                }
 
-            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, groupId, itemId)))))):
+            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, page, itemId)))))):
                 return .send(
                     .delegate(
                         .playbackVideoItem(
                             items,
                             repoModuleID: id,
                             playlist: playlist,
-                            groupId: groupId,
+                            group: group,
+                            paging: page,
                             itemId: itemId
                         )
                     )

@@ -12,6 +12,7 @@ import AVKit
 import Foundation
 import SwiftUI
 
+// swiftlint:disable type_body_length
 public enum PlayerFeature: Feature {
     public struct State: FeatureState {
         public var status: AVPlayer.Status

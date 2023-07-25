@@ -79,23 +79,23 @@ extension HostModuleInterop {
     }
 
     func create_paging(
-        items_array_ref_ptr: PtrRef,
-        current_page_ptr: RawPtr,
-        current_page_len: Int32,
+        id_ptr: RawPtr,
+        id_len: Int32,
+        previous_page_ptr: RawPtr,
+        previous_page_len: Int32,
         next_page_ptr: RawPtr,
-        next_page_len: Int32
+        next_page_len: Int32,
+        items_ptr: PtrRef
     ) -> PtrRef {
         handleErrorAlloc { alloc in
-            guard let items = alloc[items_array_ref_ptr] as? [Any?] else {
-                throw ModuleClient.Error.castError(
-                    got: .init(describing: alloc[items_array_ref_ptr].self),
-                    expected: .init(describing: [Any?].self)
-                )
-            }
+            let idStr = try memory.string(
+                byteOffset: .init(id_ptr),
+                length: .init(id_len)
+            )
 
-            let currentPageStr = try memory.string(
-                byteOffset: .init(current_page_ptr),
-                length: .init(current_page_len)
+            let previousPageStr = try? memory.string(
+                byteOffset: .init(previous_page_ptr),
+                length: .init(previous_page_len)
             )
 
             let nextPageStr = try? memory.string(
@@ -103,11 +103,19 @@ extension HostModuleInterop {
                 length: .init(next_page_len)
             )
 
+            guard let items = alloc[items_ptr] as? [Any?] else {
+                throw ModuleClient.Error.castError(
+                    got: .init(describing: alloc[items_ptr].self),
+                    expected: .init(describing: [Any?].self)
+                )
+            }
+
             return alloc.add(
                 Paging(
-                    items: items,
-                    currentPage: currentPageStr,
-                    nextPage: nextPageStr
+                    id: .init(idStr),
+                    previousPage: previousPageStr.flatMap { .init($0) },
+                    nextPage: nextPageStr.flatMap { .init($0) },
+                    items: items
                 )
             )
         }
@@ -136,7 +144,7 @@ extension HostModuleInterop {
                 DiscoverListing(
                     title: title,
                     type: .init(rawValue: .init(listing_type)) ?? .default,
-                    paging: paging.into(Playlist.self)
+                    paging: paging.cast(Playlist.self)
                 )
             )
         }
@@ -219,7 +227,7 @@ extension HostModuleInterop {
 
             let previews = (alloc[previews_ptr] as? [Any?])?
                 .compactMap { $0 as? Int }
-                .compactMap { alloc[.init($0)] as? Playlist.Preview }
+                .compactMap { alloc[.init($0)] as? Playlist.Details.Preview }
 
             return alloc.add(
                 Playlist.Details(
@@ -273,7 +281,7 @@ extension HostModuleInterop {
             }
 
             return alloc.add(
-                Playlist.Preview(
+                Playlist.Details.Preview(
                     title: title,
                     description: description,
                     thumbnail: thumbnail.flatMap { .init(string: $0) },
@@ -342,18 +350,18 @@ extension HostModuleInterop {
     }
 
     func create_playlist_items_response(
-        content_ptr: PtrRef,
+        contents_ptr: PtrRef,
         all_groups_ptr: PtrRef
     ) -> PtrRef {
         handleErrorAlloc { alloc in
-            guard let content = alloc[content_ptr] as? Playlist.Group.Content else {
+            guard let contents = alloc[contents_ptr] as? [Playlist.Group.Content] else {
                 throw ModuleClient.Error.castError(
-                    got: .init(describing: alloc[content_ptr].self),
+                    got: .init(describing: alloc[contents_ptr].self),
                     expected: .init(describing: [Playlist.Group.Content].self)
                 )
             }
 
-            guard let all_groups = alloc[all_groups_ptr] as? [Playlist.Group] else {
+            guard let allGroups = alloc[all_groups_ptr] as? [Playlist.Group] else {
                 throw ModuleClient.Error.castError(
                     got: .init(describing: alloc[all_groups_ptr].self),
                     expected: .init(describing: [Playlist.Group].self)
@@ -362,8 +370,8 @@ extension HostModuleInterop {
 
             return alloc.add(
                 Playlist.ItemsResponse(
-                    content: content,
-                    allGroups: all_groups
+                    contents: contents,
+                    allGroups: allGroups
                 )
             )
         }
@@ -380,34 +388,62 @@ extension HostModuleInterop {
         }
     }
 
+    func create_playlist_group_page(
+        id_ptr: RawPtr,
+        id_len: Int32,
+        display_name_ptr: RawPtr,
+        display_name_len: Int32
+    ) -> PtrRef {
+        handleErrorAlloc { alloc in
+            let id = try memory.string(
+                byteOffset: .init(id_ptr),
+                length: .init(id_len)
+            )
+
+            let displayName = try memory.string(
+                byteOffset: .init(display_name_ptr),
+                length: .init(display_name_len)
+            )
+
+            return alloc.add(Playlist.Group.Content.Page(id: .init(id), displayName: displayName))
+        }
+    }
+
     func create_playlist_group_items(
         group_id: Float64,
-        previous_group_id: Float64,
-        next_group_id: Float64,
-        items_ptr: PtrRef
+        pagings_ptr: Int32,
+        all_pages_ptr: Int32
     ) -> PtrRef {
         handleErrorAlloc { alloc in
             guard group_id >= 0 else {
                 throw ModuleClient.Error.nullPtr()
             }
 
-            guard let pointers = alloc[items_ptr] as? [Any?] else {
+            guard pagings_ptr >= 0 else {
+                throw ModuleClient.Error.nullPtr()
+            }
+
+            guard all_pages_ptr >= 0 else {
+                throw ModuleClient.Error.nullPtr()
+            }
+
+            guard let pagesMemoryPtr = alloc[pagings_ptr] as? [Any?] else {
                 throw ModuleClient.Error.castError()
             }
 
-            let items = pointers.compactMap { pointer in
-                if let pointer = pointer as? Int {
-                    return alloc[.init(pointer)] as? Playlist.Item
-                }
-                return nil
+            guard let allPagesMemoryPtr = alloc[all_pages_ptr] as? [Any?] else {
+                throw ModuleClient.Error.castError()
             }
+
+            // TODO: Improve paging
+            let pages = pagesMemoryPtr.compactMap { ($0 as? Paging<Any?>)?.cast(Int.self).map(to: { ptr in alloc[.init(ptr)] }).cast(Playlist.Item.self) }
+            let allPages = allPagesMemoryPtr.compactMap { $0 as? Playlist.Group.Content.Page }
 
             return alloc.add(
                 Playlist.Group.Content(
                     groupId: .init(group_id),
-                    previousGroupId: previous_group_id >= 0 ? .init(previous_group_id) : nil,
-                    nextGroupId: next_group_id >= 0 ? .init(next_group_id) : nil,
-                    items: items
+                    pagings: pages,
+                    allPagesInfo: allPages
                 )
             )
         }

@@ -34,12 +34,13 @@ public extension AppFeature.Reducer {
             case .internal(.appDelegate):
                 break
 
-            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))),
-                 let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, groupId, itemId)))):
+            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))),
+                 let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))):
                 let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
                     repoModuleID: repoModuleID,
                     playlist: playlist,
-                    groupId: groupId,
+                    group: group,
+                    page: paging,
                     episodeId: itemId
                 )
                 .map { Action.internal(.videoPlayer(.presented($0))) }
@@ -51,7 +52,8 @@ public extension AppFeature.Reducer {
                         repoModuleID: repoModuleID,
                         playlist: playlist,
                         contents: .init(),
-                        groupId: groupId,
+                        group: group,
+                        page: paging,
                         episodeId: itemId
                     )
                 }

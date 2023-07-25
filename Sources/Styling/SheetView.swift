@@ -6,15 +6,16 @@
 //
 //
 
+@_spi(Presentation)
 import ComposableArchitecture
 import Foundation
 import SwiftUI
 
 public extension View {
     @MainActor
-    internal func sheetPresentation(
+    func sheetPresentation(
         isPresenting: Binding<Bool>,
-        content: @escaping () -> some View
+        @ViewBuilder content: @escaping () -> some View
     ) -> some View {
         background(
             SheetPresentation(
@@ -25,88 +26,40 @@ public extension View {
     }
 
     @MainActor
+    func sheetPresentation<Value>(
+        item: Binding<Value?>,
+        @ViewBuilder content: @escaping () -> some View
+    ) -> some View {
+        self.sheetPresentation(isPresenting: item.isPresent(), content: content)
+    }
+
+    @MainActor
     func sheetPresentation<State: Equatable, Action>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         @ViewBuilder content: @escaping (Store<State, Action>) -> some View
     ) -> some View {
-        modifier(
-            SheetViewModifier(
-                store: store,
-                state: { $0 },
-                action: { $0 },
-                content: content
-            )
-        )
+        self.presentation(store: store) { `self`, $item, destination in
+            self.sheetPresentation(item: $item) {
+                destination(content)
+            }
+        }
     }
 
     @MainActor
-    func sheetView<State: Equatable, Action, DestinationState, DestinationAction>(
+    func sheetPresentation<State: Equatable, Action, DestinationState, DestinationAction>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         state toDestinationState: @escaping (State) -> DestinationState?,
         action fromDestinationAction: @escaping (DestinationAction) -> Action,
         @ViewBuilder content: @escaping (Store<DestinationState, DestinationAction>) -> some View
     ) -> some View {
-        modifier(
-            SheetViewModifier(
-                store: store,
-                state: toDestinationState,
-                action: fromDestinationAction,
-                content: content
-            )
-        )
-    }
-}
-
-// MARK: - SheetViewModifier
-
-@MainActor
-private struct SheetViewModifier<
-    State: Equatable,
-    Action,
-    DestinationState,
-    DestinationAction,
-    SheetContent: View
->: ViewModifier {
-    let store: Store<PresentationState<State>, PresentationAction<Action>>
-    @ObservedObject
-    var viewStore: ViewStore<PresentationState<State>, PresentationAction<Action>>
-    let toDestinationState: (State) -> DestinationState?
-    let fromDestinationAction: (DestinationAction) -> Action
-    let sheetContent: (Store<DestinationState, DestinationAction>) -> SheetContent
-
-    @MainActor
-    init(
-        store: Store<PresentationState<State>, PresentationAction<Action>>,
-        state toDestinationState: @escaping (State) -> DestinationState?,
-        action fromDestinationAction: @escaping (DestinationAction) -> Action,
-        content sheetContent: @escaping (Store<DestinationState, DestinationAction>) -> SheetContent
-    ) {
-        self.store = store
-        self.viewStore = ViewStore(store) { $0 }
-        self.toDestinationState = toDestinationState
-        self.fromDestinationAction = fromDestinationAction
-        self.sheetContent = sheetContent
-    }
-
-    @MainActor
-    func body(content: Content) -> some View {
-        content.sheetPresentation(
-            isPresenting: .init(
-                get: { viewStore.wrappedValue.flatMap(toDestinationState) != nil },
-                set: { newValue in
-                    if viewStore.wrappedValue != nil, !newValue {
-                        viewStore.send(.dismiss)
-                    }
-                }
-            )
-        ) {
-            IfLetStore(
-                store.scope(
-                    state: { $0.wrappedValue.flatMap(toDestinationState) },
-                    action: { .presented(fromDestinationAction($0)) }
-                ),
-                then: sheetContent
-            )
+        self.presentation(
+            store: store,
+            state: toDestinationState,
+            action: fromDestinationAction
+        ) { `self`, $item, destination in
+            self.sheetPresentation(item: $item) {
+                destination(content)
+            }
         }
     }
 }
@@ -118,5 +71,18 @@ struct SheetView_Previews: PreviewProvider {
         SheetPresentation(isPresented: .constant(true)) {
             Color.red
         }
+    }
+}
+
+private extension Binding {
+    func isPresent<Wrapped>() -> Binding<Bool> where Value == Wrapped? {
+        .init(
+            get: { self.wrappedValue != nil },
+            set: { isPresent, transaction in
+                if !isPresent {
+                    self.transaction(transaction).wrappedValue = nil
+                }
+            }
+        )
     }
 }

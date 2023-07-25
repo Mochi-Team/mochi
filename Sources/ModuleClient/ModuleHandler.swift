@@ -33,7 +33,7 @@ public extension ModuleHandler {
         let resultsPtr: Int32 = try instance.exports.search(queryPtr)
 
         if let paging = hostModuleComms.getHostObject(resultsPtr) as? Paging<Any?> {
-            return paging.into()
+            return paging.cast()
         } else if let result = hostModuleComms.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
@@ -65,7 +65,7 @@ public extension ModuleHandler {
     }
 
     func playlistDetails(_ id: Playlist.ID) async throws -> Playlist.Details {
-        let idPtr = hostModuleComms.addToHostMemory(id)
+        let idPtr = hostModuleComms.addToHostMemory(id.rawValue)
         let resultsPtr: Int32 = try instance.exports.playlist_details(idPtr)
 
         if let details = hostModuleComms.getHostObject(resultsPtr) as? Playlist.Details {
@@ -818,18 +818,22 @@ extension ModuleHandler {
             }
 
             WasmInstance.Function("create_paging") { [self] (
-                itemsArrayRefPtr: PtrRef,
-                currentPagePtr: RawPtr,
-                currentPageLen: Int32,
+                idPtr: RawPtr,
+                idLen: Int32,
+                previousPagePtr: RawPtr,
+                previousPageLen: Int32,
                 nextPagePtr: RawPtr,
-                nextPageLen: Int32
+                nextPageLen: Int32,
+                itemsPtr: PtrRef
             ) -> PtrRef in
                 hostModuleComms.create_paging(
-                    items_array_ref_ptr: itemsArrayRefPtr,
-                    current_page_ptr: currentPagePtr,
-                    current_page_len: currentPageLen,
+                    id_ptr: idPtr,
+                    id_len: idLen,
+                    previous_page_ptr: previousPagePtr,
+                    previous_page_len: previousPageLen,
                     next_page_ptr: nextPagePtr,
-                    next_page_len: nextPageLen
+                    next_page_len: nextPageLen,
+                    items_ptr: itemsPtr
                 )
             }
 
@@ -950,11 +954,11 @@ extension ModuleHandler {
             }
 
             WasmInstance.Function("create_playlist_items_response") { [self] (
-                content_ptr: PtrRef,
+                contents_ptr: PtrRef,
                 all_groups_ptr: PtrRef
             ) -> PtrRef in
                 hostModuleComms.create_playlist_items_response(
-                    content_ptr: content_ptr,
+                    contents_ptr: contents_ptr,
                     all_groups_ptr: all_groups_ptr
                 )
             }
@@ -971,17 +975,29 @@ extension ModuleHandler {
                 )
             }
 
-            WasmInstance.Function("create_playlist_group_items") { [self] (
+            WasmInstance.Function("create_playlist_group_page") { (
+                id_ptr: RawPtr,
+                id_len: Int32,
+                display_name_ptr: RawPtr,
+                display_name_len: Int32
+            ) -> PtrRef in
+                hostModuleComms.create_playlist_group_page(
+                    id_ptr: id_ptr,
+                    id_len: id_len,
+                    display_name_ptr: display_name_ptr,
+                    display_name_len: display_name_len
+                )
+            }
+
+            WasmInstance.Function("create_playlist_group_items") { (
                 group_id: Float64,
-                previous_group_id: Float64,
-                next_group_id: Float64,
-                items_ptr: PtrRef
+                pagings_ptr: PtrRef,
+                all_pages_ptr: PtrRef
             ) -> Int32 in
                 hostModuleComms.create_playlist_group_items(
                     group_id: group_id,
-                    previous_group_id: previous_group_id,
-                    next_group_id: next_group_id,
-                    items_ptr: items_ptr
+                    pagings_ptr: pagings_ptr,
+                    all_pages_ptr: all_pages_ptr
                 )
             }
         }

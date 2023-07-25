@@ -20,7 +20,7 @@ public extension Animation {
 
 public struct NavStack<State: Equatable, Action, Root: View, Destination: View>: View {
     private let store: Store<StackState<State>, StackAction<State, Action>>
-    private let root: Root
+    private let root: () -> Root
     private let destination: (Store<State, Action>) -> Destination
     @StateObject
     private var viewStore: ViewStore<StackState<State>, StackAction<State, Action>>
@@ -31,7 +31,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
         @ViewBuilder destination: @escaping (Store<State, Action>) -> Destination
     ) {
         self.store = store
-        self.root = root()
+        self.root = root
         self.destination = destination
         self._viewStore = .init(
             wrappedValue: .init(
@@ -43,40 +43,48 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
     }
 
     public var body: some View {
-        ZStack {
-            root.zIndex(0)
+//        if #available(iOS 16.0, *) {
+//            NavigationStackStore(store, root: root) { store in
+//                destination(store)
+//                    .navigationBarHidden(true)
+//            }
+//        } else {
+            ZStack {
+                root()
+                    .zIndex(0)
 
-            if !viewStore.isEmpty {
-                Color.black
-                    .opacity(0.3)
-                    .edgesIgnoringSafeArea(.all)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(1)
-            }
+                if !viewStore.isEmpty {
+                    Color.black
+                        .opacity(0.3)
+                        .edgesIgnoringSafeArea(.all)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
 
-            WithViewStore(
-                store,
-                observe: \.ids,
-                removeDuplicates: areOrderedSetsDuplicates
-            ) { viewStore in
-                ForEach(viewStore.state, id: \.self) { id in
-                    IfLetStore(
-                        store.scope(state: \.[id: id]) { (childAction: Action) in
-                            .element(id: id, action: childAction)
-                        }
-                    ) { store in
-                        destination(store)
-                            .screenDismissed {
-                                viewStore.send(.popFrom(id: id))
+                WithViewStore(
+                    store,
+                    observe: \.ids,
+                    removeDuplicates: areOrderedSetsDuplicates
+                ) { viewStore in
+                    ForEach(viewStore.state, id: \.self) { id in
+                        IfLetStore(
+                            store.scope(state: \.[id: id]) { (childAction: Action) in
+                                .element(id: id, action: childAction)
                             }
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                        ) { store in
+                            destination(store)
+                                .screenDismissed {
+                                    viewStore.send(.popFrom(id: id))
+                                }
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                        }
                     }
                 }
+                .zIndex(2)
             }
-            .zIndex(2)
-        }
-        .animation(.navStackTransion, value: viewStore.ids)
+            .animation(.navStackTransion, value: viewStore.ids)
+//        }
     }
 }
 

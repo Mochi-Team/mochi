@@ -16,7 +16,7 @@ import XCTestDynamicOverlay
 public struct LoggerClientKey: DependencyKey {
     public static var previewValue = Logger(category: "preview")
     public static var liveValue = Logger()
-    public static let testValue = Logger()
+    public static let testValue = Logger(category: "test")
 }
 
 public extension DependencyValues {

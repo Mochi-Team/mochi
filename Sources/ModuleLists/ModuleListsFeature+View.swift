@@ -42,7 +42,7 @@ extension ModuleListsFeature.View: View {
                         }
                         .padding()
                     }
-                    .fixedSize(horizontal: false, vertical: true)
+//                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity)

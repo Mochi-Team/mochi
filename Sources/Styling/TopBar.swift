@@ -20,26 +20,26 @@ public enum TopBarBackgroundStyle {
 
 // MARK: - TopBarView
 
-public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
+public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, BottomAccessory: View>: View {
+    let backCallback: (() -> Void)?
+    var backgroundStyle: TopBarBackgroundStyle = .system
+    let leadingAccessory: () -> LeadingAccessory
+    let trailingAccessory: () -> TrailingAccessory
+    let bottomAccessory: () -> BottomAccessory
+
     public init(
-        title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
+        @ViewBuilder leadingAccessory: @escaping () -> LeadingAccessory,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
         @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
     ) {
-        self.title = title
         self.backCallback = backCallback
+        self.leadingAccessory = leadingAccessory
         self.trailingAccessory = trailingAccessory
         self.bottomAccessory = bottomAccessory
         self.backgroundStyle = backgroundStyle
     }
-
-    let title: String?
-    let backCallback: (() -> Void)?
-    var backgroundStyle: TopBarBackgroundStyle = .system
-    let trailingAccessory: () -> TrailingAccessory
-    let bottomAccessory: () -> BottomAccessory
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -53,10 +53,7 @@ public struct TopBarView<TrailingAccessory: View, BottomAccessory: View>: View {
                     .buttonStyle(.materialToolbarImage)
                 }
 
-                if let title {
-                    Text(title)
-                        .font(.title.bold())
-                }
+                leadingAccessory()
 
                 Spacer()
 
@@ -99,8 +96,29 @@ public extension TopBarView {
     init(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
+        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
+    ) where LeadingAccessory == Text? {
+        self.init(
+            backgroundStyle: backgroundStyle,
+            backCallback: backCallback,
+            leadingAccessory: {
+                if let title {
+                    Text(title)
+                        .font(.title.bold())
+                }
+            },
+            trailingAccessory: trailingAccessory,
+            bottomAccessory: bottomAccessory
+        )
+    }
+
+    init(
+        title: String? = nil,
+        backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil
-    ) where TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
+    ) where LeadingAccessory == Text?, TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
         self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             EmptyView()
         } bottomAccessory: {
@@ -113,7 +131,7 @@ public extension TopBarView {
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
-    ) where BottomAccessory == EmptyView {
+    ) where LeadingAccessory == Text?, BottomAccessory == EmptyView {
         self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             trailingAccessory()
         } bottomAccessory: {
@@ -126,7 +144,7 @@ public extension TopBarView {
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,
         @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
-    ) where TrailingAccessory == EmptyView {
+    ) where LeadingAccessory == Text?, TrailingAccessory == EmptyView {
         self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
             EmptyView()
         } bottomAccessory: {
@@ -136,6 +154,25 @@ public extension TopBarView {
 }
 
 public extension View {
+    func topBar(
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder leadingAccessory: @escaping () -> some View,
+        @ViewBuilder trailingAccessory: @escaping () -> some View,
+        @ViewBuilder bottomAccessory: @escaping () -> some View
+    ) -> some View {
+        safeAreaInset(edge: .top) {
+            TopBarView(
+                backgroundStyle: backgroundStyle,
+                backCallback: backCallback,
+                leadingAccessory: leadingAccessory,
+                trailingAccessory: trailingAccessory,
+                bottomAccessory: bottomAccessory
+            )
+            .frame(maxWidth: .infinity)
+        }
+    }
+
     func topBar(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,

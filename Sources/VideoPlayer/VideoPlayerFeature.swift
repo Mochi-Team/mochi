@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import ContentFetchingLogic
 import LoggerClient
 import ModuleClient
 import PlayerClient
@@ -74,7 +75,8 @@ public enum VideoPlayerFeature: Feature {
             repoModuleID: RepoModuleID,
             playlist: Playlist,
             contents: Loadables = .init(),
-            groupId: Playlist.Group.ID,
+            group: Playlist.Group,
+            page: Playlist.Group.Content.Page,
             episodeId: Playlist.Item.ID,
             overlay: Overlay? = .tools,
             player: PlayerFeature.State = .init()
@@ -83,7 +85,8 @@ public enum VideoPlayerFeature: Feature {
             self.playlist = playlist
             self.loadables = contents
             self.selected = .init(
-                groupId: groupId,
+                group: group,
+                page: page,
                 episodeId: episodeId
             )
             self.overlay = overlay
@@ -100,7 +103,9 @@ public enum VideoPlayerFeature: Feature {
             case didSelectMoreTab(State.Overlay.MoreTab)
             case didTapCloseMoreOverlay
             case didSkipTo(time: CGFloat)
-            case didTapPlayEpisode(Playlist.Group.ID, Playlist.Item.ID)
+            case didTapContentGroup(Playlist.Group)
+            case didTapContentGroupPage(Playlist.Group, Playlist.Group.Content.Page)
+            case didTapPlayEpisode(Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
             case didTapSource(Playlist.EpisodeSource.ID)
             case didTapServer(Playlist.EpisodeServer.ID)
             case didTapLink(Playlist.EpisodeServer.Link.ID)
@@ -110,10 +115,10 @@ public enum VideoPlayerFeature: Feature {
 
         public enum InternalAction: SendableAction {
             case hideToolsOverlay
-            case groupResponse(groupId: Playlist.Group.ID, _ response: Loadable<Playlist.ItemsResponse>)
             case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource]>)
             case serverResponse(serverId: Playlist.EpisodeServer.ID, _ response: Loadable<Playlist.EpisodeServerResponse>)
             case player(PlayerFeature.Action)
+            case content(ContentFetchingLogic.Action)
         }
 
         case view(ViewAction)
@@ -150,74 +155,78 @@ public enum VideoPlayerFeature: Feature {
     }
 }
 
+// TODO: Set not found as error
+
 public extension VideoPlayerFeature.State {
-    var selectedGroup: Loadable<Playlist.Group.Content> {
-        loadables[groupId: selected.groupId]
-    }
-
-    var selectedEpisode: Loadable<Playlist.Item?> {
-        selectedGroup.map { $0.items[id: selected.episodeId] }
-    }
-
-    var selectedSource: Loadable<Playlist.EpisodeSource?> {
-        selectedEpisode.flatMap { item in
-            if let item {
-                return loadables[episodeId: item.id].map { sources in
-                    selected.sourceId.flatMap { sourceId in
-                        sources[id: sourceId]
-                    }
-                }
-            }
-            return .loaded(nil)
+    var selectedGroup: Loadable<ContentFetchingLogic.Pages> {
+        loadables.contents.flatMap { groups in
+            groups[selected.group] ?? .failed(ModuleClient.Error.unknown())
         }
     }
 
-    var selectedServer: Loadable<Playlist.EpisodeServer?> {
-        selectedSource.map { source in
-            if let source {
-                return selected.serverId.flatMap { serverId in
-                    source.servers[id: serverId]
-                }
-            }
-            return nil
+    var selectedPage: Loadable<Paging<Playlist.Item>> {
+        selectedGroup.flatMap { pages in
+            pages[selected.page] ?? .failed(ModuleClient.Error.unknown())
         }
     }
 
-    var selectedServerResponse: Loadable<Playlist.EpisodeServerResponse?> {
+    var selectedItem: Loadable<Playlist.Item> {
+        selectedPage.flatMap { page in
+            page.items.first(where: \.id == selected.episodeId)
+                .flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+        }
+    }
+
+    var selectedSource: Loadable<Playlist.EpisodeSource> {
+        selectedItem.flatMap { item in
+            loadables[episodeId: item.id].flatMap { sources in
+                selected.sourceId.flatMap { sourceId in
+                    sources[id: sourceId]
+                }
+                .flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+            }
+        }
+    }
+
+    var selectedServer: Loadable<Playlist.EpisodeServer> {
+        selectedSource.flatMap { source in
+            selected.serverId.flatMap { serverId in
+                source.servers[id: serverId]
+            }
+            .flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+        }
+    }
+
+    var selectedServerResponse: Loadable<Playlist.EpisodeServerResponse> {
         selectedServer.flatMap { server in
-            if let server {
-                return loadables[serverId: server.id].flatMap { .loaded($0) }
-            }
-            return .loaded(nil)
+            loadables[serverId: server.id].flatMap { .loaded($0) }
         }
     }
 
-    var selectedLink: Loadable<Playlist.EpisodeServer.Link?> {
-        selectedServerResponse.map { serverResponse in
-            if let serverResponse {
-                return selected.linkId.flatMap { linkId in
-                    serverResponse.links[id: linkId]
-                }
-            }
-            return nil
+    var selectedLink: Loadable<Playlist.EpisodeServer.Link> {
+        selectedServerResponse.flatMap { serverResponse in
+            selected.linkId.flatMap { linkId in serverResponse.links[id: linkId] }.flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
         }
     }
 
     struct SelectedContent: Equatable, Sendable {
-        public var groupId: Playlist.Group.ID
+        public var group: Playlist.Group
+        public var page: Playlist.Group.Content.Page
         public var episodeId: Playlist.Item.ID
         public var sourceId: Playlist.EpisodeSource.ID?
         public var serverId: Playlist.EpisodeServer.ID?
         public var linkId: Playlist.EpisodeServer.Link.ID?
 
         public init(
-            groupId: Playlist.Group.ID,
+            group: Playlist.Group,
+            page: Playlist.Group.Content.Page,
             episodeId: Playlist.Item.ID,
             sourceId: Playlist.EpisodeSource.ID? = nil,
             serverId: Playlist.EpisodeServer.ID? = nil,
             linkId: Playlist.EpisodeServer.Link.ID? = nil
         ) {
-            self.groupId = groupId
+            self.group = group
+            self.page = page
             self.episodeId = episodeId
             self.sourceId = sourceId
             self.serverId = serverId
@@ -226,15 +235,9 @@ public extension VideoPlayerFeature.State {
     }
 
     struct Loadables: Equatable, Sendable {
-        public var allGroupsLoadable = Loadable<[Playlist.Group]>.pending
-        public var groupContentLoadables = [Playlist.Group.ID: Loadable<Playlist.Group.Content>]()
+        public var contents = ContentFetchingLogic.State.pending
         public var playlistItemSourcesLoadables = [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>]()
         public var serverResponseLoadables = [Playlist.EpisodeServer.ID: Loadable<Playlist.EpisodeServerResponse>]()
-
-        subscript(groupId groupId: Playlist.Group.ID) -> Loadable<Playlist.Group.Content> {
-            get { groupContentLoadables[groupId] ?? .pending }
-            set { groupContentLoadables[groupId] = newValue }
-        }
 
         subscript(episodeId episodeId: Playlist.Item.ID) -> Loadable<[Playlist.EpisodeSource]> {
             get { playlistItemSourcesLoadables[episodeId] ?? .pending }
@@ -247,33 +250,13 @@ public extension VideoPlayerFeature.State {
         }
 
         public init(
-            allGroupsLoadable: Loadable<[Playlist.Group]> = .pending,
-            groupContentLoadables: [Playlist.Group.ID: Loadable<Playlist.Group.Content>] = [:],
+            contents: ContentFetchingLogic.State = .pending,
             playlistItemSourcesLoadables: [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>] = [:],
             serverResponseLoadables: [Playlist.EpisodeServer.ID: Loadable<Playlist.EpisodeServerResponse>] = [:]
         ) {
-            self.allGroupsLoadable = allGroupsLoadable
-            self.groupContentLoadables = groupContentLoadables
+            self.contents = contents
             self.playlistItemSourcesLoadables = playlistItemSourcesLoadables
             self.serverResponseLoadables = serverResponseLoadables
-        }
-
-        public mutating func update(
-            with groupId: Playlist.Group.ID,
-            response: Loadable<Playlist.ItemsResponse>
-        ) {
-            groupContentLoadables[groupId] = response.map(\.content)
-
-            if groupContentLoadables.allSatisfy({ $1.error != nil }) {
-                allGroupsLoadable = .failed(ModuleClient.Error.unknown())
-            } else {
-                switch (allGroupsLoadable, response) {
-                case let (_, .loaded(value)):
-                    allGroupsLoadable = .loaded(value.allGroups)
-                default:
-                    break
-                }
-            }
         }
 
         public mutating func update(

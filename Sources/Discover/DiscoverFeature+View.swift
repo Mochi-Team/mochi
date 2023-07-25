@@ -34,6 +34,7 @@ extension DiscoverFeature.View: View {
                                 VStack(spacing: 12) {
                                     Spacer()
 
+                                    // TODO: Add better indicator for no content
                                     Image(systemName: "questionmark.app.dashed")
                                         .font(.largeTitle)
 
@@ -52,8 +53,8 @@ extension DiscoverFeature.View: View {
                             Spacer()
 
                             Image(systemName: "exclamationmark.triangle.fill")
-//                            Text(error.description)
-//                                .font(.body.weight(.semibold))
+                            Text("There was an error fetching content.")
+                                .font(.body.weight(.semibold))
 
                             Spacer()
                         }
@@ -74,29 +75,35 @@ extension DiscoverFeature.View: View {
                         buildListingsView(
                             [
                                 .init(
-                                    title: "placeholder",
+                                    title: "placeholder title 1",
                                     type: .featured,
                                     paging: .init(
-                                        items: [
-                                            .init(id: "placeholder 1", type: .video)
-                                        ],
-                                        currentPage: "demo-1"
-                                    )
-                                ),
-                                .init(
-                                    title: "placeholder title",
-                                    type: .default,
-                                    paging: .init(
-                                        items: placeholders,
-                                        currentPage: "demo-1"
+                                        id: "demo-1",
+                                        items: placeholders
                                     )
                                 ),
                                 .init(
                                     title: "placeholder title 2",
+                                    type: .default,
+                                    paging: .init(
+                                        id: "demo-1",
+                                        items: placeholders
+                                    )
+                                ),
+                                .init(
+                                    title: "placeholder title 3",
                                     type: .rank,
                                     paging: .init(
-                                        items: placeholders,
-                                        currentPage: "demo-1"
+                                        id: "demo-1",
+                                        items: placeholders
+                                    )
+                                ),
+                                .init(
+                                    title: "placeholder title 4",
+                                    type: .default,
+                                    paging: .init(
+                                        id: "demo-1",
+                                        items: placeholders
                                     )
                                 )
                             ]
@@ -106,7 +113,6 @@ extension DiscoverFeature.View: View {
                         .transition(.opacity)
                     }
                 }
-                .edgesIgnoringSafeArea(viewStore.state.shouldIgnoreTop ? .top : .init())
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state.didFinish)
             }
             .frame(
@@ -114,23 +120,21 @@ extension DiscoverFeature.View: View {
                 maxHeight: .infinity
             )
             .safeAreaInset(edge: .top) {
-                WithViewStore(store, observe: \.listings.shouldIgnoreTop) { viewStore in
-                    // swiftlint:disable trailing_closure
-                    TopBarView(
-                        backgroundStyle: viewStore.state ? .clear : .system,
-                        trailingAccessory: {
-                            WithViewStore(store.viewAction, observe: \.selectedRepoModule) { viewStore in
-                                ModuleSelectionButton(module: viewStore.state?.module) {
-                                    viewStore.send(.didTapOpenModules)
-                                }
+                TopBarView(
+                    title: "Mochi",
+                    backgroundStyle: .system,
+                    trailingAccessory: {
+                        WithViewStore(store.viewAction, observe: \.selectedRepoModule) { viewStore in
+                            ModuleSelectionButton(module: viewStore.state?.module) {
+                                viewStore.send(.didTapOpenModules)
                             }
                         }
-                    )
-                    .frame(maxWidth: .infinity)
-                }
+                    }
+                )
+                .frame(maxWidth: .infinity)
             }
             .onAppear {
-                ViewStore(store.viewAction.stateless).send(.didAppear)
+                store.viewAction.send(.didAppear)
             }
         } destination: { store in
             SwitchStore(store) { state in
@@ -159,9 +163,9 @@ extension DiscoverFeature.View {
     func buildListingsView(_ listings: [DiscoverListing]) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
-                ForEach(listings, id: \.title) { listing in
+                ForEach(listings, id: \.self) { listing in
                     switch listing.type {
-                    case .default:
+                    case .`default`:
                         rowListing(listing)
                     case .rank:
                         rankListing(listing)
@@ -234,8 +238,7 @@ extension DiscoverFeature.View {
                             .frame(width: 124)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                ViewStore(store.viewAction.stateless)
-                                    .send(.didTapPlaylist(playlist))
+                                store.viewAction.send(.didTapPlaylist(playlist))
                             }
                         }
                     }
@@ -324,8 +327,7 @@ extension DiscoverFeature.View {
                             .fixedSize(horizontal: false, vertical: true)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                ViewStore(store.viewAction.stateless)
-                                    .send(.didTapPlaylist(playlist))
+                                store.viewAction.send(.didTapPlaylist(playlist))
                             }
 
                             if idx < (end - 1) {
@@ -348,39 +350,38 @@ extension DiscoverFeature.View {
         if !listing.items.isEmpty {
             TabView {
                 ForEach(listing.items, id: \.id) { playlist in
-                    LazyImage(
-                        url: playlist.posterImage ?? playlist.bannerImage,
-                        transaction: .init(animation: .easeInOut(duration: 0.16))
-                    ) { state in
-                        if let image = state.image {
-                            image.resizable()
-                        } else {
-                            Color.gray
-                                .opacity(0.35)
-                        }
+                    ZStack(alignment: .bottom) {
+                        FillAspectImage(url: playlist.bannerImage ?? playlist.posterImage)
+                            .overlay {
+                                LinearGradient(
+                                    gradient: .init(
+                                        stops: [
+                                            .init(color: .clear, location: 0.0),
+                                            .init(color: .black, location: 1.0)
+                                        ],
+                                        easing: .cubicBezier(.zero, .init(x: 0.8, y: 0))
+                                    ),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            }
+
+                        Text(playlist.title ?? "No Title")
+                            .font(.title2.weight(.medium))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                            .padding(.bottom, 42)
                     }
                     .onTapGesture {
-                        ViewStore(store.viewAction.stateless).send(.didTapPlaylist(playlist))
+                        store.viewAction.send(.didTapPlaylist(playlist))
                     }
                 }
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .aspectRatio(5 / 7, contentMode: .fill)
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+            .aspectRatio(16 / 10, contentMode: .fill)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)
-        }
-    }
-}
-
-private extension Loadable<[DiscoverListing]> {
-    var shouldIgnoreTop: Bool {
-        switch self {
-        case .pending, .loading:
-            return true
-        case let .loaded(t):
-            return t.contains(where: \.type == .featured)
-        case .failed:
-            return false
         }
     }
 }
@@ -392,7 +393,23 @@ struct DiscoverView_Previews: PreviewProvider {
         DiscoverFeature.View(
             store: .init(
                 initialState: .init(
-                    listings: .loading
+                    listings: .loaded([
+                        .init(
+                            title: "hello",
+                            type: .featured,
+                            paging: .init(
+                                id: "",
+                                items: [
+                                    .init(
+                                        id: "",
+                                        posterImage: .init(string: "/"),
+                                        bannerImage: .init(string: "/"),
+                                        type: .video
+                                    )
+                                ]
+                            )
+                        )
+                    ])
                 ),
                 reducer: EmptyReducer()
             )
