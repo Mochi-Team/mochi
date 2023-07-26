@@ -22,6 +22,10 @@ extension ReposFeature.Reducer: Reducer {
         case observeInstallingModules
     }
 
+    private enum Error: Swift.Error {
+        case notValidRepo
+    }
+
     @ReducerBuilder<State, Action>
     public var body: some ReducerOf<Self> {
         Case(/Action.view) {
@@ -63,8 +67,8 @@ extension ReposFeature.Reducer: Reducer {
                 }
 
             case let .view(.didTapToAddNewRepo(repoPayload)):
-                state.urlRepoState.url = ""
-                state.urlRepoState.repo = .pending
+                state.url = ""
+                state.repo = .pending
 
                 return .concatenate(
                     .run { [repoPayload] in
@@ -106,13 +110,13 @@ extension ReposFeature.Reducer: Reducer {
                     try await repoClient.removeModule(repoId, moduleId)
                 }
 
-            case .view(.binding(\.urlRepoState.$url)):
-                guard let url = URL(string: state.urlRepoState.url.lowercased()) else {
-                    state.urlRepoState.repo = .pending
+            case .view(.binding(\.$url)):
+                guard let url = URL(string: state.url.lowercased()) else {
+                    state.repo = .pending
                     return .cancel(id: Cancellables.repoURLDebounce)
                 }
 
-                state.urlRepoState.repo = .loading
+                state.repo = .loading
 
                 return .run { send in
                     try await withTaskCancellation(id: Cancellables.repoURLDebounce, cancelInFlight: true) {
@@ -122,14 +126,14 @@ extension ReposFeature.Reducer: Reducer {
                     }
                 } catch: { error, send in
                     print(error)
-                    await send(.internal(.validateRepoURL(.failed(ReposFeature.RepoURLState.Error.notValidRepo))))
+                    await send(.internal(.validateRepoURL(.failed(Error.notValidRepo))))
                 }
 
             case .view(.binding):
                 break
 
             case let .internal(.validateRepoURL(loadable)):
-                state.urlRepoState.repo = loadable
+                state.repo = loadable
 
             case let .internal(.loadableModules(repoId, loadable)):
                 state.repoModules[repoId] = loadable

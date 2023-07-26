@@ -16,6 +16,7 @@ import PlayerClient
 import SharedModels
 import Styling
 import SwiftUI
+import Tagged
 import ViewComponents
 
 extension VideoPlayerFeature.View: View {
@@ -74,7 +75,7 @@ extension VideoPlayerFeature.View: View {
         }
         .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
         .onAppear {
-            ViewStore(store.viewAction.stateless).send(.didAppear)
+            store.viewAction.send(.didAppear)
         }
     }
 }
@@ -97,7 +98,7 @@ extension VideoPlayerFeature.View {
                 .ignoresSafeArea()
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
-                    ViewStore(store.viewAction.stateless).send(.didTapPlayer)
+                    store.viewAction.send(.didTapPlayer)
                 }
         }
     }
@@ -245,7 +246,7 @@ extension VideoPlayerFeature.View {
     var topBar: some View {
         HStack(alignment: .top, spacing: 12) {
             Button {
-                ViewStore(store.viewAction.stateless).send(.didTapBackButton)
+                store.viewAction.send(.didTapBackButton)
             } label: {
                 Image(systemName: "chevron.left")
                     .frame(width: 28, height: 28)
@@ -352,8 +353,7 @@ extension VideoPlayerFeature.View {
                         }
                     } else {
                         Button {
-                            ViewStore(store.viewAction.stateless)
-                                .send(.didSelectMoreTab(tab))
+                            store.viewAction.send(.didSelectMoreTab(tab))
                         } label: {
                             tab.image
                             Text(tab.rawValue)
@@ -690,8 +690,7 @@ extension VideoPlayerFeature.View {
             DynamicStack(stackType: proxy.size.width < proxy.size.height ? .vstack() : .hstack()) {
                 VStack(alignment: .trailing) {
                     Button {
-                        ViewStore(store.viewAction.stateless)
-                            .send(.didTapCloseMoreOverlay)
+                        store.viewAction.send(.didTapCloseMoreOverlay)
                     } label: {
                         Image(systemName: "xmark")
                             .font(.title3.weight(.semibold))
@@ -1198,21 +1197,18 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
                             .init(string: "/")
                                 .unsafelyUnwrapped
                         ),
-                        moduleId: ""
+                        moduleId: .init("")
                     ),
                     playlist: .empty,
-                    loadables: .init(
-                        contents: .pending,
-                        playlistItemSourcesLoadables: ["0": .loaded([])]
-                    ),
+                    loadables: .init(),
                     selected: .init(
-                        group: .init(id: 0),
-                        page: .init(id: "", displayName: ""),
-                        episodeId: "0"
+                        group: .init(id: .init(0)),
+                        page: .init(id: .init(""), displayName: ""),
+                        episodeId: .init("")
                     ),
                     overlay: .tools
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
         .previewInterfaceOrientation(.landscapeRight)

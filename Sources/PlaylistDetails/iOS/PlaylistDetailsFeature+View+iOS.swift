@@ -81,7 +81,7 @@ extension PlaylistDetailsFeature.View: View {
         .edgesIgnoringSafeArea(.top)
         .ignoresSafeArea(.container, edges: .top)
         .topBar(backgroundStyle: .clear) {
-            ViewStore(store.stateless.viewAction).send(.didTappedBackButton)
+            store.viewAction.send(.didTappedBackButton)
         } trailingAccessory: {
             // TODO: Make this change depending if it's in library already or not
             Button {
@@ -106,8 +106,7 @@ extension PlaylistDetailsFeature.View: View {
             .menuStyle(.materialToolbarImage)
         }
         .onAppear {
-            ViewStore(store.viewAction.stateless)
-                .send(.didAppear)
+            store.viewAction.send(.didAppear)
         }
     }
 }
@@ -571,13 +570,13 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                 initialState: .init(
                     repoModuleID: .init(
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: ""
+                        moduleId: .init("")
                     ),
                     playlist: .placeholder(0),
                     details: .pending,
                     content: .pending
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
 
@@ -586,19 +585,19 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                 initialState: .init(
                     repoModuleID: .init(
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: ""
+                        moduleId: .init("")
                     ),
                     playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
                             yearReleased: 2_023,
-                            previews: []
+                            previews: .init()
                         )
                     ),
                     content: .pending
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
 
@@ -607,19 +606,19 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                 initialState: .init(
                     repoModuleID: .init(
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: ""
+                        moduleId: .init("")
                     ),
                     playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
                             yearReleased: 2_023,
-                            previews: []
+                            previews: .init()
                         )
                     ),
                     content: .loading
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
 
@@ -628,19 +627,19 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                 initialState: .init(
                     repoModuleID: .init(
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: ""
+                        moduleId: .init("")
                     ),
                     playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
                             yearReleased: 2_023,
-                            previews: []
+                            previews: .init()
                         )
                     ),
-                    content: .loaded([:])
+                    content: .loaded(.init())
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
 
@@ -649,12 +648,12 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                 initialState: .init(
                     repoModuleID: .init(
                         repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: ""
+                        moduleId: .init("")
                     ),
                     playlist: .placeholder(0),
                     details: .failed(ModuleClient.Error.unknown())
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
     }

@@ -66,7 +66,7 @@ extension ReposFeature.View: View {
             }
             .topBar(title: "Repos") {
                 Button {
-                    ViewStore(store.viewAction.stateless).send(.didAskToRefreshModules)
+                    store.viewAction.send(.didAskToRefreshModules)
                 } label: {
                     Image(systemName: "arrow.triangle.2.circlepath")
                 }
@@ -85,7 +85,7 @@ extension ReposFeature.View: View {
             maxHeight: .infinity
         )
         .onAppear {
-            ViewStore(store.viewAction.stateless).send(.didAppear)
+            store.viewAction.send(.didAppear)
         }
         .overlay {
             IfLetStore(
@@ -127,7 +127,7 @@ extension ReposFeature.View {
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
                     Group {
-                        switch viewStore.urlRepoState.repo {
+                        switch viewStore.repo {
                         case .failed:
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.red)
@@ -142,7 +142,7 @@ extension ReposFeature.View {
 
                     TextField(
                         "Enter or paste a repo url...",
-                        text: viewStore.binding(\.urlRepoState.$url)
+                        text: viewStore.$url
                             .removeDuplicates()
                     )
                     .textFieldStyle(.plain)
@@ -155,7 +155,7 @@ extension ReposFeature.View {
                 .padding(.vertical, 12)
                 .frame(maxHeight: .infinity)
 
-                LoadableView(loadable: viewStore.urlRepoState.repo) { repo in
+                LoadableView(loadable: viewStore.repo) { repo in
                     Divider()
 
                     HStack(alignment: .center) {
@@ -201,7 +201,8 @@ extension ReposFeature.View {
                 RoundedRectangle(cornerRadius: 12)
                     .foregroundColor(.gray.opacity(0.1))
             )
-            .animation(.easeInOut(duration: 0.2), value: viewStore.urlRepoState)
+            .animation(.easeInOut(duration: 0.2), value: viewStore.repo)
+            .animation(.easeInOut(duration: 0.2), value: viewStore.url.count)
             .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -270,7 +271,7 @@ struct ReposFeatureView_Previews: PreviewProvider {
         ReposFeature.View(
             store: .init(
                 initialState: .init(),
-                reducer: ReposFeature.Reducer()
+                reducer: { ReposFeature.Reducer() }
             )
         )
     }

@@ -383,18 +383,9 @@ struct DiscoverView_Previews: PreviewProvider {
         DiscoverFeature.View(
             store: .init(
                 initialState: .init(
-                    listings: .loaded([
-                        .init(
-                            title: "hello",
-                            type: .featured,
-                            paging: .init(
-                                id: "",
-                                items: [.empty]
-                            )
-                        )
-                    ])
+                    listings: .pending
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
     }

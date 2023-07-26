@@ -14,9 +14,9 @@ import PlaylistDetails
 import RepoClient
 import SharedModels
 
-// MARK: - DiscoverFeature.Reducer + ReducerProtocol
+// MARK: - DiscoverFeature.Reducer + Reducer
 
-extension DiscoverFeature.Reducer: ReducerProtocol {
+extension DiscoverFeature.Reducer: Reducer {
     enum Cancellables: Hashable {
         case fetchDiscoverList
     }

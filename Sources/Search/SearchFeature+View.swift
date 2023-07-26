@@ -100,8 +100,7 @@ extension SearchFeature.View: View {
             .topBar(title: "Search") {
                 WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
                     ModuleSelectionButton(module: viewStore.state?.module) {
-                        ViewStore(store.viewAction.stateless)
-                            .send(.didTapOpenModules)
+                        store.viewAction.send(.didTapOpenModules)
                     }
                 }
             } bottomAccessory: {
@@ -113,7 +112,7 @@ extension SearchFeature.View: View {
 
                             TextField(
                                 "Search for content...",
-                                text: viewStore.binding(\.$searchQuery)
+                                text: viewStore.$searchQuery
                                     .removeDuplicates()
                             )
                             .textFieldStyle(.plain)
@@ -219,19 +218,11 @@ struct SearchFeatureView_Previews: PreviewProvider {
             store: .init(
                 initialState: .init(
                     searchQuery: "demo",
-                    searchFilters: [
-//                        .init(
-//                            id: "filter-one",
-//                            displayName: "hehehe",
-//                            multiSelect: false,
-//                            required: true,
-//                            options: []
-//                        )
-                    ],
+                    searchFilters: .init(),
                     selectedModule: nil,
                     items: .pending
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
     }

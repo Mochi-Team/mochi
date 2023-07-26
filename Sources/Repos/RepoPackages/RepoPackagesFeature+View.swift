@@ -92,7 +92,7 @@ extension RepoPackagesFeature.View: View {
             maxHeight: .infinity
         )
         .topBar {
-            ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
+            store.viewAction.send(.didTapBackButtonForOverlay)
         } trailingAccessory: {
             Button {
                 let viewStore = ViewStore(store.viewAction, observe: \.repo)
@@ -103,12 +103,12 @@ extension RepoPackagesFeature.View: View {
             .buttonStyle(.materialToolbarImage)
         }
         .onAppear {
-            ViewStore(store.viewAction.stateless).send(.didAppear)
+            store.viewAction.send(.didAppear)
         }
         .background(Color(uiColor: .systemBackground).ignoresSafeArea().edgesIgnoringSafeArea(.all))
         .transition(.move(edge: .trailing).combined(with: .opacity))
         .screenDismissed {
-            ViewStore(store.viewAction.stateless).send(.didTapBackButtonForOverlay)
+            store.viewAction.send(.didTapBackButtonForOverlay)
         }
     }
 }
@@ -387,7 +387,7 @@ struct RepoPackagesFeatureView_Previews: PreviewProvider {
 //                        )
 //                    ])
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
     }

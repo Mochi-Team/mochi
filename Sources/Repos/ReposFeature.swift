@@ -16,29 +16,12 @@ import Tagged
 import ViewComponents
 
 public enum ReposFeature: Feature {
-    public struct RepoURLState: Equatable, Sendable {
-        public var repo: Loadable<RepoClient.RepoPayload>
-
-        @BindingState
-        public var url: String
-
-        public init(
-            url: String = "",
-            repo: Loadable<RepoClient.RepoPayload> = .pending
-        ) {
-            self.repo = repo
-            self.url = url
-        }
-
-        public enum Error: Swift.Error, Equatable, Sendable {
-            case notValidRepo
-        }
-    }
-
     public struct State: FeatureState {
         @SelectableState
         public var repos: IdentifiedArrayOf<Repo>
-        public var urlRepoState: RepoURLState
+        @BindingState
+        public var url: String
+        public var repo: Loadable<RepoClient.RepoPayload>
         public var repoModules: [Repo.ID: Loadable<[Module.Manifest]>]
         public var installingModules: [RepoModuleID: RepoClient.RepoModuleDownloadState] = [:]
 
@@ -58,11 +41,13 @@ public enum ReposFeature: Feature {
         public init(
             repos: SelectableState<IdentifiedArrayOf<Repo>> = .init(wrappedValue: []),
             repoModules: [Repo.ID: Loadable<[Module.Manifest]>] = [:],
-            repoURLState: RepoURLState = .init()
+            url: String = "",
+            repo: Loadable<RepoClient.RepoPayload> = .pending
         ) {
             self._repos = repos
             self.repoModules = repoModules
-            self.urlRepoState = repoURLState
+            self.url = url
+            self.repo = repo
         }
     }
 

@@ -330,7 +330,7 @@ let package = Package(
     products: featuresProducts + clientsProducts + miscProducs,
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0"),
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", revision: "5404b25b5454429a25f82f00a29794a0ad8aada1"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", branch: "release/1.0"),
         .package(url: "https://github.com/kean/Nuke.git", exact: "12.1.0"),
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),

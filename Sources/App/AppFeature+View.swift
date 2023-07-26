@@ -68,7 +68,7 @@ extension AppFeature.View: View {
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
         .onAppear {
-            ViewStore(store.viewAction.stateless).send(.didAppear)
+            store.viewAction.send(.didAppear)
         }
         .overlay {
             WithViewStore(store) { state in
@@ -78,10 +78,9 @@ extension AppFeature.View: View {
                     store.internalAction.scope(
                         state: \.$videoPlayer,
                         action: Action.InternalAction.videoPlayer
-                    )
-                ) { store in
-                    VideoPlayerFeature.View(store: store)
-                }
+                    ),
+                    then: VideoPlayerFeature.View.init
+                )
                 .blur(radius: isVisible.state ? 0.0 : 30)
                 .opacity(isVisible.state ? 1.0 : 0.0)
                 .animation(.easeInOut, value: isVisible.state)
@@ -116,7 +115,7 @@ extension AppFeature.View {
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    ViewStore(store.viewAction.stateless).send(.didSelectTab(tab))
+                    store.viewAction.send(.didSelectTab(tab))
                 }
                 .background(
                     Rectangle()
@@ -157,7 +156,7 @@ struct AppFeatureView_Previews: PreviewProvider {
         AppFeature.View(
             store: .init(
                 initialState: .init(),
-                reducer: AppFeature.Reducer()
+                reducer: { AppFeature.Reducer() }
             )
         )
     }

@@ -101,8 +101,7 @@ extension ModuleListsFeature.View {
                 } else {
                     ForEach(repo.modules.sorted { $0.name < $1.name }, id: \.id) { module in
                         Button {
-                            ViewStore(store.viewAction.stateless)
-                                .send(.didSelectModule(repo.id, module.id))
+                            store.viewAction.send(.didSelectModule(repo.id, module.id))
                         } label: {
                             moduleRow(repo, module.manifest)
                                 .contentShape(Rectangle())
@@ -157,12 +156,11 @@ import Styling
 
 struct ModuleListsFeatureView_Previews: PreviewProvider {
     static var previews: some View {
-//        SheetView(isPresenting: .constant(true)) {
         ModuleListsFeature.View(
             store: .init(
                 initialState: .init(
                     repos: [
-                        .init(
+                        Repo(
                             baseURL: .init(string: "/").unsafelyUnwrapped,
                             dateAdded: .init(),
                             lastRefreshed: .init(),
@@ -175,10 +173,9 @@ struct ModuleListsFeatureView_Previews: PreviewProvider {
                     ],
                     selected: nil
                 ),
-                reducer: EmptyReducer()
+                reducer: { EmptyReducer() }
             )
         )
-//        }
         .previewLayout(.sizeThatFits)
     }
 }

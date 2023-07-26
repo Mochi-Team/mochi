@@ -100,7 +100,7 @@ extension PresentationState: @unchecked Sendable where State: Sendable {}
 
 extension BindingAction: @unchecked Sendable where Root: Sendable {}
 
-public extension Effect where Failure == Never {
+public extension Effect {
     @available(*, deprecated, message: "Use `Effect.send` once animation starts working.")
     static func action(
         _ action: Action,
@@ -158,7 +158,7 @@ public struct Case<ParentState, ParentAction, Child: Reducer>: Reducer where Chi
     @inlinable
     public func reduce(
         into state: inout ParentState, action: ParentAction
-    ) -> EffectTask<ParentAction> {
+    ) -> Effect<ParentAction> {
         guard let childAction = toChildAction.extract(from: action) else {
             return .none
         }

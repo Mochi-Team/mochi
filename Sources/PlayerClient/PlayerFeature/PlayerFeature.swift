@@ -21,7 +21,6 @@ public enum PlayerFeature: Feature {
         public var progress: CMTime
         public var duration: CMTime
         public var gravity: AVLayerVideoGravity
-        @BindingState
         public var pipState: PIPState
         public var isPlaybackBufferEmpty: Bool
         public var isPlaybackBufferFull: Bool
@@ -78,7 +77,7 @@ public enum PlayerFeature: Feature {
     }
 
     public enum Action: FeatureAction {
-        public enum ViewAction: SendableAction, BindableAction {
+        public enum ViewAction: SendableAction {
             case didAppear
             case didTapGoForwards
             case didTapGoBackwards
@@ -88,7 +87,11 @@ public enum PlayerFeature: Feature {
             case didFinishedSeekingTo(CGFloat)
             case didTapSubtitle(for: AVMediaSelectionGroup, AVMediaSelectionOption?)
             case didSelectRate(Float)
-            case binding(BindingAction<State>)
+            case didSetPiPStatus(PIPStatus)
+            case didSetPiPActive(Bool)
+            case didSetPiPPossible(Bool)
+            case didSetPiPSupported(Bool)
+
         }
 
         public enum InternalAction: SendableAction {
@@ -132,6 +135,10 @@ public enum PlayerFeature: Feature {
         }
 
         public var body: some ComposableArchitecture.Reducer<State, Action> {
+//            Case(/Action.view) {
+//                BindingReducer()
+//            }
+
             Reduce { state, action in
                 switch action {
                 case .view(.didAppear):
@@ -273,19 +280,17 @@ public enum PlayerFeature: Feature {
                         await playerClient.player.currentItem?.select(option, in: group)
                     }
 
-                case .view(.binding(.set(\.$pipState.status, .willStop))):
-                    if state.pipState.status != .restoreUI {
-                        // This signifies that the X button was pressed, so should dismiss
-                        return .send(.delegate(.didTapClosePiP))
-                    }
+                case let .view(.didSetPiPActive(active)):
+                    state.pipState.isActive = active
 
-                case .view(.binding(.set(\.$pipState.isActive, false))):
-                    if state.pipState.enabled {
-                        state.pipState.enabled = false
-                    }
+                case let .view(.didSetPiPStatus(status)):
+                    state.pipState.status = status
 
-                case .view(.binding):
-                    break
+                case let .view(.didSetPiPPossible(possible)):
+                    state.pipState.isPossible = possible
+
+                case let .view(.didSetPiPSupported(supported)):
+                    state.pipState.isSupported = supported
 
                 case let .internal(.status(status)):
                     state.status = status
@@ -322,9 +327,22 @@ public enum PlayerFeature: Feature {
                 }
                 return .none
             }
-
-            Case(/Action.view) {
-                BindingReducer()
+            .onChange(of: \.pipState.status) { oldValue, newValue in
+                // This signifies that the X button was pressed, so should dismiss
+                Reduce { _, _ in
+                    if oldValue != .restoreUI && newValue == .willStop {
+                        return .send(.delegate(.didTapClosePiP))
+                    }
+                    return .none
+                }
+            }
+            .onChange(of: \.pipState.isActive) { oldValue, newValue in
+                Reduce { state, _ in
+                    if oldValue && !newValue {
+                        state.pipState.enabled = false
+                    }
+                    return .none
+                }
             }
         }
     }
@@ -359,16 +377,16 @@ public enum PlayerFeature: Feature {
                     enablePIP: viewStore.enablePIP
                 )
                 .pictureInPictureStatus { status in
-                    viewStore.send(.view(.binding(.set(\.$pipState.status, status))))
+                    viewStore.send(.view(.didSetPiPStatus(status)))
                 }
                 .pictureInPictureIsActive { active in
-                    viewStore.send(.view(.binding(.set(\.$pipState.isActive, active))))
+                    viewStore.send(.view(.didSetPiPActive(active)))
                 }
                 .pictureInPictureIsPossible { possible in
-                    viewStore.send(.view(.binding(.set(\.$pipState.isPossible, possible))))
+                    viewStore.send(.view(.didSetPiPPossible(possible)))
                 }
                 .pictureInPictureIsSupported { supported in
-                    viewStore.send(.view(.binding(.set(\.$pipState.isSupported, supported))))
+                    viewStore.send(.view(.didSetPiPSupported(supported)))
                 }
                 .onAppear {
                     viewStore.send(.view(.didAppear))

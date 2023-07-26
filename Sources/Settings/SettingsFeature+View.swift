@@ -35,7 +35,7 @@ struct SettingsFeatureView_Previews: PreviewProvider {
         SettingsFeature.View(
             store: .init(
                 initialState: .init(),
-                reducer: SettingsFeature.Reducer()
+                reducer: { SettingsFeature.Reducer() }
             )
         )
     }

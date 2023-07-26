@@ -15,20 +15,16 @@ import UIKit
 
 let store = Store(
     initialState: AppFeature.State(),
-    reducer: AppFeature.Reducer()
+    reducer: { AppFeature.Reducer() }
 )
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    var viewStore: ViewStore<Void, AppFeature.Action> {
-        ViewStore(store.stateless)
-    }
-
     func application(
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        viewStore.send(.internal(.appDelegate(.didFinishLaunching)))
+        store.send(.internal(.appDelegate(.didFinishLaunching)))
         return true
     }
 
@@ -54,18 +50,14 @@ import AppKit
 class AppDelegate: NSObject, UIApplicationDelegate {
     let store = StoreOf<AppFeature.Reducer>(
         initialState: .init(),
-        reducer: AppFeature.Reducer()
+        reducer: { AppFeature.Reducer() }
     )
-
-    var viewStore: ViewStore<Void, AppFeature.Action> {
-        ViewStore(store.stateless)
-    }
 
     func application(
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        viewStore.send(.internal(.appDelegate(.didFinishLaunching)))
+        store.send(.internal(.appDelegate(.didFinishLaunching)))
         return true
     }
 
