@@ -38,7 +38,12 @@ extension VideoPlayerFeature.Reducer: Reducer {
             switch action {
             case .view(.didAppear):
                 return state.loadables.contents
-                    .fetchPlaylistContentIfNecessary(state.repoModuleID, state.playlist.id)
+                    .fetchPlaylistContentIfNecessary(
+                        state.repoModuleID,
+                        state.playlist.id,
+                        state.selected.group,
+                        state.selected.page
+                    )
                     .map { .internal(.content($0)) }
 
             case .view(.didTapBackButton):

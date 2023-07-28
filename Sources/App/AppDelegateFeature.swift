@@ -37,14 +37,10 @@ public enum AppDelegateFeature {
             Reduce { _, action in
                 switch action {
                 case .didFinishLaunching:
-                    return .merge(
-                        .run {
-                            try await databaseClient.initialize()
-                        },
-                        .run {
-                            try await moduleClient.initialize()
-                        }
-                    )
+                    return .run { _ in
+                        try await databaseClient.initialize()
+                        try await moduleClient.initialize()
+                    }
                 }
             }
         }

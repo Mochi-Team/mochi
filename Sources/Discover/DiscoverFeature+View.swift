@@ -33,28 +33,35 @@ extension DiscoverFeature.View: View {
                             if listings.isEmpty {
                                 VStack(spacing: 12) {
                                     Spacer()
-
-                                    // TODO: Add better indicator for no content
-                                    Image(systemName: "questionmark.app.dashed")
-                                        .font(.largeTitle)
-
-                                    Text("No listings available for this module.")
-                                        .font(.subheadline.bold())
+                                    Text("Listings Empty".capitalized)
+                                        .font(.title2)
+                                    Text("There are no listings forr this module.")
                                     Spacer()
                                 }
+                                .foregroundColor(.gray)
                             } else {
                                 buildListingsView(listings)
                             }
                         }
                         .transition(.opacity)
                     } failedView: { _ in
-                        // TODO: Add error state depending on module or system fetching
                         VStack(spacing: 12) {
                             Spacer()
 
                             Image(systemName: "exclamationmark.triangle.fill")
                             Text("There was an error fetching content.")
-                                .font(.body.weight(.semibold))
+                            Button {
+                                // TODO: Allow retrying
+                            } label: {
+                                Text("Retry")
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .fill(Color.gray.opacity(0.25))
+                                    }
+                            }
+                            .buttonStyle(.plain)
 
                             Spacer()
                         }
@@ -111,13 +118,34 @@ extension DiscoverFeature.View: View {
             )
             .safeAreaInset(edge: .top) {
                 TopBarView(
-                    title: "Mochi",
                     backgroundStyle: .system,
-                    trailingAccessory: {
+                    leadingAccessory: {
                         WithViewStore(store.viewAction, observe: \.selectedRepoModule) { viewStore in
-                            ModuleSelectionButton(module: viewStore.state?.module) {
+                            Button {
                                 viewStore.send(.didTapOpenModules)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    LazyImage(url: viewStore.state?.module.icon.flatMap { .init(string: $0) }) { state in
+                                        if let image = state.image {
+                                            image
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 22, height: 22)
+                                        } else {
+                                            EmptyView()
+                                        }
+                                    }
+
+                                    Text(viewStore.state?.module.name ?? "Home")
+                                    Image(systemName: "chevron.down")
+                                        .font(.callout.weight(.heavy))
+                                }
+                                .fixedSize(horizontal: false, vertical: true)
+                                .font(.title2.weight(.bold))
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
+                            .padding(.top, 8)
                         }
                     }
                 )

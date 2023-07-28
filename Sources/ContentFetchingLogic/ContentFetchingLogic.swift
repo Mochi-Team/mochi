@@ -37,8 +37,8 @@ public struct ContentFetchingLogic: Reducer {
         Reduce { state, action in
             switch action {
             case let .update(group, page, response):
-                if case var .loaded(value) = state, let group {
-                    if case var .loaded(contents) = value[group], let page {
+                if let group, case var .loaded(value) = state {
+                    if let page, case var .loaded(contents) = value[group] {
                         contents[page] = response.flatMap { element in
                             element.contents
                                 .first(where: \.groupId == group.id)?

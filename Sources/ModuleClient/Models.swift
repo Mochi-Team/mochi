@@ -20,7 +20,7 @@ extension KVAccess {
     subscript(key: String) -> Any? {
         let mirror = Mirror(reflecting: self)
         for (someKey, someValue) in mirror.children where someKey == key {
-            if let value = someValue as? any OpaqueTagged {
+            if let value = someValue as? any OpaqueRawValue {
                 return value.rawValue
             } else {
                 return someValue
@@ -30,22 +30,22 @@ extension KVAccess {
     }
 }
 
-// MARK: - OpaqueTagged
+// MARK: - OpaqueRawValue
 
-private protocol OpaqueTagged {
+private protocol OpaqueRawValue {
     associatedtype RawValue
     var rawValue: RawValue { get }
 }
 
-extension OpaqueTagged where Self: RawRepresentable {}
+extension OpaqueRawValue where Self: RawRepresentable {}
 
-// MARK: - Tagged + OpaqueTagged
+// MARK: - Tagged + OpaqueRawValue
 
-extension Tagged: OpaqueTagged {}
+extension Tagged: OpaqueRawValue {}
 
-// MARK: - PagingID + OpaqueTagged
+// MARK: - PagingID + OpaqueRawValue
 
-extension PagingID: OpaqueTagged {
+extension PagingID: OpaqueRawValue {
     var rawValue: RawValue { self[dynamicMember: \.rawValue] }
 }
 

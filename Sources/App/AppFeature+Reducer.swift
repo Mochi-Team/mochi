@@ -29,7 +29,20 @@ public extension AppFeature.Reducer {
                 break
 
             case let .view(.didSelectTab(tab)):
-                state.selected = tab
+                if state.selected == tab {
+                    switch tab {
+                    case .discover:
+                        state.discover.screens.removeAll()
+                    case .repos:
+                        state.repos.$repos.selected = nil
+                    case .search:
+                        state.search.screens.removeAll()
+                    case .settings:
+                        break
+                    }
+                } else {
+                    state.selected = tab
+                }
 
             case .internal(.appDelegate):
                 break

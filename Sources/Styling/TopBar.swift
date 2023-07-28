@@ -94,6 +94,35 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
 
 public extension TopBarView {
     init(
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder leadingAccessory: @escaping () -> LeadingAccessory
+    ) where TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
+        self.init(
+            backgroundStyle: backgroundStyle,
+            backCallback: backCallback,
+            leadingAccessory: leadingAccessory,
+            trailingAccessory: EmptyView.init,
+            bottomAccessory: EmptyView.init
+        )
+    }
+
+    init(
+        backgroundStyle: TopBarBackgroundStyle = .system,
+        backCallback: (() -> Void)? = nil,
+        @ViewBuilder leadingAccessory: @escaping () -> LeadingAccessory,
+        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
+    ) where BottomAccessory == EmptyView {
+        self.init(
+            backgroundStyle: backgroundStyle,
+            backCallback: backCallback,
+            leadingAccessory: leadingAccessory,
+            trailingAccessory: trailingAccessory,
+            bottomAccessory: EmptyView.init
+        )
+    }
+
+    init(
         title: String? = nil,
         backgroundStyle: TopBarBackgroundStyle = .system,
         backCallback: (() -> Void)? = nil,

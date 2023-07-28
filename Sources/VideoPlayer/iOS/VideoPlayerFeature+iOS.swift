@@ -523,7 +523,7 @@ extension VideoPlayerFeature.State {
     var videoPlayerStatus: VideoPlayerState? {
         if let content = selectedGroup.videoContentState(for: .group) {
             return content
-        } else if let content = selectedItem.videoContentState(for: .page) {
+        } else if let content = selectedPage.videoContentState(for: .page) {
             return content
         } else if let content = selectedItem.videoContentState(for: .episode) {
             return content
@@ -743,11 +743,13 @@ extension VideoPlayerFeature.View {
         let store: Store<ContentFetchingLogic.State, VideoPlayerFeature.Action>
         let playlist: Playlist
 
-        @SwiftUI.State
-        private var selectedGroup: Playlist.Group?
+        let selectedItem: Playlist.Item.ID?
 
         @SwiftUI.State
-        private var selectedPage: Playlist.Group.Content.Page?
+        var selectedGroup: Playlist.Group?
+
+        @SwiftUI.State
+        var selectedPage: Playlist.Group.Content.Page?
 
         private static let placeholderItems = [
             Playlist.Item(
@@ -904,15 +906,15 @@ extension VideoPlayerFeature.View {
                                                     .font(.callout.weight(.semibold))
                                             }
                                             .overlay(alignment: .topTrailing) {
-//                                                if item.id == selectedEpisodeId.state {
-//                                                    Text("Playing")
-//                                                        .font(.footnote.weight(.bold))
-//                                                        .foregroundColor(.black)
-//                                                        .padding(.horizontal, 8)
-//                                                        .padding(.vertical, 4)
-//                                                        .background(Capsule(style: .continuous).fill(Color.white))
-//                                                        .padding(8)
-//                                                }
+                                                if item.id == selectedItem {
+                                                    Text("Playing")
+                                                        .font(.footnote.weight(.bold))
+                                                        .foregroundColor(.black)
+                                                        .padding(.horizontal, 8)
+                                                        .padding(.vertical, 4)
+                                                        .background(Capsule(style: .continuous).fill(Color.white))
+                                                        .padding(8)
+                                                }
                                             }
                                             .contentShape(Rectangle())
                                             .onTapGesture {
@@ -922,9 +924,9 @@ extension VideoPlayerFeature.View {
                                             }
                                         }
                                     }
-                                }
-                                .onAppear {
-//                                    scrollReader.scrollTo(selectedEpisodeId.state)
+                                    .onAppear {
+                                        scrollReader.scrollTo(selectedItem)
+                                    }
                                 }
                             }
                             .frame(maxWidth: .infinity)
@@ -947,15 +949,32 @@ extension VideoPlayerFeature.View {
         }
     }
 
+    struct EpisodesViewState: Equatable, Sendable {
+        let playlist: Playlist
+        let group: Playlist.Group?
+        let page: Playlist.Group.Content.Page?
+        let itemId: Playlist.Item.ID?
+
+        init(_ state: VideoPlayerFeature.State) {
+            self.playlist = state.playlist
+            self.group = state.selected.group
+            self.page = state.selected.page
+            self.itemId = state.selected.episodeId
+        }
+    }
+
     @MainActor
     var episodes: some View {
-        WithViewStore(store, observe: \.playlist) { viewStore in
+        WithViewStore(store, observe: EpisodesViewState.init) { viewStore in
             PlaylistVideoContentView(
                 store: store.scope(
                     state: \.loadables.contents,
                     action: { $0 }
                 ),
-                playlist: viewStore.state
+                playlist: viewStore.playlist,
+                selectedItem: viewStore.itemId,
+                selectedGroup: viewStore.group,
+                selectedPage: viewStore.page
             )
         }
     }
