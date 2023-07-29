@@ -10,6 +10,8 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Easing
+
 public enum Easing: Equatable, Sendable {
     case ease
     case easeIn
@@ -131,9 +133,11 @@ private extension Easing {
 
 private func curve(@Clamped _ pos: Double, @Clamped _ point1: Double, @Clamped _ point2: Double) -> Double {
     3 * pow(1 - pos, 2) * pos * point1 +
-    3 * (1 - pos) * pow(pos, 2) * point2 +
-    pow(pos, 3)
+        3 * (1 - pos) * pow(pos, 2) * point2 +
+        pow(pos, 3)
 }
+
+// MARK: - Clamped
 
 @propertyWrapper
 private struct Clamped {
@@ -151,6 +155,6 @@ private struct Clamped {
 
 private extension CGPoint {
     func clamped() -> CGPoint {
-        .init(x: min(max(self.x, 0.0), 1.0), y: min(max(self.y, 0.0), 1.0))
+        .init(x: min(max(x, 0.0), 1.0), y: min(max(y, 0.0), 1.0))
     }
 }

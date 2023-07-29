@@ -1,9 +1,9 @@
 //
 //  HomeIndicator.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/27/23.
-//  
+//
 //
 
 #if os(iOS)

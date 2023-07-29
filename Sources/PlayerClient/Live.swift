@@ -15,6 +15,8 @@ import Foundation
 import MediaPlayer
 import Nuke
 
+// MARK: - PlayerClient + DependencyKey
+
 extension PlayerClient: DependencyKey {
     public static let liveValue: Self = {
         let impl = InternalPlayer()
@@ -24,13 +26,15 @@ extension PlayerClient: DependencyKey {
             setRate: { @MainActor rate in impl.setRate(rate) },
             play: { @MainActor in await impl.play() },
             pause: { @MainActor in await impl.pause() },
-            seek: { @MainActor progress in await impl.seek(to: progress)},
+            seek: { @MainActor progress in await impl.seek(to: progress) },
             volume: { @MainActor volume in await impl.volume(to: volume) },
             clear: { @MainActor in await impl.clear() },
             player: impl.player
         )
     }()
 }
+
+// MARK: - InternalPlayer
 
 private class InternalPlayer {
     let player: AVQueuePlayer
@@ -60,7 +64,7 @@ private class InternalPlayer {
         player.actionAtItemEnd = .pause
         player.appliesMediaSelectionCriteriaAutomatically = true
 
-        self.initCommandCenter()
+        initCommandCenter()
     }
 
     @MainActor
@@ -192,7 +196,7 @@ extension InternalPlayer {
     }
 }
 
-// MARK: Now Playing
+// MARK: - NowPlaying
 
 private class NowPlaying {
     let player: AVPlayer
@@ -204,7 +208,7 @@ private class NowPlaying {
     init(player: AVPlayer) {
         self.player = player
         self.infoCenter = .default()
-        self.initPlayerObservables()
+        initPlayerObservables()
     }
 
     private func initPlayerObservables() {

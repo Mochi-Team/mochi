@@ -3,7 +3,7 @@
 //  mochi
 //
 //  Created by ErrorErrorError on 6/27/23.
-//  
+//
 //
 
 #if os(iOS)
@@ -25,18 +25,19 @@ final class HostingController: UIHostingController<AnyView> {
         let box = Box()
         super.init(
             rootView:
-                    .init(
-                        rootView
-                            .onPreferenceChange(HomeIndicatorAutoHiddenPreferenceKey.self) { isHidden in
-                                box.object?._homeIndicatorAutoHidden = isHidden
-                            }
-                    )
+            .init(
+                rootView
+                    .onPreferenceChange(HomeIndicatorAutoHiddenPreferenceKey.self) { isHidden in
+                        box.object?._homeIndicatorAutoHidden = isHidden
+                    }
+            )
         )
         box.object = self
     }
 
+    @available(*, unavailable)
     @MainActor
-    dynamic required init?(coder aDecoder: NSCoder) {
+    dynamic required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

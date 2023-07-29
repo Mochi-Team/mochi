@@ -9,7 +9,7 @@
 import Foundation
 import Tagged
 
-// MARK: - Paging
+// MARK: - PagingID
 
 @dynamicMemberLookup
 public struct PagingID: Hashable, Sendable, ExpressibleByStringLiteral {
@@ -28,6 +28,8 @@ public struct PagingID: Hashable, Sendable, ExpressibleByStringLiteral {
         id[keyPath: dynamicMember]
     }
 }
+
+// MARK: - Paging
 
 public struct Paging<T> {
     public let id: PagingID

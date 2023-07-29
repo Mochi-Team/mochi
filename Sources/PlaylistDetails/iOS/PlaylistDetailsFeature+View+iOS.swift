@@ -84,9 +84,7 @@ extension PlaylistDetailsFeature.View: View {
             store.viewAction.send(.didTappedBackButton)
         } trailingAccessory: {
             // TODO: Make this change depending if it's in library already or not
-            Button {
-                
-            } label: {
+            Button {} label: {
                 Image(systemName: "plus")
             }
             .buttonStyle(.materialToolbarImage)
@@ -168,7 +166,7 @@ extension PlaylistDetailsFeature.View {
                         .frame(height: 16)
 
                     WithViewStore(store, observe: \.resumableState) { viewStore in
-                        if case let .`continue`(title, progress) = viewStore.state {
+                        if case let .continue(title, progress) = viewStore.state {
                             VStack(spacing: 4) {
                                 HStack {
                                     Text(title)
@@ -357,13 +355,13 @@ private struct PlaylistVideoContentView: View {
     @MainActor
     var body: some View {
         WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
-            let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap { $0.keys.first }
+            let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
 
             let group = viewStore.state.flatMap { groups in
                 defaultSelectedGroup.flatMap { groups[$0] } ?? groups.values.first ?? .loaded([:])
             }
 
-            let defaultSelectedPage = selectedPage ?? group.value.flatMap { $0.keys.first }
+            let defaultSelectedPage = selectedPage ?? group.value.flatMap(\.keys.first)
 
             let page = group.flatMap { pages in
                 defaultSelectedPage.flatMap { pages[$0] } ?? pages.values.first ?? .loaded(.init(id: ""))

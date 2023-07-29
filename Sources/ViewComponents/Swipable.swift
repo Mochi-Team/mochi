@@ -1,13 +1,15 @@
 //
 //  Swipable.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/27/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - SwipeableModifier
 
 private struct SwipeableModifier: ViewModifier {
     let animation: Animation?

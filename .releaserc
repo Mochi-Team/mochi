@@ -4,7 +4,7 @@
         "+([0-9])?(.{+([0-9]),x}).x",
         {
             "name": "dev",
-            "prerelease": "beta"
+            "prerelease": "alpha"
         }
     ],
     "plugins": [

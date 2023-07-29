@@ -69,7 +69,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 //            return .terminateLater
 //        }
 //
-        return .terminateNow
+        .terminateNow
     }
 }
 #endif

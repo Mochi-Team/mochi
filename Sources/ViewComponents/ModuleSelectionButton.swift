@@ -40,7 +40,7 @@ public struct ModuleSelectionButton: View {
                     }
                 }
 
-            Text(module?.name ?? "Unselected")
+                Text(module?.name ?? "Unselected")
                 Image(systemName: "chevron.up.chevron.down")
             }
             .fixedSize(horizontal: false, vertical: true)

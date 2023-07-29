@@ -1,9 +1,9 @@
 //
 //  ContentFetchingLogic.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 7/2/23.
-//  
+//
 //
 
 import ComposableArchitecture
@@ -14,9 +14,13 @@ import ModuleClient
 import OrderedCollections
 import SharedModels
 
+// MARK: - Cancellable
+
 private enum Cancellable: Hashable, CaseIterable {
     case fetchContent
 }
+
+// MARK: - ContentFetchingLogic
 
 public struct ContentFetchingLogic: Reducer {
     public typealias State = Loadable<Groupings>
@@ -31,7 +35,7 @@ public struct ContentFetchingLogic: Reducer {
         case contentNotFound
     }
 
-    public init() { }
+    public init() {}
 
     public var body: some Reducer<State, Action> {
         Reduce { state, action in
@@ -83,7 +87,7 @@ public extension ContentFetchingLogic.State {
         @Dependency(\.logger)
         var logger
 
-        if !self.hasInitialized {
+        if !hasInitialized {
             self = .loading
         }
 
@@ -134,5 +138,10 @@ private extension ContentFetchingLogic.Groupings {
     }
 }
 
+// MARK: - ContentFetchingLogic.State + Sendable
+
 extension ContentFetchingLogic.State: Sendable {}
+
+// MARK: - OrderedDictionary + Sendable
+
 extension OrderedDictionary: @unchecked Sendable where Key: Sendable, Value: Sendable {}

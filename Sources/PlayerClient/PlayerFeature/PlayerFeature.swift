@@ -12,6 +12,8 @@ import AVKit
 import Foundation
 import SwiftUI
 
+// MARK: - PlayerFeature
+
 // swiftlint:disable type_body_length
 public enum PlayerFeature: Feature {
     public struct State: FeatureState {
@@ -91,7 +93,6 @@ public enum PlayerFeature: Feature {
             case didSetPiPActive(Bool)
             case didSetPiPPossible(Bool)
             case didSetPiPSupported(Bool)
-
         }
 
         public enum InternalAction: SendableAction {
@@ -330,7 +331,7 @@ public enum PlayerFeature: Feature {
             .onChange(of: \.pipState.status) { oldValue, newValue in
                 // This signifies that the X button was pressed, so should dismiss
                 Reduce { _, _ in
-                    if oldValue != .restoreUI && newValue == .willStop {
+                    if oldValue != .restoreUI, newValue == .willStop {
                         return .send(.delegate(.didTapClosePiP))
                     }
                     return .none
@@ -338,7 +339,7 @@ public enum PlayerFeature: Feature {
             }
             .onChange(of: \.pipState.isActive) { oldValue, newValue in
                 Reduce { state, _ in
-                    if oldValue && !newValue {
+                    if oldValue, !newValue {
                         state.pipState.enabled = false
                     }
                     return .none

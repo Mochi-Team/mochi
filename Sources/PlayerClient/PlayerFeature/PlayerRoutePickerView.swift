@@ -1,9 +1,9 @@
 //
 //  PlayerRoutePickerView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/17/23.
-//  
+//
 //
 
 import AVKit
@@ -28,14 +28,11 @@ public struct PlayerRoutePickerView: PlatformAgnosticViewRepresentable {
         return view
     }
 
-    public func updatePlatformView(_ platformView: AVRoutePickerView, context: Context) {
-
-    }
+    public func updatePlatformView(_: AVRoutePickerView, context _: Context) {}
 
     public func makeCoordinator() -> Coordinator {
         .init()
     }
 
-    public class Coordinator: NSObject, AVRoutePickerViewDelegate {
-    }
+    public class Coordinator: NSObject, AVRoutePickerViewDelegate {}
 }

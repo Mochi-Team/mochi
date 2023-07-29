@@ -65,11 +65,15 @@ public struct SelectableState<C: IdentifiableAccess> {
     }
 }
 
+// MARK: - IdentifiableAccess
+
 public protocol IdentifiableAccess {
     associatedtype ID: Hashable
     associatedtype Value
-    subscript(id id: ID) -> Value? { get set }
+    subscript(id _: ID) -> Value? { get set }
 }
+
+// MARK: - Dictionary + IdentifiableAccess
 
 extension Dictionary: IdentifiableAccess {
     public typealias ID = Key
@@ -81,7 +85,11 @@ extension Dictionary: IdentifiableAccess {
     }
 }
 
+// MARK: - IdentifiedArray + IdentifiableAccess
+
 extension IdentifiedArray: IdentifiableAccess {}
+
+// MARK: - Identified + Sendable
 
 extension Identified: @unchecked Sendable where Value: Sendable, ID: Sendable {}
 

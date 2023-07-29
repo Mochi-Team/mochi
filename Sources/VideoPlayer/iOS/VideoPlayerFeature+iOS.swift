@@ -236,9 +236,9 @@ extension VideoPlayerFeature.View {
         let episode: Loadable<Playlist.Item>
 
         init(_ state: VideoPlayerFeature.State) {
-            playlist = state.playlist
-            group = state.selectedGroup.flatMap { _ in .loaded(state.selected.group) }
-            episode = state.selectedItem
+            self.playlist = state.playlist
+            self.group = state.selectedGroup.flatMap { _ in .loaded(state.selected.group) }
+            self.episode = state.selectedItem
         }
     }
 
@@ -274,8 +274,8 @@ extension VideoPlayerFeature.View {
 
                             Group {
                                 Text(group.displayTitle ?? "S\(group.id.withoutTrailingZeroes)") +
-                                Text("\u{2022}") +
-                                Text("E\(viewStore.episode.value?.number.withoutTrailingZeroes ?? "0")")
+                                    Text("\u{2022}") +
+                                    Text("E\(viewStore.episode.value?.number.withoutTrailingZeroes ?? "0")")
                             }
                             .font(.caption.weight(.semibold))
                             .foregroundColor(.init(white: 0.78))
@@ -377,8 +377,8 @@ extension VideoPlayerFeature.View {
         let isBuffering: Bool
 
         init(_ state: PlayerFeature.State) {
-            isPlaying = state.rate != 0
-            isBuffering = state.isBuffering
+            self.isPlaying = state.rate != 0
+            self.isBuffering = state.isBuffering
         }
     }
 
@@ -484,8 +484,7 @@ extension VideoPlayerFeature.View {
                     Text("There was an error loading \(type.rawValue). Please try again later.")
                         .font(.callout)
 
-                    Button {
-                    } label: {
+                    Button {} label: {
                         Text("Retry")
                             .padding(12)
                             .background(Color(white: 0.16))
@@ -781,13 +780,13 @@ extension VideoPlayerFeature.View {
         @MainActor
         var body: some View {
             WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
-                let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap { $0.keys.first }
+                let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
 
                 let group = viewStore.state.flatMap { groups in
                     defaultSelectedGroup.flatMap { groups[$0] } ?? groups.values.first ?? .loaded([:])
                 }
 
-                let defaultSelectedPage = selectedPage ?? group.value.flatMap { $0.keys.first }
+                let defaultSelectedPage = selectedPage ?? group.value.flatMap(\.keys.first)
 
                 let page = group.flatMap { pages in
                     defaultSelectedPage.flatMap { pages[$0] } ?? pages.values.first ?? .loaded(.init(id: ""))

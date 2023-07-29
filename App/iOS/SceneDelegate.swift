@@ -3,7 +3,7 @@
 //  mochi
 //
 //  Created by ErrorErrorError on 6/27/23.
-//  
+//
 //
 
 #if os(iOS)
@@ -17,8 +17,8 @@ final class SceneDelegate: NSObject, UISceneDelegate {
 
     func scene(
         _ scene: UIScene,
-        willConnectTo session: UISceneSession,
-        options connectionOptions: UIScene.ConnectionOptions
+        willConnectTo _: UISceneSession,
+        options _: UIScene.ConnectionOptions
     ) {
         window = (scene as? UIWindowScene).flatMap { UIWindow(windowScene: $0) }
         window?.rootViewController = HostingController(rootView: AppFeature.View(store: store))

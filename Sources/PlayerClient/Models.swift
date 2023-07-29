@@ -40,7 +40,7 @@ public extension PlayerClient {
 
             public init(
                 name: String,
-                `default`: Bool,
+                default: Bool,
                 autoselect: Bool,
                 forced: Bool = false,
                 link: URL

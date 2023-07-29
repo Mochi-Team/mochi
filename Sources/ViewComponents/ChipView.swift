@@ -1,13 +1,15 @@
 //
 //  ChipView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 7/23/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - ChipView
 
 public struct ChipView<Accessory: View, Background: ShapeStyle>: View {
     let accessory: () -> Accessory
@@ -29,7 +31,7 @@ public struct ChipView<Accessory: View, Background: ShapeStyle>: View {
     }
 
     public func background<S: ShapeStyle>(_ style: S) -> ChipView<Accessory, S> {
-        .init(accessory: self.accessory) {
+        .init(accessory: accessory) {
             style
         }
     }

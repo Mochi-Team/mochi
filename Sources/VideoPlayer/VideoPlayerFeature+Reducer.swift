@@ -129,9 +129,9 @@ extension VideoPlayerFeature.Reducer: Reducer {
                 return .cancel(id: Cancellables.delayCloseTab)
 
             case .internal(.player(.delegate(.didTapGoForwards))),
-                    .internal(.player(.delegate(.didTapGoBackwards))),
-                    .internal(.player(.delegate(.didTogglePlayButton))),
-                    .internal(.player(.delegate(.didFinishedSeekingTo))):
+                 .internal(.player(.delegate(.didTapGoBackwards))),
+                 .internal(.player(.delegate(.didTogglePlayButton))),
+                 .internal(.player(.delegate(.didFinishedSeekingTo))):
                 return state.delayDismissOverlayIfNeeded()
 
             case .internal(.player(.delegate(.didTapClosePiP))):
@@ -209,18 +209,18 @@ public extension VideoPlayerFeature.State {
             shouldClearContents = true
         }
 
-        if group != self.selected.group {
-            self.selected.group = group
+        if group != selected.group {
+            selected.group = group
             shouldClearSources = true
         }
 
-        if page != self.selected.page {
-            self.selected.page = page
+        if page != selected.page {
+            selected.page = page
             shouldClearSources = true
         }
 
-        if episodeId != self.selected.episodeId {
-            self.selected.episodeId = episodeId
+        if episodeId != selected.episodeId {
+            selected.episodeId = episodeId
             shouldClearSources = true
         }
 

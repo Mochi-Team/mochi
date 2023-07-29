@@ -49,41 +49,41 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
 //                    .navigationBarHidden(true)
 //            }
 //        } else {
-            ZStack {
-                root()
-                    .zIndex(0)
+        ZStack {
+            root()
+                .zIndex(0)
 
-                if !viewStore.isEmpty {
-                    Color.black
-                        .opacity(0.3)
-                        .edgesIgnoringSafeArea(.all)
-                        .ignoresSafeArea()
-                        .transition(.opacity)
-                        .zIndex(1)
-                }
+            if !viewStore.isEmpty {
+                Color.black
+                    .opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
 
-                WithViewStore(
-                    store,
-                    observe: \.ids,
-                    removeDuplicates: areOrderedSetsDuplicates
-                ) { viewStore in
-                    ForEach(viewStore.state, id: \.self) { id in
-                        IfLetStore(
-                            store.scope(state: \.[id: id]) { (childAction: Action) in
-                                .element(id: id, action: childAction)
-                            }
-                        ) { store in
-                            destination(store)
-                                .screenDismissed {
-                                    viewStore.send(.popFrom(id: id))
-                                }
-                                .transition(.move(edge: .trailing).combined(with: .opacity))
+            WithViewStore(
+                store,
+                observe: \.ids,
+                removeDuplicates: areOrderedSetsDuplicates
+            ) { viewStore in
+                ForEach(viewStore.state, id: \.self) { id in
+                    IfLetStore(
+                        store.scope(state: \.[id: id]) { (childAction: Action) in
+                            .element(id: id, action: childAction)
                         }
+                    ) { store in
+                        destination(store)
+                            .screenDismissed {
+                                viewStore.send(.popFrom(id: id))
+                            }
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                 }
-                .zIndex(2)
             }
-            .animation(.navStackTransion, value: viewStore.ids)
+            .zIndex(2)
+        }
+        .animation(.navStackTransion, value: viewStore.ids)
 //        }
     }
 }

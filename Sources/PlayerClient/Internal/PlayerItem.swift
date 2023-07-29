@@ -1,14 +1,16 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/18/23.
-//  
+//
 //
 
 import AVFoundation
 import AVKit
 import Foundation
+
+// MARK: - PlayerItem
 
 final class PlayerItem: AVPlayerItem {
     static let dashCustomPlaylistScheme = "mochi-mpd"
@@ -75,7 +77,7 @@ extension PlayerItem: AVAssetResourceLoaderDelegate {
 //                handleDASHRequest(url, callback)
 //            }
 //        } else {
-        return handleHLSRequest(loadingRequest: loadingRequest)
+        handleHLSRequest(loadingRequest: loadingRequest)
 //        }
     }
 }

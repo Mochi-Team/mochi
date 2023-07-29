@@ -26,11 +26,11 @@ public extension View {
     }
 
     @MainActor
-    func sheetPresentation<Value>(
-        item: Binding<Value?>,
+    func sheetPresentation(
+        item: Binding<(some Any)?>,
         @ViewBuilder content: @escaping () -> some View
     ) -> some View {
-        self.sheetPresentation(isPresenting: item.isPresent(), content: content)
+        sheetPresentation(isPresenting: item.isPresent(), content: content)
     }
 
     @MainActor
@@ -38,7 +38,7 @@ public extension View {
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         @ViewBuilder content: @escaping (Store<State, Action>) -> some View
     ) -> some View {
-        self.presentation(store: store) { `self`, $item, destination in
+        presentation(store: store) { `self`, $item, destination in
             self.sheetPresentation(item: $item) {
                 destination(content)
             }
@@ -52,7 +52,7 @@ public extension View {
         action fromDestinationAction: @escaping (DestinationAction) -> Action,
         @ViewBuilder content: @escaping (Store<DestinationState, DestinationAction>) -> some View
     ) -> some View {
-        self.presentation(
+        presentation(
             store: store,
             state: toDestinationState,
             action: fromDestinationAction

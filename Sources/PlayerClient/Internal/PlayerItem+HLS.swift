@@ -1,11 +1,12 @@
 //
 //  PlayerItem+HLS.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 6/18/23.
-//  
 //
-//  Inspired by NineAnimator's impl (https://github.com/SuperMarcus/NineAnimatorCommon) and jbweimar (https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift)
+//
+//  Inspired by NineAnimator's impl (https://github.com/SuperMarcus/NineAnimatorCommon) and jbweimar
+//  (https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift)
 
 import AVFoundation
 import AVKit
@@ -53,7 +54,7 @@ extension PlayerItem {
         if payload.link == originalUrl {
             return downloadM3U8(requestingUrl.recoveryScheme) { [weak self] result in
                 switch result {
-                case .success(let data):
+                case let .success(data):
                     guard let string = String(data: data, encoding: .utf8) else {
                         loadingRequest.finishLoading(with: nil)
                         return
@@ -76,7 +77,7 @@ extension PlayerItem {
                     loadingRequest.dataRequest?.respond(with: playlistData)
                     loadingRequest.finishLoading()
 
-                case .failure(let error):
+                case let .failure(error):
                     loadingRequest.finishLoading(with: error)
                 }
             }
@@ -212,6 +213,6 @@ extension PlayerItem {
 
     private func buildMainPlaylist(_ m3u8String: String) -> String {
         // TODO: Build main playlist non-multivariants
-        return m3u8String
+        m3u8String
     }
 }

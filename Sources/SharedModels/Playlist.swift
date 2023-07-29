@@ -224,6 +224,8 @@ public extension Playlist {
     }
 }
 
+// MARK: - PlaylistInfo
+
 @dynamicMemberLookup
 public struct PlaylistInfo: Equatable, Sendable {
     let playlist: Playlist

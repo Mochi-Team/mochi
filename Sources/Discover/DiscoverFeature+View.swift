@@ -183,7 +183,7 @@ extension DiscoverFeature.View {
             VStack(spacing: 24) {
                 ForEach(listings, id: \.self) { listing in
                     switch listing.type {
-                    case .`default`:
+                    case .default:
                         rowListing(listing)
                     case .rank:
                         rankListing(listing)

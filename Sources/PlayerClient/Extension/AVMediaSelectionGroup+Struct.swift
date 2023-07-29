@@ -1,14 +1,16 @@
 //
 //  AVClasses+Struct.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 7/16/23.
-//  
+//
 //
 
 @preconcurrency
 import AVKit
 import Foundation
+
+// MARK: - MediaSelectionGroup
 
 // Not sure if this brings performance improvements, if any
 public struct MediaSelectionGroup: Hashable, Sendable {
@@ -34,6 +36,8 @@ public struct MediaSelectionGroup: Hashable, Sendable {
         lhs._ref.isEqual(rhs._ref)
     }
 }
+
+// MARK: - MediaSelectionOption
 
 public struct MediaSelectionOption: Hashable, Sendable {
     fileprivate let _ref: AVMediaSelectionOption

@@ -12,18 +12,18 @@ import SharedModels
 import SwiftSoup
 import WasmInterpreter
 
-// MARK: - Instance
+// MARK: - ModuleClient.Instance
 
 public extension ModuleClient {
     struct Instance {
         let module: Module
         let instance: WasmInstance
-        let hostAllocations = LockIsolated<[PtrRef: Any?]>([:])
-        var memory: WasmInstance.Memory { instance.memory }
+        let hostBindings: HostBindings<WasmInstance.Memory>
 
         init(module: Module) throws {
             self.module = module
             self.instance = try .init(module: module.binaryModule)
+            self.hostBindings = .init(memory: instance.memory)
             try initializeImports()
         }
     }
@@ -33,12 +33,12 @@ public extension ModuleClient {
 ///
 public extension ModuleClient.Instance {
     func search(_ query: SearchQuery) async throws -> Paging<Playlist> {
-        let queryPtr = addToHostMemory(query)
+        let queryPtr = hostBindings.addToHostMemory(query)
         let resultsPtr: Int32 = try instance.exports.search(queryPtr)
 
-        if let paging = getHostObject(resultsPtr) as? Paging<Any?> {
+        if let paging = hostBindings.getHostObject(resultsPtr) as? Paging<Any?> {
             return paging.cast()
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -48,9 +48,9 @@ public extension ModuleClient.Instance {
     func discoverListings() async throws -> [DiscoverListing] {
         let resultsPtr: Int32 = try instance.exports.discover_listings()
 
-        if let values = getHostObject(resultsPtr) as? [DiscoverListing] {
+        if let values = hostBindings.getHostObject(resultsPtr) as? [DiscoverListing] {
             return values
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -59,9 +59,9 @@ public extension ModuleClient.Instance {
 
     func searchFilters() async throws -> [SearchFilter] {
         let resultsPtr: Int32 = try instance.exports.search_filters()
-        if let values = getHostObject(resultsPtr) as? [SearchFilter] {
+        if let values = hostBindings.getHostObject(resultsPtr) as? [SearchFilter] {
             return values
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -69,12 +69,12 @@ public extension ModuleClient.Instance {
     }
 
     func playlistDetails(_ id: Playlist.ID) async throws -> Playlist.Details {
-        let idPtr = addToHostMemory(id.rawValue)
+        let idPtr = hostBindings.addToHostMemory(id.rawValue)
         let resultsPtr: Int32 = try instance.exports.playlist_details(idPtr)
 
-        if let details = getHostObject(resultsPtr) as? Playlist.Details {
+        if let details = hostBindings.getHostObject(resultsPtr) as? Playlist.Details {
             return details
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr(for: #function)
@@ -82,12 +82,12 @@ public extension ModuleClient.Instance {
     }
 
     func playlistVideos(_ request: Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse {
-        let requestPtr = addToHostMemory(request)
+        let requestPtr = hostBindings.addToHostMemory(request)
         let resultsPtr: Int32 = try instance.exports.playlist_episodes(requestPtr)
 
-        if let response = getHostObject(resultsPtr) as? Playlist.ItemsResponse {
+        if let response = hostBindings.getHostObject(resultsPtr) as? Playlist.ItemsResponse {
             return response
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr()
@@ -95,12 +95,12 @@ public extension ModuleClient.Instance {
     }
 
     func playlistVideoSources(_ request: Playlist.EpisodeSourcesRequest) async throws -> [Playlist.EpisodeSource] {
-        let requestPtr = addToHostMemory(request)
+        let requestPtr = hostBindings.addToHostMemory(request)
         let resultsPtr: Int32 = try instance.exports.playlist_episode_sources(requestPtr)
 
-        if let response = getHostObject(resultsPtr) as? [Playlist.EpisodeSource] {
+        if let response = hostBindings.getHostObject(resultsPtr) as? [Playlist.EpisodeSource] {
             return response
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr()
@@ -108,12 +108,12 @@ public extension ModuleClient.Instance {
     }
 
     func playlistVideoServer(_ request: Playlist.EpisodeServerRequest) async throws -> Playlist.EpisodeServerResponse {
-        let requestPtr = addToHostMemory(request)
+        let requestPtr = hostBindings.addToHostMemory(request)
         let resultsPtr: Int32 = try instance.exports.playlist_episode_server(requestPtr)
 
-        if let response = getHostObject(resultsPtr) as? Playlist.EpisodeServerResponse {
+        if let response = hostBindings.getHostObject(resultsPtr) as? Playlist.EpisodeServerResponse {
             return response
-        } else if let result = getHostObject(resultsPtr) as? ModuleClient.Error {
+        } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
             throw result
         } else {
             throw ModuleClient.Error.nullPtr()
@@ -130,38 +130,8 @@ extension ModuleClient.Instance {
             self.jsonImports()
             self.htmlImports()
             self.cryptoImports()
-            self.metaStructsImports()
-            self.videoStructsImports()
-        }
-    }
-
-    func addToHostMemory(_ obj: Any?) -> PtrRef {
-        hostAllocations.withValue { $0.add(obj) }
-    }
-
-    func getHostObject(_ ptr: PtrRef) -> Any? {
-        guard let value = hostAllocations[ptr] else {
-            return nil
-        }
-        return value
-    }
-
-    func handleErrorAlloc<R: WasmValue>(
-        func _: String = #function,
-        _ callback: (inout [PtrRef: Any?]) throws -> R
-    ) -> R {
-        hostAllocations.withValue { alloc in
-            do {
-                return try callback(&alloc)
-            } catch let error as SwiftSoup.Exception {
-                return .init(alloc.addError(.swiftSoup(error)))
-            } catch let error as WasmInstance.Error {
-                return .init(alloc.addError(.wasm3(error)))
-            } catch let error as ModuleClient.Error {
-                return .init(alloc.addError(error))
-            } catch {
-                return .init(alloc.addError(.unknown()))
-            }
+            self.metaImports()
+            self.videoImports()
         }
     }
 }

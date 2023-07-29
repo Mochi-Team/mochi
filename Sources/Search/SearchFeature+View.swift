@@ -184,9 +184,13 @@ extension SearchFeature.View: View {
     }
 }
 
+// MARK: - SearchFeature.View.SearchStatus
+
 extension SearchFeature.View {
     private enum SearchStatus {}
 }
+
+// MARK: - LazyView
 
 @MainActor
 private struct LazyView<Content: View>: View {
