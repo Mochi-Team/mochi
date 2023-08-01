@@ -27,7 +27,8 @@
 		1396FE0029DF561C00B22132 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1396FE0229DF561C00B22132 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1396FE0329DF561C00B22132 /* MochiApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MochiApp.swift; sourceTree = "<group>"; };
-		13C18B9129CE6CC200C14F26 /* mochi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mochi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13C18B9129CE6CC200C14F26 /* Mochi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mochi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MainConfig.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,13 +87,22 @@
 			path = iOS;
 			sourceTree = "<group>";
 		};
+		139C22AC2A770A0E00362A18 /* tvOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = tvOS;
+			sourceTree = "<group>";
+		};
 		13C18B8829CE6CC100C14F26 = {
 			isa = PBXGroup;
 			children = (
+				13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */,
 				133C36312A168E8B007ED802 /* CoreORM.xctestplan */,
 				134516B629DF44D200E4C3B8 /* mochi */,
 				1396FE0429DF561C00B22132 /* iOS */,
 				1396FDFD29DF561C00B22132 /* macOS */,
+				139C22AC2A770A0E00362A18 /* tvOS */,
 				1396FDFE29DF561C00B22132 /* Shared */,
 				13C18B9229CE6CC200C14F26 /* Products */,
 				1337293829DF4E7200C086FA /* Frameworks */,
@@ -102,7 +112,7 @@
 		13C18B9229CE6CC200C14F26 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13C18B9129CE6CC200C14F26 /* mochi.app */,
+				13C18B9129CE6CC200C14F26 /* Mochi.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,9 +120,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13C18B9029CE6CC200C14F26 /* mochi */ = {
+		13C18B9029CE6CC200C14F26 /* Mochi */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13C18BA529CE6CC300C14F26 /* Build configuration list for PBXNativeTarget "mochi" */;
+			buildConfigurationList = 13C18BA529CE6CC300C14F26 /* Build configuration list for PBXNativeTarget "Mochi" */;
 			buildPhases = (
 				13C18B8D29CE6CC200C14F26 /* Sources */,
 				13C18B8E29CE6CC200C14F26 /* Frameworks */,
@@ -123,12 +133,12 @@
 			);
 			dependencies = (
 			);
-			name = mochi;
+			name = Mochi;
 			packageProductDependencies = (
 				1396FE0B29DF58CA00B22132 /* App */,
 			);
 			productName = mochi;
-			productReference = 13C18B9129CE6CC200C14F26 /* mochi.app */;
+			productReference = 13C18B9129CE6CC200C14F26 /* Mochi.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -146,7 +156,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 13C18B8C29CE6CC100C14F26 /* Build configuration list for PBXProject "mochi" */;
+			buildConfigurationList = 13C18B8C29CE6CC100C14F26 /* Build configuration list for PBXProject "Mochi" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -159,7 +169,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13C18B9029CE6CC200C14F26 /* mochi */,
+				13C18B9029CE6CC200C14F26 /* Mochi */,
 			);
 		};
 /* End PBXProject section */
@@ -215,6 +225,7 @@
 /* Begin XCBuildConfiguration section */
 		13C18BA329CE6CC300C14F26 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -276,6 +287,7 @@
 		};
 		13C18BA429CE6CC300C14F26 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -357,7 +369,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.errorerrorerror.mochi;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -366,6 +377,7 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -398,7 +410,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.errorerrorerror.mochi;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -407,13 +418,14 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13C18B8C29CE6CC100C14F26 /* Build configuration list for PBXProject "mochi" */ = {
+		13C18B8C29CE6CC100C14F26 /* Build configuration list for PBXProject "Mochi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13C18BA329CE6CC300C14F26 /* Debug */,
@@ -422,7 +434,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13C18BA529CE6CC300C14F26 /* Build configuration list for PBXNativeTarget "mochi" */ = {
+		13C18BA529CE6CC300C14F26 /* Build configuration list for PBXNativeTarget "Mochi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13C18BA629CE6CC300C14F26 /* Debug */,

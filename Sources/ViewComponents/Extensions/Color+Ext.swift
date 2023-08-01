@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 
+#if os(iOS)
 public extension Color {
     @Environment(\.colorScheme)
     private static var colorScheme
@@ -18,10 +19,11 @@ public extension Color {
     }
 
     static var label: Color {
-        .init(.label)
+        .init(UIColor.label)
 //        return colorScheme == .light ? .black : .white
     }
 }
+#endif
 
 extension Color {
     init(_ platformColor: PlatformColor) {

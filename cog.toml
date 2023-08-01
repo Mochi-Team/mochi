@@ -1,0 +1,18 @@
+# An optional list of additional allowed commit type
+# `cog commit {commit_type}` commit command will be generated at runtime
+[commit_types]
+wip = { changelog_title = "", omit_from_changelog = true }
+
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+repository = "mochi"
+owner = "Mochi-Team"
+
+# Optional contributor list
+# intended to map git signature to remote username
+# and generate changelog links to their remote profiles
+authors = [
+    { signature = "ErrorErrrorError", username = "errorerrorerror" }
+]

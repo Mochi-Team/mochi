@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13C18B9029CE6CC200C14F26"
-               BuildableName = "mochi.app"
-               BlueprintName = "mochi"
-               ReferencedContainer = "container:mochi.xcodeproj">
+               BuildableName = "Mochi.app"
+               BlueprintName = "Mochi"
+               ReferencedContainer = "container:Mochi.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,7 +33,6 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      disablePerformanceAntipatternChecker = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -45,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13C18B9029CE6CC200C14F26"
-            BuildableName = "mochi.app"
-            BlueprintName = "mochi"
-            ReferencedContainer = "container:mochi.xcodeproj">
+            BuildableName = "Mochi.app"
+            BlueprintName = "Mochi"
+            ReferencedContainer = "container:Mochi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +61,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13C18B9029CE6CC200C14F26"
-            BuildableName = "mochi.app"
-            BlueprintName = "mochi"
-            ReferencedContainer = "container:mochi.xcodeproj">
+            BuildableName = "Mochi.app"
+            BlueprintName = "Mochi"
+            ReferencedContainer = "container:Mochi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

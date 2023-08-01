@@ -1,0 +1,13 @@
+//
+//  MainConfig.xcconfig
+//  Mochi
+//
+//  Created by ErrorErrorError on 7/29/23.
+//  
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+// MARKETING_VERSION = 0.0.1   // CFBundleShortVersionString (x.y.z) format
+// CURRENT_PROJECT_VERSION = 1 // CFBundleVersion

@@ -21,8 +21,11 @@ final class HostingController: UIHostingController<AnyView> {
         }
     }
 
+    private let box: Box
+
     init(rootView: some View) {
         let box = Box()
+        self.box = box
         super.init(
             rootView:
             .init(

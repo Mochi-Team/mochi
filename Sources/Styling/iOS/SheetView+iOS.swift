@@ -6,7 +6,7 @@
 //
 //
 
-#if canImport(UIKit)
+#if os(iOS)
 import ComposableArchitecture
 import Foundation
 import SwiftUI

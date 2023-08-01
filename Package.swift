@@ -97,6 +97,7 @@ let featuresTargets: [Target] = [
         name: "Settings",
         dependencies: [
             "Architecture",
+            "Build",
             "SharedModels",
             "UserSettingsClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
@@ -228,6 +229,13 @@ let miscTargets: [Target] = [
         dependencies: [
             "FoundationHelpers",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
+    .target(
+        name: "Build",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "Semver", package: "Semver")
         ]
     ),
     .target(
