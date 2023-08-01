@@ -10,30 +10,44 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
+lane :test do
+    setup_ci if ENV['CI']
+    spm(
+        command: "test",
+        enable_code_coverage: true
+    )
+end
+
 lane :deploy do
     setup_ci if ENV['CI']
-    archive if setup?
+    setup
+    archive
     sign
     upload
 end
 
-private_lane :setup? do
-    version_successful = true
+private_lane :setup do
+    retrieved_version = true
+    version_number = sh("cog", "bump", "-a", log: false, error_callback: -> (result) { retrieved_version = false })
 
-    newest_version_number = sh("cog", "bump", "-a", error_callback: -> (result) { version_successful = false })
-    if !version_successful 
-        UI.error "Failed to retrieve version number"
-    else
+    if !retrieved_version 
+        retrieved_version = true
+        version_number = sh("cog", "-v", "get-version", "--fallback", "0.0.1", log: false, error_callback: -> (result) { retrieved_version = false })
+    end
+
+    if retrieved_version
         increment_version_number(
-            version_number: newest_version_number,
+            version_number: version_number,
             xcodeproj: "./App/Mochi.xcodeproj"
         )
-    
+
         increment_build_number(
             xcodeproj: "./App/Mochi.xcodeproj"
-        )    
+        )
+    else
+        UI.crash!("Failed to retrieve version number")
     end
-    version_successful
+    retrieved_version
 end
 
 private_lane :archive do
@@ -45,7 +59,7 @@ private_lane :archive do
         "-project", "../App/Mochi.xcodeproj",
         "-destination", "generic/platform=iOS",
         "-scheme", "Mochi",
-        "-archivePath", "../App/Mochi (iOS).xcarchive",
+        "-archivePath", "../App/Mochi.xcarchive",
         "-xcconfig", "../App/MainConfig.xcconfig",
         "CODE_SIGNING_REQUIRED=NO",
         "CODE_SIGNING_ALLOWED=NO",
@@ -59,9 +73,15 @@ private_lane :archive do
     )
 
     if !build_successful
-        UI.error "Failed to build for iOS"
-        next
+        UI.crash!("Failed to compile iOS archive")
     end
+
+    sh("mkdir", "-p", "../App/Payload")
+    sh "cd ../App && mv './Mochi.xcarchive/Products/Applications/Mochi.app' './Payload/Mochi.app'"
+    sh "cd ../App && zip -r './Mochi (iOS).ipa' './Payload'"
+    sh "cd ../App && mv ./Mochi.xcarchive/dSYMs/* './Mochi dSYMS'"
+    sh "cd ../App && zip -r 'Mochi (iOS).dSYM.zip' './Mochi dSYMS'"
+    sh "cd ../App && rm -rf ./Payload && rm -rf ./Mochi.xcarchive && rm -rf './Mochi dSYMS'"
 
 # Once TestFlight is available, use fastlane's build in
 #    build_ios_app(

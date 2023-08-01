@@ -13,23 +13,17 @@ on:
 jobs:
   build-publish:
     if: github.event.workflow_run.conclusion == 'success'
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Brew Install Dependencies
         run: |
-          brew install git-cliff create-dmg xcbeautify
+          brew install cocogitto xcbeautify
 
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v3
-        with:
-          extra_plugins: |
-            @semantic-release/exec
-            @google/semantic-release-replace-plugin
-            @semantic-release/github
+      - run: fastlane deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

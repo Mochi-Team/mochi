@@ -10,7 +10,7 @@ on:
 
 jobs:
   run-swiftlint:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -20,7 +20,7 @@ jobs:
           swiftlint lint --reporter github-actions-logging
 
   run-swiftformat:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
