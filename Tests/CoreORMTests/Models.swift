@@ -26,13 +26,13 @@ struct Parent: Entity {
     var name = ""
 
     @Attribute
-    var nameOptional: String?
+    var nameOptional: String? = nil
 
     @Relation
     var child: Child = .init()
 
     @Relation
-    var childOptional: Child?
+    var childOptional: Child? = nil
 
 //        @Relation
 //        var children = [Child]()

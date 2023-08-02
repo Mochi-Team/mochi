@@ -5,7 +5,7 @@ wip = { changelog_title = "", omit_from_changelog = true }
 
 [changelog]
 path = "CHANGELOG.md"
-template = "remote"
+template = ".changelog_template"
 remote = "github.com"
 repository = "mochi"
 owner = "Mochi-Team"

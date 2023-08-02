@@ -5,19 +5,22 @@ on:
     branches:
       - 'main'
       - 'dev'
+  pull_request:
 
 jobs:
   run-tests:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
-      - run: fastlane test
+      - run: fastlane tests
 
-      # - name: Build swift package
-      #   run: swift build
-
-      # - name: Run tests
-      #   run: swift test --enable-code-coverage --parallel
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1.6.0
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: Test Results
+          path: fastlane/test_output/*.junit
+          reporter: jest-junit
 
       # - name: Export coverage test
       #   run: |

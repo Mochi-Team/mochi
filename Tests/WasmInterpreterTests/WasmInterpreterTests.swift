@@ -2,17 +2,18 @@
 import XCTest
 
 final class WasmInterpreterTests: XCTestCase {
-    func testCallingTwoFunctionsWithSameImplementation() throws {
+    func testCallingFunctionsWithSameImplementation() throws {
         let mod = try ConstantModule()
 
         try (1...10).forEach { XCTAssertEqual(65_536, try mod.constant(version: $0)) }
 
-        XCTAssertThrowsError(try mod.constant(version: 11)) { error in
-            guard case let .wasm3Error(msg) = error as? WasmInstance.Error else {
+        XCTAssertThrowsError(try mod.constant(version: 12)) { error in
+            guard case let .functions(.failedToFindFunction(named, error)) = error as? WasmInstance.Error else {
                 XCTFail("unknown error found \(error.localizedDescription)")
                 return
             }
-            XCTAssertEqual("function lookup failed", msg)
+            XCTAssertEqual("constant_12", named)
+            XCTAssertEqual("function lookup failed", error)
         }
     }
 
@@ -111,7 +112,7 @@ final class WasmInterpreterTests: XCTestCase {
     static var allTests = [
         (
             "testCallingTwoFunctionsWithSameImplementation",
-            testCallingTwoFunctionsWithSameImplementation
+            testCallingFunctionsWithSameImplementation
         ),
         ("testPassingAndReturning32BitValues", testPassingAndReturning32BitValues),
         ("testPassingAndReturning64BitValues", testPassingAndReturning64BitValues),

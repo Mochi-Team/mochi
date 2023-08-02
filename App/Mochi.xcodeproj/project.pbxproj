@@ -28,7 +28,6 @@
 		1396FE0229DF561C00B22132 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1396FE0329DF561C00B22132 /* MochiApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MochiApp.swift; sourceTree = "<group>"; };
 		13C18B9129CE6CC200C14F26 /* Mochi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mochi.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MainConfig.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,7 +96,6 @@
 		13C18B8829CE6CC100C14F26 = {
 			isa = PBXGroup;
 			children = (
-				13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */,
 				133C36312A168E8B007ED802 /* CoreORM.xctestplan */,
 				134516B629DF44D200E4C3B8 /* mochi */,
 				1396FE0429DF561C00B22132 /* iOS */,
@@ -225,7 +223,6 @@
 /* Begin XCBuildConfiguration section */
 		13C18BA329CE6CC300C14F26 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -282,12 +279,12 @@
 				SDKROOT = macosx13.3;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
 		13C18BA429CE6CC300C14F26 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 13EA31B42A75059A00D40D8E /* MainConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -337,6 +334,7 @@
 				SDKROOT = macosx13.3;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};

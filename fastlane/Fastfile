@@ -10,11 +10,13 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
-lane :test do
+lane :tests do
     setup_ci if ENV['CI']
-    spm(
-        command: "test",
-        enable_code_coverage: true
+    run_tests(
+        scheme: "Mochi",
+        project: "./App/Mochi.xcodeproj",
+        parallel_testing: true,
+        code_coverage: true
     )
 end
 
@@ -28,16 +30,16 @@ end
 
 private_lane :setup do
     retrieved_version = true
-    version_number = sh("cog", "bump", "-a", log: false, error_callback: -> (result) { retrieved_version = false })
+    version = sh("cog", "bump", "-a", log: false, error_callback: -> (result) { retrieved_version = false })
 
     if !retrieved_version 
         retrieved_version = true
-        version_number = sh("cog", "-v", "get-version", "--fallback", "0.0.1", log: false, error_callback: -> (result) { retrieved_version = false })
+        version = sh("cog", "-v", "get-version", "--fallback", "0.0.1", log: false, error_callback: -> (result) { retrieved_version = false })
     end
 
     if retrieved_version
         increment_version_number(
-            version_number: version_number,
+            version_number: version,
             xcodeproj: "./App/Mochi.xcodeproj"
         )
 
@@ -47,7 +49,6 @@ private_lane :setup do
     else
         UI.crash!("Failed to retrieve version number")
     end
-    retrieved_version
 end
 
 private_lane :archive do
@@ -60,7 +61,6 @@ private_lane :archive do
         "-destination", "generic/platform=iOS",
         "-scheme", "Mochi",
         "-archivePath", "../App/Mochi.xcarchive",
-        "-xcconfig", "../App/MainConfig.xcconfig",
         "CODE_SIGNING_REQUIRED=NO",
         "CODE_SIGNING_ALLOWED=NO",
         "CODE_SIGN_IDENTITY=",
@@ -99,5 +99,23 @@ private_lane :sign do
 end
 
 private_lane :upload do
+    version = lane_context[SharedValues::VERSION_NUMBER]
+    build_number = lane_context[SharedValues::BUILD_NUMBER]
+
+    git_commit(
+        path: ["./App/Mochi.xcodeproj/project.pbxproj"], 
+        message: "chore(version): v#{version} Build #{build_number}",
+        skip_git_hooks: true
+    )
+
+    # github_release = set_github_release(
+    #     repository_name: "Mochi-Team/mochi",
+    #     api_token: ENV["GITHUB_TOKEN"],
+    #     name: "Release: v#{version} Build #{build_number}",
+    #     tag_name: "v#{version}.#{build_number}",
+    #     description: (File.read("changelog") rescue "No changelog provided"),
+    #     commitish: "dev",
+    #     upload_assets: ["Mochi (iOS).ipa", "./App/Mochi (iOS).ipa"]
+    # )
 end
 
