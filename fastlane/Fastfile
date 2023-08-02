@@ -101,6 +101,7 @@ end
 private_lane :upload do
     version = lane_context[SharedValues::VERSION_NUMBER].strip
     build_number = lane_context[SharedValues::BUILD_NUMBER].strip
+    tag = "#{version}-build.#{build_number}"
 
     git_commit(
         path: ["./App/Mochi.xcodeproj/project.pbxproj"], 
@@ -108,22 +109,18 @@ private_lane :upload do
         skip_git_hooks: true
     )
 
-    add_git_tag(
-        tag: "#{version}.#{build_number}"
+    add_git_tag(tag: tag)
+
+    changelog = sh "cd ../ && cog changelog -a #{tag}"
+
+    github_release = set_github_release(
+        repository_name: "Mochi-Team/mochi",
+        api_token: ENV["GITHUB_TOKEN"],
+        name: "Release: v#{version} Build #{build_number}",
+        tag_name: tag,
+        description: changelog,
+        commitish: "dev",
+        upload_assets: ["./App/Mochi (iOS).ipa"]
     )
-
-    changelog = sh("cog", "changelog", "-at", "#{version}.#{build_number}")
-
-    UI.message "#{changelog}"
-
-    # github_release = set_github_release(
-    #     repository_name: "Mochi-Team/mochi",
-    #     api_token: ENV["GITHUB_TOKEN"],
-    #     name: "Release: v#{version} Build #{build_number}",
-    #     tag_name: "v#{version}.#{build_number}",
-    #     description: (changelog rescue "No changelog provided"),
-    #     commitish: "dev",
-    #     upload_assets: ["Mochi (iOS).ipa", "./App/Mochi (iOS).ipa"]
-    # )
 end
 
