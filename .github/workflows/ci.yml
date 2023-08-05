@@ -3,9 +3,10 @@ name: ci
 on:
   push:
     branches:
-      - 'main'
-      - 'dev'
+      - '*'
   pull_request:
+    branches:
+      - '*'
 
 jobs:
   run-tests:

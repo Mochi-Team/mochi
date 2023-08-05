@@ -5,7 +5,6 @@ on:
     workflows: 
       - ci
     branches:
-      - main
       - dev
     types:
       - completed
