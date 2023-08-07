@@ -14,6 +14,7 @@ import LoggerClient
 import ModuleClient
 import RepoClient
 import SharedModels
+import Styling
 import SwiftUI
 import ViewComponents
 
@@ -73,6 +74,7 @@ public enum PlaylistDetailsFeature: Feature {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case didTappedBackButton
+            case didTapToRetryDetails
             case didTapContentGroup(Playlist.Group)
             case didTapContentGroupPage(Playlist.Group, Playlist.Group.Content.Page)
             case didTapVideoItem(Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)

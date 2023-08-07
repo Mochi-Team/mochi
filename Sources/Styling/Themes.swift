@@ -11,17 +11,11 @@ import SwiftUI
 
 // MARK: - Theme
 
-public struct Theme: Hashable {
-    public let primaryColor: Color = .green
+public extension Color {
+    static let theme = Theme()
 }
 
-extension EnvironmentValues {
-    private struct ThemeKey: EnvironmentKey {
-        static var defaultValue: Theme = .init()
-    }
-
-    public var theme: Theme {
-        get { self[ThemeKey.self] }
-        set { self[ThemeKey.self] = newValue }
-    }
+public struct Theme: Hashable {
+    public let primaryColor: Color = .green
+    public let backgroundColor: Color = .init("BackgroundColor")
 }

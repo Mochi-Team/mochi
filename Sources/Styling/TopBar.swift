@@ -12,14 +12,16 @@ import ViewComponents
 
 // MARK: - TopBarBackgroundStyle
 
-public enum TopBarBackgroundStyle {
+public enum TopBarBackgroundStyle: Equatable {
     case system
+    case gradientSystem(Easing = .easeIn)
     case blurred
     case clear
 }
 
 // MARK: - TopBarView
 
+@MainActor
 public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, BottomAccessory: View>: View {
     let backCallback: (() -> Void)?
     var backgroundStyle: TopBarBackgroundStyle = .system
@@ -70,8 +72,21 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
             ZStack {
                 switch backgroundStyle {
                 case .system:
-                    Color(uiColor: .systemBackground)
+                    Color.theme.backgroundColor
                         .transition(.opacity)
+                case let .gradientSystem(easing):
+                    LinearGradient(
+                        gradient: .init(
+                            colors: [
+                                .theme.backgroundColor,
+                                .theme.backgroundColor.opacity(0)
+                            ],
+                            easing: easing
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .transition(.opacity)
                 case .blurred:
                     BlurView()
                         .transition(.opacity)
@@ -182,6 +197,7 @@ public extension TopBarView {
     }
 }
 
+@MainActor
 public extension View {
     func topBar(
         backgroundStyle: TopBarBackgroundStyle = .system,

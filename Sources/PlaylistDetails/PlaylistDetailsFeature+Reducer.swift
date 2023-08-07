@@ -46,6 +46,9 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                     .run { await self.dismiss() }
                 )
 
+            case .view(.didTapToRetryDetails):
+                return state.fetchPlaylistDetails(forced: true)
+
             case let .view(.didTapVideoItem(group, page, itemId)):
                 guard state.content.value != nil else {
                     break
@@ -90,7 +93,7 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
 }
 
 extension PlaylistDetailsFeature.State {
-    mutating func fetchPlaylistDetails(_ forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
+    mutating func fetchPlaylistDetails(forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
         @Dependency(\.databaseClient)
         var databaseClient
 
@@ -128,7 +131,7 @@ extension PlaylistDetailsFeature.State {
             )
         }
 
-        effects.append(content.fetchPlaylistContentIfNecessary(repoModuleId, playlistId).map { .internal(.content($0)) })
+        effects.append(content.fetchPlaylistContentIfNecessary(repoModuleId, playlistId, forced: forced).map { .internal(.content($0)) })
         return .merge(effects)
     }
 }

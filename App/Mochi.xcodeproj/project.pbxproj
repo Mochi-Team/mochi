@@ -18,7 +18,6 @@
 
 /* Begin PBXFileReference section */
 		132862242A17D06300F67EAC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		133C36312A168E8B007ED802 /* CoreORM.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = CoreORM.xctestplan; path = ../Tests/CoreORMTests/CoreORM.xctestplan; sourceTree = "<group>"; };
 		134516B629DF44D200E4C3B8 /* mochi */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = mochi; path = ..; sourceTree = "<group>"; };
 		138DA7D52A0AB5E800FDAC13 /* mochi-info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mochi-info.plist"; sourceTree = "<group>"; };
 		1396B9E32A4B71BA00B7928A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -96,7 +95,6 @@
 		13C18B8829CE6CC100C14F26 = {
 			isa = PBXGroup;
 			children = (
-				133C36312A168E8B007ED802 /* CoreORM.xctestplan */,
 				134516B629DF44D200E4C3B8 /* mochi */,
 				1396FE0429DF561C00B22132 /* iOS */,
 				1396FDFD29DF561C00B22132 /* macOS */,

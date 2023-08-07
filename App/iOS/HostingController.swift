@@ -12,10 +12,10 @@ import SwiftUI
 import UIKit
 import ViewComponents
 
-final class HostingController: UIHostingController<AnyView> {
+final class HostingController<Content: View>: UIHostingController<Content>, OpaqueController {
     override var prefersHomeIndicatorAutoHidden: Bool { _homeIndicatorAutoHidden }
 
-    private var _homeIndicatorAutoHidden = false {
+    internal var _homeIndicatorAutoHidden = false {
         didSet {
             setNeedsUpdateOfHomeIndicatorAutoHidden()
         }
@@ -23,30 +23,42 @@ final class HostingController: UIHostingController<AnyView> {
 
     private let box: Box
 
-    init(rootView: some View) {
-        let box = Box()
-        self.box = box
-        super.init(
-            rootView:
-            .init(
-                rootView
-                    .onPreferenceChange(HomeIndicatorAutoHiddenPreferenceKey.self) { isHidden in
-                        box.object?._homeIndicatorAutoHidden = isHidden
-                    }
-            )
-        )
+    init<InnerView: View>(rootView: InnerView) where Content == BoxedView<InnerView> {
+        self.box = .init()
+        super.init(rootView: .init(box: box, content: rootView))
         box.object = self
     }
 
     @available(*, unavailable)
-    @MainActor
     dynamic required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
-private class Box {
-    weak var object: HostingController?
+struct BoxedView<Content: View>: View {
+    let box: Box
+
+    init(box: Box, content: @autoclosure @escaping () -> Content) {
+        self.content = content
+        self.box = box
+    }
+
+    let content: () -> Content
+
+    var body: some View {
+        content()
+            .onPreferenceChange(HomeIndicatorAutoHiddenPreferenceKey.self) { isHidden in
+                box.object?._homeIndicatorAutoHidden = isHidden
+            }
+    }
 }
 
+final class Box {
+    weak var object: OpaqueController?
+}
+
+@MainActor
+protocol OpaqueController: AnyObject {
+    var _homeIndicatorAutoHidden: Bool { get set }
+}
 #endif

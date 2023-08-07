@@ -33,8 +33,8 @@ extension DiscoverFeature.View: View {
                             if listings.isEmpty {
                                 VStack(spacing: 12) {
                                     Spacer()
-                                    Text("Listings Empty".capitalized)
-                                        .font(.title2)
+                                    Text("Listings Empty")
+                                        .font(.title2.weight(.medium))
                                     Text("There are no listings forr this module.")
                                     Spacer()
                                 }
@@ -125,27 +125,33 @@ extension DiscoverFeature.View: View {
                                 viewStore.send(.didTapOpenModules)
                             } label: {
                                 HStack(spacing: 8) {
-                                    LazyImage(url: viewStore.state?.module.icon.flatMap { .init(string: $0) }) { state in
-                                        if let image = state.image {
-                                            image
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 22, height: 22)
-                                        } else {
-                                            EmptyView()
+                                    if let url = viewStore.state?.module.icon.flatMap({ URL(string: $0) }) {
+                                        LazyImage(url: url) { state in
+                                            if let image = state.image {
+                                                image
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 22, height: 22)
+                                            } else {
+                                                EmptyView()
+                                            }
                                         }
+                                        .transition(.opacity)
                                     }
 
                                     Text(viewStore.state?.module.name ?? "Home")
                                     Image(systemName: "chevron.down")
-                                        .font(.callout.weight(.heavy))
+                                        .font(.body.weight(.bold))
+                                    Spacer()
                                 }
-                                .fixedSize(horizontal: false, vertical: true)
-                                .font(.title2.weight(.bold))
+                                .font(.title.bold())
                                 .contentShape(Rectangle())
+                                .scaleEffect(1.0)
+                                .transition(.opacity)
+                                .animation(.easeInOut, value: viewStore.state?.module.icon)
                             }
                             .buttonStyle(.plain)
-                            .padding(.top, 8)
+                            .animation(.easeInOut, value: viewStore.state)
                         }
                     }
                 )
@@ -411,7 +417,7 @@ struct DiscoverView_Previews: PreviewProvider {
         DiscoverFeature.View(
             store: .init(
                 initialState: .init(
-                    listings: .pending
+                    listings: .loaded(.init())
                 ),
                 reducer: { EmptyReducer() }
             )

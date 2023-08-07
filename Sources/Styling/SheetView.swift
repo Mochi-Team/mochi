@@ -10,46 +10,69 @@
 import ComposableArchitecture
 import Foundation
 import SwiftUI
+import UIKit
 
 public extension View {
-    @MainActor
     func sheetPresentation(
         isPresenting: Binding<Bool>,
+        presentationStyle: UIModalPresentationStyle = .automatic,
+        detents: [UISheetPresentationController.Detent] = [.medium(), .large()],
+        prefersGrabberVisible: Bool = true,
         @ViewBuilder content: @escaping () -> some View
     ) -> some View {
         background(
             SheetPresentation(
                 isPresented: isPresenting,
+                presentationStyle: presentationStyle,
+                detents: detents,
+                prefersGrabberVisible: prefersGrabberVisible,
                 content: content
             )
         )
     }
 
-    @MainActor
     func sheetPresentation(
         item: Binding<(some Any)?>,
+        presentationStyle: UIModalPresentationStyle = .automatic,
+        detents: [UISheetPresentationController.Detent] = [.medium(), .large()],
+        prefersGrabberVisible: Bool = true,
         @ViewBuilder content: @escaping () -> some View
     ) -> some View {
-        sheetPresentation(isPresenting: item.isPresent(), content: content)
+        sheetPresentation(
+            isPresenting: item.isPresent(),
+            presentationStyle: presentationStyle,
+            detents: detents,
+            prefersGrabberVisible: prefersGrabberVisible,
+            content: content
+        )
     }
 
-    @MainActor
     func sheetPresentation<State: Equatable, Action>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
+        presentationStyle: UIModalPresentationStyle = .automatic,
+        detents: [UISheetPresentationController.Detent] = [.medium(), .large()],
+        prefersGrabberVisible: Bool = true,
         @ViewBuilder content: @escaping (Store<State, Action>) -> some View
     ) -> some View {
         presentation(store: store) { `self`, $item, destination in
-            self.sheetPresentation(item: $item) {
+            self.sheetPresentation(
+                item: $item,
+                presentationStyle: presentationStyle,
+                detents: detents,
+                prefersGrabberVisible: prefersGrabberVisible
+            ) {
                 destination(content)
             }
         }
     }
 
-    @MainActor
     func sheetPresentation<State: Equatable, Action, DestinationState, DestinationAction>(
         store: Store<PresentationState<State>, PresentationAction<Action>>,
         state toDestinationState: @escaping (State) -> DestinationState?,
         action fromDestinationAction: @escaping (DestinationAction) -> Action,
+        presentationStyle: UIModalPresentationStyle = .automatic,
+        detents: [UISheetPresentationController.Detent] = [.medium(), .large()],
+        prefersGrabberVisible: Bool = true,
         @ViewBuilder content: @escaping (Store<DestinationState, DestinationAction>) -> some View
     ) -> some View {
         presentation(
@@ -57,7 +80,12 @@ public extension View {
             state: toDestinationState,
             action: fromDestinationAction
         ) { `self`, $item, destination in
-            self.sheetPresentation(item: $item) {
+            self.sheetPresentation(
+                item: $item,
+                presentationStyle: presentationStyle,
+                detents: detents,
+                prefersGrabberVisible: prefersGrabberVisible
+            ) {
                 destination(content)
             }
         }

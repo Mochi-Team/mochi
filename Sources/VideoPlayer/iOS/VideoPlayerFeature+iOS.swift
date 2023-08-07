@@ -514,6 +514,7 @@ extension VideoPlayerFeature.State {
             case source
             case server
             case link
+            case playback
         }
 
         var action: VideoPlayerFeature.Action.ViewAction? { nil }
@@ -534,10 +535,9 @@ extension VideoPlayerFeature.State {
             return content
         } else if let content = selectedLink.videoContentState(for: .link) {
             return content
+        } else if self.player.status == .failed {
+            return .failed(.playback)
         }
-//         else if {
-//         TODO: Add video player error status
-//         }
 
         return nil
     }

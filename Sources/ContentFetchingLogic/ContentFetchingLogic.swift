@@ -79,7 +79,8 @@ public extension ContentFetchingLogic.State {
         _ repoModuleId: RepoModuleID,
         _ playlistId: Playlist.ID,
         _ group: Playlist.Group? = nil,
-        _ page: Playlist.Group.Content.Page? = nil
+        _ page: Playlist.Group.Content.Page? = nil,
+        forced: Bool = false
     ) -> Effect<ContentFetchingLogic.Action> {
         @Dependency(\.moduleClient)
         var moduleClient
@@ -87,11 +88,16 @@ public extension ContentFetchingLogic.State {
         @Dependency(\.logger)
         var logger
 
-        if !hasInitialized {
+        if forced || !hasInitialized {
             self = .loading
         }
 
         // TODO: Validate if it needs to refetch content
+
+//        if let group {
+//            if let page {
+//            }
+//        }
 
         return .run { send in
             try await withTaskCancellation(id: Cancellable.fetchContent, cancelInFlight: true) {

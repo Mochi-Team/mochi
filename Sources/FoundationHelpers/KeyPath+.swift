@@ -14,6 +14,10 @@ public prefix func ! <T>(keyPath: KeyPath<T, Bool>) -> (T) -> Bool {
     { !$0[keyPath: keyPath] }
 }
 
+public func != <T, V: Equatable>(lhs: KeyPath<T, V>, rhs: V) -> (T) -> Bool {
+    { $0[keyPath: lhs] != rhs }
+}
+
 public func == <T, V: Equatable>(lhs: KeyPath<T, V>, rhs: V) -> (T) -> Bool {
     { $0[keyPath: lhs] == rhs }
 }

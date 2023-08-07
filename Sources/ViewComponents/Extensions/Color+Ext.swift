@@ -11,9 +11,6 @@ import SwiftUI
 
 #if os(iOS)
 public extension Color {
-    @Environment(\.colorScheme)
-    private static var colorScheme
-
     var isDark: Bool {
         PlatformColor(self).luminance < 0.5
     }

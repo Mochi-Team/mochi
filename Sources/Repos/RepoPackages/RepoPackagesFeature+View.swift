@@ -105,7 +105,7 @@ extension RepoPackagesFeature.View: View {
         .onAppear {
             store.viewAction.send(.didAppear)
         }
-        .background(Color(uiColor: .systemBackground).ignoresSafeArea().edgesIgnoringSafeArea(.all))
+        .background(Color.theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
         .transition(.move(edge: .trailing).combined(with: .opacity))
         .screenDismissed {
             store.viewAction.send(.didTapBackButtonForOverlay)

@@ -31,7 +31,7 @@ extension PlaylistDetailsFeature.View: View {
                             .contrast(0.75)
 
                         Button {
-                            // TODO: Handle retry button tapped
+                            viewStore.send(.didTapToRetryDetails)
                         } label: {
                             Text("Retry")
                                 .font(.callout.weight(.bold))
@@ -63,11 +63,11 @@ extension PlaylistDetailsFeature.View: View {
             LinearGradient(
                 stops: [
                     .init(
-                        color: imageDominatColor ?? .init(uiColor: .systemBackground),
+                        color: imageDominatColor ?? .theme.backgroundColor,
                         location: 0
                     ),
                     .init(
-                        color: .init(uiColor: .systemBackground),
+                        color: .theme.backgroundColor,
                         location: 1.0
                     )
                 ],
@@ -395,9 +395,7 @@ private struct PlaylistVideoContentView: View {
                             .foregroundColor(.label)
                         }
                     } else {
-                        if let group = defaultSelectedGroup {
-                            Text(group.displayTitle ?? "Episodes")
-                        }
+                        Text(defaultSelectedGroup?.displayTitle ?? "Episodes")
                     }
 
                     Spacer()
@@ -571,63 +569,6 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         moduleId: .init("")
                     ),
                     playlist: .placeholder(0),
-                    details: .pending,
-                    content: .pending
-                ),
-                reducer: { EmptyReducer() }
-            )
-        )
-
-        PlaylistDetailsFeature.View(
-            store: .init(
-                initialState: .init(
-                    repoModuleID: .init(
-                        repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: .init("")
-                    ),
-                    playlist: .placeholder(0),
-                    details: .loaded(
-                        .init(
-                            genres: ["Action", "Thriller"],
-                            yearReleased: 2_023,
-                            previews: .init()
-                        )
-                    ),
-                    content: .pending
-                ),
-                reducer: { EmptyReducer() }
-            )
-        )
-
-        PlaylistDetailsFeature.View(
-            store: .init(
-                initialState: .init(
-                    repoModuleID: .init(
-                        repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: .init("")
-                    ),
-                    playlist: .placeholder(0),
-                    details: .loaded(
-                        .init(
-                            genres: ["Action", "Thriller"],
-                            yearReleased: 2_023,
-                            previews: .init()
-                        )
-                    ),
-                    content: .loading
-                ),
-                reducer: { EmptyReducer() }
-            )
-        )
-
-        PlaylistDetailsFeature.View(
-            store: .init(
-                initialState: .init(
-                    repoModuleID: .init(
-                        repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: .init("")
-                    ),
-                    playlist: .placeholder(0),
                     details: .loaded(
                         .init(
                             genres: ["Action", "Thriller"],
@@ -636,20 +577,6 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                         )
                     ),
                     content: .loaded(.init())
-                ),
-                reducer: { EmptyReducer() }
-            )
-        )
-
-        PlaylistDetailsFeature.View(
-            store: .init(
-                initialState: .init(
-                    repoModuleID: .init(
-                        repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: .init("")
-                    ),
-                    playlist: .placeholder(0),
-                    details: .failed(ModuleClient.Error.unknown())
                 ),
                 reducer: { EmptyReducer() }
             )

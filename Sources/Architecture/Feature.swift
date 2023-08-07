@@ -26,16 +26,16 @@ public protocol FeatureAction: Equatable, Sendable {
     associatedtype DelegateAction: SendableAction
     associatedtype InternalAction: SendableAction
 
-    /// ViewActions should be a description of what already happened,
+    /// ViewActions is a description of what already happened,
     /// not what it needs to do.
     ///
     static func view(_: ViewAction) -> Self
 
-    /// DelegateActions can send action back to parent reducer.
+    /// DelegateActions are actions that should be sent back to parent reducer.
     ///
     static func delegate(_: DelegateAction) -> Self
 
-    /// InternalActions should only be invoked within the same reducer calls.
+    /// InternalActions are actions invoked within the same reducer calls.
     /// The only exception to that are accessing delegate actions.
     ///
     static func `internal`(_: InternalAction) -> Self

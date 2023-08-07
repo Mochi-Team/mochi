@@ -40,7 +40,7 @@ extension ReposFeature.View: View {
                         ForEach(viewStore.state) { repo in
                             repoRow(repo)
                                 .padding(.horizontal)
-                                .background(Color(uiColor: .systemBackground))
+                                .background(Color.theme.backgroundColor)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     viewStore.send(.didTapRepo(repo.id))

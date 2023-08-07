@@ -10,6 +10,7 @@ import Architecture
 import ComposableArchitecture
 import Discover
 import Foundation
+import FoundationHelpers
 import ModuleLists
 import Repos
 import Search
@@ -67,13 +68,16 @@ extension AppFeature.View: View {
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
+        .background(
+            Color.theme.backgroundColor
+                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
+        )
         .onAppear {
             store.viewAction.send(.didAppear)
         }
         .overlay {
-            WithViewStore(store) { state in
-                state.videoPlayer != nil
-            } content: { isVisible in
+            WithViewStore(store, observe: \.videoPlayer != nil) { isVisible in
                 IfLetStore(
                     store.internalAction.scope(
                         state: \.$videoPlayer,

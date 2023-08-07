@@ -21,6 +21,7 @@ struct TestSchema: Schema {
 
 // MARK: - Parent
 
+// swiftlint:disable redundant_optional_initialization
 struct Parent: Entity {
     @Attribute
     var name = ""
