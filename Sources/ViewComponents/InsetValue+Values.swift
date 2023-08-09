@@ -15,7 +15,7 @@ public struct InsetTabNavigationKey: InsetableKey {
 }
 
 public extension InsetableValues {
-    var tabNavigation: CGSize {
+    var bottomNavigation: CGSize {
         get { self[InsetTabNavigationKey.self] }
         set { self[InsetTabNavigationKey.self] = newValue }
     }

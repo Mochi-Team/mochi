@@ -106,6 +106,34 @@ extension PlaylistDetailsFeature.View: View {
         .onAppear {
             store.viewAction.send(.didAppear)
         }
+        .sheet(
+            store: store.scope(
+                state: \.$destination,
+                action: { .internal(.destination($0)) }
+            ),
+            state: /PlaylistDetailsFeature.Destination.State.readMore,
+            action: PlaylistDetailsFeature.Destination.Action.readMore
+        ) { store in
+            WithViewStore(store, observe: \.`self`) { viewStore in
+                ScrollView(.vertical) {
+                    Text(viewStore.description)
+                        .foregroundColor(.theme.textColor)
+                        .padding()
+                }
+                .safeAreaInset(edge: .top, alignment: .center, spacing: 0) {
+                    VStack(spacing: 0) {
+                        Text(viewStore.title)
+                            .lineLimit(1)
+                            .font(.body.weight(.semibold))
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(.ultraThinMaterial)
+                        Divider()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
     }
 }
 
@@ -121,9 +149,13 @@ extension PlaylistDetailsFeature.View {
             .clipped()
             .contentShape(Rectangle())
             .overlay {
+                let readableColor = readableColor.isDark ? Color.white : Color.black
                 LinearGradient(
                     gradient: .init(
-                        colors: [.clear, readableColor.isDark ? .white : .black],
+                        colors: [
+                            readableColor.opacity(0),
+                            (imageDominatColor ?? readableColor).opacity(0.4)
+                        ],
                         easing: .easeIn
                     ),
                     startPoint: .top,
@@ -252,7 +284,7 @@ extension PlaylistDetailsFeature.View {
         LazyVStack(spacing: 24) {
             HeaderWithContent(title: "Description") {
                 ExpandableText(playlistInfo.contentDescription ?? "Description is not available for this content.") {
-                    // TODO: Show modal on read more
+                    store.viewAction.send(.didTapOnReadMore)
                 }
                 .lineLimit(3)
                 .font(.callout)
@@ -576,7 +608,13 @@ struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
                             previews: .init()
                         )
                     ),
-                    content: .loaded(.init())
+                    content: .loaded(.init()),
+                    destination: .readMore(
+                        .init(
+                            title: "This is a title",
+                            description: "This will not only elaborate on the description but also use as a screen demo."
+                        )
+                    )
                 ),
                 reducer: { EmptyReducer() }
             )

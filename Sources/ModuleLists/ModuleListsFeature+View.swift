@@ -150,6 +150,18 @@ extension ModuleListsFeature.View {
     }
 }
 
+public extension View {
+    func moduleListsSheet(
+        _ store: Store<PresentationState<ModuleListsFeature.State>, PresentationAction<ModuleListsFeature.Action>>
+    ) -> some View {
+        self.sheet(
+            store: store,
+            detents: [.medium(), .large()],
+            content: ModuleListsFeature.View.init
+        )
+    }
+}
+
 import Styling
 
 // MARK: - ModuleListsFeatureView_Previews

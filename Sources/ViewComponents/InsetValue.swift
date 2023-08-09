@@ -22,12 +22,8 @@ public class InsetableValues: @unchecked Sendable, ObservableObject {
     private init() {}
 
     public subscript<K: InsetableKey>(key: K.Type) -> CGSize {
-        get {
-            values[ObjectIdentifier(key)] ?? K.defaultValue
-        }
-        set {
-            values[ObjectIdentifier(key)] = newValue
-        }
+        get { values[ObjectIdentifier(key)] ?? K.defaultValue }
+        set { values[ObjectIdentifier(key)] = newValue }
     }
 }
 
@@ -52,6 +48,11 @@ public struct InsetValue: @unchecked Sendable, DynamicProperty {
 
     public var wrappedValue: CGSize {
         InsetableValues._current[keyPath: keyPath]
+    }
+
+    public var projectedValue: Self {
+        get { self }
+        set { self = newValue }
     }
 }
 

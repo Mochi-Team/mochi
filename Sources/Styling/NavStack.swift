@@ -49,41 +49,41 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
 //                    .navigationBarHidden(true)
 //            }
 //        } else {
-        ZStack {
-            root()
-                .zIndex(0)
+            ZStack {
+                root()
+                    .zIndex(0)
 
-            if !viewStore.isEmpty {
-                Color.black
-                    .opacity(0.3)
-                    .edgesIgnoringSafeArea(.all)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(1)
-            }
+                if !viewStore.isEmpty {
+                    Color.black
+                        .opacity(0.3)
+                        .edgesIgnoringSafeArea(.all)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
 
-            WithViewStore(
-                store,
-                observe: \.ids,
-                removeDuplicates: areOrderedSetsDuplicates
-            ) { viewStore in
-                ForEach(viewStore.state, id: \.self) { id in
-                    IfLetStore(
-                        store.scope(state: \.[id: id]) { (childAction: Action) in
-                            .element(id: id, action: childAction)
-                        }
-                    ) { store in
-                        destination(store)
-                            .screenDismissed {
-                                viewStore.send(.popFrom(id: id))
+                WithViewStore(
+                    store,
+                    observe: \.ids,
+                    removeDuplicates: areOrderedSetsDuplicates
+                ) { viewStore in
+                    ForEach(viewStore.state, id: \.self) { id in
+                        IfLetStore(
+                            store.scope(state: \.[id: id]) { (childAction: Action) in
+                                    .element(id: id, action: childAction)
                             }
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                        ) { store in
+                            destination(store)
+                                .screenDismissed {
+                                    viewStore.send(.popFrom(id: id))
+                                }
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                        }
                     }
                 }
+                .zIndex(2)
             }
-            .zIndex(2)
-        }
-        .animation(.navStackTransion, value: viewStore.ids)
+            .animation(.navStackTransion, value: viewStore.ids)
 //        }
     }
 }
@@ -107,4 +107,16 @@ func areOrderedSetsDuplicates<T>(_ lhs: OrderedSet<T>, _ rhs: OrderedSet<T>) -> 
     var lhs = lhs
     var rhs = rhs
     return memcmp(&lhs, &rhs, MemoryLayout<OrderedSet<T>>.size) == 0 || lhs == rhs
+}
+
+/// Hacky way to allow swipe back navigation when status bar is hidden
+extension UINavigationController: UIGestureRecognizerDelegate {
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        interactivePopGestureRecognizer?.delegate = self
+    }
+
+    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        viewControllers.count > 1
+    }
 }

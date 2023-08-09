@@ -272,7 +272,9 @@ let miscTargets: [Target] = [
         name: "Styling",
         dependencies: [
             "ViewComponents",
-            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "Tagged", package: "swift-tagged"),
+            .product(name: "SwiftUIBackports", package: "SwiftUIBackports")
         ]
     ),
     .target(
@@ -343,7 +345,8 @@ let package = Package(
         .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2"),
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
-        .package(url: "https://github.com/groue/Semaphore", exact: "0.0.8")
+        .package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
+        .package(url: "https://github.com/shaps80/SwiftUIBackports.git", .upToNextMajor(from: "2.0.0"))
     ],
     targets: featuresTargets + clientsTargets + miscTargets
 )

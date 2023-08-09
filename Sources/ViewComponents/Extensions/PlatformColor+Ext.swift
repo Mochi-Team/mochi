@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 #if canImport(UIKit)
 import UIKit
@@ -50,7 +51,8 @@ extension PlatformColor {
             var green: CGFloat = 0.0
             var blue: CGFloat = 0.0
             var alpha: CGFloat = 0.0
-            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            color.resolvedColor(with: .current)
+                .getRed(&red, green: &green, blue: &blue, alpha: &alpha)
             return [red, green, blue, alpha]
         }
 
@@ -76,4 +78,60 @@ extension PlatformColor {
 
         return .init(red: red, green: green, blue: blue, alpha: alpha)
     }
+}
+
+public extension Color {
+    init(light: Color, dark: Color) {
+        #if canImport(UIKit)
+        self.init(light: UIColor(light), dark: UIColor(dark))
+        #else
+        self.init(light: NSColor(light), dark: NSColor(dark))
+        #endif
+    }
+
+    #if canImport(UIKit)
+    init(light: UIColor, dark: UIColor) {
+        #if os(watchOS)
+        self.init(uiColor: dark)
+        #else
+        self.init(uiColor: UIColor(dynamicProvider: { traits in
+            switch traits.userInterfaceStyle {
+            case .light, .unspecified:
+                return light
+
+            case .dark:
+                return dark
+
+            @unknown default:
+                assertionFailure("Unknown userInterfaceStyle: \(traits.userInterfaceStyle)")
+                return light
+            }
+        }))
+        #endif
+    }
+    #endif
+
+    #if canImport(AppKit)
+    init(light: NSColor, dark: NSColor) {
+        self.init(nsColor: NSColor(name: nil, dynamicProvider: { appearance in
+            switch appearance.name {
+            case .aqua,
+                 .vibrantLight,
+                 .accessibilityHighContrastAqua,
+                 .accessibilityHighContrastVibrantLight:
+                return light
+
+            case .darkAqua,
+                 .vibrantDark,
+                 .accessibilityHighContrastDarkAqua,
+                 .accessibilityHighContrastVibrantDark:
+                return dark
+
+            default:
+                assertionFailure("Unknown appearance: \(appearance.name)")
+                return light
+            }
+        }))
+    }
+    #endif
 }

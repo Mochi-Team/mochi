@@ -174,12 +174,11 @@ extension SearchFeature.View: View {
         .onAppear {
             store.viewAction.send(.didAppear)
         }
-        .sheetPresentation(
-            store: store.internalAction.scope(
+        .moduleListsSheet(
+            store.internalAction.scope(
                 state: \.$moduleLists,
                 action: Action.InternalAction.moduleLists
-            ),
-            content: ModuleListsFeature.View.init
+            )
         )
     }
 }

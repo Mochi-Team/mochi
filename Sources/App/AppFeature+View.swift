@@ -79,9 +79,9 @@ extension AppFeature.View: View {
         .overlay {
             WithViewStore(store, observe: \.videoPlayer != nil) { isVisible in
                 IfLetStore(
-                    store.internalAction.scope(
+                    store.scope(
                         state: \.$videoPlayer,
-                        action: Action.InternalAction.videoPlayer
+                        action: { .internal(.videoPlayer($0)) }
                     ),
                     then: VideoPlayerFeature.View.init
                 )

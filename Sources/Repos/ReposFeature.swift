@@ -85,8 +85,8 @@ public enum ReposFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<ReposFeature>
 
-        @InsetValue(\.tabNavigation)
-        var tabNavigationSize
+//        @InsetValue(\.bottomNavigation)
+//        var tabNavigationSize
 
         @Dependency(\.dateFormatter)
         var dateFormatter

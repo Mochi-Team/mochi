@@ -114,7 +114,7 @@ public enum DiscoverFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<DiscoverFeature>
 
-        @InsetValue(\.tabNavigation)
+        @InsetValue(\.bottomNavigation)
         var bottomNavigationSize
 
         public nonisolated init(store: FeatureStoreOf<DiscoverFeature>) {

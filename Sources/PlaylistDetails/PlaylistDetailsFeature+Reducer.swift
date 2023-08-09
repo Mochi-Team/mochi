@@ -49,6 +49,14 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
             case .view(.didTapToRetryDetails):
                 return state.fetchPlaylistDetails(forced: true)
 
+            case .view(.didTapOnReadMore):
+                state.destination = .readMore(
+                    .init(
+                        title: state.playlist.title ?? "No Title",
+                        description: state.details.value?.contentDescription ?? "No Description Available"
+                    )
+                )
+
             case let .view(.didTapVideoItem(group, page, itemId)):
                 guard state.content.value != nil else {
                     break
@@ -78,6 +86,9 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
             case .view(.binding):
                 break
 
+            case .internal(.destination):
+                break
+
             case let .internal(.playlistDetailsResponse(loadable)):
                 state.details = loadable
 
@@ -88,6 +99,9 @@ extension PlaylistDetailsFeature.Reducer: Reducer {
                 break
             }
             return .none
+        }
+        .ifLet(\.$destination, action: /Action.internal .. Action.InternalAction.destination) {
+            PlaylistDetailsFeature.Destination()
         }
     }
 }

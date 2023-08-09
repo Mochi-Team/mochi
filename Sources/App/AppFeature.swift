@@ -17,6 +17,7 @@ import Settings
 import SharedModels
 import SwiftUI
 import VideoPlayer
+import ViewComponents
 
 public enum AppFeature: Feature {
     public struct State: FeatureState {
@@ -116,6 +117,9 @@ public enum AppFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: FeatureStoreOf<AppFeature>
+
+        @InsetValue(\.bottomNavigation)
+        var bottomNavigationSize
 
         public nonisolated init(store: FeatureStoreOf<AppFeature>) {
             self.store = store

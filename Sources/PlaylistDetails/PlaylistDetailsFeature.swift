@@ -19,11 +19,49 @@ import SwiftUI
 import ViewComponents
 
 public enum PlaylistDetailsFeature: Feature {
+    public struct Destination: ComposableArchitecture.Reducer {
+        public enum State: Equatable, Sendable {
+            case readMore(ReadMore.State)
+        }
+
+        public enum Action: Equatable, Sendable {
+            case readMore(ReadMore.Action)
+        }
+
+        public var body: some ReducerOf<Self> {
+            Scope(state: /State.readMore, action: /Action.readMore) {
+                ReadMore()
+            }
+        }
+
+        public struct ReadMore: ComposableArchitecture.Reducer {
+            public struct State: Equatable, Sendable {
+                public let title: String
+                public let description: String
+
+                public init(
+                    title: String,
+                    description: String
+                ) {
+                    self.title = title
+                    self.description = description
+                }
+            }
+
+            public enum Action: Equatable, Sendable {}
+
+            public var body: some ReducerOf<Self> { EmptyReducer() }
+        }
+    }
+
     public struct State: FeatureState {
         public let repoModuleId: RepoModuleID
         public let playlist: Playlist
         public var details: Loadable<Playlist.Details>
         public var content: ContentFetchingLogic.State
+
+        @PresentationState
+        public var destination: Destination.State?
 
         var playlistInfo: Loadable<PlaylistInfo> {
             details.map { .init(playlist: playlist, details: $0) }
@@ -37,12 +75,14 @@ public enum PlaylistDetailsFeature: Feature {
             repoModuleID: RepoModuleID,
             playlist: Playlist,
             details: Loadable<Playlist.Details> = .pending,
-            content: ContentFetchingLogic.State = .pending
+            content: ContentFetchingLogic.State = .pending,
+            destination: Destination.State? = nil
         ) {
             self.repoModuleId = repoModuleID
             self.playlist = playlist
             self.details = details
             self.content = content
+            self.destination = destination
         }
 
         public enum Resumable: Equatable, Sendable {
@@ -75,6 +115,7 @@ public enum PlaylistDetailsFeature: Feature {
             case didAppear
             case didTappedBackButton
             case didTapToRetryDetails
+            case didTapOnReadMore
             case didTapContentGroup(Playlist.Group)
             case didTapContentGroupPage(Playlist.Group, Playlist.Group.Content.Page)
             case didTapVideoItem(Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
@@ -95,6 +136,7 @@ public enum PlaylistDetailsFeature: Feature {
         public enum InternalAction: SendableAction {
             case playlistDetailsResponse(Loadable<Playlist.Details>)
             case content(ContentFetchingLogic.Action)
+            case destination(PresentationAction<Destination.Action>)
         }
 
         case view(ViewAction)
@@ -109,8 +151,8 @@ public enum PlaylistDetailsFeature: Feature {
         @Environment(\.openURL)
         var openURL
 
-        @InsetValue(\.tabNavigation)
-        var tabNavigationInset
+        @InsetValue(\.bottomNavigation)
+        var bottomNavigationSize
 
         @SwiftUI.State
         var imageDominatColor: Color?

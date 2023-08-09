@@ -48,7 +48,8 @@ extension DiscoverFeature.View: View {
                         VStack(spacing: 12) {
                             Spacer()
 
-                            Image(systemName: "exclamationmark.triangle.fill")
+                            Text("Module Error")
+                                .font(.title2.weight(.medium))
                             Text("There was an error fetching content.")
                             Button {
                                 // TODO: Allow retrying
@@ -110,6 +111,7 @@ extension DiscoverFeature.View: View {
                         .transition(.opacity)
                     }
                 }
+                .ignoresSafeArea(.all, edges: viewStore.state.value?.first?.type == .featured || !viewStore.state.didFinish ? .top : [])
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state.didFinish)
             }
             .frame(
@@ -118,7 +120,7 @@ extension DiscoverFeature.View: View {
             )
             .safeAreaInset(edge: .top) {
                 TopBarView(
-                    backgroundStyle: .system,
+                    backgroundStyle: .gradientSystem(),
                     leadingAccessory: {
                         WithViewStore(store.viewAction, observe: \.selectedRepoModule) { viewStore in
                             Button {
@@ -160,6 +162,12 @@ extension DiscoverFeature.View: View {
             .onAppear {
                 store.viewAction.send(.didAppear)
             }
+            .moduleListsSheet(
+                store.scope(
+                    state: \.$moduleLists,
+                    action: { .internal(.moduleLists($0)) }
+                )
+            )
         } destination: { store in
             SwitchStore(store) { state in
                 switch state {
@@ -172,13 +180,6 @@ extension DiscoverFeature.View: View {
                 }
             }
         }
-        .sheetPresentation(
-            store: store.internalAction.scope(
-                state: \.$moduleLists,
-                action: Action.InternalAction.moduleLists
-            ),
-            content: ModuleListsFeature.View.init
-        )
     }
 }
 
@@ -194,7 +195,7 @@ extension DiscoverFeature.View {
                     case .rank:
                         rankListing(listing)
                     case .featured:
-                        featuredListing(listing)
+                        featuredListing(listing, firstElement: listings.first?.title == listing.title)
                     }
                 }
             }
@@ -370,7 +371,7 @@ extension DiscoverFeature.View {
 
     @MainActor
     @ViewBuilder
-    func featuredListing(_ listing: DiscoverListing) -> some View {
+    func featuredListing(_ listing: DiscoverListing, firstElement: Bool) -> some View {
         if !listing.items.isEmpty {
             TabView {
                 ForEach(listing.items, id: \.id) { playlist in
@@ -379,11 +380,11 @@ extension DiscoverFeature.View {
                             .overlay {
                                 LinearGradient(
                                     gradient: .init(
-                                        stops: [
-                                            .init(color: .clear, location: 0.0),
-                                            .init(color: .black, location: 1.0)
+                                        colors: [
+                                            .black.opacity(0),
+                                            .black.opacity(0.4)
                                         ],
-                                        easing: .cubicBezier(.zero, .init(x: 0.8, y: 0))
+                                        easing: .easeIn
                                     ),
                                     startPoint: .top,
                                     endPoint: .bottom
@@ -403,7 +404,8 @@ extension DiscoverFeature.View {
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            .aspectRatio(16 / 10, contentMode: .fill)
+            .elasticParallax(firstElement)
+            .aspectRatio(firstElement ? 5 / 7 : 16 / 10, contentMode: .fill)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)
         }

@@ -30,7 +30,11 @@ struct ElasticParallaxView: ViewModifier {
 
 public extension View {
     @ViewBuilder
-    func elasticParallax() -> some View {
-        modifier(ElasticParallaxView())
+    func elasticParallax(_ enable: Bool = true) -> some View {
+        if enable {
+            modifier(ElasticParallaxView())
+        } else {
+            self
+        }
     }
 }

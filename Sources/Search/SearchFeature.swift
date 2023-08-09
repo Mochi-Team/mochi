@@ -105,8 +105,8 @@ public enum SearchFeature: Feature {
     public struct View: FeatureView {
         public let store: FeatureStoreOf<SearchFeature>
 
-        @InsetValue(\.tabNavigation)
-        var bottomNavInsetSize
+//        @InsetValue(\.bottomNavigation)
+//        var bottomNavigationSize
 
         public nonisolated init(store: FeatureStoreOf<SearchFeature>) {
             self.store = store

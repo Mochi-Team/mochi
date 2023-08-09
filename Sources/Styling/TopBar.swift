@@ -74,14 +74,13 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
                 case .system:
                     Color.theme.backgroundColor
                         .transition(.opacity)
-                case let .gradientSystem(easing):
+                case .gradientSystem:
                     LinearGradient(
                         gradient: .init(
                             colors: [
                                 .theme.backgroundColor,
-                                .theme.backgroundColor.opacity(0)
-                            ],
-                            easing: easing
+                                .theme.backgroundColor.opacity(0.0)
+                            ]
                         ),
                         startPoint: .top,
                         endPoint: .bottom
