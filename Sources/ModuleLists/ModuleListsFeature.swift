@@ -12,7 +12,7 @@ import DatabaseClient
 import RepoClient
 import SharedModels
 
-public enum ModuleListsFeature: Feature {
+public struct ModuleListsFeature: Feature {
     public struct State: FeatureState {
         public var repos: [Repo]
         public var selected: ModuleSelectable?
@@ -58,26 +58,21 @@ public enum ModuleListsFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<ModuleListsFeature>
+        public let store: StoreOf<ModuleListsFeature>
 
-        public nonisolated init(store: FeatureStoreOf<ModuleListsFeature>) {
+        public nonisolated init(store: StoreOf<ModuleListsFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = ModuleListsFeature.State
-        public typealias Action = ModuleListsFeature.Action
+    @Dependency(\.repoClient)
+    var repoClient
 
-        @Dependency(\.repoClient)
-        var repoClient
+    @Dependency(\.databaseClient)
+    var databaseClient
 
-        @Dependency(\.databaseClient)
-        var databaseClient
+    @Dependency(\.dismiss)
+    var dismiss
 
-        @Dependency(\.dismiss)
-        var dismiss
-
-        public init() {}
-    }
+    public init() {}
 }

@@ -11,7 +11,7 @@ import ComposableArchitecture
 import SharedModels
 import UserSettingsClient
 
-public enum SettingsFeature: Feature {
+public struct SettingsFeature: Feature {
     public struct State: FeatureState {
         public var userSettings: UserSettings
 
@@ -37,17 +37,12 @@ public enum SettingsFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<SettingsFeature>
+        public let store: StoreOf<SettingsFeature>
 
-        public nonisolated init(store: FeatureStoreOf<SettingsFeature>) {
+        public nonisolated init(store: StoreOf<SettingsFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = SettingsFeature.State
-        public typealias Action = SettingsFeature.Action
-
-        public init() {}
-    }
+    public init() {}
 }

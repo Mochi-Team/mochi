@@ -15,7 +15,7 @@ import Styling
 import SwiftUI
 import ViewComponents
 
-// MARK: - RepoPackagesFeature.View + View
+// MARK: - RepoPackagesFeature + View
 
 extension RepoPackagesFeature.View: View {
     @MainActor
@@ -27,7 +27,7 @@ extension RepoPackagesFeature.View: View {
                 Divider()
                     .padding(.horizontal)
 
-                WithViewStore(store.viewAction, observe: \.installedModules) { viewStore in
+                WithViewStore(store, observe: \.installedModules) { viewStore in
                     Group {
                         if !viewStore.isEmpty {
                             LazyVStack(spacing: 8) {
@@ -49,7 +49,7 @@ extension RepoPackagesFeature.View: View {
                     .animation(.easeInOut, value: viewStore.state.count)
                 }
 
-                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                WithViewStore(store, observe: \.packages) { viewStore in
                     LazyVStack(spacing: 8) {
                         Text("All Modules")
                             .font(.footnote.bold())
@@ -58,7 +58,7 @@ extension RepoPackagesFeature.View: View {
                             .padding(.horizontal)
                             .transition(.opacity)
 
-                        LoadableView(loadable: viewStore.packages) { packages in
+                        LoadableView(loadable: viewStore.state) { packages in
                             Group {
                                 if packages.isEmpty || !packages.contains(where: !\.isEmpty) {
                                     packagesStatusView(.noModulesFound)
@@ -81,7 +81,7 @@ extension RepoPackagesFeature.View: View {
                                 .transition(.opacity)
                         }
                     }
-                    .animation(.easeInOut, value: viewStore.packages)
+                    .animation(.easeInOut, value: viewStore.state)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -92,31 +92,27 @@ extension RepoPackagesFeature.View: View {
             maxHeight: .infinity
         )
         .topBar {
-            store.viewAction.send(.didTapBackButtonForOverlay)
+            store.send(.view(.didTapClose))
         } trailingAccessory: {
             Button {
-                let viewStore = ViewStore(store.viewAction, observe: \.repo)
-                viewStore.send(.didAskToRefreshRepo(viewStore.state.id))
+                store.send(.view(.didTapToRefreshRepo))
             } label: {
                 Image(systemName: "arrow.triangle.2.circlepath")
             }
             .buttonStyle(.materialToolbarImage)
         }
         .onAppear {
-            store.viewAction.send(.didAppear)
+            store.send(.view(.didAppear))
         }
         .background(Color.theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
         .transition(.move(edge: .trailing).combined(with: .opacity))
-        .screenDismissed {
-            store.viewAction.send(.didTapBackButtonForOverlay)
-        }
     }
 }
 
 extension RepoPackagesFeature.View {
     @MainActor
     var repoHeader: some View {
-        WithViewStore(store.viewAction, observe: \.repo) { viewStore in
+        WithViewStore(store, observe: \.repo) { viewStore in
             VStack(alignment: .leading, spacing: 0) {
                 Spacer()
                     .frame(height: 12)
@@ -230,7 +226,7 @@ extension RepoPackagesFeature.View {
     @ViewBuilder
     func packageRow(_ modules: [Module.Manifest]) -> some View {
         let latestModule = modules.latestModule
-        WithViewStore(store.viewAction) { state in
+        WithViewStore(store) { state in
             PackageDownloadState(
                 repo: state.repo,
                 installedModule: state.repo.modules.first(where: \.id == latestModule.id),
@@ -308,12 +304,12 @@ extension RepoPackagesFeature.View {
                         .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            viewStore.send(.didTapRemoveModule(viewStore.repo.id, latestModule.id))
+//                            viewStore.send(.didTapRemoveModule(viewStore.repo.id, latestModule.id))
                         }
                     } else if let installedModule = viewStore.installedModule {
                         if installedModule.version < latestModule.version {
                             Button {
-                                viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
+//                                viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
                             } label: {
                                 Image(systemName: "arrow.up.circle.fill")
                                     .resizable()
@@ -331,7 +327,7 @@ extension RepoPackagesFeature.View {
                         }
                     } else {
                         Button {
-                            viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
+//                            viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .resizable()
@@ -351,7 +347,7 @@ extension RepoPackagesFeature.View {
             .contextMenu {
                 if let installed = viewStore.installedModule {
                     Button {
-                        viewStore.send(.didTapRemoveModule(viewStore.repo.id, installed.id))
+//                        viewStore.send(.didTapRemoveModule(viewStore.repo.id, installed.id))
                     } label: {
                         Label("Remove module", systemImage: "trash.fill")
                     }
@@ -359,6 +355,7 @@ extension RepoPackagesFeature.View {
                 }
             }
         }
+        .background(Color.theme.backgroundColor)
     }
 }
 
@@ -375,17 +372,6 @@ struct RepoPackagesFeatureView_Previews: PreviewProvider {
                         lastRefreshed: nil,
                         manifest: .init(name: "Repo 1", author: "errorerrorerror")
                     )
-//                    ,
-//                    modules: .loaded([
-//                        .init(
-//                            id: "module-1",
-//                            name: "Module 1",
-//                            file: "/hello/test.wasm",
-//                            version: .init(1, 0, 0),
-//                            released: .init(),
-//                            type: [.video, .image, .text]
-//                        )
-//                    ])
                 ),
                 reducer: { EmptyReducer() }
             )

@@ -21,7 +21,7 @@ public struct RepoClient: Sendable {
     /// Module must be installed in order to select it
     public let selectModule: @Sendable (Repo.ID, Module.ID) async -> Void
 
-    /// Selected Module
+    /// Shared selected Module
     ///
     /// Returns the selected module, if any
     public let selectedModule: @Sendable () -> SelectedModule?
@@ -70,11 +70,6 @@ public struct RepoClient: Sendable {
     ///
     /// Returns installed repos
     public let repos: @Sendable (Request<Repo>) -> AsyncStream<[Repo]>
-
-    /// Installed Modules
-    ///
-    /// Returns installed modules
-    public let modules: @Sendable (Repo.ID) -> AsyncStream<Set<Module>>
 }
 
 // MARK: TestDependencyKey
@@ -86,13 +81,12 @@ extension RepoClient: TestDependencyKey {
         selectedModuleStream: unimplemented("\(Self.self).selectedModule", placeholder: .never),
         validateRepo: unimplemented(),
         fetchRepoModules: unimplemented("\(Self.self).repoModules", placeholder: .init()),
-        addRepo: unimplemented(),
-        removeRepo: unimplemented(),
-        addModule: unimplemented(),
-        removeModule: unimplemented(),
-        observeModuleInstalls: unimplemented(),
-        repos: unimplemented(),
-        modules: unimplemented()
+        addRepo: unimplemented("\(Self.self).addRepo"),
+        removeRepo: unimplemented("\(Self.self).removeRepo"),
+        addModule: unimplemented("\(Self.self).addModule"),
+        removeModule: unimplemented("\(Self.self).removeModule"),
+        observeModuleInstalls: unimplemented("\(Self.self).observeModuleInstalls"),
+        repos: unimplemented("\(Self.self).repos")
     )
 }
 

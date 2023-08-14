@@ -22,7 +22,7 @@ import ViewComponents
 extension PlaylistDetailsFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store.viewAction, observe: \.playlistInfo) { viewStore in
+        WithViewStore(store, observe: \.playlistInfo) { viewStore in
             ZStack {
                 if viewStore.error != nil {
                     VStack(spacing: 14) {
@@ -81,7 +81,7 @@ extension PlaylistDetailsFeature.View: View {
         .edgesIgnoringSafeArea(.top)
         .ignoresSafeArea(.container, edges: .top)
         .topBar(backgroundStyle: .clear) {
-            store.viewAction.send(.didTappedBackButton)
+            store.send(.view(.didTappedBackButton))
         } trailingAccessory: {
             // TODO: Make this change depending if it's in library already or not
             Button {} label: {
@@ -104,7 +104,7 @@ extension PlaylistDetailsFeature.View: View {
             .menuStyle(.materialToolbarImage)
         }
         .onAppear {
-            store.viewAction.send(.didAppear)
+            store.send(.view(.didAppear))
         }
         .sheet(
             store: store.scope(
@@ -284,7 +284,7 @@ extension PlaylistDetailsFeature.View {
         LazyVStack(spacing: 24) {
             HeaderWithContent(title: "Description") {
                 ExpandableText(playlistInfo.contentDescription ?? "Description is not available for this content.") {
-                    store.viewAction.send(.didTapOnReadMore)
+                    store.send(.view(.didTapOnReadMore))
                 }
                 .lineLimit(3)
                 .font(.callout)
@@ -386,7 +386,7 @@ private struct PlaylistVideoContentView: View {
 
     @MainActor
     var body: some View {
-        WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+        WithViewStore(store, observe: \.`self`) { viewStore in
             let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
 
             let group = viewStore.state.flatMap { groups in
@@ -485,8 +485,7 @@ private struct PlaylistVideoContentView: View {
                             }
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            // FIXME: Improve view height based on title
-                            LazyHStack(alignment: .top, spacing: 12) {
+                            HStack(alignment: .top, spacing: 12) {
                                 ForEach(page.value?.items ?? Self.placeholderItems, id: \.id) { item in
                                     VStack(alignment: .leading, spacing: 0) {
                                         FillAspectImage(url: item.thumbnail ?? playlistInfo.posterImage)

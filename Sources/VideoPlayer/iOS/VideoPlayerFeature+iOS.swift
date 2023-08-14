@@ -22,10 +22,10 @@ import ViewComponents
 extension VideoPlayerFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store.viewAction, observe: \.player.pipState.status.isInPiP) { viewStore in
+        WithViewStore(store, observe: \.player.pipState.status.isInPiP) { viewStore in
             ZStack {
                 PlayerFeature.View(
-                    store: store.internalAction.scope(
+                    store: store.scope(
                         state: \.player,
                         action: Action.InternalAction.player
                     )
@@ -39,7 +39,7 @@ extension VideoPlayerFeature.View: View {
                 }
             }
             .overlay {
-                WithViewStore(store.viewAction, observe: \.overlay) { viewStore in
+                WithViewStore(store, observe: \.overlay) { viewStore in
                     ZStack {
                         contentStatusView
 
@@ -75,7 +75,7 @@ extension VideoPlayerFeature.View: View {
         }
         .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
         .onAppear {
-            store.viewAction.send(.didAppear)
+            store.send(.view(.didAppear))
         }
     }
 }
@@ -98,92 +98,8 @@ extension VideoPlayerFeature.View {
                 .ignoresSafeArea()
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
-                    store.viewAction.send(.didTapPlayer)
+                    store.send(.view(.didTapPlayer))
                 }
-        }
-    }
-
-    private struct SkipActionViewState: Equatable {
-        enum Action: Hashable, CustomStringConvertible {
-            case times(Playlist.EpisodeServer.SkipTime)
-            case next(Double, Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
-
-            var isEnding: Bool {
-                if case let .times(time) = self {
-                    return time.type == .ending
-                }
-                return false
-            }
-
-            var action: VideoPlayerFeature.Action {
-                switch self {
-                case let .next(_, group, paging, itemId):
-                    return .view(.didTapPlayEpisode(group, paging, itemId))
-                case let .times(time):
-                    return .view(.didSkipTo(time: time.endTime))
-                }
-            }
-
-            var description: String {
-                switch self {
-                case let .times(time):
-                    return time.type.description
-                case let .next(number, _, _, _):
-                    return "Play E\(number.withoutTrailingZeroes)"
-                }
-            }
-
-            var image: String {
-                switch self {
-                case .next:
-                    return "play.fill"
-                default:
-                    return "forward.fill"
-                }
-            }
-
-            var textColor: Color {
-                if case .next = self {
-                    return .black
-                }
-                return .white
-            }
-
-            var background: Color {
-                if case .next = self {
-                    return .white
-                }
-                return .init(white: 0.25)
-            }
-        }
-
-        var actions: [Action]
-        var canShowActions: Bool
-
-        var visible: Bool {
-            canShowActions && !actions.isEmpty
-        }
-
-        init(_ state: VideoPlayerFeature.State) {
-            self.canShowActions = state.player.duration.isValid && state.player.duration > .zero
-            self.actions = state.selectedServerResponse.value?.skipTimes
-                .filter { $0.startTime <= state.player.progress.seconds && state.player.progress.seconds <= $0.endTime }
-                .sorted(by: \.startTime)
-                .compactMap { .times($0) } ?? []
-
-            if let currentEpisode = state.selectedItem.value,
-               let episodes = state.selectedPage.value?.items,
-               let index = episodes.firstIndex(where: { $0.id == currentEpisode.id }), (index + 1) < episodes.endIndex {
-                let nextEpisode = episodes[index + 1]
-
-                if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {
-                    if state.player.progress.seconds >= type.startTime {
-                        actions.append(.next(nextEpisode.number, state.selected.group, state.selected.page, nextEpisode.id))
-                    }
-                } else if state.player.progress.seconds >= (0.92 * state.player.duration.seconds) {
-                    actions.append(.next(nextEpisode.number, state.selected.group, state.selected.page, nextEpisode.id))
-                }
-            }
         }
     }
 
@@ -246,7 +162,7 @@ extension VideoPlayerFeature.View {
     var topBar: some View {
         HStack(alignment: .top, spacing: 12) {
             Button {
-                store.viewAction.send(.didTapBackButton)
+                store.send(.view(.didTapBackButton))
             } label: {
                 Image(systemName: "chevron.left")
                     .frame(width: 28, height: 28)
@@ -254,7 +170,7 @@ extension VideoPlayerFeature.View {
             }
             .buttonStyle(.plain)
 
-            WithViewStore(store.viewAction, observe: PlaylistDisplayState.init) { viewStore in
+            WithViewStore(store, observe: PlaylistDisplayState.init) { viewStore in
                 VStack(alignment: .leading, spacing: 0) {
                     Group {
                         switch viewStore.group {
@@ -296,7 +212,7 @@ extension VideoPlayerFeature.View {
             Spacer()
 
             WithViewStore(
-                store.internalAction.scope(
+                store.scope(
                     state: \.player,
                     action: Action.InternalAction.player
                 ),
@@ -322,17 +238,13 @@ extension VideoPlayerFeature.View {
                 .fixedSize()
 
             Menu {
-                ForEach(
-                    VideoPlayerFeature.State.Overlay.MoreTab.allCases,
-                    id: \.self
-                ) { tab in
+                ForEach(VideoPlayerFeature.State.Overlay.MoreTab.allCases, id: \.self) { tab in
                     if tab == .speed {
                         WithViewStore(
-                            store.internalAction.scope(
+                            store.scope(
                                 state: \.player,
                                 action: Action.InternalAction.player
-                            )
-                            .viewAction,
+                            ),
                             observe: \.rate
                         ) { viewStore in
                             Menu {
@@ -353,7 +265,7 @@ extension VideoPlayerFeature.View {
                         }
                     } else {
                         Button {
-                            store.viewAction.send(.didSelectMoreTab(tab))
+                            store.send(.view(.didSelectMoreTab(tab)))
                         } label: {
                             tab.image
                             Text(tab.rawValue)
@@ -387,7 +299,7 @@ extension VideoPlayerFeature.View {
         WithViewStore(store, observe: \.videoPlayerStatus == nil) { canShowControls in
             if canShowControls.state {
                 WithViewStore(
-                    store.internalAction.scope(
+                    store.scope(
                         state: \.player,
                         action: Action.InternalAction.player
                     ),
@@ -447,7 +359,7 @@ extension VideoPlayerFeature.View {
     @MainActor
     var bottomBar: some View {
         ProgressBar(
-            store.internalAction.scope(
+            store.scope(
                 state: \.player,
                 action: Action.InternalAction.player
             )
@@ -587,8 +499,8 @@ extension VideoPlayerFeature.View {
             viewStore.duration.isValid && !viewStore.duration.seconds.isNaN && viewStore.duration != .zero
         }
 
-        init(_ store: StoreOf<PlayerFeature.Reducer>) {
-            self.viewStore = .init(store.viewAction, observe: \.`self`)
+        init(_ store: StoreOf<PlayerFeature>) {
+            self.viewStore = .init(store, observe: \.`self`)
         }
 
         var body: some View {
@@ -689,7 +601,7 @@ extension VideoPlayerFeature.View {
             DynamicStack(stackType: proxy.size.width < proxy.size.height ? .vstack() : .hstack()) {
                 VStack(alignment: .trailing) {
                     Button {
-                        store.viewAction.send(.didTapCloseMoreOverlay)
+                        store.send(.view(.didTapCloseMoreOverlay))
                     } label: {
                         Image(systemName: "xmark")
                             .font(.title3.weight(.semibold))
@@ -779,7 +691,7 @@ extension VideoPlayerFeature.View {
 
         @MainActor
         var body: some View {
-            WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+            WithViewStore(store, observe: \.`self`) { viewStore in
                 let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
 
                 let group = viewStore.state.flatMap { groups in
@@ -980,12 +892,12 @@ extension VideoPlayerFeature.View {
 
     @MainActor
     var sourcesAndServers: some View {
-        WithViewStore(store.viewAction) { state in
+        WithViewStore(store) { state in
             state.loadables[episodeId: state.selected.episodeId]
         } content: { loadableSourcesStore in
             LoadableView(loadable: loadableSourcesStore.state) { playlistItemSourcesLoadables in
                 VStack(alignment: .leading, spacing: 8) {
-                    WithViewStore(store.viewAction, observe: \.selected.sourceId) { selected in
+                    WithViewStore(store, observe: \.selected.sourceId) { selected in
                         MoreListingRow(
                             title: "Sources",
                             selected: selected.state,
@@ -1000,8 +912,8 @@ extension VideoPlayerFeature.View {
                     Spacer()
                         .frame(height: 2)
 
-                    WithViewStore(store.viewAction, observe: \.selected.sourceId) { selectedSourceIdState in
-                        WithViewStore(store.viewAction, observe: \.selected.serverId) { selectedServerIdState in
+                    WithViewStore(store, observe: \.selected.sourceId) { selectedSourceIdState in
+                        WithViewStore(store, observe: \.selected.serverId) { selectedServerIdState in
                             MoreListingRow(
                                 title: "Servers",
                                 selected: selectedServerIdState.state,
@@ -1038,10 +950,10 @@ extension VideoPlayerFeature.View {
 
     @MainActor
     var qualityAndSubtitles: some View {
-        WithViewStore(store.viewAction, observe: \.selectedServerResponse) { loadableServerResponseState in
+        WithViewStore(store, observe: \.selectedServerResponse) { loadableServerResponseState in
             LoadableView(loadable: loadableServerResponseState.state) { response in
                 VStack(alignment: .leading, spacing: 8) {
-                    WithViewStore(store.viewAction, observe: \.selected.linkId) { selectedState in
+                    WithViewStore(store, observe: \.selected.linkId) { selectedState in
                         MoreListingRow(
                             title: "Quality",
                             selected: selectedState.state,
@@ -1057,11 +969,10 @@ extension VideoPlayerFeature.View {
                         .frame(height: 2)
 
                     WithViewStore(
-                        store.internalAction.scope(
+                        store.scope(
                             state: \.player,
                             action: Action.InternalAction.player
-                        )
-                        .viewAction,
+                        ),
                         observe: SelectedSubtitle.init
                     ) { viewStore in
                         MoreListingRow(
@@ -1204,6 +1115,7 @@ extension VideoPlayerFeature.View {
         }
     }
 }
+#endif
 
 struct VideoPlayerFeatureView_Previews: PreviewProvider {
     static var previews: some View {
@@ -1232,4 +1144,3 @@ struct VideoPlayerFeatureView_Previews: PreviewProvider {
         .previewInterfaceOrientation(.landscapeRight)
     }
 }
-#endif

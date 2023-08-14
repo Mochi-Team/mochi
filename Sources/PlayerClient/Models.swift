@@ -11,7 +11,7 @@ import Foundation
 // MARK: - PlayerClient.Status
 
 public extension PlayerClient {
-    // TODO: Do more compositions for various types. eg. audio
+    // TODO: Do more compositions for various types. eg. audio, podcasts
 
     struct VideoCompositionItem {
         let link: URL

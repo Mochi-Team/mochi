@@ -9,23 +9,17 @@
 import Architecture
 import ComposableArchitecture
 
-// MARK: - SettingsFeature.Reducer + Reducer
-
-extension SettingsFeature.Reducer: Reducer {
+extension SettingsFeature {
     public var body: some ReducerOf<Self> {
-        Reduce(self.core)
-    }
-}
-
-extension SettingsFeature.Reducer {
-    func core(state _: inout State, action: Action) -> Effect<Action> {
-        switch action {
-        case let .view(viewAction):
-            switch viewAction {
-            case .didAppear:
-                break
+        Reduce { _, action in
+            switch action {
+            case let .view(viewAction):
+                switch viewAction {
+                case .didAppear:
+                    break
+                }
             }
+            return .none
         }
-        return .none
     }
 }

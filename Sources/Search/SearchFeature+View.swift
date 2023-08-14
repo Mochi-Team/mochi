@@ -28,7 +28,7 @@ extension SearchFeature.View: View {
             )
         ) {
             ZStack {
-                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                WithViewStore(store, observe: \.`self`) { viewStore in
                     LoadableView(loadable: viewStore.items) { pagings in
                         Group {
                             if pagings.isEmpty {
@@ -67,7 +67,7 @@ extension SearchFeature.View: View {
                                                     .frame(height: 1)
                                                     .onAppear {
                                                         if let nextPageId = page.nextPage {
-                                                            store.viewAction.send(.didShowNextPageIndicator(nextPageId))
+                                                            store.send(.view(.didShowNextPageIndicator(nextPageId)))
                                                         }
                                                     }
                                             }
@@ -98,13 +98,13 @@ extension SearchFeature.View: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .topBar(title: "Search") {
-                WithViewStore(store.viewAction, observe: \.selectedModule) { viewStore in
+                WithViewStore(store, observe: \.selectedModule) { viewStore in
                     ModuleSelectionButton(module: viewStore.state?.module) {
-                        store.viewAction.send(.didTapOpenModules)
+                        store.send(.view(.didTapOpenModules))
                     }
                 }
             } bottomAccessory: {
-                WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+                WithViewStore(store, observe: \.`self`) { viewStore in
                     HStack(spacing: 12) {
                         HStack(spacing: 12) {
                             Image(systemName: "magnifyingglass")
@@ -172,10 +172,10 @@ extension SearchFeature.View: View {
             }
         }
         .onAppear {
-            store.viewAction.send(.didAppear)
+            store.send(.view(.didAppear))
         }
         .moduleListsSheet(
-            store.internalAction.scope(
+            store.scope(
                 state: \.$moduleLists,
                 action: Action.InternalAction.moduleLists
             )

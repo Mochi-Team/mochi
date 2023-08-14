@@ -8,6 +8,7 @@
 
 import Architecture
 import NukeUI
+import RepoClient
 import SharedModels
 import Styling
 import SwiftUI
@@ -18,55 +19,67 @@ import ViewComponents
 extension ReposFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store.viewAction, observe: \.repos) { viewStore in
-            ScrollView(
-                viewStore.state.isEmpty ? [] : .vertical,
-                showsIndicators: false
-            ) {
-                LazyVStack(spacing: 0) {
-                    repoUrlTextInput
-                        .padding(.horizontal)
-
-                    Spacer()
-                        .frame(height: 24)
-
-                    if !viewStore.state.isEmpty {
-                        Text("Installed Repos")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+        NavStack(
+            store.scope(
+                state: \.path,
+                action: { .internal(.path($0)) }
+            )
+        ) {
+            WithViewStore(store, observe: \.repos) { viewStore in
+                ScrollView(
+                    viewStore.isEmpty ? [] : .vertical,
+                    showsIndicators: false
+                ) {
+                    LazyVStack(spacing: 0) {
+                        repoUrlTextInput
                             .padding(.horizontal)
 
-                        ForEach(viewStore.state) { repo in
-                            repoRow(repo)
-                                .padding(.horizontal)
-                                .background(Color.theme.backgroundColor)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    viewStore.send(.didTapRepo(repo.id))
-                                }
-                                .contextMenu {
-                                    Button {
-                                        viewStore.send(.didTapToDeleteRepo(repo.id))
-                                    } label: {
-                                        Label("Delete Repo", systemImage: "trash.fill")
-                                            .foregroundColor(.red)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                        Spacer()
+                            .frame(height: 24)
 
-                            if repo.id != viewStore.state.last?.id {
-                                Divider()
+                        if !viewStore.isEmpty {
+                            Text("Installed Repos")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal)
+
+                            ForEach(viewStore.state) { repo in
+                                repoRow(repo)
                                     .padding(.horizontal)
+                                    .background(Color.theme.backgroundColor)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        self.store.send(.view(.didTapRepo(repo.id)))
+                                    }
+                                    .contextMenu {
+                                        Button {
+                                            self.store.send(.view(.didTapToDeleteRepo(repo.id)))
+                                        } label: {
+                                            Label("Delete Repo", systemImage: "trash.fill")
+                                                .foregroundColor(.red)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+
+                                if viewStore.last?.id != repo.id {
+                                    Divider()
+                                        .padding(.horizontal)
+                                }
                             }
                         }
                     }
+                    .animation(.easeInOut, value: viewStore.state)
                 }
-                .animation(.easeInOut, value: viewStore.state.count)
+                .overlay {
+                    if viewStore.isEmpty {
+                        noReposView
+                    }
+                }
             }
             .topBar(title: "Repos") {
                 Button {
-                    store.viewAction.send(.didAskToRefreshModules)
+                    store.send(.view(.didAskToRefreshModules))
                 } label: {
                     Image(systemName: "arrow.triangle.2.circlepath")
                 }
@@ -74,27 +87,15 @@ extension ReposFeature.View: View {
             } bottomAccessory: {
                 EmptyView()
             }
-            .overlay {
-                if viewStore.state.isEmpty {
-                    noReposView
-                }
-            }
-        }
-        .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity
-        )
-        .onAppear {
-            store.viewAction.send(.didAppear)
-        }
-        .overlay {
-            IfLetStore(
-                store.scope(
-                    state: \.selected,
-                    action: \.`self`
-                ),
-                then: RepoPackagesFeature.View.init
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity
             )
+            .onAppear {
+                store.send(.view(.didAppear))
+            }
+        } destination: { store in
+            RepoPackagesFeature.View(store: store)
         }
     }
 }
@@ -118,16 +119,30 @@ extension ReposFeature.View {
         }
     }
 
+    private struct RepoURLInputViewState: Equatable, @unchecked Sendable {
+        @BindingViewState
+        var url: String
+        let searchedRepo: Loadable<RepoClient.RepoPayload>
+        let canAddRepo: Bool
+
+        init(_ state: BindingViewStore<ReposFeature.State>) {
+            self._url = state.$url
+            self.searchedRepo = state.searchedRepo
+            if let value = state.searchedRepo.value {
+                self.canAddRepo = !state.repos.ids.contains(.init(value.remoteURL))
+            } else {
+                self.canAddRepo = false
+            }
+        }
+    }
+
     @MainActor
     var repoUrlTextInput: some View {
-        WithViewStore(
-            store.viewAction,
-            observe: \.`self`
-        ) { viewStore in
+        WithViewStore(store, observe: RepoURLInputViewState.init) { viewStore in
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
                     Group {
-                        switch viewStore.repo {
+                        switch viewStore.searchedRepo {
                         case .failed:
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.red)
@@ -155,7 +170,7 @@ extension ReposFeature.View {
                 .padding(.vertical, 12)
                 .frame(maxHeight: .infinity)
 
-                LoadableView(loadable: viewStore.repo) { repo in
+                LoadableView(loadable: viewStore.searchedRepo) { repo in
                     Divider()
 
                     HStack(alignment: .center) {
@@ -178,9 +193,9 @@ extension ReposFeature.View {
 
                         Spacer()
 
-                        if !viewStore.repos.contains(where: \.id.rawValue == repo.remoteURL) {
+                        if viewStore.canAddRepo {
                             Button {
-                                viewStore.send(.didTapToAddNewRepo(repo))
+//                                viewStore.send(.didTapToAddNewRepo(repo))
                             } label: {
                                 Image(systemName: "plus.circle.fill")
                                     .font(.system(size: 18).weight(.semibold))
@@ -201,7 +216,7 @@ extension ReposFeature.View {
                 RoundedRectangle(cornerRadius: 12)
                     .foregroundColor(.gray.opacity(0.1))
             )
-            .animation(.easeInOut(duration: 0.2), value: viewStore.repo)
+            .animation(.easeInOut(duration: 0.2), value: viewStore.searchedRepo)
             .animation(.easeInOut(duration: 0.2), value: viewStore.url.count)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -241,23 +256,23 @@ extension ReposFeature.View {
 
             Spacer()
 
-            WithViewStore(store, observe: \.repoModules[repo.id] ?? .pending) { viewStore in
-                ZStack {
-                    LoadableView(loadable: viewStore.state) { _ in
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                    } failedView: { _ in
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.red)
-                    } waitingView: {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
-                    .frame(width: 34, height: 34)
-                    .transition(.opacity.combined(with: .scale))
-                }
-                .animation(.easeInOut(duration: 0.25), value: viewStore.state)
-            }
+//            WithViewStore(store, observe: \.repoModules[repo.id] ?? .pending) { viewStore in
+//                ZStack {
+//                    LoadableView(loadable: viewStore.state) { _ in
+//                        Image(systemName: "checkmark.circle.fill")
+//                            .foregroundColor(.green)
+//                    } failedView: { _ in
+//                        Image(systemName: "exclamationmark.triangle.fill")
+//                            .foregroundColor(.red)
+//                    } waitingView: {
+//                        ProgressView()
+//                            .controlSize(.small)
+//                    }
+//                    .frame(width: 34, height: 34)
+//                    .transition(.opacity.combined(with: .scale))
+//                }
+//                .animation(.easeInOut(duration: 0.25), value: viewStore.state)
+//            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
@@ -271,7 +286,7 @@ struct ReposFeatureView_Previews: PreviewProvider {
         ReposFeature.View(
             store: .init(
                 initialState: .init(),
-                reducer: { ReposFeature.Reducer() }
+                reducer: { ReposFeature() }
             )
         )
     }

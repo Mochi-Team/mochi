@@ -13,7 +13,7 @@ import ModuleLists
 import OrderedCollections
 import SharedModels
 
-extension SearchFeature.Reducer: Reducer {
+extension SearchFeature: Reducer {
     private enum Cancellables: Hashable {
         case fetchingItemsDebounce
     }
@@ -207,7 +207,7 @@ extension SearchFeature.Reducer: Reducer {
             return .none
         }
         .ifLet(\.$moduleLists, action: /Action.internal .. Action.InternalAction.moduleLists) {
-            ModuleListsFeature.Reducer()
+            ModuleListsFeature()
         }
         .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
             SearchFeature.Screens()

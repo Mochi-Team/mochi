@@ -18,7 +18,7 @@ import Styling
 import SwiftUI
 import ViewComponents
 
-public enum PlaylistDetailsFeature: Feature {
+public struct PlaylistDetailsFeature: Feature {
     public struct Destination: ComposableArchitecture.Reducer {
         public enum State: Equatable, Sendable {
             case readMore(ReadMore.State)
@@ -146,7 +146,7 @@ public enum PlaylistDetailsFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<PlaylistDetailsFeature>
+        public let store: StoreOf<PlaylistDetailsFeature>
 
         @Environment(\.openURL)
         var openURL
@@ -157,30 +157,25 @@ public enum PlaylistDetailsFeature: Feature {
         @SwiftUI.State
         var imageDominatColor: Color?
 
-        public nonisolated init(store: FeatureStoreOf<PlaylistDetailsFeature>) {
+        public nonisolated init(store: StoreOf<PlaylistDetailsFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = PlaylistDetailsFeature.State
-        public typealias Action = PlaylistDetailsFeature.Action
+    @Dependency(\.moduleClient)
+    var moduleClient
 
-        @Dependency(\.moduleClient)
-        var moduleClient
+    @Dependency(\.databaseClient)
+    var databaseClient
 
-        @Dependency(\.databaseClient)
-        var databaseClient
+    @Dependency(\.repoClient)
+    var repoClient
 
-        @Dependency(\.repoClient)
-        var repoClient
+    @Dependency(\.logger)
+    var logger
 
-        @Dependency(\.logger)
-        var logger
+    @Dependency(\.dismiss)
+    var dismiss
 
-        @Dependency(\.dismiss)
-        var dismiss
-
-        public init() {}
-    }
+    public init() {}
 }

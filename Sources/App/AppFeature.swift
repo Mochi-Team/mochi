@@ -19,7 +19,7 @@ import SwiftUI
 import VideoPlayer
 import ViewComponents
 
-public enum AppFeature: Feature {
+public struct AppFeature: Feature {
     public struct State: FeatureState {
         public var discover = DiscoverFeature.State()
         public var repos = ReposFeature.State()
@@ -116,23 +116,18 @@ public enum AppFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<AppFeature>
+        public let store: StoreOf<AppFeature>
 
         @InsetValue(\.bottomNavigation)
         var bottomNavigationSize
 
-        public nonisolated init(store: FeatureStoreOf<AppFeature>) {
+        public nonisolated init(store: StoreOf<AppFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = AppFeature.State
-        public typealias Action = AppFeature.Action
+    @Dependency(\.databaseClient)
+    var databaseClient
 
-        @Dependency(\.databaseClient)
-        var databaseClient
-
-        public init() {}
-    }
+    public init() {}
 }

@@ -14,9 +14,9 @@ import PlaylistDetails
 import RepoClient
 import SharedModels
 
-// MARK: - DiscoverFeature.Reducer + Reducer
+// MARK: - DiscoverFeature
 
-extension DiscoverFeature.Reducer: Reducer {
+extension DiscoverFeature {
     enum Cancellables: Hashable {
         case fetchDiscoverList
     }
@@ -87,7 +87,7 @@ extension DiscoverFeature.Reducer: Reducer {
             return .none
         }
         .ifLet(\.$moduleLists, action: /Action.internal .. Action.InternalAction.moduleLists) {
-            ModuleListsFeature.Reducer()
+            ModuleListsFeature()
         }
         .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
             DiscoverFeature.Screens()
@@ -108,7 +108,7 @@ extension DiscoverFeature.State {
         listings = .loading
 
         return .run { send in
-            try await withTaskCancellation(id: DiscoverFeature.Reducer.Cancellables.fetchDiscoverList) {
+            try await withTaskCancellation(id: DiscoverFeature.Cancellables.fetchDiscoverList) {
                 let value = try await moduleClient.withModule(id: .init(repoId: selectedModule.repoId, moduleId: selectedModule.module.id)) { module in
                     try await module.discoverListings()
                 }

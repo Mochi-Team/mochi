@@ -22,12 +22,10 @@ private enum Cancellables: Hashable, CaseIterable {
     case fetchingServer
 }
 
-// MARK: - VideoPlayerFeature.Reducer + Reducer
-
-extension VideoPlayerFeature.Reducer: Reducer {
+extension VideoPlayerFeature: Reducer {
     public var body: some ReducerOf<Self> {
         Scope(state: \.player, action: /Action.internal .. Action.InternalAction.player) {
-            PlayerFeature.Reducer()
+            PlayerFeature()
         }
 
         Scope(state: \.loadables.contents, action: /Action.internal .. Action.InternalAction.content) {

@@ -11,6 +11,12 @@ import Foundation
 @_exported import FoundationHelpers
 import SwiftUI
 
+// MARK: - Feature
+
+public protocol Feature: Reducer where State: FeatureState, Action: FeatureAction {
+    associatedtype View: FeatureView
+}
+
 // MARK: - SendableAction
 
 public protocol SendableAction: Equatable, Sendable {}
@@ -50,23 +56,3 @@ public protocol FeatureView: View {
 
     init(store: Store<State, Action>)
 }
-
-// MARK: - FeatureReducer
-
-public protocol FeatureReducer: Reducer {
-    associatedtype State
-    associatedtype Action
-
-    init()
-}
-
-// MARK: - Feature
-
-public protocol Feature {
-    associatedtype State: FeatureState
-    associatedtype Action: FeatureAction
-    associatedtype View: FeatureView
-    associatedtype Reducer: FeatureReducer
-}
-
-public typealias FeatureStoreOf<F: Feature> = StoreOf<F.Reducer>

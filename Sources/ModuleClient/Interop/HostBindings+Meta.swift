@@ -442,7 +442,7 @@ extension HostBindings {
             }
 
             // TODO: Improve paging
-            let pages = pagesMemoryPtr.compactMap { ($0 as? Paging<Any?>)?.cast(Int.self).map(to: { ptr in alloc[.init(ptr)] }).cast(Playlist.Item.self) }
+            let pages = pagesMemoryPtr.compactMap { ($0 as? Paging<Any?>)?.cast(Int.self).map { ptr in alloc[.init(ptr)] }.cast(Playlist.Item.self) }
             let allPages = allPagesMemoryPtr.compactMap { $0 as? Playlist.Group.Content.Page }
 
             return alloc.add(

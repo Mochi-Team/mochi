@@ -18,7 +18,11 @@ import Tagged
 
 // MARK: - VideoPlayerFeature
 
-public enum VideoPlayerFeature: Feature {
+public struct VideoPlayerFeature: Feature {
+    public enum Error: Swift.Error {
+        case contentNotFound
+    }
+
     public struct State: FeatureState {
         public enum Overlay: Sendable, Equatable {
             case tools
@@ -128,52 +132,45 @@ public enum VideoPlayerFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<VideoPlayerFeature>
+        public let store: StoreOf<VideoPlayerFeature>
 
-        public nonisolated init(store: FeatureStoreOf<VideoPlayerFeature>) {
+        public nonisolated init(store: StoreOf<VideoPlayerFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = VideoPlayerFeature.State
-        public typealias Action = VideoPlayerFeature.Action
+    @Dependency(\.dismiss)
+    var dismiss
 
-        @Dependency(\.dismiss)
-        var dismiss
+    @Dependency(\.moduleClient)
+    var moduleClient
 
-        @Dependency(\.moduleClient)
-        var moduleClient
+    @Dependency(\.logger)
+    var logger
 
-        @Dependency(\.logger)
-        var logger
+    @Dependency(\.playerClient)
+    var playerClient
 
-        @Dependency(\.playerClient)
-        var playerClient
-
-        public init() {}
-    }
+    public init() {}
 }
-
-// TODO: Set not found as error
 
 public extension VideoPlayerFeature.State {
     var selectedGroup: Loadable<ContentFetchingLogic.Pages> {
         loadables.contents.flatMap { groups in
-            groups[selected.group] ?? .failed(ModuleClient.Error.unknown())
+            groups[selected.group] ?? .failed(VideoPlayerFeature.Error.contentNotFound)
         }
     }
 
     var selectedPage: Loadable<Paging<Playlist.Item>> {
         selectedGroup.flatMap { pages in
-            pages[selected.page] ?? .failed(ModuleClient.Error.unknown())
+            pages[selected.page] ?? .failed(VideoPlayerFeature.Error.contentNotFound)
         }
     }
 
     var selectedItem: Loadable<Playlist.Item> {
         selectedPage.flatMap { page in
             page.items.first(where: \.id == selected.episodeId)
-                .flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+                .flatMap { .loaded($0) } ?? .failed(VideoPlayerFeature.Error.contentNotFound)
         }
     }
 
@@ -183,7 +180,7 @@ public extension VideoPlayerFeature.State {
                 selected.sourceId.flatMap { sourceId in
                     sources[id: sourceId]
                 }
-                .flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+                .flatMap { .loaded($0) } ?? .failed(VideoPlayerFeature.Error.contentNotFound)
             }
         }
     }
@@ -193,7 +190,7 @@ public extension VideoPlayerFeature.State {
             selected.serverId.flatMap { serverId in
                 source.servers[id: serverId]
             }
-            .flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+            .flatMap { .loaded($0) } ?? .failed(VideoPlayerFeature.Error.contentNotFound)
         }
     }
 
@@ -205,7 +202,10 @@ public extension VideoPlayerFeature.State {
 
     var selectedLink: Loadable<Playlist.EpisodeServer.Link> {
         selectedServerResponse.flatMap { serverResponse in
-            selected.linkId.flatMap { linkId in serverResponse.links[id: linkId] }.flatMap { .loaded($0) } ?? .failed(ModuleClient.Error.unknown())
+            selected.linkId.flatMap { linkId in
+                serverResponse.links[id: linkId]
+            }
+            .flatMap { .loaded($0) } ?? .failed(VideoPlayerFeature.Error.contentNotFound)
         }
     }
 
@@ -271,6 +271,92 @@ public extension VideoPlayerFeature.State {
             response: Loadable<Playlist.EpisodeServerResponse>
         ) {
             serverResponseLoadables[serverId] = response
+        }
+    }
+}
+
+extension VideoPlayerFeature.View {
+    struct SkipActionViewState: Equatable {
+        enum Action: Hashable, CustomStringConvertible {
+            case times(Playlist.EpisodeServer.SkipTime)
+            case next(Double, Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
+
+            var isEnding: Bool {
+                if case let .times(time) = self {
+                    return time.type == .ending
+                }
+                return false
+            }
+
+            var action: VideoPlayerFeature.Action {
+                switch self {
+                case let .next(_, group, paging, itemId):
+                    return .view(.didTapPlayEpisode(group, paging, itemId))
+                case let .times(time):
+                    return .view(.didSkipTo(time: time.endTime))
+                }
+            }
+
+            var description: String {
+                switch self {
+                case let .times(time):
+                    return time.type.description
+                case let .next(number, _, _, _):
+                    return "Play E\(number.withoutTrailingZeroes)"
+                }
+            }
+
+            var image: String {
+                switch self {
+                case .next:
+                    return "play.fill"
+                default:
+                    return "forward.fill"
+                }
+            }
+
+            var textColor: Color {
+                if case .next = self {
+                    return .black
+                }
+                return .white
+            }
+
+            var background: Color {
+                if case .next = self {
+                    return .white
+                }
+                return .init(white: 0.25)
+            }
+        }
+
+        var actions: [Action]
+        var canShowActions: Bool
+
+        var visible: Bool {
+            canShowActions && !actions.isEmpty
+        }
+
+        init(_ state: VideoPlayerFeature.State) {
+            self.canShowActions = state.player.duration.isValid && state.player.duration > .zero
+            self.actions = state.selectedServerResponse.value?.skipTimes
+                .filter { $0.startTime <= state.player.progress.seconds && state.player.progress.seconds <= $0.endTime }
+                .sorted(by: \.startTime)
+                .compactMap { .times($0) } ?? []
+
+            if let currentEpisode = state.selectedItem.value,
+               let episodes = state.selectedPage.value?.items,
+               let index = episodes.firstIndex(where: { $0.id == currentEpisode.id }), (index + 1) < episodes.endIndex {
+                let nextEpisode = episodes[index + 1]
+
+                if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {
+                    if state.player.progress.seconds >= type.startTime {
+                        actions.append(.next(nextEpisode.number, state.selected.group, state.selected.page, nextEpisode.id))
+                    }
+                } else if state.player.progress.seconds >= (0.92 * state.player.duration.seconds) {
+                    actions.append(.next(nextEpisode.number, state.selected.group, state.selected.page, nextEpisode.id))
+                }
+            }
         }
     }
 }

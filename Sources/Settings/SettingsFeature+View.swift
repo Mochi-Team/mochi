@@ -15,7 +15,7 @@ import SwiftUI
 extension SettingsFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store.viewAction, observe: \.`self`) { viewStore in
+        WithViewStore(store, observe: \.`self`) { viewStore in
             Text("Hello, World!")
                 .onAppear {
                     viewStore.send(.didAppear)
@@ -35,7 +35,7 @@ struct SettingsFeatureView_Previews: PreviewProvider {
         SettingsFeature.View(
             store: .init(
                 initialState: .init(),
-                reducer: { SettingsFeature.Reducer() }
+                reducer: { SettingsFeature() }
             )
         )
     }

@@ -16,11 +16,10 @@ import Search
 import Settings
 import VideoPlayer
 
-public extension AppFeature.Reducer {
-    @ReducerBuilder<State, Action>
-    var body: some ReducerOf<Self> {
+extension AppFeature: Reducer {
+    public var body: some ReducerOf<Self> {
         Scope(state: \.settings.userSettings, action: /Action.InternalAction.appDelegate) {
-            AppDelegateFeature.Reducer()
+            AppDelegateFeature()
         }
 
         Reduce { state, action in
@@ -34,7 +33,7 @@ public extension AppFeature.Reducer {
                     case .discover:
                         state.discover.screens.removeAll()
                     case .repos:
-                        state.repos.$repos.selected = nil
+                        state.repos.path.removeAll()
                     case .search:
                         state.search.screens.removeAll()
                     case .settings:
@@ -89,23 +88,23 @@ public extension AppFeature.Reducer {
             return .none
         }
         .ifLet(\.$videoPlayer, action: /Action.internal .. Action.InternalAction.videoPlayer) {
-            VideoPlayerFeature.Reducer()
+            VideoPlayerFeature()
         }
 
         Scope(state: \.discover, action: /Action.InternalAction.discover) {
-            DiscoverFeature.Reducer()
+            DiscoverFeature()
         }
 
         Scope(state: \.repos, action: /Action.InternalAction.repos) {
-            ReposFeature.Reducer()
+            ReposFeature()
         }
 
         Scope(state: \.search, action: /Action.InternalAction.search) {
-            SearchFeature.Reducer()
+            SearchFeature()
         }
 
         Scope(state: \.settings, action: /Action.InternalAction.settings) {
-            SettingsFeature.Reducer()
+            SettingsFeature()
         }
     }
 }

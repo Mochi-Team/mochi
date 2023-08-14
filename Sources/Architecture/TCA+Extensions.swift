@@ -10,14 +10,16 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
-public extension Equatable {
-    var `self`: Self {
-        get { self }
-        set { self = newValue }
-    }
-}
-
 public extension Store {
+    func scope<ChildState, ChildAction>(
+        state toChildState: @escaping (State) -> ChildState,
+        action fromChildAction: @escaping (ChildAction) -> Action.ViewAction
+    ) -> Store<ChildState, ChildAction> where Action: FeatureAction {
+        scope(state: toChildState) { action in
+            .view(fromChildAction(action))
+        }
+    }
+
     func scope<ChildState, ChildAction>(
         state toChildState: @escaping (State) -> ChildState,
         action fromChildAction: @escaping (ChildAction) -> Action.InternalAction
@@ -25,16 +27,6 @@ public extension Store {
         scope(state: toChildState) { action in
             .internal(fromChildAction(action))
         }
-    }
-}
-
-public extension Store where Action: FeatureAction {
-    var viewAction: Store<State, Action.ViewAction> {
-        scope(state: { $0 }, action: { .view($0) })
-    }
-
-    var internalAction: Store<State, Action.InternalAction> {
-        scope(state: { $0 }, action: { .internal($0) })
     }
 }
 
@@ -92,23 +84,7 @@ public extension Reducer where Action: FeatureAction {
     }
 }
 
-// MARK: - PresentationState + Sendable
-
-extension PresentationState: @unchecked Sendable where State: Sendable {}
-
-// MARK: - BindingAction + Sendable
-
-extension BindingAction: @unchecked Sendable where Root: Sendable {}
-
 public extension Effect {
-    @available(*, deprecated, message: "Use `Effect.send` once animation starts working.")
-    static func action(
-        _ action: Action,
-        animation: Animation? = nil
-    ) -> Self {
-        run { await $0(action, animation: animation) }
-    }
-
     static func run(
         animation: Animation? = nil,
         _ operation: @escaping () async throws -> Action
@@ -117,22 +93,10 @@ public extension Effect {
     }
 
     static func run(
-        animation _: Animation? = nil,
+        animation: Animation? = nil,
         _ operation: @escaping () async throws -> Void
     ) -> Self {
         run { _ in try await operation() }
-    }
-}
-
-public extension ViewStore {
-    func binding<ParentState, Value>(
-        _ parentKeyPath: WritableKeyPath<ParentState, BindingState<Value>>,
-        as keyPath: KeyPath<ViewState, Value>
-    ) -> Binding<Value> where ViewAction: BindableAction, ViewAction.State == ParentState, Value: Equatable {
-        binding(
-            get: { $0[keyPath: keyPath] },
-            send: { .binding(.set(parentKeyPath, $0)) }
-        )
     }
 }
 
@@ -168,15 +132,45 @@ public struct Case<ParentState, ParentAction, Child: Reducer>: Reducer where Chi
     }
 }
 
-public extension ViewStore where ViewAction: FeatureAction {
-    func binding<ParentState, Value>(
-        _ parentKeyPath: WritableKeyPath<ParentState, BindingState<Value>>,
-        keyPath: WritableKeyPath<ViewState, Value>
-    ) -> Binding<Value> where ViewAction.ViewAction: BindableAction, ViewAction.ViewAction.State == ParentState, Value: Equatable {
-        binding { viewState in
-            viewState[keyPath: keyPath]
-        } send: { value in
-            .view(.binding(.set(parentKeyPath, value)))
-        }
+public extension WithViewStore where ViewState: Equatable, Content: View {
+    init<State, Action: FeatureAction>(
+        _ store: Store<State, Action>,
+        observe toViewState: @escaping (_ state: State) -> ViewState,
+        @ViewBuilder content: @escaping (_ viewStore: ViewStore<ViewState, ViewAction>) -> Content
+    ) where ViewAction == Action.ViewAction {
+        self.init(
+            store,
+            observe: toViewState,
+            send: Action.view(_:),
+            content: content
+        )
+    }
+
+    init<State, Action: FeatureAction>(
+        _ store: Store<State, Action>,
+        observe toViewState: @escaping (_ state: BindingViewStore<State>) -> ViewState,
+        @ViewBuilder content: @escaping (_ viewStore: ViewStore<ViewState, ViewAction>) -> Content
+    ) where ViewAction == Action.ViewAction, ViewAction: BindableAction, ViewAction.State == State {
+        self.init(
+            store,
+            observe: toViewState,
+            send: Action.view(_:),
+            removeDuplicates: ==,
+            content: content
+        )
+    }
+}
+
+public extension ViewStore where ViewState: Equatable {
+    convenience init<State, Action: FeatureAction>(
+        _ store: Store<State, Action>,
+        observe toViewState: @escaping (_ state: State) -> ViewState
+    ) where ViewAction == Action.ViewAction {
+        self.init(
+            store,
+            observe: toViewState,
+            send: Action.view(_:),
+            removeDuplicates: ==
+        )
     }
 }

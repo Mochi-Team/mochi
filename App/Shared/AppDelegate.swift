@@ -14,8 +14,8 @@ import Foundation
 import UIKit
 
 let store = Store(
-    initialState: AppFeature.State(),
-    reducer: { AppFeature.Reducer() }
+    initialState: .init(),
+    reducer: { AppFeature() }
 )
 
 @UIApplicationMain
@@ -48,9 +48,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 import AppKit
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    let store = StoreOf<AppFeature.Reducer>(
+    let store = Store(
         initialState: .init(),
-        reducer: { AppFeature.Reducer() }
+        reducer: { AppFeature() }
     )
 
     func application(

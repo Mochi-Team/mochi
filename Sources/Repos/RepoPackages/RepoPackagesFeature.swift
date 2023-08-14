@@ -18,28 +18,18 @@ import ViewComponents
 
 // MARK: - RepoPackagesFeature
 
-public enum RepoPackagesFeature {
+public struct RepoPackagesFeature: Feature {
     public typealias Package = [Module.Manifest]
 
     public struct State: FeatureState, Identifiable {
-        public init(
-            repo: Repo,
-            modules: Loadable<[Module.Manifest]> = .pending,
-            installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:]
-        ) {
-            self.repo = repo
-            self.modules = modules
-            self.installingModules = installingModules
-        }
-
         public var id: Repo.ID { repo.id }
-
-        public var repo: Repo
-        public var modules: Loadable<[Module.Manifest]>
+        public let repo: Repo
+        public var fetchedModules: Loadable<[Module.Manifest]>
         public var installingModules: [Module.ID: RepoClient.RepoModuleDownloadState]
 
+        // TODO: Make this not computed but instead whenever fetched modules changes
         public var packages: Loadable<[Package]> {
-            modules.map { manifests in
+            fetchedModules.map { manifests in
                 Dictionary(grouping: manifests, by: \.id)
                     .map(\.value)
                     .filter { !$0.isEmpty }
@@ -48,22 +38,62 @@ public enum RepoPackagesFeature {
         }
 
         public var installedModules: [Module] {
-            repo.modules.sorted(by: \.name)
+            repo.modules.sorted(by: \.installDate)
+        }
+
+        public init(
+            repo: Repo,
+            fetchedModules: Loadable<[Module.Manifest]> = .pending,
+            installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:]
+        ) {
+            self.repo = repo
+            self.fetchedModules = fetchedModules
+            self.installingModules = installingModules
         }
     }
 
-    public typealias Action = ReposFeature.Action
+    public enum Action: FeatureAction {
+        case view(ViewAction)
+        case `internal`(InternalAction)
+        case delegate(DelegateAction)
+
+        public enum ViewAction: SendableAction {
+            case didAppear
+            case didTapClose
+            case didTapToRefreshRepo
+        }
+
+        public enum InternalAction: SendableAction {}
+        public enum DelegateAction: SendableAction {}
+    }
 
     @MainActor
     public struct View: FeatureView {
-        public let store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>
+        public let store: StoreOf<RepoPackagesFeature>
 
-        public nonisolated init(store: Store<RepoPackagesFeature.State, RepoPackagesFeature.Action>) {
+        public nonisolated init(store: StoreOf<RepoPackagesFeature>) {
             self.store = store
         }
     }
 
-    public typealias Reducer = ReposFeature.Reducer
+    @Dependency(\.dismiss)
+    var dismiss
+
+    public var body: some ReducerOf<Self> {
+        Reduce { _, action in
+            switch action {
+            case .view(.didAppear):
+                break
+            case .view(.didTapToRefreshRepo):
+                break
+            case .view(.didTapClose):
+                return .run { _ in await dismiss() }
+            case .delegate:
+                break
+            }
+            return .none
+        }
+    }
 }
 
 extension RepoPackagesFeature.Package {

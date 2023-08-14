@@ -21,7 +21,7 @@ extension DiscoverFeature.View: View {
     @MainActor
     public var body: some View {
         NavStack(
-            store.internalAction.scope(
+            store.scope(
                 state: \.screens,
                 action: Action.InternalAction.screens
             )
@@ -122,7 +122,7 @@ extension DiscoverFeature.View: View {
                 TopBarView(
                     backgroundStyle: .gradientSystem(),
                     leadingAccessory: {
-                        WithViewStore(store.viewAction, observe: \.selectedRepoModule) { viewStore in
+                        WithViewStore(store, observe: \.selectedRepoModule) { viewStore in
                             Button {
                                 viewStore.send(.didTapOpenModules)
                             } label: {
@@ -160,7 +160,7 @@ extension DiscoverFeature.View: View {
                 .frame(maxWidth: .infinity)
             }
             .onAppear {
-                store.viewAction.send(.didAppear)
+                store.send(.view(.didAppear))
             }
             .moduleListsSheet(
                 store.scope(
@@ -263,7 +263,7 @@ extension DiscoverFeature.View {
                             .frame(width: 124)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                store.viewAction.send(.didTapPlaylist(playlist))
+                                store.send(.view(.didTapPlaylist(playlist)))
                             }
                         }
                     }
@@ -352,7 +352,7 @@ extension DiscoverFeature.View {
                             .fixedSize(horizontal: false, vertical: true)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                store.viewAction.send(.didTapPlaylist(playlist))
+                                store.send(.view(.didTapPlaylist(playlist)))
                             }
 
                             if idx < (end - 1) {
@@ -399,7 +399,7 @@ extension DiscoverFeature.View {
                             .padding(.bottom, 42)
                     }
                     .onTapGesture {
-                        store.viewAction.send(.didTapPlaylist(playlist))
+                        store.send(.view(.didTapPlaylist(playlist)))
                     }
                 }
             }

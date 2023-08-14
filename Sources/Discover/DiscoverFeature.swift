@@ -18,7 +18,7 @@ import Styling
 import SwiftUI
 import ViewComponents
 
-public enum DiscoverFeature: Feature {
+public struct DiscoverFeature: Feature {
     public enum Error: Swift.Error, Equatable, Sendable {
         case system(System)
         case module(ModuleClient.Error)
@@ -42,7 +42,7 @@ public enum DiscoverFeature: Feature {
         }
     }
 
-    public struct Screens: ComposableArchitecture.Reducer {
+    public struct Screens: Reducer {
         public enum State: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.State)
         }
@@ -51,9 +51,9 @@ public enum DiscoverFeature: Feature {
             case playlistDetails(PlaylistDetailsFeature.Action)
         }
 
-        public var body: some ComposableArchitecture.Reducer<State, Action> {
+        public var body: some ReducerOf<Self> {
             Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
-                PlaylistDetailsFeature.Reducer()
+                PlaylistDetailsFeature()
             }
         }
     }
@@ -112,26 +112,21 @@ public enum DiscoverFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<DiscoverFeature>
+        public let store: StoreOf<DiscoverFeature>
 
         @InsetValue(\.bottomNavigation)
         var bottomNavigationSize
 
-        public nonisolated init(store: FeatureStoreOf<DiscoverFeature>) {
+        public nonisolated init(store: StoreOf<DiscoverFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = DiscoverFeature.State
-        public typealias Action = DiscoverFeature.Action
+    @Dependency(\.repoClient)
+    var repoClient
 
-        @Dependency(\.repoClient)
-        var repoClient
+    @Dependency(\.moduleClient)
+    var moduleClient
 
-        @Dependency(\.moduleClient)
-        var moduleClient
-
-        public init() {}
-    }
+    public init() {}
 }

@@ -10,7 +10,7 @@ import Architecture
 import ComposableArchitecture
 import DatabaseClient
 
-extension ModuleListsFeature.Reducer: Reducer {
+extension ModuleListsFeature {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {

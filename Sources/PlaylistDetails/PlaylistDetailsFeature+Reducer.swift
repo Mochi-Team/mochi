@@ -17,9 +17,9 @@ import RepoClient
 import SharedModels
 import Tagged
 
-// MARK: - PlaylistDetailsFeature.Reducer + Reducer
+// MARK: - PlaylistDetailsFeature + Reducer
 
-extension PlaylistDetailsFeature.Reducer: Reducer {
+extension PlaylistDetailsFeature {
     enum Cancellables: Hashable, CaseIterable {
         case fetchPlaylistDetails
     }
@@ -127,7 +127,7 @@ extension PlaylistDetailsFeature.State {
 
             effects.append(
                 .run { send in
-                    try await withTaskCancellation(id: PlaylistDetailsFeature.Reducer.Cancellables.fetchPlaylistDetails) {
+                    try await withTaskCancellation(id: PlaylistDetailsFeature.Cancellables.fetchPlaylistDetails) {
                         let value = try await moduleClient.withModule(id: repoModuleId) { module in
                             try await module.playlistDetails(playlistId)
                         }

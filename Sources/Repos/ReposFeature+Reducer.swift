@@ -13,7 +13,7 @@ import RepoClient
 import SharedModels
 import Styling
 
-extension ReposFeature.Reducer: Reducer {
+extension ReposFeature {
     private enum Cancellables: Hashable {
         case repoURLDebounce
         case refreshFetchingAllRemoteModules
@@ -44,15 +44,6 @@ extension ReposFeature.Reducer: Reducer {
                                 await send(.internal(.observeReposResult(repos)))
                             }
                         }
-                    },
-                    .run { send in
-                        await withTaskCancellation(id: Cancellables.observeInstallingModules) {
-                            let streams = repoClient.observeModuleInstalls()
-
-                            for await stream in streams {
-                                await send(.internal(.observeInstalls(stream)))
-                            }
-                        }
                     }
                 )
 
@@ -60,15 +51,16 @@ extension ReposFeature.Reducer: Reducer {
                 return fetchAllReposRemoteModules(state)
 
             case let .view(.didAskToRefreshRepo(repoId)):
-                if let repo = state.repos[id: repoId] {
-                    return .run { send in
-                        await fetchRepoModules(repo, send, forced: true)
-                    }
-                }
+//                if let repo = state.repos[id: repoId] {
+//                    return .run { send in
+//                        await fetchRepoModules(repo, send, forced: true)
+//                    }
+//                }
+                break
 
             case let .view(.didTapToAddNewRepo(repoPayload)):
                 state.url = ""
-                state.repo = .pending
+                state.searchedRepo = .pending
 
                 return .concatenate(
                     .run { [repoPayload] in
@@ -86,23 +78,15 @@ extension ReposFeature.Reducer: Reducer {
                 )
 
             case let .view(.didTapRepo(repoId)):
-                return .action(.internal(.animateSelectRepo(repoId)), animation: .navStackTransion)
-
-            case .view(.didTapBackButtonForOverlay):
-                return .action(.internal(.animateSelectRepo(nil)), animation: .navStackTransion)
+                guard let repo = state.repos[id: repoId] else { break }
+                state.path.append(RepoPackagesFeature.State(repo: repo))
 
             case let .view(.didTapAddModule(repoId, moduleId)):
-                guard state.selected?.repo.id == repoId else {
-                    break
-                }
+//                guard state.selected?.repo.id == repoId else { break }
+//                guard let manifest = state.selected?.packages.value?.map(\.latestModule).first(where: \.id == moduleId) else { break}
 
-                guard let manifest = state.selected?.packages.value?.map(\.latestModule).first(where: \.id == moduleId) else {
-                    break
-                }
-
-                return .run {
-                    await repoClient.addModule(repoId, manifest)
-                }
+//                return .run { await repoClient.addModule(repoId, manifest) }
+                break
 
             case let .view(.didTapRemoveModule(repoId, moduleId)):
                 return .run { _ in
@@ -112,11 +96,11 @@ extension ReposFeature.Reducer: Reducer {
 
             case .view(.binding(\.$url)):
                 guard let url = URL(string: state.url.lowercased()) else {
-                    state.repo = .pending
+                    state.searchedRepo = .pending
                     return .cancel(id: Cancellables.repoURLDebounce)
                 }
 
-                state.repo = .loading
+                state.searchedRepo = .loading
 
                 return .run { send in
                     try await withTaskCancellation(id: Cancellables.repoURLDebounce, cancelInFlight: true) {
@@ -133,28 +117,35 @@ extension ReposFeature.Reducer: Reducer {
                 break
 
             case let .internal(.validateRepoURL(loadable)):
-                state.repo = loadable
+                state.searchedRepo = loadable
 
             case let .internal(.loadableModules(repoId, loadable)):
-                state.repoModules[repoId] = loadable
+//                state.repoModules[repoId] = loadable
+                break
 
             case let .internal(.observeReposResult(repos)):
                 state.repos = .init(uniqueElements: repos)
-                return fetchAllReposRemoteModules(state, forced: false)
 
-            case let .internal(.observeInstalls(stream)):
-                state.installingModules = stream
+            case .internal(.path):
+                break
 
-            case let .internal(.animateSelectRepo(repoId)):
-                state.$repos.selected = repoId
+//            case let .internal(.repo(id, .delegate(.didTapCloseButton))):
+//                break
+//                if state.selected?.id == id {
+//                    state.selection = nil
+//                }
 
             case .delegate:
                 break
             }
             return .none
         }
+        .forEach(\.path, action: /Action.internal .. Action.InternalAction.path) {
+            RepoPackagesFeature()
+        }
     }
 
+    // TODO: Move logic to dependency
     private func fetchAllReposRemoteModules(
         _ state: State,
         forced: Bool = true
@@ -163,20 +154,21 @@ extension ReposFeature.Reducer: Reducer {
             await withTaskCancellation(id: Cancellables.refreshFetchingAllRemoteModules, cancelInFlight: true) {
                 await withTaskGroup(of: Void.self) { group in
                     for repo in state.repos {
-                        group.addTask {
-                            await fetchRepoModules(
-                                repo,
-                                send,
-                                alreadyRequested: state.repoModules[repo.id].map(\.hasInitialized) ?? false,
-                                forced: forced
-                            )
-                        }
+//                        group.addTask {
+//                            await fetchRepoModules(
+//                                repo,
+//                                send,
+//                                alreadyRequested: state.repoModules[repo.id].map(\.hasInitialized) ?? false,
+//                                forced: forced
+//                            )
+//                        }
                     }
                 }
             }
         }
     }
 
+    // TODO: Move logic to dependency
     private func fetchRepoModules(_ repo: Repo, _ send: Send<Action>, alreadyRequested: Bool = false, forced: Bool = true) async {
         if forced || !alreadyRequested {
             await withTaskCancellation(id: Cancellables.fetchRemoteRepoModules(repo.id), cancelInFlight: true) {

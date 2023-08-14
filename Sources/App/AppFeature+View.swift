@@ -25,36 +25,33 @@ import ViewComponents
 extension AppFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(
-            store.viewAction,
-            observe: \.selected
-        ) { viewStore in
+        WithViewStore(store, observe: \.selected) { viewStore in
             Group {
                 switch viewStore.state {
                 case .discover:
                     DiscoverFeature.View(
-                        store: store.internalAction.scope(
+                        store: store.scope(
                             state: \.discover,
                             action: Action.InternalAction.discover
                         )
                     )
                 case .repos:
                     ReposFeature.View(
-                        store: store.internalAction.scope(
+                        store: store.scope(
                             state: \.repos,
                             action: Action.InternalAction.repos
                         )
                     )
                 case .search:
                     SearchFeature.View(
-                        store: store.internalAction.scope(
+                        store: store.scope(
                             state: \.search,
                             action: Action.InternalAction.search
                         )
                     )
                 case .settings:
                     SettingsFeature.View(
-                        store: store.internalAction.scope(
+                        store: store.scope(
                             state: \.settings,
                             action: Action.InternalAction.settings
                         )
@@ -74,7 +71,7 @@ extension AppFeature.View: View {
                 .ignoresSafeArea()
         )
         .onAppear {
-            store.viewAction.send(.didAppear)
+            store.send(.view(.didAppear))
         }
         .overlay {
             WithViewStore(store, observe: \.videoPlayer != nil) { isVisible in
@@ -119,7 +116,7 @@ extension AppFeature.View {
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    store.viewAction.send(.didSelectTab(tab))
+                    store.send(.view(.didSelectTab(tab)))
                 }
                 .background(
                     Rectangle()
@@ -160,7 +157,7 @@ struct AppFeatureView_Previews: PreviewProvider {
         AppFeature.View(
             store: .init(
                 initialState: .init(),
-                reducer: { AppFeature.Reducer() }
+                reducer: { AppFeature() }
             )
         )
     }

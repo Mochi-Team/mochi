@@ -182,11 +182,6 @@ extension RepoClient: DependencyKey {
                 .values
                 .eraseToStream()
         },
-        repos: { databaseClient.observe($0) },
-        modules: { repoId in
-            (databaseClient.observe(.all.where(\.$baseURL == repoId.rawValue)) as AsyncStream<[Repo]>)
-                .map { $0.first?.modules ?? .init() }
-                .eraseToStream()
-        }
+        repos: { databaseClient.observe($0) }
     )
 }

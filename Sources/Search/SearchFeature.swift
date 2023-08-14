@@ -18,8 +18,8 @@ import Styling
 import SwiftUI
 import ViewComponents
 
-public enum SearchFeature: Feature {
-    public struct Screens: ComposableArchitecture.Reducer {
+public struct SearchFeature: Feature {
+    public struct Screens: Reducer {
         public init() {}
 
         public enum State: Equatable, Sendable {
@@ -30,9 +30,9 @@ public enum SearchFeature: Feature {
             case playlistDetails(PlaylistDetailsFeature.Action)
         }
 
-        public var body: some ComposableArchitecture.Reducer<State, Action> {
+        public var body: some ReducerOf<Self> {
             Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
-                PlaylistDetailsFeature.Reducer()
+                PlaylistDetailsFeature()
             }
         }
     }
@@ -103,29 +103,24 @@ public enum SearchFeature: Feature {
 
     @MainActor
     public struct View: FeatureView {
-        public let store: FeatureStoreOf<SearchFeature>
+        public let store: StoreOf<SearchFeature>
 
 //        @InsetValue(\.bottomNavigation)
 //        var bottomNavigationSize
 
-        public nonisolated init(store: FeatureStoreOf<SearchFeature>) {
+        public nonisolated init(store: StoreOf<SearchFeature>) {
             self.store = store
         }
     }
 
-    public struct Reducer: FeatureReducer {
-        public typealias State = SearchFeature.State
-        public typealias Action = SearchFeature.Action
+    @Dependency(\.moduleClient)
+    var moduleClient
 
-        @Dependency(\.moduleClient)
-        var moduleClient
+    @Dependency(\.repoClient)
+    var repoClient
 
-        @Dependency(\.repoClient)
-        var repoClient
+    @Dependency(\.logger)
+    var logger
 
-        @Dependency(\.logger)
-        var logger
-
-        public init() {}
-    }
+    public init() {}
 }

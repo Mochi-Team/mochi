@@ -17,10 +17,7 @@ import SwiftUI
 extension ModuleListsFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(
-            store.viewAction,
-            observe: \.repos
-        ) { viewStore in
+        WithViewStore(store, observe: \.repos) { viewStore in
             VStack {
                 if viewStore.isEmpty {
                     VStack(spacing: 12) {
@@ -101,7 +98,7 @@ extension ModuleListsFeature.View {
                 } else {
                     ForEach(repo.modules.sorted { $0.name < $1.name }, id: \.id) { module in
                         Button {
-                            store.viewAction.send(.didSelectModule(repo.id, module.id))
+                            store.send(.view(.didSelectModule(repo.id, module.id)))
                         } label: {
                             moduleRow(repo, module.manifest)
                                 .contentShape(Rectangle())
