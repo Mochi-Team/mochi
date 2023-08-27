@@ -34,8 +34,8 @@ public struct AppDelegateFeature: Reducer {
             switch action {
             case .didFinishLaunching:
                 return .run { _ in
-                    try await databaseClient.initialize()
-                    try await moduleClient.initialize()
+                    try? await databaseClient.initialize()
+                    try? await moduleClient.initialize()
                 }
             }
         }

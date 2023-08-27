@@ -12,7 +12,6 @@ import Foundation
 // MARK: - TestSchema
 
 struct TestSchema: Schema {
-    @SchemaBuilder
     static var entities: Entities {
         Parent.self
         Child.self
@@ -21,13 +20,14 @@ struct TestSchema: Schema {
 
 // MARK: - Parent
 
+// swiftformat:disable:next redundantType
 // swiftlint:disable redundant_optional_initialization
 struct Parent: Entity {
     @Attribute
     var name = ""
 
     @Attribute
-    var nameOptional: String? = nil
+    var nameOptional: String?
 
     @Relation
     var child: Child = .init()
@@ -35,16 +35,17 @@ struct Parent: Entity {
     @Relation
     var childOptional: Child? = nil
 
-//        @Relation
-//        var children = [Child]()
+//    @Relation
+//    var children = [Child]()
 }
 
 // MARK: - Child
 
-struct Child: Entity {
+// swiftformat:disable:next redundantType
+struct Child: Entity, Equatable {
     @Attribute
     var name = ""
 
-//        @Relation
-//        var parent: Parent = .init()
+//    @Relation
+//    var parent: Parent = .init()
 }

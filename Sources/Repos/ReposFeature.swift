@@ -45,13 +45,10 @@ public struct ReposFeature: Feature {
     public enum Action: FeatureAction {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
-            case didAskToRefreshRepo(Repo.ID)
-            case didAskToRefreshModules
-            case didTapRepo(RepoPackagesFeature.State.ID)
-            case didTapToAddNewRepo(RepoClient.RepoPayload)
-            case didTapToDeleteRepo(Repo.ID)
-            case didTapAddModule(Repo.ID, Module.ID)
-            case didTapRemoveModule(Repo.ID, Module.ID)
+            case didTapRefreshRepos(Repo.ID? = nil)
+            case didTapRepo(Repo.ID)
+            case didTapAddNewRepo(RepoClient.RepoPayload)
+            case didTapDeleteRepo(Repo.ID)
             case binding(BindingAction<State>)
         }
 
@@ -59,8 +56,7 @@ public struct ReposFeature: Feature {
 
         public enum InternalAction: SendableAction {
             case validateRepoURL(Loadable<RepoClient.RepoPayload>)
-            case loadableModules(Repo.ID, Loadable<[Module.Manifest]>)
-            case observeReposResult([Repo])
+            case loadRepos([Repo])
             case path(StackAction<RepoPackagesFeature.State, RepoPackagesFeature.Action>)
         }
 

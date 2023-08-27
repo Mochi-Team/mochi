@@ -10,24 +10,17 @@ import CoreData
 import Foundation
 
 extension NSAttributeDescription {
-    convenience init(_ description: any OpaqueAttribute) {
+    convenience init<A: OpaqueAttribute>(_ description: A) {
         self.init()
 
         name = description.name.value ?? ""
-        isOptional = description.isOptional
+        isOptional = description.isOptionalType
         isTransient = description.traits.contains(.transient)
         allowsExternalBinaryDataStorage = description.traits.contains(.allowsExternalBinaryDataStorage)
         allowsCloudEncryption = description.traits.contains(.allowsCloudEncryption)
         preservesValueInHistoryOnDeletion = description.traits.contains(.preservesValueInHistoryOnDeletion)
-        defaultValue = description.wrappedValue
-
-        if let valueType = Swift.type(of: description.wrappedValue) as? any TransformableValue.Type {
-            attributeType = valueType._attributeType
-        } else if let value = description.wrappedValue as? _OptionalType, let bro = value.wrappedType() as? any TransformableValue.Type {
-            attributeType = bro._attributeType
-        } else {
-            assertionFailure("This value type is unsupported")
-        }
+        defaultValue = try? description.wrappedValue.encode()
+        attributeType = A.WrappedValue.Primitive.attributeType
     }
 }
 
@@ -36,7 +29,7 @@ extension NSRelationshipDescription {
         self.init()
 
         name = description.name.value ?? ""
-        isOptional = description.isOptional
+        isOptional = description.isOptionalType
         isTransient = description.traits.contains(.transient)
         isOrdered = description.isOrdered
         deleteRule = description.deleteRule

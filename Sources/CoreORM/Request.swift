@@ -138,92 +138,92 @@ public extension PredicateProtocol {
 
 // MARK: - comparison operators
 
-public extension PrimitiveType where Self: Equatable {
+public extension PrimitiveValue where Self: Equatable {
     static func == <R>(
-        kp: KeyPath<R, Attribute<Self, Self>>,
+        kp: KeyPath<R, Attribute<Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .equalTo, value)
     }
 
     static func != <R>(
-        kp: KeyPath<R, Attribute<Self, Self>>,
+        kp: KeyPath<R, Attribute<Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .notEqualTo, value)
     }
 }
 
-public extension Optional where Wrapped: PrimitiveType {
+public extension Optional where Wrapped: PrimitiveValue {
     static func == <R>(
-        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        kp: KeyPath<R, Attribute<Wrapped>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .equalTo, value)
     }
 
     static func != <R>(
-        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        kp: KeyPath<R, Attribute<Wrapped>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .notEqualTo, value)
     }
 }
 
-public extension PrimitiveType where Self: Comparable {
+public extension PrimitiveValue where Self: Comparable {
     static func > <R>(
-        kp: KeyPath<R, Attribute<Self, Self>>,
+        kp: KeyPath<R, Attribute<Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .greaterThan, value)
     }
 
     static func < <R>(
-        kp: KeyPath<R, Attribute<Self, Self>>,
+        kp: KeyPath<R, Attribute<Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .lessThan, value)
     }
 
     static func <= <R>(
-        kp: KeyPath<R, Attribute<Self, Self>>,
+        kp: KeyPath<R, Attribute<Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .lessThanOrEqualTo, value)
     }
 
     static func >= <R>(
-        kp: KeyPath<R, Attribute<Self, Self>>,
+        kp: KeyPath<R, Attribute<Self>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .greaterThanOrEqualTo, value)
     }
 }
 
-public extension Optional where Wrapped: PrimitiveType & Comparable {
+public extension Optional where Wrapped: PrimitiveValue & Comparable {
     static func > <R>(
-        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        kp: KeyPath<R, Attribute<Wrapped>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .greaterThan, value)
     }
 
     static func < <R>(
-        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        kp: KeyPath<R, Attribute<Wrapped>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .lessThan, value)
     }
 
     static func <= <R>(
-        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        kp: KeyPath<R, Attribute<Wrapped>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .lessThanOrEqualTo, value)
     }
 
     static func >= <R>(
-        kp: KeyPath<R, Attribute<Wrapped, Self>>,
+        kp: KeyPath<R, Attribute<Wrapped>>,
         value: Self
     ) -> ComparisonPredicate<R> {
         ComparisonPredicate(kp, .greaterThanOrEqualTo, value)
@@ -233,8 +233,8 @@ public extension Optional where Wrapped: PrimitiveType & Comparable {
 // MARK: - internal
 
 internal extension ComparisonPredicate {
-    convenience init<Value>(
-        _ keyPath: KeyPath<Root, Attribute<some PrimitiveType, Value>>,
+    convenience init<Value: PrimitiveValue>(
+        _ keyPath: KeyPath<Root, Attribute<Value>>,
         _ op: NSComparisonPredicate.Operator,
         _ value: Value?
     ) {

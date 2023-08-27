@@ -64,7 +64,7 @@ extension RepoPackagesFeature.View: View {
                                     packagesStatusView(.noModulesFound)
                                 } else {
                                     LazyVStack(spacing: 8) {
-                                        ForEach(Array(zip(packages.indices, packages)), id: \.0) { _, package in
+                                        ForEach(packages, id: \.self) { package in
                                             if !package.isEmpty {
                                                 packageRow(package)
                                             }
@@ -230,11 +230,11 @@ extension RepoPackagesFeature.View {
             PackageDownloadState(
                 repo: state.repo,
                 installedModule: state.repo.modules.first(where: \.id == latestModule.id),
-                downloadState: state.installingModules.first(where: \.key == latestModule.id)?.value
+                downloadState: state.downloadStates.first(where: \.key == latestModule.id)?.value
             )
         } content: { viewStore in
             HStack(alignment: .center, spacing: 16) {
-                LazyImage(url: latestModule.iconURL(repoURL: viewStore.repo.baseURL)) { state in
+                LazyImage(url: latestModule.iconURL(repoURL: viewStore.repo.remoteURL)) { state in
                     if let image = state.image {
                         image
                             .resizable()
@@ -304,12 +304,12 @@ extension RepoPackagesFeature.View {
                         .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                         .onTapGesture {
-//                            viewStore.send(.didTapRemoveModule(viewStore.repo.id, latestModule.id))
+                            viewStore.send(.didTapRemoveModule(latestModule.id))
                         }
                     } else if let installedModule = viewStore.installedModule {
                         if installedModule.version < latestModule.version {
                             Button {
-//                                viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
+                                viewStore.send(.didTapAddModule(latestModule.id))
                             } label: {
                                 Image(systemName: "arrow.up.circle.fill")
                                     .resizable()
@@ -327,7 +327,7 @@ extension RepoPackagesFeature.View {
                         }
                     } else {
                         Button {
-//                            viewStore.send(.didTapAddModule(viewStore.repo.id, latestModule.id))
+                            viewStore.send(.didTapAddModule(latestModule.id))
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .resizable()
@@ -347,7 +347,7 @@ extension RepoPackagesFeature.View {
             .contextMenu {
                 if let installed = viewStore.installedModule {
                     Button {
-//                        viewStore.send(.didTapRemoveModule(viewStore.repo.id, installed.id))
+                        viewStore.send(.didTapRemoveModule(installed.id))
                     } label: {
                         Label("Remove module", systemImage: "trash.fill")
                     }
@@ -367,7 +367,7 @@ struct RepoPackagesFeatureView_Previews: PreviewProvider {
             store: .init(
                 initialState: .init(
                     repo: .init(
-                        baseURL: .init(string: "/").unsafelyUnwrapped,
+                        remoteURL: .init(string: "/").unsafelyUnwrapped,
                         dateAdded: .init(),
                         lastRefreshed: nil,
                         manifest: .init(name: "Repo 1", author: "errorerrorerror")

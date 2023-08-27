@@ -25,7 +25,7 @@ extension NSManagedObjectModel {
             for property in entity.properties {
                 if let property = property as? NSRelationshipDescription {
                     if let relationPropertyInfo = entity.opaquePropertyDescriptors[property.name] as? any OpaqueRelation {
-                        property.destinationEntity = entitiesMap[relationPropertyInfo._opaque_destinationEntity.entityName]
+                        property.destinationEntity = entitiesMap[relationPropertyInfo.destinationEntity.entityName]
                     }
                 }
             }

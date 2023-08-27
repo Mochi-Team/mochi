@@ -8,17 +8,21 @@
 
 import Foundation
 
-// MARK: - _OptionalType
+// MARK: - OpaqueOptional
 
-// swiftlint:disable type_name
-protocol _OptionalType {
+protocol OpaqueOptional {
     func wrappedType() -> Any.Type
+    var isNil: Bool { get }
 }
 
-// MARK: - Optional + _OptionalType
+// MARK: - Optional + OpaqueOptional
 
-extension Optional: _OptionalType {
+extension Optional: OpaqueOptional {
     func wrappedType() -> Any.Type {
         Wrapped.self
+    }
+
+    var isNil: Bool {
+        self == nil
     }
 }

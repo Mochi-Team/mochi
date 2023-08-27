@@ -16,8 +16,11 @@ import Tagged
 
 @dynamicMemberLookup
 public struct Module: Entity, Hashable, Sendable {
-    @Attribute(traits: [.allowsExternalBinaryDataStorage])
+    @Attribute(allowsExternalBinaryDataStorage: true)
     public var binaryModule: Data = .init()
+
+//    @Attribute
+//    public var moduleLocation: URL = .init(string: "/").unsafelyUnwrapped
 
     @Attribute
     public var installDate: Date = .init()
@@ -109,7 +112,7 @@ public extension Module {
 // MARK: - Semver + TransformableValue
 
 extension Semver: TransformableValue {
-    public func encode() -> String {
+    public func encode() throws -> String {
         description
     }
 
@@ -121,24 +124,24 @@ extension Semver: TransformableValue {
 // MARK: - TransformableValue + TransformableValue
 
 extension [Module.Manifest.Meta]: TransformableValue {
-    public func encode() -> Data {
-        (try? JSONEncoder().encode(self)) ?? .init()
+    public func encode() throws -> Data {
+        try JSONEncoder().encode(self)
     }
 
     public static func decode(value: Data) throws -> [Element] {
-        (try? JSONDecoder().decode(Self.self, from: value)) ?? .init()
+        try JSONDecoder().decode(Self.self, from: value)
     }
 }
 
 // MARK: - Module.Manifest + TransformableValue
 
 extension Module.Manifest: TransformableValue {
-    public func encode() -> Data {
-        (try? JSONEncoder().encode(self)) ?? .init()
+    public func encode() throws -> Data {
+        try JSONEncoder().encode(self)
     }
 
     public static func decode(value: Data) throws -> Module.Manifest {
-        (try? JSONDecoder().decode(Self.self, from: value)) ?? .init()
+        try JSONDecoder().decode(Self.self, from: value)
     }
 }
 

@@ -63,3 +63,11 @@ public enum Theme: Hashable, Identifiable {
         }
     }
 }
+
+// TODO: Add theme dependency for changing in settings
+
+struct ThemableModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        EmptyView()
+    }
+}

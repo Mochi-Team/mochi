@@ -9,43 +9,13 @@
 import CoreData
 import Foundation
 
-// MARK: - OpaqueRelation
-
-// swiftlint:disable type_name
-protocol OpaqueRelation: OpaqueProperty {
-    associatedtype DestinationEntity: OpaqueEntity
-    var deleteRule: NSDeleteRule { get }
-    var isOrdered: Bool { get }
-}
-
-extension OpaqueRelation {
-    var _opaque_destinationEntity: DestinationEntity.Type { DestinationEntity.self }
-
-    var relationType: _RelationType {
-        if WrappedValue.self is DestinationEntity.Type {
-            return .toOne
-        } else if WrappedValue.self is DestinationEntity?.Type {
-            return .toOne
-        } else {
-            return .toMany
-        }
-    }
-}
-
-// MARK: - _RelationType
-
-enum _RelationType {
-    case toOne
-    case toMany
-}
-
 // MARK: - Relation
 
 @propertyWrapper
 public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation {
     public var wrappedValue: WrappedValue {
         get { internalValue.value }
-        set { internalValue.value = newValue }
+        nonmutating set { internalValue.value = newValue }
     }
 
     public var projectedValue: Self {
@@ -53,28 +23,26 @@ public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation 
         set { self = newValue }
     }
 
-    var name: Box<String?>
-    var traits: [PropertyTrait] = []
-    var deleteRule = NSDeleteRule.cascadeDeleteRule
-    var isOrdered = false
-
-    var managedObjectId = Box<NSManagedObjectID?>(value: nil)
-
-    var internalValue: Box<WrappedValue>
+    let name: Box<String?>
+    let traits: Set<PropertyTrait>
+    let deleteRule: NSDeleteRule
+    let isOrdered: Bool
+    let managedObjectId = Box<NSManagedObjectID?>(value: nil)
+    let internalValue: Box<WrappedValue>
 
     /// This represents an optional to one relationship
     ///
     public init(
-        wrappedValue: @autoclosure @escaping () -> WrappedValue,
+        wrappedValue: @autoclosure @escaping () -> WrappedValue = nil,
         name: String? = nil,
         isTransient: Bool = false,
         deleteRule: NSDeleteRule = .cascadeDeleteRule
     ) where WrappedValue == DestinationEntity? {
-//        self.wrappedValue = wrappedValue()
         self.internalValue = .init(value: wrappedValue())
         self.name = .init(value: name)
         self.traits = isTransient ? [.transient] : []
         self.deleteRule = deleteRule
+        self.isOrdered = false
     }
 
     /// This represents to one relationship
@@ -85,26 +53,26 @@ public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation 
         isTransient: Bool = false,
         deleteRule: NSDeleteRule = .cascadeDeleteRule
     ) where WrappedValue == DestinationEntity {
-//        self.wrappedValue = wrappedValue()
         self.internalValue = .init(value: wrappedValue())
         self.name = .init(value: name)
         self.traits = isTransient ? [.transient] : []
         self.deleteRule = deleteRule
+        self.isOrdered = false
     }
 
     /// This represents an optional to-many relationship set
     ///
     public init(
-        wrappedValue: @autoclosure @escaping () -> WrappedValue,
+        wrappedValue: @autoclosure @escaping () -> WrappedValue = nil,
         name: String? = nil,
         isTransient: Bool = false,
         deleteRule: NSDeleteRule = .cascadeDeleteRule
     ) where WrappedValue == Set<DestinationEntity>? {
-//        self.wrappedValue = wrappedValue()
         self.internalValue = .init(value: wrappedValue())
         self.name = .init(value: name)
         self.traits = isTransient ? [.transient] : []
         self.deleteRule = deleteRule
+        self.isOrdered = false
     }
 
     /// This represents to-many relationship set
@@ -115,22 +83,21 @@ public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation 
         isTransient: Bool = false,
         deleteRule: NSDeleteRule = .cascadeDeleteRule
     ) where WrappedValue == Set<DestinationEntity> {
-//        self.wrappedValue = wrappedValue()
         self.internalValue = .init(value: wrappedValue())
         self.name = .init(value: name)
         self.traits = isTransient ? [.transient] : []
         self.deleteRule = deleteRule
+        self.isOrdered = false
     }
 
     /// This represents an optional to-many relationship ordered array
     ///
     public init(
-        wrappedValue: @autoclosure @escaping () -> WrappedValue,
+        wrappedValue: @autoclosure @escaping () -> WrappedValue = nil,
         name: String? = nil,
         isTransient: Bool = false,
         deleteRule: NSDeleteRule = .cascadeDeleteRule
     ) where WrappedValue == [DestinationEntity]? {
-//        self.wrappedValue = wrappedValue()
         self.internalValue = .init(value: wrappedValue())
         self.name = .init(value: name)
         self.traits = isTransient ? [.transient] : []
@@ -146,7 +113,6 @@ public struct Relation<DestinationEntity: Entity, WrappedValue>: OpaqueRelation 
         isTransient: Bool = false,
         deleteRule: NSDeleteRule = .cascadeDeleteRule
     ) where WrappedValue == [DestinationEntity] {
-//        self.wrappedValue = wrappedValue()
         self.internalValue = .init(value: wrappedValue())
         self.name = .init(value: name)
         self.traits = isTransient ? [.transient] : []
@@ -162,7 +128,10 @@ extension Relation: @unchecked Sendable where WrappedValue: Sendable {}
 // MARK: Equatable
 
 extension Relation: Equatable where WrappedValue: Equatable {
-    public static func == (lhs: Relation<DestinationEntity, WrappedValue>, rhs: Relation<DestinationEntity, WrappedValue>) -> Bool {
+    public static func == (
+        lhs: Relation<DestinationEntity, WrappedValue>,
+        rhs: Relation<DestinationEntity, WrappedValue>
+    ) -> Bool {
         lhs.wrappedValue == rhs.wrappedValue
     }
 }
@@ -172,5 +141,34 @@ extension Relation: Equatable where WrappedValue: Equatable {
 extension Relation: Hashable where WrappedValue: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(wrappedValue)
+    }
+}
+
+// MARK: - OpaqueRelation
+
+protocol OpaqueRelation: OpaqueProperty {
+    associatedtype DestinationEntity: OpaqueEntity
+    var deleteRule: NSDeleteRule { get }
+    var isOrdered: Bool { get }
+}
+
+// MARK: - RelationType
+
+enum RelationType {
+    case toOne
+    case toMany
+}
+
+extension OpaqueRelation {
+    var destinationEntity: DestinationEntity.Type { DestinationEntity.self }
+
+    var relationType: RelationType {
+        if WrappedValue.self is DestinationEntity.Type {
+            return .toOne
+        } else if WrappedValue.self is DestinationEntity?.Type {
+            return .toOne
+        } else {
+            return .toMany
+        }
     }
 }

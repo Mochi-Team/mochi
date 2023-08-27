@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import DatabaseClient
+import RepoClient
 
 extension ModuleListsFeature {
     public var body: some ReducerOf<Self> {
@@ -20,16 +21,20 @@ extension ModuleListsFeature {
                 }
 
             case let .view(.didSelectModule(repoId, moduleId)):
-                return .run { _ in
-                    await repoClient.selectModule(repoId, moduleId)
-                    await self.dismiss()
+                guard let module = state.repos[id: repoId]?.modules[id: moduleId]?.manifest else {
+                    break
                 }
+                return .concatenate(
+                    .send(.delegate(.selectedModule(RepoClient.SelectedModule(repoId: repoId, module: module)))),
+                    .run { _ in
+                        await self.dismiss()
+                    }
+                )
 
             case let .internal(.fetchRepos(.success(repos))):
                 state.repos = repos
 
-            case let .internal(.fetchRepos(.failure(error))):
-                print(error)
+            case .internal(.fetchRepos(.failure)):
                 state.repos = []
 
             case .delegate:

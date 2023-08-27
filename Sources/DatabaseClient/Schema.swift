@@ -6,6 +6,7 @@
 //
 //
 
+import CoreORM
 import Foundation
 import SharedModels
 

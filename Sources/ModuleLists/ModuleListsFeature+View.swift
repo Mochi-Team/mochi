@@ -117,7 +117,7 @@ extension ModuleListsFeature.View {
         _ module: Module.Manifest
     ) -> some View {
         HStack {
-            LazyImage(url: module.iconURL(repoURL: repo.baseURL)) { state in
+            LazyImage(url: module.iconURL(repoURL: repo.remoteURL)) { state in
                 if let image = state.image {
                     image.resizable()
                         .aspectRatio(contentMode: .fit)
@@ -141,7 +141,6 @@ extension ModuleListsFeature.View {
 
             Spacer()
         }
-//        .fixedSize(horizontal: true, vertical: false)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 8)
     }
@@ -170,7 +169,7 @@ struct ModuleListsFeatureView_Previews: PreviewProvider {
                 initialState: .init(
                     repos: [
                         Repo(
-                            baseURL: .init(string: "/").unsafelyUnwrapped,
+                            remoteURL: .init(string: "/").unsafelyUnwrapped,
                             dateAdded: .init(),
                             lastRefreshed: .init(),
                             manifest: .init(

@@ -8,7 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
-import ContentFetchingLogic
+import ContentCore
 import DatabaseClient
 import LoggerClient
 import ModuleClient
@@ -58,7 +58,7 @@ public struct PlaylistDetailsFeature: Feature {
         public let repoModuleId: RepoModuleID
         public let playlist: Playlist
         public var details: Loadable<Playlist.Details>
-        public var content: ContentFetchingLogic.State
+        public var content: ContentCore.State
 
         @PresentationState
         public var destination: Destination.State?
@@ -75,7 +75,7 @@ public struct PlaylistDetailsFeature: Feature {
             repoModuleID: RepoModuleID,
             playlist: Playlist,
             details: Loadable<Playlist.Details> = .pending,
-            content: ContentFetchingLogic.State = .pending,
+            content: ContentCore.State = .pending,
             destination: Destination.State? = nil
         ) {
             self.repoModuleId = repoModuleID
@@ -133,9 +133,9 @@ public struct PlaylistDetailsFeature: Feature {
             )
         }
 
-        public enum InternalAction: SendableAction {
+        public enum InternalAction: SendableAction, ContentAction {
             case playlistDetailsResponse(Loadable<Playlist.Details>)
-            case content(ContentFetchingLogic.Action)
+            case content(ContentCore.Action)
             case destination(PresentationAction<Destination.Action>)
         }
 

@@ -8,7 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
-import ContentFetchingLogic
+import ContentCore
 import DatabaseClient
 import Foundation
 import LoggerClient
@@ -31,7 +31,7 @@ extension PlaylistDetailsFeature {
         }
 
         Scope(state: \.content, action: /Action.InternalAction.content) {
-            ContentFetchingLogic()
+            ContentCore()
         }
 
         Reduce { state, action in
@@ -41,7 +41,7 @@ extension PlaylistDetailsFeature {
 
             case .view(.didTappedBackButton):
                 return .concatenate(
-                    state.content.clear().map { .internal(.content($0)) },
+                    state.content.clear(),
                     .merge(Cancellables.allCases.map { .cancel(id: $0) }),
                     .run { await self.dismiss() }
                 )
@@ -77,11 +77,9 @@ extension PlaylistDetailsFeature {
 
             case let .view(.didTapContentGroup(group)):
                 return state.content.fetchPlaylistContentIfNecessary(state.repoModuleId, state.playlist.id, group)
-                    .map { .internal(.content($0)) }
 
             case let .view(.didTapContentGroupPage(group, page)):
                 return state.content.fetchPlaylistContentIfNecessary(state.repoModuleId, state.playlist.id, group, page)
-                    .map { .internal(.content($0)) }
 
             case .view(.binding):
                 break
@@ -145,7 +143,7 @@ extension PlaylistDetailsFeature.State {
             )
         }
 
-        effects.append(content.fetchPlaylistContentIfNecessary(repoModuleId, playlistId, forced: forced).map { .internal(.content($0)) })
+        effects.append(content.fetchPlaylistContentIfNecessary(repoModuleId, playlistId, forced: forced))
         return .merge(effects)
     }
 }

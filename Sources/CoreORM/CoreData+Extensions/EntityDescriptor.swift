@@ -27,6 +27,12 @@ final class EntityDescriptor: NSEntityDescription {
                 opaquePropertyDescriptors[descriptor.name] = property
                 self.properties.append(descriptor)
             } else {
+                print(
+                    """
+                    Property '\(property.name.value ?? "Unknown")' for Entity '\(type.entityName)' is not a valid property
+                    descriptor for Core Data. Will skip this property.
+                    """
+                )
                 continue
             }
         }

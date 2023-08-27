@@ -31,12 +31,6 @@ public extension OpaqueEntity {
 //    }
 }
 
-extension KeyPath {
-    static var value: Value.Type {
-        Value.self
-    }
-}
-
 extension OpaqueEntity {
     var properties: [any OpaqueProperty] {
         var properties = [any OpaqueProperty]()
@@ -84,7 +78,7 @@ extension OpaqueEntity {
     init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
         self.init()
 
-        for property in properties {
+        for var property in properties {
             property.managedObjectId.value = unmanagedId
             try property.decode(from: unmanagedId, context: context)
         }

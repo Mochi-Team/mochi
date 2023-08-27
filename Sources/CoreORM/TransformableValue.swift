@@ -9,151 +9,188 @@
 import CoreData
 import Foundation
 
-// MARK: - ConvertableValueError
+// MARK: - TransformableValueError
 
-enum ConvertableValueError: Swift.Error {
+enum TransformableValueError: Swift.Error {
     case failedToDecode(for: String, model: String)
     case failedToEncode(for: String, model: String)
     case failedToEncodeRelation(for: String, model: String)
-    case badInput(Any?)
+    case invalidPrimitiveValueType(of: Any)
+    case badInput(Any? = nil)
 }
 
-// MARK: - PrimitiveType
+// MARK: - PrimitiveValue
 
-public protocol PrimitiveType {
+public protocol PrimitiveValue {
     static var attributeType: NSAttributeType { get }
 }
 
 // MARK: - TransformableValue
 
 public protocol TransformableValue {
-    associatedtype PrimitiveValue: PrimitiveType
-    func encode() -> PrimitiveValue
-    static func decode(value: PrimitiveValue) throws -> Self
+    associatedtype Primitive: PrimitiveValue
+    func encode() throws -> Primitive
+    static func decode(value: Primitive) throws -> Self
 }
 
-extension TransformableValue {
-    static var _attributeType: NSAttributeType { PrimitiveValue.attributeType }
-}
-
-public extension TransformableValue where Self: PrimitiveType {
-    func encode() -> Self { self }
+public extension TransformableValue where Self: PrimitiveValue {
+    func encode() throws -> Self { self }
     static func decode(value: Self) throws -> Self { value }
 }
 
-extension TransformableValue {
-    static func decode(_ some: Any?) throws -> Self {
-        guard let value = some as? Self.PrimitiveValue else {
-            throw ConvertableValueError.badInput(some)
-        }
-        return try Self.decode(value: value)
-    }
-}
+extension Optional: TransformableValue where Wrapped: TransformableValue {
+    public typealias Primitive = Wrapped.Primitive
 
-extension Optional where Wrapped: TransformableValue {
-    static func decode(_ anyValue: Any?) throws -> Wrapped? {
-        try anyValue.flatMap { value in
-            try Wrapped.decode(value)
+    public func encode() throws -> Primitive {
+        guard let value = self else {
+            throw TransformableValueError.badInput()
         }
+        return try value.encode()
+    }
+
+    public static func decode(value: Primitive) throws -> Self {
+        try Wrapped.decode(value: value)
     }
 }
 
 public extension RawRepresentable where RawValue: TransformableValue {
-    func encode() -> RawValue.PrimitiveValue {
-        rawValue.encode()
+    func encode() throws -> RawValue.Primitive {
+        try rawValue.encode()
     }
 
-    static func decode(value: RawValue.PrimitiveValue) throws -> Self {
+    static func decode(value: RawValue.Primitive) throws -> Self {
         let rawValue = try RawValue.decode(value: value)
         guard let value = Self(rawValue: rawValue) else {
-            throw ConvertableValueError.badInput(rawValue)
+            throw TransformableValueError.badInput(rawValue)
         }
         return value
     }
 }
 
-// MARK: - Int + PrimitiveType, TransformableValue
+// MARK: - Int + PrimitiveValue, TransformableValue
 
-extension Int: PrimitiveType, TransformableValue {
+extension Int: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .integer64AttributeType }
 }
 
-// MARK: - Int16 + PrimitiveType, TransformableValue
+// MARK: - Int16 + PrimitiveValue, TransformableValue
 
-extension Int16: PrimitiveType, TransformableValue {
+extension Int16: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .integer16AttributeType }
 }
 
-// MARK: - Int32 + PrimitiveType, TransformableValue
+// MARK: - Int32 + PrimitiveValue, TransformableValue
 
-extension Int32: PrimitiveType, TransformableValue {
+extension Int32: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .integer32AttributeType }
 }
 
-// MARK: - Int64 + PrimitiveType, TransformableValue
+// MARK: - Int64 + PrimitiveValue, TransformableValue
 
-extension Int64: PrimitiveType, TransformableValue {
+extension Int64: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .integer64AttributeType }
 }
 
-// MARK: - Float + PrimitiveType, ConvertableValue
+// MARK: - Float + PrimitiveValue, ConvertableValue
 
 #if os(iOS)
-extension Float16: PrimitiveType, TransformableValue {
+extension Float16: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .floatAttributeType }
 }
 #endif
 
-// MARK: - Float32 + PrimitiveType, TransformableValue
+// MARK: - Float32 + PrimitiveValue, TransformableValue
 
-extension Float32: PrimitiveType, TransformableValue {
+extension Float32: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .floatAttributeType }
 }
 
-// MARK: - Double + PrimitiveType, TransformableValue
+// MARK: - Double + PrimitiveValue, TransformableValue
 
-extension Double: PrimitiveType, TransformableValue {
+extension Double: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .doubleAttributeType }
 }
 
-// MARK: - Decimal + PrimitiveType, TransformableValue
+// MARK: - Decimal + PrimitiveValue, TransformableValue
 
-extension Decimal: PrimitiveType, TransformableValue {
+extension Decimal: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .decimalAttributeType }
 }
 
-// MARK: - Bool + PrimitiveType, TransformableValue
+// MARK: - Bool + PrimitiveValue, TransformableValue
 
-extension Bool: PrimitiveType, TransformableValue {
+extension Bool: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .booleanAttributeType }
 }
 
-// MARK: - Date + PrimitiveType, TransformableValue
+// MARK: - Date + PrimitiveValue, TransformableValue
 
-extension Date: PrimitiveType, TransformableValue {
+extension Date: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .dateAttributeType }
 }
 
-// MARK: - String + PrimitiveType, TransformableValue
+// MARK: - String + PrimitiveValue, TransformableValue
 
-extension String: PrimitiveType, TransformableValue {
+extension String: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .stringAttributeType }
 }
 
-// MARK: - Data + PrimitiveType, TransformableValue
+// MARK: - Data + PrimitiveValue, TransformableValue
 
-extension Data: PrimitiveType, TransformableValue {
+extension Data: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .binaryDataAttributeType }
 }
 
-// MARK: - UUID + PrimitiveType, TransformableValue
+// MARK: - UUID + PrimitiveValue, TransformableValue
 
-extension UUID: PrimitiveType, TransformableValue {
+extension UUID: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .UUIDAttributeType }
 }
 
-// MARK: - URL + PrimitiveType, TransformableValue
+// MARK: - URL + PrimitiveValue, TransformableValue
 
-extension URL: PrimitiveType, TransformableValue {
+extension URL: PrimitiveValue, TransformableValue {
     public static var attributeType: NSAttributeType { .URIAttributeType }
+}
+
+extension TransformableValue {
+    func validate() throws {
+        if Self.Primitive.self == Int.self {
+            return
+        } else if Self.Primitive.self == Int16.self {
+            return
+        } else if Self.Primitive.self == Int16.self {
+            return
+        } else if Self.Primitive.self == Int32.self {
+            return
+        } else if Self.Primitive.self == Int64.self {
+            return
+        } else if Self.Primitive.self == Float32.self {
+            return
+        } else if Self.Primitive.self == Double.self {
+            return
+        } else if Self.Primitive.self == Decimal.self {
+            return
+        } else if Self.Primitive.self == Bool.self {
+            return
+        } else if Self.Primitive.self == Date.self {
+            return
+        } else if Self.Primitive.self == String.self {
+            return
+        } else if Self.Primitive.self == Data.self {
+            return
+        } else if Self.Primitive.self == UUID.self {
+            return
+        } else if Self.Primitive.self == URL.self {
+            return
+        }
+
+        #if os(iOS)
+        if Self.Primitive.self == Float16.self {
+            return
+        }
+        #endif
+
+        throw TransformableValueError.invalidPrimitiveValueType(of: Self.self)
+    }
 }

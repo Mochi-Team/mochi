@@ -10,23 +10,19 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
-public extension Store {
+public extension Store where Action: FeatureAction {
     func scope<ChildState, ChildAction>(
         state toChildState: @escaping (State) -> ChildState,
         action fromChildAction: @escaping (ChildAction) -> Action.ViewAction
-    ) -> Store<ChildState, ChildAction> where Action: FeatureAction {
-        scope(state: toChildState) { action in
-            .view(fromChildAction(action))
-        }
+    ) -> Store<ChildState, ChildAction> {
+        scope(state: toChildState) { .view(fromChildAction($0)) }
     }
 
     func scope<ChildState, ChildAction>(
         state toChildState: @escaping (State) -> ChildState,
         action fromChildAction: @escaping (ChildAction) -> Action.InternalAction
-    ) -> Store<ChildState, ChildAction> where Action: FeatureAction {
-        scope(state: toChildState) { action in
-            .internal(fromChildAction(action))
-        }
+    ) -> Store<ChildState, ChildAction> {
+        scope(state: toChildState) { .internal(fromChildAction($0)) }
     }
 }
 
@@ -141,7 +137,7 @@ public extension WithViewStore where ViewState: Equatable, Content: View {
         self.init(
             store,
             observe: toViewState,
-            send: Action.view(_:),
+            send: Action.view,
             content: content
         )
     }
@@ -154,7 +150,7 @@ public extension WithViewStore where ViewState: Equatable, Content: View {
         self.init(
             store,
             observe: toViewState,
-            send: Action.view(_:),
+            send: Action.view,
             removeDuplicates: ==,
             content: content
         )
@@ -169,7 +165,7 @@ public extension ViewStore where ViewState: Equatable {
         self.init(
             store,
             observe: toViewState,
-            send: Action.view(_:),
+            send: Action.view,
             removeDuplicates: ==
         )
     }

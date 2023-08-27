@@ -54,7 +54,7 @@ extension ReposFeature.View: View {
                                     }
                                     .contextMenu {
                                         Button {
-                                            self.store.send(.view(.didTapToDeleteRepo(repo.id)))
+                                            self.store.send(.view(.didTapDeleteRepo(repo.id)))
                                         } label: {
                                             Label("Delete Repo", systemImage: "trash.fill")
                                                 .foregroundColor(.red)
@@ -79,7 +79,7 @@ extension ReposFeature.View: View {
             }
             .topBar(title: "Repos") {
                 Button {
-                    store.send(.view(.didAskToRefreshModules))
+                    store.send(.view(.didTapRefreshRepos(nil)))
                 } label: {
                     Image(systemName: "arrow.triangle.2.circlepath")
                 }
@@ -195,7 +195,7 @@ extension ReposFeature.View {
 
                         if viewStore.canAddRepo {
                             Button {
-//                                viewStore.send(.didTapToAddNewRepo(repo))
+                                viewStore.send(.didTapAddNewRepo(repo))
                             } label: {
                                 Image(systemName: "plus.circle.fill")
                                     .font(.system(size: 18).weight(.semibold))
@@ -247,7 +247,7 @@ extension ReposFeature.View {
                     .font(.callout.weight(.medium))
 
                 HStack(spacing: 0) {
-                    Text(repo.baseURL.host ?? repo.author)
+                    Text(repo.remoteURL.host ?? repo.author)
                         .font(.footnote)
                 }
                 .lineLimit(1)

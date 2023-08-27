@@ -8,7 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
-import ContentFetchingLogic
+import ContentCore
 import LoggerClient
 import ModuleClient
 import PlayerClient
@@ -28,8 +28,8 @@ extension VideoPlayerFeature: Reducer {
             PlayerFeature()
         }
 
-        Scope(state: \.loadables.contents, action: /Action.internal .. Action.InternalAction.content) {
-            ContentFetchingLogic()
+        Scope(state: \.loadables.contents, action: /Action.InternalAction.content) {
+            ContentCore()
         }
 
         Reduce { state, action in
@@ -42,7 +42,6 @@ extension VideoPlayerFeature: Reducer {
                         state.selected.group,
                         state.selected.page
                     )
-                    .map { .internal(.content($0)) }
 
             case .view(.didTapBackButton):
                 return state.dismiss()
@@ -65,11 +64,9 @@ extension VideoPlayerFeature: Reducer {
 
             case let .view(.didTapContentGroup(groupId)):
                 return state.loadables.contents.fetchPlaylistContentIfNecessary(state.repoModuleID, state.playlist.id, groupId)
-                    .map { .internal(.content($0)) }
 
             case let .view(.didTapContentGroupPage(groupId, pageId)):
                 return state.loadables.contents.fetchPlaylistContentIfNecessary(state.repoModuleID, state.playlist.id, groupId, pageId)
-                    .map { .internal(.content($0)) }
 
             case let .view(.didTapPlayEpisode(group, page, itemId)):
                 state.overlay = .tools
@@ -231,8 +228,8 @@ public extension VideoPlayerFeature.State {
             loadables.playlistItemSourcesLoadables.removeAll()
 
             return .merge(
-                shouldClearContents ? loadables.contents.clear().map { .internal(.content($0)) } : .none,
-                loadables.contents.fetchPlaylistContentIfNecessary(repoModuleID, playlist.id).map { .internal(.content($0)) },
+                shouldClearContents ? loadables.contents.clear() : .none,
+                loadables.contents.fetchPlaylistContentIfNecessary(repoModuleID, playlist.id),
                 .run { await playerClient.clear() }
             )
         }

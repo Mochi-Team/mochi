@@ -27,11 +27,28 @@ public extension RepoClient {
         case installing
         case installed
         case failed(Error)
+
+        var canRestartDownload: Bool {
+            switch self {
+            case .failed:
+                return true
+            default:
+                return false
+            }
+        }
     }
 
     struct SelectedModule: Equatable, Sendable {
         public let repoId: Repo.ID
         public let module: Module.Manifest
+
+        public init(
+            repoId: Repo.ID,
+            module: Module.Manifest
+        ) {
+            self.repoId = repoId
+            self.module = module
+        }
     }
 
     @dynamicMemberLookup

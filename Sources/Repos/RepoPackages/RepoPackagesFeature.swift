@@ -16,26 +16,28 @@ import SwiftUI
 import Tagged
 import ViewComponents
 
-// MARK: - RepoPackagesFeature
+// MARK: - RepoPackagesFeature + Reducer
 
 public struct RepoPackagesFeature: Feature {
+    @Dependency(\.dismiss)
+    var dismiss
+
+    @Dependency(\.repoClient)
+    var repoClient
+
+    public init() {}
+}
+
+// MARK: - RepoPackagesFeature + State & Action
+
+extension RepoPackagesFeature {
     public typealias Package = [Module.Manifest]
 
-    public struct State: FeatureState, Identifiable {
-        public var id: Repo.ID { repo.id }
-        public let repo: Repo
+    public struct State: FeatureState {
+        public var repo: Repo
         public var fetchedModules: Loadable<[Module.Manifest]>
-        public var installingModules: [Module.ID: RepoClient.RepoModuleDownloadState]
-
-        // TODO: Make this not computed but instead whenever fetched modules changes
-        public var packages: Loadable<[Package]> {
-            fetchedModules.map { manifests in
-                Dictionary(grouping: manifests, by: \.id)
-                    .map(\.value)
-                    .filter { !$0.isEmpty }
-                    .sorted { $0.latestModule.name < $1.latestModule.name }
-            }
-        }
+        public var downloadStates: [Module.ID: RepoClient.RepoModuleDownloadState]
+        public var packages: Loadable<[Package]>
 
         public var installedModules: [Module] {
             repo.modules.sorted(by: \.installDate)
@@ -44,11 +46,13 @@ public struct RepoPackagesFeature: Feature {
         public init(
             repo: Repo,
             fetchedModules: Loadable<[Module.Manifest]> = .pending,
-            installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:]
+            installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:],
+            packages: Loadable<[Package]> = .pending
         ) {
             self.repo = repo
             self.fetchedModules = fetchedModules
-            self.installingModules = installingModules
+            self.downloadStates = installingModules
+            self.packages = packages
         }
     }
 
@@ -61,37 +65,30 @@ public struct RepoPackagesFeature: Feature {
             case didAppear
             case didTapClose
             case didTapToRefreshRepo
+            case didTapAddModule(Module.ID)
+            case didTapRemoveModule(Module.ID)
         }
 
-        public enum InternalAction: SendableAction {}
-        public enum DelegateAction: SendableAction {}
-    }
+        public enum InternalAction: SendableAction {
+            case repoModules(Loadable<[Module.Manifest]>)
+            case downloadStates([Module.ID: RepoClient.RepoModuleDownloadState])
+        }
 
+        public enum DelegateAction: SendableAction {
+            case removeModule(RepoModuleID)
+        }
+    }
+}
+
+// MARK: - RepoPackagesFeature + View
+
+extension RepoPackagesFeature {
     @MainActor
     public struct View: FeatureView {
         public let store: StoreOf<RepoPackagesFeature>
 
         public nonisolated init(store: StoreOf<RepoPackagesFeature>) {
             self.store = store
-        }
-    }
-
-    @Dependency(\.dismiss)
-    var dismiss
-
-    public var body: some ReducerOf<Self> {
-        Reduce { _, action in
-            switch action {
-            case .view(.didAppear):
-                break
-            case .view(.didTapToRefreshRepo):
-                break
-            case .view(.didTapClose):
-                return .run { _ in await dismiss() }
-            case .delegate:
-                break
-            }
-            return .none
         }
     }
 }

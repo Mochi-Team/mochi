@@ -31,15 +31,16 @@ extension DiscoverFeature {
 
                 state.initialized = true
 
-                return .merge(
-                    .run { send in
-                        let moduleStream = repoClient.selectedModuleStream()
-
-                        for await module in moduleStream {
-                            await send(.internal(.selectedModule(module)))
-                        }
-                    }
-                )
+                // TODO: Set default module to load.
+//                return .merge(
+//                    .run { send in
+//                        let moduleStream = repoClient.module()
+//
+//                        for await module in moduleStream {
+//                            await send(.internal(.selectedModule(module)))
+//                        }
+//                    }
+//                )
 
             case .view(.didTapOpenModules):
                 state.moduleLists = .init()
@@ -60,6 +61,9 @@ extension DiscoverFeature {
 
             case let .internal(.loadedListings(.failure(error))):
                 state.listings = .failed(error)
+
+            case let .internal(.moduleLists(.presented(.delegate(.selectedModule(repoModule))))):
+                return .send(.internal(.selectedModule(repoModule)))
 
             case .internal(.moduleLists):
                 break

@@ -40,7 +40,11 @@ extension NSManagedObject {
             throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
         }
 
-        encode(attribute.wrappedValue as? A.Value, forKey: key)
+        if let optional = attribute.wrappedValue as? OpaqueOptional {
+            self[primitiveValue: key] = optional.isNil ? nil : try attribute.wrappedValue.encode()
+        } else {
+            self[primitiveValue: key] = try attribute.wrappedValue.encode()
+        }
     }
 
     func encode<R: OpaqueRelation>(_ relation: R) throws {
@@ -65,10 +69,6 @@ extension NSManagedObject {
                 )
             }
         }
-    }
-
-    func encode(_ value: (any TransformableValue)?, forKey key: String) {
-        self[primitiveValue: key] = value?.encode()
     }
 
     func encodeToOne<DestinationEntity: OpaqueEntity>(_ entity: DestinationEntity?, forKey key: String) throws {
@@ -163,12 +163,24 @@ extension NSManagedObject {
         setValue(cocoaSet, forKey: key)
     }
 
+    func decode<A: OpaqueAttribute>(_ attribute: A) throws -> A.WrappedValue? where A.WrappedValue: OpaqueOptional {
+        guard let key = attribute.name.value, entity.propertiesByName[key] != nil else {
+            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
+        }
+
+        return try (self[primitiveValue: key] as? A.WrappedValue.Primitive)
+            .flatMap { try A.WrappedValue.decode(value: $0) }
+    }
+
     func decode<A: OpaqueAttribute>(_ attribute: A) throws -> A.WrappedValue {
         guard let key = attribute.name.value, entity.propertiesByName[key] != nil else {
             throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
         }
 
-        return try cast(decode(A.Value.self, forKey: key), to: A.WrappedValue.self)
+        guard let primitiveValue = self[primitiveValue: key] as? A.WrappedValue.Primitive else {
+            throw Error.castError
+        }
+        return try A.WrappedValue.decode(value: primitiveValue)
     }
 
     func decode<R: OpaqueRelation>(_ relation: R) throws -> R.WrappedValue {
@@ -181,7 +193,13 @@ extension NSManagedObject {
             return try cast(decodeToOne(R.DestinationEntity.self, forKey: key), to: R.WrappedValue.self)
         case .toMany:
             if relation.isOrdered {
-                return try cast(decodeToManyOrdered(R.DestinationEntity.self, forKey: key), to: R.WrappedValue.self)
+                return try cast(
+                    decodeToManyOrdered(
+                        R.DestinationEntity.self,
+                        forKey: key
+                    ),
+                    to: R.WrappedValue.self
+                )
             } else {
                 return try cast(
                     decodeToManyUnordered(
@@ -192,10 +210,6 @@ extension NSManagedObject {
                 )
             }
         }
-    }
-
-    func decode<T: TransformableValue>(_: T.Type, forKey key: String) throws -> T? {
-        try? T.decode(self[primitiveValue: key])
     }
 
     func decodeToOne<SomeEntity: OpaqueEntity>(_: SomeEntity.Type, forKey: String) throws -> SomeEntity? {
@@ -239,9 +253,5 @@ extension NSManagedObject {
                 ) as? AnyHashable
             }
         )
-    }
-
-    func containsValue(forKey name: String?) -> Bool {
-        name.flatMap { self.primitiveValue(forKey: $0) } != nil
     }
 }

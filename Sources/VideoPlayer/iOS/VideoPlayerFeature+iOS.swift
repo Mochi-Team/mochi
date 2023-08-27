@@ -11,7 +11,7 @@ import Architecture
 import AVFoundation
 import AVKit
 import ComposableArchitecture
-import ContentFetchingLogic
+import ContentCore
 import PlayerClient
 import SharedModels
 import Styling
@@ -651,7 +651,7 @@ extension VideoPlayerFeature.View {
 
     @MainActor
     private struct PlaylistVideoContentView: View {
-        let store: Store<ContentFetchingLogic.State, VideoPlayerFeature.Action>
+        let store: Store<ContentCore.State, VideoPlayerFeature.Action>
         let playlist: Playlist
 
         let selectedItem: Playlist.Item.ID?

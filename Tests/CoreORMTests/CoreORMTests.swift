@@ -46,7 +46,8 @@ final class CoreORMTests: XCTestCase {
         }
 
         XCTAssertEqual(parents.count, 2)
-        XCTAssertEqual(parents.first?.name, "Hello")
+        XCTAssertEqual(parents.first?.name, parent.name)
+        XCTAssertEqual(parents.last?.name, parent.name)
 
         var parentClone = parents.first.unsafelyUnwrapped
         parentClone.name = "Bro"
@@ -68,9 +69,12 @@ final class CoreORMTests: XCTestCase {
     func testAddingParentNoChild() async throws {
         let parent = Parent(name: "John", childOptional: nil)
 
-        try await core.transaction { context in
+        let updatedParent = try await core.transaction { context in
             try await context.create(parent)
         }
+
+        XCTAssertEqual(updatedParent.name, parent.name)
+        XCTAssertEqual(updatedParent.childOptional, parent.childOptional)
     }
 
     func testAddingChildItems() async throws {
@@ -85,7 +89,7 @@ final class CoreORMTests: XCTestCase {
         }
 
         XCTAssertNotNil(fetchedParent)
-        XCTAssertEqual(fetchedParent?.name, "John")
+        XCTAssertEqual(fetchedParent?.name, parent.name)
         XCTAssertEqual(fetchedParent?.child.name, parent.child.name)
     }
 }

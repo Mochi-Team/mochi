@@ -9,7 +9,7 @@
 #if os(iOS)
 import Architecture
 import ComposableArchitecture
-import ContentFetchingLogic
+import ContentCore
 import ModuleClient
 import NukeUI
 import SharedModels
@@ -348,7 +348,7 @@ extension PlaylistDetailsFeature.View {
 
 @MainActor
 private struct PlaylistVideoContentView: View {
-    let store: Store<ContentFetchingLogic.State, PlaylistDetailsFeature.Action>
+    let store: Store<ContentCore.State, PlaylistDetailsFeature.Action>
     let playlistInfo: PlaylistInfo
 
     @State

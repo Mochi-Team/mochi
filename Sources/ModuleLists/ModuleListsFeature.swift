@@ -45,7 +45,9 @@ public struct ModuleListsFeature: Feature {
             case didSelectModule(Repo.ID, Module.ID)
         }
 
-        public enum DelegateAction: SendableAction {}
+        public enum DelegateAction: SendableAction {
+            case selectedModule(RepoClient.SelectedModule?)
+        }
 
         public enum InternalAction: SendableAction {
             case fetchRepos(TaskResult<[Repo]>)

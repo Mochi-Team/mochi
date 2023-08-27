@@ -87,7 +87,7 @@ extension AppFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.$videoPlayer, action: /Action.internal .. Action.InternalAction.videoPlayer) {
+        .ifLet(\.$videoPlayer, action: /Action.InternalAction.videoPlayer) {
             VideoPlayerFeature()
         }
 

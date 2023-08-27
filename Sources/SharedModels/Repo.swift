@@ -14,12 +14,13 @@ import Tagged
 
 @dynamicMemberLookup
 public struct Repo: Entity, Equatable, Sendable {
-    @Attribute
-    public var baseURL: URL = .init(string: "/").unsafelyUnwrapped
+    @Attribute(name: "baseURL")
+    public var remoteURL: URL = .init(string: "/").unsafelyUnwrapped
 
     @Attribute
     public var dateAdded: Date = .init()
 
+    // TODO: Remove
     @Attribute
     public var lastRefreshed: Date? = .init()
 
@@ -34,13 +35,13 @@ public struct Repo: Entity, Equatable, Sendable {
 
 public extension Repo {
     init(
-        baseURL: URL,
+        remoteURL: URL,
         dateAdded: Date,
         lastRefreshed: Date?,
         manifest: Repo.Manifest,
         modules: Set<Module> = []
     ) {
-        self.baseURL = baseURL
+        self.remoteURL = remoteURL
         self.dateAdded = dateAdded
         self.lastRefreshed = lastRefreshed
         self.manifest = manifest
@@ -51,7 +52,7 @@ public extension Repo {
 // MARK: Identifiable
 
 extension Repo: Identifiable {
-    public var id: Tagged<Self, URL> { .init(baseURL) }
+    public var id: Tagged<Self, URL> { .init(remoteURL) }
 }
 
 public extension Repo {
@@ -60,7 +61,7 @@ public extension Repo {
             .flatMap { URL(string: $0) }
             .flatMap { url in
                 if url.baseURL == nil {
-                    return .init(string: url.relativeString, relativeTo: baseURL)
+                    return .init(string: url.relativeString, relativeTo: remoteURL)
                 } else {
                     return url
                 }
@@ -97,8 +98,8 @@ public extension Repo {
 // MARK: - Repo.Manifest + TransformableValue
 
 extension Repo.Manifest: TransformableValue {
-    public func encode() -> Data {
-        (try? JSONEncoder().encode(self)) ?? .init()
+    public func encode() throws -> Data {
+        try JSONEncoder().encode(self)
     }
 
     public static func decode(value: Data) throws -> Repo.Manifest {

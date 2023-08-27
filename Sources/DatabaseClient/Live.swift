@@ -17,18 +17,17 @@ public extension DatabaseClient {
         return .init {
             try await core.load()
         } insert: { entity in
-            _ = try await core.transaction { context in
+            try await core.transaction { context in
                 try await context.create(entity)
             }
         } insertOrUpdate: { entity in
-            _ = try await core.transaction { context in
+            try await core.transaction { context in
                 try await context.createOrUpdate(entity)
             }
         } update: { entity in
-            let instance = try? await core.transaction { context in
+            try await core.transaction { context in
                 try await context.update(entity)
             }
-            return instance != nil
         } delete: { entity in
             try await core.transaction { context in
                 try await context.delete(entity)
@@ -37,8 +36,6 @@ public extension DatabaseClient {
             try await core.transaction { context in
                 try await context.fetch(entityType, request)
             }
-        } observe: { entityType, request in
-            core.observe(entityType, request)
         }
     }()
 }
@@ -47,14 +44,6 @@ public extension DatabaseClient {
 
 enum DatabaseClientError: Error {
     case invalidRequestCastType
-}
-
-extension CoreORM {
-    func observe<Instance: Entity>(_: Instance.Type, _ request: Any) -> AsyncStream<[Entity]> {
-        observe((request as? Request<Instance>) ?? .all)
-            .map { $0 as [Entity] }
-            .eraseToStream()
-    }
 }
 
 extension CoreTransaction {

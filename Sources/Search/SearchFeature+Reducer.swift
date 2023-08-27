@@ -30,13 +30,15 @@ extension SearchFeature: Reducer {
                     break
                 }
                 state.hasLoaded = true
-                return .run { send in
-                    let selectedSync = repoClient.selectedModuleStream()
 
-                    for await module in selectedSync {
-                        await send(.internal(.loadedSelectedModule(module)))
-                    }
-                }
+                // TODO: Set default module to load.
+//                return .run { send in
+//                    let selectedSync = repoClient.module()
+//
+//                    for await module in selectedSync {
+//                        await send(.internal(.loadedSelectedModule(module)))
+//                    }
+//                }
 
             case .view(.didTapOpenModules):
                 state.moduleLists = .init()
@@ -194,6 +196,9 @@ extension SearchFeature: Reducer {
                         )
                     )
                 )
+
+            case let .internal(.moduleLists(.presented(.delegate(.selectedModule(repoModule))))):
+                return .send(.internal(.loadedSelectedModule(repoModule)))
 
             case .internal(.moduleLists):
                 break

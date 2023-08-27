@@ -15,29 +15,16 @@ import XCTestDynamicOverlay
 
 public struct DatabaseClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-
-    public var insert: @Sendable (any Entity) async throws -> Void
-
-    public var insertOrUpdate: @Sendable (any Entity) async throws -> Void
-
-    public var update: @Sendable (any Entity) async throws -> Bool
-
+    public var insert: @Sendable (any Entity) async throws -> Entity
+    public var insertOrUpdate: @Sendable (any Entity) async throws -> Entity
+    public var update: @Sendable (any Entity) async throws -> Entity
     public var delete: @Sendable (any Entity) async throws -> Void
-
     var fetch: @Sendable (Entity.Type, Any) async throws -> [Entity]
-
-    var observe: @Sendable (Entity.Type, Any) -> AsyncStream<[Entity]>
 }
 
 public extension DatabaseClient {
     func fetch<T: Entity>(_ request: Request<T>) async throws -> [T] {
         try await (fetch(T.self, request) as? [T]) ?? []
-    }
-
-    func observe<T: Entity>(_ request: Request<T>) -> AsyncStream<[T]> {
-        observe(T.self, request)
-            .compactMap { $0 as? [T] }
-            .eraseToStream()
     }
 }
 

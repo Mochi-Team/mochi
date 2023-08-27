@@ -8,7 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
-import ContentFetchingLogic
+import ContentCore
 import LoggerClient
 import ModuleClient
 import PlayerClient
@@ -117,12 +117,12 @@ public struct VideoPlayerFeature: Feature {
 
         public enum DelegateAction: SendableAction {}
 
-        public enum InternalAction: SendableAction {
+        public enum InternalAction: SendableAction, ContentAction {
             case hideToolsOverlay
             case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource]>)
             case serverResponse(serverId: Playlist.EpisodeServer.ID, _ response: Loadable<Playlist.EpisodeServerResponse>)
             case player(PlayerFeature.Action)
-            case content(ContentFetchingLogic.Action)
+            case content(ContentCore.Action)
         }
 
         case view(ViewAction)
@@ -155,7 +155,7 @@ public struct VideoPlayerFeature: Feature {
 }
 
 public extension VideoPlayerFeature.State {
-    var selectedGroup: Loadable<ContentFetchingLogic.Pages> {
+    var selectedGroup: Loadable<ContentCore.Pages> {
         loadables.contents.flatMap { groups in
             groups[selected.group] ?? .failed(VideoPlayerFeature.Error.contentNotFound)
         }
@@ -235,7 +235,7 @@ public extension VideoPlayerFeature.State {
     }
 
     struct Loadables: Equatable, Sendable {
-        public var contents = ContentFetchingLogic.State.pending
+        public var contents = ContentCore.State.pending
         public var playlistItemSourcesLoadables = [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>]()
         public var serverResponseLoadables = [Playlist.EpisodeServer.ID: Loadable<Playlist.EpisodeServerResponse>]()
 
@@ -250,7 +250,7 @@ public extension VideoPlayerFeature.State {
         }
 
         public init(
-            contents: ContentFetchingLogic.State = .pending,
+            contents: ContentCore.State = .pending,
             playlistItemSourcesLoadables: [Playlist.Item.ID: Loadable<[Playlist.EpisodeSource]>] = [:],
             serverResponseLoadables: [Playlist.EpisodeServer.ID: Loadable<Playlist.EpisodeServerResponse>] = [:]
         ) {
