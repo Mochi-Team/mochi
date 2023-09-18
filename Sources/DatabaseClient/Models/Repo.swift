@@ -6,29 +6,29 @@
 //
 //
 
-import CoreORM
+import CoreData
 import Foundation
 import Tagged
 
-// MARK: - Repo
-
 @dynamicMemberLookup
 public struct Repo: Entity, Equatable, Sendable {
-    @Attribute(name: "baseURL")
+//    @Attribute("remoteURL", \.remoteURL)
     public var remoteURL: URL = .init(string: "/").unsafelyUnwrapped
 
-    @Attribute
-    public var dateAdded: Date = .init()
-
-    // TODO: Remove
-    @Attribute
-    public var lastRefreshed: Date? = .init()
-
-    @Attribute
+//    @Attribute("manifest", \.manifest)
     public var manifest: Manifest = .init()
 
-    @Relation
+//    @Relation("modules", \.modules)
     public var modules: Set<Module> = []
+
+    public var objectID: NSManagedObjectID?
+
+    public static var properties: Set<Property> = [
+        .init("remoteURL", \.remoteURL),
+        .init("manifest", \.manifest)
+//        ,
+//        .init("modules", \.modules)
+    ]
 
     public init() {}
 }
@@ -36,14 +36,10 @@ public struct Repo: Entity, Equatable, Sendable {
 public extension Repo {
     init(
         remoteURL: URL,
-        dateAdded: Date,
-        lastRefreshed: Date?,
         manifest: Repo.Manifest,
         modules: Set<Module> = []
     ) {
         self.remoteURL = remoteURL
-        self.dateAdded = dateAdded
-        self.lastRefreshed = lastRefreshed
         self.manifest = manifest
         self.modules = modules
     }

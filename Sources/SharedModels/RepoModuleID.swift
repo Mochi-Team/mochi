@@ -6,6 +6,8 @@
 //
 //
 
+@_exported
+import DatabaseClient
 import Foundation
 
 public struct RepoModuleID: Hashable, Sendable {

@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import DatabaseClient
 import RepoClient
 import Semver
 import SharedModels

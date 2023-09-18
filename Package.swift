@@ -139,8 +139,6 @@ let clientsTargets: [Target] = [
     .target(
         name: "DatabaseClient",
         dependencies: [
-            "CoreORM",
-            "SharedModels",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "Semver", package: "Semver"),
             .product(name: "Tagged", package: "swift-tagged")
@@ -239,16 +237,6 @@ let miscTargets: [Target] = [
         ]
     ),
     .target(
-        name: "CoreORM",
-        dependencies: []
-    ),
-    .testTarget(
-        name: "CoreORMTests",
-        dependencies: [
-            "CoreORM"
-        ]
-    ),
-    .target(
         name: "ContentCore",
         dependencies: [
             "Architecture",
@@ -262,7 +250,7 @@ let miscTargets: [Target] = [
     .target(
         name: "SharedModels",
         dependencies: [
-            "CoreORM",
+            "DatabaseClient",
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "Semver", package: "Semver")

@@ -9,6 +9,28 @@
 import CoreData
 import Foundation
 
+public struct AnyProperty<E: Entity>: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
+
+    public static func == (lhs: AnyProperty<E>, rhs: AnyProperty<E>) -> Bool {
+        lhs.name == rhs.name
+    }
+
+    let name: String
+
+    let encode: () -> Void = { }
+    let decode: () -> Void = { }
+
+    public init<Value: TransformableValue>(
+        _ name: String,
+        _ keyPath: WritableKeyPath<E, Value>
+    ) {
+        self.name = name
+    }
+}
+
 // MARK: - PropertyError
 
 enum PropertyError: Error {
@@ -20,26 +42,16 @@ enum PropertyError: Error {
 // MARK: - OpaqueProperty
 
 protocol OpaqueProperty {
+    associatedtype EnclosingEntity: Entity
     associatedtype WrappedValue
-    var name: Box<String?> { get }
-    var wrappedValue: WrappedValue { get nonmutating set }
-    var traits: Set<PropertyTrait> { get }
-    var managedObjectId: Box<NSManagedObjectID?> { get }
+    var name: String { get }
+    var wrappedValue: WrappedValue { get set }
+    var objectID: NSManagedObjectID? { get set }
+    var keyPath: PartialKeyPath<EnclosingEntity> { get }
 }
 
 extension OpaqueProperty {
-    var hasInitialized: Bool { name.value != nil }
     var isOptionalType: Bool { WrappedValue.self is any OpaqueOptional.Type }
-
-    func asPropertyDescriptor() throws -> NSPropertyDescription {
-        if let value = self as? any OpaqueAttribute {
-            return NSAttributeDescription(value)
-        } else if let value = self as? any OpaqueRelation {
-            return NSRelationshipDescription(value)
-        } else {
-            throw PropertyError.encodingTypeInvalid
-        }
-    }
 }
 
 extension OpaqueProperty {
@@ -80,6 +92,12 @@ public enum PropertyTrait {
 }
 
 protocol OptionalWrappedValue: OpaqueProperty where WrappedValue: OpaqueOptional {}
+extension AnyAttribute: OptionalWrappedValue where WrappedValue: OpaqueOptional {}
+extension AnyRelation: OptionalWrappedValue where WrappedValue: OpaqueOptional {}
 
-extension Attribute: OptionalWrappedValue where WrappedValue: OpaqueOptional {}
-extension Relation: OptionalWrappedValue where WrappedValue: OpaqueOptional {}
+extension OpaqueProperty {
+    mutating func update(with instance: EnclosingEntity, id: NSManagedObjectID, context: NSManagedObjectContext) {
+    }
+
+    func lol() {}
+}

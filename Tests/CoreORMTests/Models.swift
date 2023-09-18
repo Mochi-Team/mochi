@@ -12,7 +12,7 @@ import Foundation
 // MARK: - TestSchema
 
 struct TestSchema: Schema {
-    static var entities: Entities {
+    static var body: Entities {
         Parent.self
         Child.self
     }

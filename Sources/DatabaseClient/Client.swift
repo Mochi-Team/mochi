@@ -6,7 +6,6 @@
 //  Copyright © 2023. All rights reserved.
 //
 
-import CoreORM
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay
@@ -15,16 +14,23 @@ import XCTestDynamicOverlay
 
 public struct DatabaseClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-    public var insert: @Sendable (any Entity) async throws -> Entity
-    public var insertOrUpdate: @Sendable (any Entity) async throws -> Entity
-    public var update: @Sendable (any Entity) async throws -> Entity
+    public var insert: @Sendable (any Entity) async throws -> any Entity
+    public var update: @Sendable (any Entity) async throws -> any Entity
     public var delete: @Sendable (any Entity) async throws -> Void
-    var fetch: @Sendable (Entity.Type, Any) async throws -> [Entity]
+    var fetch: @Sendable (any Entity.Type, Any) async throws -> [any Entity]
 }
 
 public extension DatabaseClient {
     func fetch<T: Entity>(_ request: Request<T>) async throws -> [T] {
         try await (fetch(T.self, request) as? [T]) ?? []
+    }
+}
+
+public extension DatabaseClient {
+    enum Error: Swift.Error {
+        case failedToCreateInstance
+        case managedContextNotAvailable
+        case managedObjectIdIsTemporary
     }
 }
 

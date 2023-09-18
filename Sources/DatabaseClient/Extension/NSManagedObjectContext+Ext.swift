@@ -10,7 +10,7 @@ import CoreData
 import Foundation
 
 extension NSManagedObjectContext {
-    func insert(entity type: (some Entity).Type) -> NSManagedObject {
+    func insert(entity type: any Entity.Type) -> NSManagedObject {
         NSEntityDescription.insertNewObject(forEntityName: type.entityName, into: self)
     }
 

@@ -7,6 +7,7 @@
 //
 
 import ConcurrencyExtras
+import DatabaseClient
 import Foundation
 import SharedModels
 import SwiftSoup
@@ -22,7 +23,7 @@ public extension ModuleClient {
 
         init(module: Module) throws {
             self.module = module
-            self.instance = try .init(module: module.binaryModule)
+            self.instance = try .init(module: .init(contentsOf: module.moduleLocation.appendingPathComponent("main.wasm")))
             self.hostBindings = .init(memory: instance.memory)
             try initializeImports()
         }

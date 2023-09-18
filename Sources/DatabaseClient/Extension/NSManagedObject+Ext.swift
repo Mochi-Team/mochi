@@ -36,8 +36,9 @@ extension NSManagedObject {
     }
 
     func encode<A: OpaqueAttribute>(_ attribute: A) throws {
-        guard let key = attribute.name.value, entity.propertiesByName[key] != nil else {
-            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
+        let key = attribute.name
+        guard entity.propertiesByName[key] != nil else {
+            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name)
         }
 
         if let optional = attribute.wrappedValue as? OpaqueOptional {
@@ -48,8 +49,9 @@ extension NSManagedObject {
     }
 
     func encode<R: OpaqueRelation>(_ relation: R) throws {
-        guard let key = relation.name.value, entity.propertiesByName[key] != nil else {
-            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: relation.name.value ?? "Unknown")
+        let key = relation.name
+        guard entity.propertiesByName[key] != nil else {
+            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: relation.name)
         }
 
         switch relation.relationType {
@@ -71,7 +73,7 @@ extension NSManagedObject {
         }
     }
 
-    func encodeToOne<DestinationEntity: OpaqueEntity>(_ entity: DestinationEntity?, forKey key: String) throws {
+    func encodeToOne<DestinationEntity: Entity>(_ entity: DestinationEntity?, forKey key: String) throws {
         guard let managedObjectContext else {
             throw Error.contextIsNotAvailable
         }
@@ -83,7 +85,7 @@ extension NSManagedObject {
             return
         }
 
-        if let entityManagedObjectId = entity.mainManagedObjectId {
+        if let entityManagedObjectId = entity.objectID {
             try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
             willChangeValue(forKey: key)
         } else {
@@ -97,7 +99,7 @@ extension NSManagedObject {
         }
     }
 
-    func encodeToManyOrdered<DestinationEntity: OpaqueEntity>(_ array: [DestinationEntity]?, forKey key: String) throws {
+    func encodeToManyOrdered<DestinationEntity: Entity>(_ array: [DestinationEntity]?, forKey key: String) throws {
         guard let managedObjectContext else {
             throw Error.contextIsNotAvailable
         }
@@ -112,7 +114,7 @@ extension NSManagedObject {
         let cocoaArray = NSMutableArray()
 
         try array.forEach { entity in
-            if let entityManagedObjectId = entity.mainManagedObjectId {
+            if let entityManagedObjectId = entity.objectID {
                 try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
                 cocoaArray.add(managedObjectContext.object(with: entityManagedObjectId))
             } else {
@@ -128,7 +130,7 @@ extension NSManagedObject {
         setValue(cocoaArray, forKey: key)
     }
 
-    func encodeToManyUnordered<DestinationEntity: OpaqueEntity>(
+    func encodeToManyUnordered<DestinationEntity: Entity>(
         _: DestinationEntity.Type,
         _ set: Set<AnyHashable>?,
         forKey key: String
@@ -147,7 +149,7 @@ extension NSManagedObject {
         let cocoaSet = NSMutableSet()
 
         try set.compactMap { $0 as? DestinationEntity }.forEach { entity in
-            if let entityManagedObjectId = entity.mainManagedObjectId {
+            if let entityManagedObjectId = entity.objectID {
                 try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
                 cocoaSet.add(managedObjectContext.object(with: entityManagedObjectId))
             } else {
@@ -164,8 +166,9 @@ extension NSManagedObject {
     }
 
     func decode<A: OpaqueAttribute>(_ attribute: A) throws -> A.WrappedValue? where A.WrappedValue: OpaqueOptional {
-        guard let key = attribute.name.value, entity.propertiesByName[key] != nil else {
-            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
+        let key = attribute.name
+        guard entity.propertiesByName[key] != nil else {
+            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name)
         }
 
         return try (self[primitiveValue: key] as? A.WrappedValue.Primitive)
@@ -173,8 +176,9 @@ extension NSManagedObject {
     }
 
     func decode<A: OpaqueAttribute>(_ attribute: A) throws -> A.WrappedValue {
-        guard let key = attribute.name.value, entity.propertiesByName[key] != nil else {
-            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name.value ?? "Unknown")
+        let key = attribute.name
+        guard entity.propertiesByName[key] != nil else {
+            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: attribute.name)
         }
 
         guard let primitiveValue = self[primitiveValue: key] as? A.WrappedValue.Primitive else {
@@ -184,8 +188,9 @@ extension NSManagedObject {
     }
 
     func decode<R: OpaqueRelation>(_ relation: R) throws -> R.WrappedValue {
-        guard let key = relation.name.value, entity.propertiesByName[key] != nil else {
-            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: relation.name.value ?? "Unknown")
+        let key = relation.name
+        guard entity.propertiesByName[key] != nil else {
+            throw Error.propertyNotAvailable(forEntity: entity.name ?? "Unknown Entity Name", key: relation.name)
         }
 
         switch relation.relationType {
@@ -212,7 +217,7 @@ extension NSManagedObject {
         }
     }
 
-    func decodeToOne<SomeEntity: OpaqueEntity>(_: SomeEntity.Type, forKey: String) throws -> SomeEntity? {
+    func decodeToOne<SomeEntity: Entity>(_: SomeEntity.Type, forKey: String) throws -> SomeEntity? {
         guard let managedObjectContext else {
             throw Error.contextIsNotAvailable
         }
@@ -221,7 +226,7 @@ extension NSManagedObject {
         return try managed.flatMap { try .init(unmanagedId: $0.objectID, context: managedObjectContext) }
     }
 
-    func decodeToManyOrdered<SomeEntity: OpaqueEntity>(
+    func decodeToManyOrdered<SomeEntity: Entity>(
         _: SomeEntity.Type,
         forKey key: String
     ) throws -> [SomeEntity]? {
@@ -237,7 +242,7 @@ extension NSManagedObject {
         }
     }
 
-    func decodeToManyUnordered<SomeEntity: OpaqueEntity>(
+    func decodeToManyUnordered<SomeEntity: Entity>(
         _: SomeEntity.Type,
         forKey key: String
     ) throws -> Set<AnyHashable>? {

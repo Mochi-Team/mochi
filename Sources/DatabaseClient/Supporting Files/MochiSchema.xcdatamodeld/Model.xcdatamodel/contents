@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22E252" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Module" representedClassName="Module" syncable="YES">
+        <attribute name="installDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="manifest" attributeType="Binary"/>
+        <attribute name="moduleLocation" attributeType="URI"/>
+    </entity>
+    <entity name="Repo" representedClassName="Repo" syncable="YES">
+        <attribute name="manifest" attributeType="Binary"/>
+        <attribute name="remoteURL" attributeType="URI"/>
+        <relationship name="modules" toMany="YES" deletionRule="Nullify" destinationEntity="Module"/>
+    </entity>
+</model>

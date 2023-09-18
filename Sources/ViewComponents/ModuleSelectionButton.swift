@@ -7,6 +7,7 @@
 //
 
 import ComposableArchitecture
+import DatabaseClient
 import Foundation
 import NukeUI
 import SharedModels

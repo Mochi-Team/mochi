@@ -96,15 +96,15 @@ extension ModuleListsFeature.View {
                     .frame(maxWidth: .infinity)
                     .background(Color.gray.opacity(0.16).cornerRadius(12))
                 } else {
-                    ForEach(repo.modules.sorted { $0.name < $1.name }, id: \.id) { module in
-                        Button {
-                            store.send(.view(.didSelectModule(repo.id, module.id)))
-                        } label: {
-                            moduleRow(repo, module.manifest)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
+//                    ForEach(repo.modules.sorted(by: \.name), id: \.id) { module in
+//                        Button {
+//                            store.send(.view(.didSelectModule(repo.id, module.id)))
+//                        } label: {
+//                            moduleRow(repo, module.manifest)
+//                                .contentShape(Rectangle())
+//                        }
+//                        .buttonStyle(.plain)
+//                    }
                 }
             }
         }
@@ -170,8 +170,6 @@ struct ModuleListsFeatureView_Previews: PreviewProvider {
                     repos: [
                         Repo(
                             remoteURL: .init(string: "/").unsafelyUnwrapped,
-                            dateAdded: .init(),
-                            lastRefreshed: .init(),
                             manifest: .init(
                                 name: "Local Repo",
                                 author: "errorerrorerror",

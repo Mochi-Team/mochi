@@ -6,6 +6,7 @@
 //  Copyright © 2023. All rights reserved.
 //
 
+@_exported
 import DatabaseClient
 import Dependencies
 import Foundation

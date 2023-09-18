@@ -36,15 +36,13 @@ extension RepoClient: DependencyKey {
         addRepo: { repoPayload in
             let repo = Repo(
                 remoteURL: repoPayload.remoteURL,
-                dateAdded: .init(),
-                lastRefreshed: .init(),
                 manifest: repoPayload.manifest
             )
 
-            _ = try await databaseClient.insertOrUpdate(repo)
+            _ = try await databaseClient.insert(repo)
         },
         removeRepo: { repoId in
-            if let repo: Repo = try? await databaseClient.fetch(.all.where(\.$remoteURL == repoId.rawValue)).first {
+            if let repo = try? await databaseClient.fetch(.all.where(\Repo.$remoteURL == repoId.rawValue)).first {
                 try await databaseClient.delete(repo)
             }
 
@@ -59,13 +57,13 @@ extension RepoClient: DependencyKey {
 
             Self.downloadManager.cancelModuleDownload(id)
 
-            guard var repo: Repo = try await databaseClient.fetch(.all.where(\.$remoteURL == repoId.rawValue)).first else {
+            guard var repo = try await databaseClient.fetch(.all.where(\Repo.$remoteURL == repoId.rawValue)).first else {
                 return
             }
 
             if let index = repo.modules.firstIndex(where: { $0.id == moduleId }) {
                 repo.modules.remove(at: index)
-                _ = try await databaseClient.insertOrUpdate(repo)
+                _ = try await databaseClient.update(repo)
             }
         },
         moduleDownloads: {
@@ -132,7 +130,8 @@ private class ModulesDownloadManager {
                             throw RepoClient.Error.failedToDownloadModule
                         }
                         let module = Module(
-                            binaryModule: data,
+                            moduleLocation: .init(string: "/").unsafelyUnwrapped,
+//                            binaryModule: data,
                             installDate: .init(),
                             manifest: module
                         )
@@ -156,7 +155,7 @@ private class ModulesDownloadManager {
 
         states.value[repoModuleID] = .installing
 
-        guard let repo: Repo = try? await databaseClient.fetch(.all.where(\.$remoteURL == repoModuleID.repoId.rawValue)).first else {
+        guard var repo: Repo = try? await databaseClient.fetch(.all.where(\.$remoteURL == repoModuleID.repoId.rawValue)).first else {
             states.value[repoModuleID] = .failed(.failedToFindRepo)
             return
         }
@@ -168,7 +167,7 @@ private class ModulesDownloadManager {
         repo.modules.insert(module)
 
         do {
-            _ = try await databaseClient.insertOrUpdate(repo)
+            _ = try await databaseClient.update(repo)
         } catch {
             states.value[repoModuleID] = .failed(.failedToInstallModule)
         }

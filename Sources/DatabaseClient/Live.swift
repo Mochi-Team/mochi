@@ -6,35 +6,53 @@
 //  Copyright © 2023. All rights reserved.
 //
 
-import CoreORM
+import CoreData
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay
 
 public extension DatabaseClient {
     static var liveValue: DatabaseClient = {
-        let core = CoreORM<MochiSchema>()
+        let persistence = NSPersistentContainer(name: "MochiSchema")
+
         return .init {
-            try await core.load()
-        } insert: { entity in
-            try await core.transaction { context in
-                try await context.create(entity)
+            try await persistence.loadPersistentStores()
+        } insert: { instance in
+            let managed = try await persistence.schedule { context in
+                let managed = context.insert(entity: type(of: instance).self)
+                try instance.copy(to: managed.objectID, context: context)
+                return managed
             }
-        } insertOrUpdate: { entity in
-            try await core.transaction { context in
-                try await context.createOrUpdate(entity)
+
+            guard !managed.objectID.isTemporaryID else {
+                throw Error.managedObjectIdIsTemporary
             }
-        } update: { entity in
-            try await core.transaction { context in
-                try await context.update(entity)
+
+            let managedId = managed.objectID
+
+//            instance.mainManagedObjectId = managedId
+            return instance
+        } update: { instance in
+            try await persistence.schedule { context in
+                guard let objectID = instance.objectID else {
+                    throw Error.managedContextNotAvailable
+                }
+                try instance.copy(to: objectID, context: context)
+                return instance
             }
-        } delete: { entity in
-            try await core.transaction { context in
-                try await context.delete(entity)
+        } delete: { instance in
+            try await persistence.schedule { context in
+                guard let objectId = instance.objectID else {
+                    throw Error.managedContextNotAvailable
+                }
+
+                let managed = context.object(with: objectId)
+                context.delete(managed)
+//                instance.objectID = nil
             }
         } fetch: { entityType, request in
-            try await core.transaction { context in
-                try await context.fetch(entityType, request)
+            try await persistence.schedule { context in
+                try context.fetch(entityType, request).compactMap { try entityType.init(id: $0.objectID, context: context) }
             }
         }
     }()
@@ -46,8 +64,14 @@ enum DatabaseClientError: Error {
     case invalidRequestCastType
 }
 
-extension CoreTransaction {
+extension DatabaseClient {
     func fetch<Instance: Entity>(_: Instance.Type, _ request: Any) async throws -> [Instance] {
         try await fetch((request as? Request<Instance>) ?? .all)
+    }
+}
+
+private extension NSManagedObjectContext {
+    func fetch<Instance: Entity>(_: Instance.Type, _ request: Any) throws -> [NSManagedObject] {
+        try fetch((request as? Request<Instance>) ?? .all)
     }
 }

@@ -6,27 +6,29 @@
 //
 //
 
-import CoreORM
+import CoreData
 import Foundation
 @preconcurrency
 import Semver
 import Tagged
 
-// MARK: - Module
-
-@dynamicMemberLookup
 public struct Module: Entity, Hashable, Sendable {
-    @Attribute(allowsExternalBinaryDataStorage: true)
-    public var binaryModule: Data = .init()
+//    @Attribute("moduleLocation", \.moduleLocation)
+    public var moduleLocation: URL = .init(string: "/").unsafelyUnwrapped
 
-//    @Attribute
-//    public var moduleLocation: URL = .init(string: "/").unsafelyUnwrapped
-
-    @Attribute
+//    @Attribute("installDate", \.installDate)
     public var installDate: Date = .init()
 
-    @Attribute
+//    @Attribute("manifest", \.manifest)
     public var manifest: Manifest = .init()
+
+    public var objectID: NSManagedObjectID?
+
+    public static var properties: Set<Property> = [
+        .init("moduleLocation", \Self.moduleLocation),
+        .init("installDate", \Self.installDate),
+        .init("manifest", \Self.manifest)
+    ]
 
     public init() {}
 }
@@ -42,11 +44,11 @@ extension Module: Identifiable {
 
 public extension Module {
     init(
-        binaryModule: Data,
+        moduleLocation: URL,
         installDate: Date,
         manifest: Module.Manifest
     ) {
-        self.binaryModule = binaryModule
+        self.moduleLocation = moduleLocation
         self.installDate = installDate
         self.manifest = manifest
     }
@@ -112,37 +114,22 @@ public extension Module {
 // MARK: - Semver + TransformableValue
 
 extension Semver: TransformableValue {
-    public func encode() throws -> String {
-        description
-    }
-
-    public static func decode(value: String) throws -> Semver {
-        try Semver(value)
-    }
+    public func encode() throws -> String { description }
+    public static func decode(value: String) throws -> Semver { try Semver(value) }
 }
 
 // MARK: - TransformableValue + TransformableValue
 
 extension [Module.Manifest.Meta]: TransformableValue {
-    public func encode() throws -> Data {
-        try JSONEncoder().encode(self)
-    }
-
-    public static func decode(value: Data) throws -> [Element] {
-        try JSONDecoder().decode(Self.self, from: value)
-    }
+    public func encode() throws -> Data { try JSONEncoder().encode(self) }
+    public static func decode(value: Data) throws -> [Element] { try JSONDecoder().decode(Self.self, from: value) }
 }
 
 // MARK: - Module.Manifest + TransformableValue
 
 extension Module.Manifest: TransformableValue {
-    public func encode() throws -> Data {
-        try JSONEncoder().encode(self)
-    }
-
-    public static func decode(value: Data) throws -> Module.Manifest {
-        try JSONDecoder().decode(Self.self, from: value)
-    }
+    public func encode() throws -> Data { try JSONEncoder().encode(self) }
+    public static func decode(value: Data) throws -> Module.Manifest { try JSONDecoder().decode(Self.self, from: value) }
 }
 
 // MARK: - Tagged + TransformableValue
