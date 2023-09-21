@@ -28,7 +28,6 @@ public extension DatabaseClient {
 
 public extension DatabaseClient {
     enum Error: Swift.Error {
-        case failedToCreateInstance
         case managedContextNotAvailable
         case managedObjectIdIsTemporary
     }

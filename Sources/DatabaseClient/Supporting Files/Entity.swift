@@ -11,45 +11,14 @@ import Foundation
 
 public protocol Entity {
     static var entityName: String { get }
-    static var properties: Set<AnyProperty<Self>> { get }
-
-    var objectID: NSManagedObjectID? { get set }
+    var objectID: ManagedObjectID? { get set }
+    static var properties: Set<Property<Self>> { get }
 
     init()
 }
 
 public extension Entity {
     static var entityName: String { .init(describing: Self.self) }
-}
-
-extension Entity {
-
-//    var mainManagedObjectId: NSManagedObjectID? {
-//        get {
-//            for (_, keyPath) in Self.allStructEntityPropertiesKeyPath {
-//                let property = self[keyPath: keyPath]
-//                if let _managedObjectId = property.objectID {
-//                    return _managedObjectId
-//                }
-//            }
-//            return nil
-//        }
-//        mutating set {
-//            properties.forEach { $0.objectID = newValue }
-//        }
-//    }
-
-//    var properties: [any OpaqueProperty] {
-//        var properties = [any OpaqueProperty]()
-//
-//        for (_, keyPath) in Self.allStructEntityPropertiesKeyPath {
-//            let property = self[keyPath: keyPath]
-//            properties.append(property)
-//        }
-//        return properties
-//    }
-
-    static var properties: Set<PartialKeyPath<Self>> { [] }
 }
 
 // MARK: - EntityError
@@ -59,6 +28,7 @@ public enum EntityError: Error {
 }
 
 extension Entity {
+
     /// Decodes an NSManagedObject data to Entity type
     ///
     init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
@@ -71,53 +41,23 @@ extension Entity {
 
     init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
         self.init()
+
+        self.objectID = .init(objectID: unmanagedId)
+
+        let managed = context.object(with: unmanagedId)
+
+        for property in Self.properties {
+            try property.decode(&self, managed)
+        }
     }
 
     /// Copies Entity instance to managed object
     ///
-    func copy(
-        to managedObjectId: NSManagedObjectID,
-        context: NSManagedObjectContext,
-        createNewRelations _: Bool = true
-    ) throws {
-//        try properties.forEach { property in
-//            try property.encode(with: managedObjectId, context: context)
-//        }
+    func copy(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+        let managed = context.object(with: managedObjectId)
+
+        try Self.properties.forEach { property in
+            try property.encode(self, managed)
+        }
     }
-}
-
-///// KeyPath
-/////
-//var _membersToKeyPaths: [String: [String: AnyKeyPath]] = [:]
-//
-//extension Entity {
-//    private subscript(checkedMirrorDescendant key: String) -> any OpaqueProperty {
-//        (Mirror(reflecting: self).descendant(key) as? any OpaqueProperty).unsafelyUnwrapped
-//    }
-//
-//    static var allStructEntityPropertiesKeyPath: [String: KeyPath<Self, any OpaqueProperty>] {
-//        if let entityKeyPathMaps = _membersToKeyPaths[Self.entityName] as? [String: KeyPath<Self, any OpaqueProperty>] {
-//            return entityKeyPathMaps
-//        } else {
-//            var keyPaths = [String: KeyPath<Self, any OpaqueProperty>]()
-//            defer { _membersToKeyPaths[Self.entityName] = keyPaths as [String: KeyPath<Self, any OpaqueProperty>] }
-//
-//            let mirror = Mirror(reflecting: Self())
-//
-//            for case let (key?, value) in mirror.children {
-//                if !(value is any OpaqueProperty) {
-//                    continue
-//                }
-//
-//                keyPaths[key] = \Self.[checkedMirrorDescendant: key]
-//            }
-//            return keyPaths
-//        }
-//    }
-//}
-
-public extension Entity {
-    typealias Property = AnyProperty<Self>
-    typealias Attribute<T: TransformableValue> = AnyAttribute<Self, T>
-    typealias Relation<D: Entity, T> = AnyRelation<Self, D, T>
 }

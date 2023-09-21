@@ -6,28 +6,21 @@
 //
 //
 
-import CoreData
 import Foundation
 import Tagged
 
 @dynamicMemberLookup
 public struct Repo: Entity, Equatable, Sendable {
-//    @Attribute("remoteURL", \.remoteURL)
     public var remoteURL: URL = .init(string: "/").unsafelyUnwrapped
-
-//    @Attribute("manifest", \.manifest)
     public var manifest: Manifest = .init()
-
-//    @Relation("modules", \.modules)
     public var modules: Set<Module> = []
 
-    public var objectID: NSManagedObjectID?
+    public var objectID: ManagedObjectID?
 
-    public static var properties: Set<Property> = [
+    public static var properties: Set<Property<Self>> = [
         .init("remoteURL", \.remoteURL),
-        .init("manifest", \.manifest)
-//        ,
-//        .init("modules", \.modules)
+        .init("manifest", \.manifest),
+        .init("modules", \.modules)
     ]
 
     public init() {}

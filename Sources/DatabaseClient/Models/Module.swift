@@ -6,23 +6,17 @@
 //
 //
 
-import CoreData
 import Foundation
 @preconcurrency
 import Semver
 import Tagged
 
+@dynamicMemberLookup
 public struct Module: Entity, Hashable, Sendable {
-//    @Attribute("moduleLocation", \.moduleLocation)
     public var moduleLocation: URL = .init(string: "/").unsafelyUnwrapped
-
-//    @Attribute("installDate", \.installDate)
     public var installDate: Date = .init()
-
-//    @Attribute("manifest", \.manifest)
     public var manifest: Manifest = .init()
-
-    public var objectID: NSManagedObjectID?
+    public var objectID: ManagedObjectID?
 
     public static var properties: Set<Property> = [
         .init("moduleLocation", \Self.moduleLocation),

@@ -33,12 +33,21 @@ public protocol TransformableValue {
     static func decode(value: Primitive) throws -> Self
 }
 
+extension TransformableValue {
+    static func decode(_ value: Any?) throws -> Self {
+        guard let value = value as? Self.Primitive else {
+            throw TransformableValueError.badInput(value)
+        }
+        return try Self.decode(value: value)
+    }
+}
+
 public extension TransformableValue where Self: PrimitiveValue {
     func encode() throws -> Self { self }
     static func decode(value: Self) throws -> Self { value }
 }
 
-extension Optional: TransformableValue where Wrapped: TransformableValue {
+extension Optional where Wrapped: TransformableValue {
     public typealias Primitive = Wrapped.Primitive
 
     public func encode() throws -> Primitive {

@@ -142,6 +142,9 @@ let clientsTargets: [Target] = [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "Semver", package: "Semver"),
             .product(name: "Tagged", package: "swift-tagged")
+        ],
+        resources: [
+            .copy("Resources/MochiSchema.xcdatamodeld")
         ]
     ),
     .testTarget(

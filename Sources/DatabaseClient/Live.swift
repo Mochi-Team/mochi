@@ -13,7 +13,20 @@ import XCTestDynamicOverlay
 
 public extension DatabaseClient {
     static var liveValue: DatabaseClient = {
-        let persistence = NSPersistentContainer(name: "MochiSchema")
+        guard let databaseURL = Bundle.module.url(
+            forResource: "MochiSchema",
+            withExtension: "momd"
+        ) else {
+            fatalError("Failed to find data model")
+        }
+
+        let database = databaseURL.deletingPathExtension().lastPathComponent
+
+        guard let managedObjectModel = NSManagedObjectModel(contentsOf: databaseURL) else {
+            fatalError("Failed to create model from file: \(databaseURL)")
+        }
+
+        let persistence = NSPersistentContainer(name: database, managedObjectModel: managedObjectModel)
 
         return .init {
             try await persistence.loadPersistentStores()
@@ -28,16 +41,15 @@ public extension DatabaseClient {
                 throw Error.managedObjectIdIsTemporary
             }
 
-            let managedId = managed.objectID
-
-//            instance.mainManagedObjectId = managedId
+            var instance = instance
+            instance.objectID = .init(objectID: managed.objectID)
             return instance
         } update: { instance in
             try await persistence.schedule { context in
                 guard let objectID = instance.objectID else {
                     throw Error.managedContextNotAvailable
                 }
-                try instance.copy(to: objectID, context: context)
+                try instance.copy(to: objectID.id, context: context)
                 return instance
             }
         } delete: { instance in
@@ -46,9 +58,8 @@ public extension DatabaseClient {
                     throw Error.managedContextNotAvailable
                 }
 
-                let managed = context.object(with: objectId)
+                let managed = context.object(with: objectId.id)
                 context.delete(managed)
-//                instance.objectID = nil
             }
         } fetch: { entityType, request in
             try await persistence.schedule { context in
