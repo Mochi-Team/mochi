@@ -57,14 +57,14 @@ public struct PlayerFeature: Feature {
 
         public struct PIPState: Equatable, Sendable {
             public var enabled: Bool
-            public var status: PIPStatus
+            public var status: PiPStatus
             public var isActive: Bool
             public var isSupported: Bool
             public var isPossible: Bool
 
             public init(
                 enabled: Bool = false,
-                status: PIPStatus = .didStop,
+                status: PiPStatus = .didStop,
                 isActive: Bool = false,
                 isSupported: Bool = false,
                 isPossible: Bool = false
@@ -89,7 +89,7 @@ public struct PlayerFeature: Feature {
             case didFinishedSeekingTo(CGFloat)
             case didTapSubtitle(for: AVMediaSelectionGroup, AVMediaSelectionOption?)
             case didSelectRate(Float)
-            case didSetPiPStatus(PIPStatus)
+            case didSetPiPStatus(PiPStatus)
             case didSetPiPActive(Bool)
             case didSetPiPPossible(Bool)
             case didSetPiPSupported(Bool)

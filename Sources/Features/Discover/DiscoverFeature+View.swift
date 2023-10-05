@@ -35,7 +35,7 @@ extension DiscoverFeature.View: View {
                                     Spacer()
                                     Text("Listings Empty")
                                         .font(.title2.weight(.medium))
-                                    Text("There are no listings forr this module.")
+                                    Text("There are no listings for this module.")
                                     Spacer()
                                 }
                                 .foregroundColor(.gray)
@@ -111,7 +111,6 @@ extension DiscoverFeature.View: View {
                         .transition(.opacity)
                     }
                 }
-                .ignoresSafeArea(.all, edges: viewStore.state.value?.first?.type == .featured || !viewStore.state.didFinish ? .top : [])
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state.didFinish)
             }
             .frame(
@@ -159,9 +158,43 @@ extension DiscoverFeature.View: View {
                 )
                 .frame(maxWidth: .infinity)
             }
-            .onAppear {
-                store.send(.view(.didAppear))
+            .safeAreaInset(edge: .bottom) {
+                WithViewStore(store, observe: \.search.query) { viewStore in
+                    VStack(spacing: 10) {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 30, height: 6)
+                        
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.gray)
+                            TextField("Search", text: .constant(""))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background {
+                            RoundedRectangle(cornerRadius: 8)
+                                .style(
+                                    withStroke: Color.gray.opacity(0.24),
+                                    lineWidth: 1,
+                                    fill: Color.gray.opacity(0.14)
+                                )
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.bottom, 8)
+                    .background {
+                        RoundedCorners(topRadius: 16)
+                            .style(
+                                withStroke: Color.gray.opacity(0.2),
+                                lineWidth: 1,
+                                fill: .thinMaterial
+                            )
+                    }
+                }
             }
+            .onAppear { store.send(.view(.didAppear)) }
             .moduleListsSheet(
                 store.scope(
                     state: \.$moduleLists,
@@ -195,7 +228,7 @@ extension DiscoverFeature.View {
                     case .rank:
                         rankListing(listing)
                     case .featured:
-                        featuredListing(listing, firstElement: listings.first?.title == listing.title)
+                        featuredListing(listing)
                     }
                 }
             }
@@ -371,7 +404,7 @@ extension DiscoverFeature.View {
 
     @MainActor
     @ViewBuilder
-    func featuredListing(_ listing: DiscoverListing, firstElement: Bool) -> some View {
+    func featuredListing(_ listing: DiscoverListing) -> some View {
         if !listing.items.isEmpty {
             TabView {
                 ForEach(listing.items, id: \.id) { playlist in
@@ -404,8 +437,10 @@ extension DiscoverFeature.View {
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            .elasticParallax(firstElement)
-            .aspectRatio(firstElement ? 5 / 7 : 16 / 10, contentMode: .fill)
+            // TODO: Make size based on listing's size type
+            .aspectRatio(5 / 7, contentMode: .fill)
+            .cornerRadius(12)
+            .padding(.horizontal)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)
         }

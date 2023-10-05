@@ -29,6 +29,7 @@ extension PlayerClient: DependencyKey {
             seek: { @MainActor progress in await impl.seek(to: progress) },
             volume: { @MainActor volume in await impl.volume(to: volume) },
             clear: { @MainActor in await impl.clear() },
+            status: { @MainActor in impl.status() },
             player: impl.player
         )
     }()
@@ -121,6 +122,11 @@ private class InternalPlayer {
         try? session.setActive(false, options: .notifyOthersOnDeactivation)
         #endif
         nowPlaying.clear()
+    }
+
+    @MainActor
+    func status() -> AsyncStream<PlayerClient.Status> {
+        .finished
     }
 }
 
@@ -244,7 +250,7 @@ private class NowPlaying {
     }
 
     @MainActor
-    func update(with metadata: PlayerClient.VideoCompositionItem.Metadata) {
+    func update(with metadata: PlayerClient.SourceMetadata) {
         var info = infoCenter.nowPlayingInfo ?? [:]
 
         info[MPMediaItemPropertyTitle] = metadata.title

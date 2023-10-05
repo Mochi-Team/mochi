@@ -13,9 +13,9 @@ import Foundation
 import SwiftUI
 import ViewComponents
 
-// MARK: - PIPStatus
+// MARK: - PiPStatus
 
-public enum PIPStatus: Equatable, Sendable {
+public enum PiPStatus: Equatable, Sendable {
     case willStart
     case didStart
     case willStop
@@ -27,7 +27,7 @@ public enum PIPStatus: Equatable, Sendable {
         self == .willStart || self == .didStart
     }
 
-    public static func == (lhs: PIPStatus, rhs: PIPStatus) -> Bool {
+    public static func == (lhs: PiPStatus, rhs: PiPStatus) -> Bool {
         switch (lhs, rhs) {
         case (.willStart, .willStart),
              (.didStart, .didStart),
@@ -54,7 +54,7 @@ struct PlayerView: PlatformAgnosticViewRepresentable {
     private var pipIsSupportedCallback: (@Sendable (Bool) -> Void)?
     private var pipIsActiveCallback: (@Sendable (Bool) -> Void)?
     private var pipIsPossibleCallback: (@Sendable (Bool) -> Void)?
-    private var pipStatusCallback: (@Sendable (PIPStatus) -> Void)?
+    private var pipStatusCallback: (@Sendable (PiPStatus) -> Void)?
 
     init(
         player: AVPlayer,
@@ -119,7 +119,7 @@ extension PlayerView {
         return view
     }
 
-    func pictureInPictureStatus(_ callback: @escaping @Sendable (PIPStatus) -> Void) -> Self {
+    func pictureInPictureStatus(_ callback: @escaping @Sendable (PiPStatus) -> Void) -> Self {
         var view = self
         view.pipStatusCallback = callback
         return view
@@ -231,7 +231,7 @@ final class AVPlayerView: PlatformView {
 
     #if os(iOS)
     override class var layerClass: AnyClass { AVPlayerLayer.self }
-    #else
+    #elseif os(macOS)
     override func makeBackingLayer() -> CALayer { AVPlayerLayer() }
     #endif
 

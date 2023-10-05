@@ -61,7 +61,7 @@ private actor ModulesCache {
             return module
         }
 
-        guard let repo = try await databaseClient.fetch(.all.where(\Repo.$remoteURL == id.repoId.rawValue)).first,
+        guard let repo = try await databaseClient.fetch(.all.where(\Repo.remoteURL == id.repoId.rawValue)).first,
               let module: Module = repo.modules.first(where: { $0.id == id.moduleId }) else {
             throw ModuleClient.Error.moduleNotFound
         }

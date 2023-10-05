@@ -21,7 +21,8 @@ let featuresTargets: [Target] = [
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
-        ]
+        ],
+        path: "Sources/Features/App/"
     ),
     .target(
         name: "Discover",
@@ -36,7 +37,8 @@ let featuresTargets: [Target] = [
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
-        ]
+        ],
+        path: "Sources/Features/Discover/"
     ),
     .target(
         name: "ModuleLists",
@@ -47,7 +49,8 @@ let featuresTargets: [Target] = [
             "SharedModels",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Features/ModuleLists/"
     ),
     .target(
         name: "PlaylistDetails",
@@ -62,7 +65,8 @@ let featuresTargets: [Target] = [
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
-        ]
+        ],
+        path: "Sources/Features/PlaylistDetails/"
     ),
     .target(
         name: "Repos",
@@ -75,7 +79,8 @@ let featuresTargets: [Target] = [
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
-        ]
+        ],
+        path: "Sources/Features/Repos/"
     ),
     .target(
         name: "Search",
@@ -91,7 +96,8 @@ let featuresTargets: [Target] = [
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
-        ]
+        ],
+        path: "Sources/Features/Search/"
     ),
     .target(
         name: "Settings",
@@ -101,7 +107,8 @@ let featuresTargets: [Target] = [
             "SharedModels",
             "UserSettingsClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Features/Settings/"
     ),
     .target(
         name: "VideoPlayer",
@@ -114,7 +121,8 @@ let featuresTargets: [Target] = [
             "UserSettingsClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "NukeUI", package: "Nuke")
-        ]
+        ],
+        path: "Sources/Features/VideoPlayer/"
     )
 ]
 
@@ -134,7 +142,8 @@ let clientsTargets: [Target] = [
         name: "AnalyticsClient",
         dependencies: [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Clients/AnalyticsClient/"
     ),
     .target(
         name: "DatabaseClient",
@@ -143,6 +152,7 @@ let clientsTargets: [Target] = [
             .product(name: "Semver", package: "Semver"),
             .product(name: "Tagged", package: "swift-tagged")
         ],
+        path: "Sources/Clients/DatabaseClient/",
         resources: [
             .copy("Resources/MochiSchema.xcdatamodeld")
         ]
@@ -155,7 +165,8 @@ let clientsTargets: [Target] = [
         name: "LoggerClient",
         dependencies: [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Clients/LoggerClient/"
     ),
     .target(
         name: "ModuleClient",
@@ -167,7 +178,8 @@ let clientsTargets: [Target] = [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "SwiftSoup", package: "SwiftSoup"),
             .product(name: "Semaphore", package: "Semaphore")
-        ]
+        ],
+        path: "Sources/Clients/ModuleClient/"
     ),
     .testTarget(
         name: "ModuleClientTests",
@@ -183,20 +195,23 @@ let clientsTargets: [Target] = [
             .product(name: "TOMLDecoder", package: "TOMLDecoder"),
             .product(name: "Tagged", package: "swift-tagged"),
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Clients/RepoClient/"
     ),
     .target(
         name: "UserDefaultsClient",
         dependencies: [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Clients/UserDefaultsClient/"
     ),
     .target(
         name: "UserSettingsClient",
         dependencies: [
             "UserDefaultsClient",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Clients/UserSettingsClient/"
     ),
     .target(
         name: "PlayerClient",
@@ -209,7 +224,9 @@ let clientsTargets: [Target] = [
             "UserDefaultsClient",
             "ViewComponents",
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
+        ],
+        path: "Sources/Clients/PlayerClient/"
+
     )
 ]
 

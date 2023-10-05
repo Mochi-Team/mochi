@@ -226,138 +226,137 @@ extension RepoPackagesFeature.View {
     @MainActor
     @ViewBuilder
     func packageRow(_ modules: [Module.Manifest]) -> some View {
-        EmptyView()
-//        let latestModule = modules.latestModule
-//        WithViewStore(store) { state in
-//            PackageDownloadState(
-//                repo: state.repo,
-//                installedModule: state.repo.modules.first(where: \.id == latestModule.id),
-//                downloadState: state.downloadStates.first(where: \.key == latestModule.id)?.value
-//            )
-//        } content: { viewStore in
-//            HStack(alignment: .center, spacing: 16) {
-//                LazyImage(url: latestModule.iconURL(repoURL: viewStore.repo.remoteURL)) { state in
-//                    if let image = state.image {
-//                        image
-//                            .resizable()
-//                            .aspectRatio(contentMode: .fit)
-//                    } else {
-//                        Image(systemName: "questionmark.square.dashed")
-//                            .resizable()
-//                            .aspectRatio(contentMode: .fit)
-//                            .font(.body.weight(.light))
-//                    }
-//                }
-//                .frame(width: 38, height: 38)
-//                .squircle()
-//
-//                VStack(alignment: .leading, spacing: 2) {
-//                    HStack(spacing: 2) {
-//                        Text(latestModule.name)
-//                            .font(.callout.weight(.medium))
-//
-//                        Text("\u{2022}")
-//                            .foregroundColor(.gray)
-//
-//                        Text("v\(latestModule.version.description)")
-//                            .font(.footnote.weight(.medium))
-//                            .foregroundColor(.gray)
-//                    }
-//
-//                    HStack(spacing: 0) {
-//                        Text(latestModule.description ?? "Description unavailable")
-//                            .font(.footnote)
-//                    }
-//                    .lineLimit(1)
-//                    .foregroundColor(.gray)
-//                }
-//
-//                Spacer()
-//
-//                HStack(spacing: 0) {
-//                    if let downloadState = viewStore.downloadState, downloadState != .installed {
-//                        Group {
-//                            switch downloadState {
-//                            case .pending:
-//                                EmptyView()
-//                            case let .downloading(progress):
-//                                CircularProgressView(
-//                                    progress: progress,
-//                                    barStyle: .init(fill: .blue, width: 4, blurRadius: 1)
-//                                ) {
-//                                    Image(systemName: "stop.fill")
-//                                        .resizable()
-//                                        .aspectRatio(contentMode: .fit)
-//                                        .foregroundColor(.blue)
-//                                        .padding(6)
-//                                }
-//                            case .installing:
-//                                ProgressView()
-//                                    .controlSize(.small)
-//                            case .installed:
-//                                EmptyView()
-//                            case .failed:
-//                                Image(systemName: "exclamationmark.triangle.fill")
-//                                    .resizable()
-//                                    .aspectRatio(contentMode: .fit)
-//                                    .foregroundColor(.red)
-//                            }
-//                        }
-//                        .frame(width: 24, height: 24)
-//                        .contentShape(Rectangle())
-//                        .onTapGesture {
-////                            viewStore.send(.didTapRemoveModule(latestModule.id))
-//                        }
-//                    } else if let installedModule = viewStore.installedModule {
-//                        if installedModule.version < latestModule.version {
-//                            Button {
-//                                viewStore.send(.didTapAddModule(latestModule.id))
-//                            } label: {
-//                                Image(systemName: "arrow.up.circle.fill")
-//                                    .resizable()
-//                                    .aspectRatio(contentMode: .fit)
-//                                    .foregroundColor(.gray)
-//                            }
-//                            .buttonStyle(.plain)
-//                            .frame(width: 24, height: 24)
-//                        } else {
-//                            Image(systemName: "checkmark.circle.fill")
-//                                .resizable()
-//                                .aspectRatio(contentMode: .fit)
-//                                .foregroundColor(.green)
-//                                .frame(width: 24, height: 24)
-//                        }
-//                    } else {
-//                        Button {
-//                            viewStore.send(.didTapAddModule(latestModule.id))
-//                        } label: {
-//                            Image(systemName: "plus.circle.fill")
-//                                .resizable()
-//                                .aspectRatio(contentMode: .fit)
-//                                .foregroundColor(.blue)
-//                        }
-//                        .buttonStyle(.plain)
-//                        .frame(width: 24, height: 24)
-//                    }
-//                }
-//                .animation(.easeInOut(duration: 0.25), value: viewStore.state)
-//            }
-//            .frame(maxWidth: .infinity)
-//            .padding(.vertical, 14)
-//            .padding(.horizontal)
-//            .contentShape(Rectangle())
-//            .contextMenu {
-//                if let installed = viewStore.installedModule {
-//                    Button {
-////                        viewStore.send(.didTapRemoveModule(installed.id))
-//                    } label: {
-//                        Label("Remove module", systemImage: "trash.fill")
-//                    }
-//                    .buttonStyle(.plain)
-//                }
-//            }
-//        }
-//        .background(Color.theme.backgroundColor)
+        let latestModule = modules.latestModule
+        WithViewStore(store) { state in
+            PackageDownloadState(
+                repo: state.repo,
+                installedModule: state.repo.modules.first(where: \.id == latestModule.id),
+                downloadState: state.downloadStates.first(where: \.key == latestModule.id)?.value
+            )
+        } content: { viewStore in
+            HStack(alignment: .center, spacing: 16) {
+                LazyImage(url: latestModule.iconURL(repoURL: viewStore.repo.remoteURL)) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else {
+                        Image(systemName: "questionmark.square.dashed")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .font(.body.weight(.light))
+                    }
+                }
+                .frame(width: 38, height: 38)
+                .squircle()
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 2) {
+                        Text(latestModule.name)
+                            .font(.callout.weight(.medium))
+
+                        Text("\u{2022}")
+                            .foregroundColor(.gray)
+
+                        Text("v\(latestModule.version.description)")
+                            .font(.footnote.weight(.medium))
+                            .foregroundColor(.gray)
+                    }
+
+                    HStack(spacing: 0) {
+                        Text(latestModule.description ?? "Description unavailable")
+                            .font(.footnote)
+                    }
+                    .lineLimit(1)
+                    .foregroundColor(.gray)
+                }
+
+                Spacer()
+
+                HStack(spacing: 0) {
+                    if let downloadState = viewStore.downloadState, downloadState != .installed {
+                        Group {
+                            switch downloadState {
+                            case .pending:
+                                EmptyView()
+                            case let .downloading(progress):
+                                CircularProgressView(
+                                    progress: progress,
+                                    barStyle: .init(fill: .blue, width: 4, blurRadius: 1)
+                                ) {
+                                    Image(systemName: "stop.fill")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .foregroundColor(.blue)
+                                        .padding(6)
+                                }
+                            case .installing:
+                                ProgressView()
+                                    .controlSize(.small)
+                            case .installed:
+                                EmptyView()
+                            case .failed:
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewStore.send(.didTapRemoveModule(latestModule.id))
+                        }
+                    } else if let installedModule = viewStore.installedModule {
+                        if installedModule.version < latestModule.version {
+                            Button {
+                                viewStore.send(.didTapAddModule(latestModule.id))
+                            } label: {
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .foregroundColor(.gray)
+                            }
+                            .buttonStyle(.plain)
+                            .frame(width: 24, height: 24)
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .foregroundColor(.green)
+                                .frame(width: 24, height: 24)
+                        }
+                    } else {
+                        Button {
+                            viewStore.send(.didTapAddModule(latestModule.id))
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(width: 24, height: 24)
+                    }
+                }
+                .animation(.easeInOut(duration: 0.25), value: viewStore.state)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .padding(.horizontal)
+            .contentShape(Rectangle())
+            .contextMenu {
+                if let installed = viewStore.installedModule {
+                    Button {
+                        viewStore.send(.didTapRemoveModule(installed.id))
+                    } label: {
+                        Label("Remove module", systemImage: "trash.fill")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .background(Color.theme.backgroundColor)
     }
 }
 

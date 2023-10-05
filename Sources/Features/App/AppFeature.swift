@@ -118,9 +118,6 @@ public struct AppFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<AppFeature>
 
-        @InsetValue(\.bottomNavigation)
-        var bottomNavigationSize
-
         public nonisolated init(store: StoreOf<AppFeature>) {
             self.store = store
         }

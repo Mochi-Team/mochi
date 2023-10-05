@@ -23,7 +23,7 @@ public extension ModuleClient {
 
         init(module: Module) throws {
             self.module = module
-            self.instance = try .init(module: .init(contentsOf: module.moduleLocation.appendingPathComponent("main.wasm")))
+            self.instance = try .init(module: .init(contentsOf: module.moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm")))
             self.hostBindings = .init(memory: instance.memory)
             try initializeImports()
         }

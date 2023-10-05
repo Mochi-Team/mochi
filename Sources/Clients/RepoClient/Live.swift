@@ -42,7 +42,7 @@ extension RepoClient: DependencyKey {
             _ = try await databaseClient.insert(repo)
         },
         removeRepo: { repoId in
-            if let repo = try? await databaseClient.fetch(.all.where(\Repo.$remoteURL == repoId.rawValue)).first {
+            if let repo = try? await databaseClient.fetch(.all.where(\Repo.remoteURL == repoId.rawValue)).first {
                 try await databaseClient.delete(repo)
             }
 
@@ -52,19 +52,23 @@ extension RepoClient: DependencyKey {
             let id = RepoModuleID(repoId: repoId, moduleId: manifest.id)
             await Self.downloadManager.download(id, module: manifest)
         },
-        removeModule: { repoId, moduleId in
-            let id = RepoModuleID(repoId: repoId, moduleId: moduleId)
+        removeModule: { repoId, module in
+            let id = RepoModuleID(repoId: repoId, moduleId: module.id)
 
             Self.downloadManager.cancelModuleDownload(id)
 
-            guard var repo = try await databaseClient.fetch(.all.where(\Repo.$remoteURL == repoId.rawValue)).first else {
-                return
-            }
+            try await databaseClient.delete(module)
 
-            if let index = repo.modules.firstIndex(where: { $0.id == moduleId }) {
-                repo.modules.remove(at: index)
-                _ = try await databaseClient.update(repo)
-            }
+            try FileManager.default.removeItem(at: module.moduleLocation)
+
+//            guard var repo = try await databaseClient.fetch(.all.where(\Repo.remoteURL == repoId.rawValue)).first else {
+//                return
+//            }
+//
+//            if let index = repo.modules.firstIndex(where: { $0.id == moduleId }) {
+//                repo.modules.remove(at: index)
+//                _ = try await databaseClient.update(repo)
+//            }
         },
         moduleDownloads: {
             .init { continuation in
@@ -126,12 +130,27 @@ private class ModulesDownloadManager {
                     case let .progress(progress):
                         states.value[repoModuleID] = .downloading(percent: progress)
                     case let .value(data, response):
-                        guard let response = response as? HTTPURLResponse, response.mimeType == "application/wasm" else {
+                        guard let response = response as? HTTPURLResponse,
+                                response.mimeType == "application/wasm",
+                                (200..<300).contains(response.statusCode) else {
                             throw RepoClient.Error.failedToDownloadModule
                         }
+
+                        // TODO: Move to FileClient
+                        let reposDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                            .appendingPathComponent("Repos", isDirectory: true)
+                        try FileManager.default.createDirectory(at: reposDirectory, withIntermediateDirectories: true)
+
+                        let repoDirectory = reposDirectory.appendingPathComponent(repoModuleID.repoId.host ?? "Default", isDirectory: true)
+                        try FileManager.default.createDirectory(at: repoDirectory, withIntermediateDirectories: true)
+
+                        let moduleFolder = repoDirectory.appendingPathComponent(repoModuleID.moduleId.rawValue, isDirectory: true)
+                        try FileManager.default.createDirectory(at: moduleFolder, withIntermediateDirectories: true)
+
+                        try data.write(to: moduleFolder.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm"))
+
                         let module = Module(
-                            moduleLocation: .init(string: "/").unsafelyUnwrapped,
-//                            binaryModule: data,
+                            moduleLocation: moduleFolder,
                             installDate: .init(),
                             manifest: module
                         )
@@ -139,6 +158,7 @@ private class ModulesDownloadManager {
                     }
                 }
             } catch {
+                print(error)
                 states.value[repoModuleID] = .failed((error as? RepoClient.Error) ?? .failedToDownloadModule)
             }
             return nil
@@ -155,7 +175,7 @@ private class ModulesDownloadManager {
 
         states.value[repoModuleID] = .installing
 
-        guard var repo: Repo = try? await databaseClient.fetch(.all.where(\.$remoteURL == repoModuleID.repoId.rawValue)).first else {
+        guard var repo: Repo = try? await databaseClient.fetch(.all.where(\.remoteURL == repoModuleID.repoId.rawValue)).first else {
             states.value[repoModuleID] = .failed(.failedToFindRepo)
             return
         }

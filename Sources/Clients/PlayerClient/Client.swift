@@ -22,6 +22,7 @@ public struct PlayerClient: Sendable {
     public let seek: @Sendable (_ progress: Double) async -> Void
     public let volume: @Sendable (_ amount: Double) async -> Void
     public let clear: @Sendable () async -> Void
+    public let status: @Sendable () async -> AsyncStream<Status>
     let player: AVPlayer
 }
 
@@ -36,6 +37,7 @@ extension PlayerClient: TestDependencyKey {
         seek: unimplemented(),
         volume: unimplemented(),
         clear: unimplemented(),
+        status: unimplemented(),
         player: unimplemented()
     )
 }

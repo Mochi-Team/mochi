@@ -5,8 +5,7 @@
 //  Created by ErrorErrorError on 6/18/23.
 //
 //
-//  Inspired by NineAnimator's impl (https://github.com/SuperMarcus/NineAnimatorCommon) and jbweimar
-//  (https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift)
+//  Inspired by (https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift)
 
 import AVFoundation
 import AVKit

@@ -26,9 +26,7 @@ extension ModuleListsFeature {
                 }
                 return .concatenate(
                     .send(.delegate(.selectedModule(RepoClient.SelectedModule(repoId: repoId, module: module)))),
-                    .run { _ in
-                        await self.dismiss()
-                    }
+                    .run { _ in await self.dismiss() }
                 )
 
             case let .internal(.fetchRepos(.success(repos))):

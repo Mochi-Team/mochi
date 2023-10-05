@@ -52,6 +52,9 @@ extension DiscoverFeature {
                 }
                 state.screens.append(.playlistDetails(.init(repoModuleID: .init(repoId: repoId, moduleId: moduleId), playlist: playlist)))
 
+            case .view(.binding):
+                break
+
             case let .internal(.selectedModule(selection)):
                 state.selectedRepoModule = selection
                 return state.fetchLatestListings(selection)

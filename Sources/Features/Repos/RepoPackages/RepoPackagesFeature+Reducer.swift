@@ -43,13 +43,15 @@ extension RepoPackagesFeature {
                 return .run { await repoClient.addModule(repoId, manifest) }
 
             case let .view(.didTapRemoveModule(moduleId)):
-                if let module = state.repo.modules.first(where: \.id == moduleId) {
-                    state.repo.modules.remove(module)
+                guard let module = state.repo.modules.first(where: \.id == moduleId) else {
+                    break
                 }
+
+                state.repo.modules.remove(module)
 
                 let repoId = state.repo.id
                 return .merge(
-                    .run { try await repoClient.removeModule(repoId, moduleId) },
+                    .run { try await repoClient.removeModule(repoId, module) },
                     .send(.delegate(.removeModule(.init(repoId: state.repo.id, moduleId: moduleId))))
                 )
 

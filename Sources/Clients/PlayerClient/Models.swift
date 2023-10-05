@@ -11,19 +11,37 @@ import Foundation
 // MARK: - PlayerClient.Status
 
 public extension PlayerClient {
-    // TODO: Do more compositions for various types. eg. audio, podcasts
+    enum Status: Hashable, Sendable {
+        case idle
+        case loading
+        case playback(Playback)
+        case error
 
+        public struct Playback: Hashable, Sendable {
+            public let progress: Double
+            public let status: State
+
+            public enum State: Hashable, Sendable {
+                case playing
+                case paused
+                case buffering
+            }
+        }
+    }
+}
+
+public extension PlayerClient {
     struct VideoCompositionItem {
         let link: URL
         let headers: [String: String]
         let subtitles: [Subtitle]
-        let metadata: Metadata
+        let metadata: SourceMetadata
 
         public init(
             link: URL,
             headers: [String: String] = [:],
             subtitles: [Subtitle] = [],
-            metadata: Metadata
+            metadata: SourceMetadata
         ) {
             self.link = link
             self.headers = headers
@@ -52,24 +70,24 @@ public extension PlayerClient {
                 self.link = link
             }
         }
+    }
 
-        public struct Metadata {
-            let title: String?
-            let subtitle: String?
-            let artworkImage: URL?
-            let author: String?
+    struct SourceMetadata {
+        let title: String?
+        let subtitle: String?
+        let artworkImage: URL?
+        let author: String?
 
-            public init(
-                title: String? = nil,
-                subtitle: String? = nil,
-                artworkImage: URL? = nil,
-                author: String? = nil
-            ) {
-                self.title = title
-                self.subtitle = subtitle
-                self.artworkImage = artworkImage
-                self.author = author
-            }
+        public init(
+            title: String? = nil,
+            subtitle: String? = nil,
+            artworkImage: URL? = nil,
+            author: String? = nil
+        ) {
+            self.title = title
+            self.subtitle = subtitle
+            self.artworkImage = artworkImage
+            self.author = author
         }
     }
 }

@@ -21,7 +21,7 @@ public struct RepoClient: Sendable {
     public let addRepo: @Sendable (RepoPayload) async throws -> Void
     public let removeRepo: @Sendable (Repo.ID) async throws -> Void
     public let addModule: @Sendable (Repo.ID, Module.Manifest) async -> Void
-    public let removeModule: @Sendable (Repo.ID, Module.ID) async throws -> Void
+    public let removeModule: @Sendable (Repo.ID, Module) async throws -> Void
     public let moduleDownloads: @Sendable () -> AsyncStream<[RepoModuleID: RepoModuleDownloadState]>
     public let repos: @Sendable (Request<Repo>) async throws -> [Repo]
     public let fetchRemoteRepoModules: @Sendable (Repo.ID) async throws -> [Module.Manifest]

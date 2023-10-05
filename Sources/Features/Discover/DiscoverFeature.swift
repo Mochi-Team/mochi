@@ -11,6 +11,7 @@ import ComposableArchitecture
 import Foundation
 import ModuleClient
 import ModuleLists
+import OrderedCollections
 import PlaylistDetails
 import RepoClient
 import SharedModels
@@ -58,10 +59,16 @@ public struct DiscoverFeature: Feature {
         }
     }
 
+
     public struct State: FeatureState {
+        // TODO: Move listings and selectedRepoModule to Section enum
         public var listings: Loadable<[DiscoverListing]>
         public var selectedRepoModule: RepoClient.SelectedModule?
         public var screens: StackState<Screens.State>
+
+        @BindingState
+        public var search: Search
+
         @PresentationState
         public var moduleLists: ModuleListsFeature.State?
 
@@ -71,12 +78,40 @@ public struct DiscoverFeature: Feature {
             listings: Loadable<[DiscoverListing]> = .pending,
             selectedRepoModule: RepoClient.SelectedModule? = nil,
             screens: StackState<Screens.State> = .init(),
+            search: Search = .init(),
             moduleLists: ModuleListsFeature.State? = nil
         ) {
             self.listings = listings
             self.selectedRepoModule = selectedRepoModule
             self.screens = screens
+            self.search = search
             self.moduleLists = moduleLists
+        }
+
+        public enum Section: Equatable, Sendable {
+            case home
+            case module(ModuleListings)
+
+            public struct ModuleListings: Equatable, Sendable {
+                public let module: RepoClient.SelectedModule
+                public let listings: Loadable<[DiscoverListing]>
+            }
+        }
+
+        public struct Search: Equatable, Sendable {
+            public var query: String
+            public var searchFilters: [SearchFilter]
+            public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
+
+            public init(
+                query: String = "",
+                searchFilters: [SearchFilter] = [],
+                items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
+            ) {
+                self.query = query
+                self.searchFilters = searchFilters
+                self.items = items
+            }
         }
     }
 
@@ -85,6 +120,7 @@ public struct DiscoverFeature: Feature {
             case didAppear
             case didTapOpenModules
             case didTapPlaylist(Playlist)
+            case binding(BindingAction<State.Search>)
         }
 
         public enum DelegateAction: SendableAction {
