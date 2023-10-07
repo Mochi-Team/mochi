@@ -10,6 +10,7 @@ import Architecture
 import ModuleLists
 import NukeUI
 import PlaylistDetails
+import Search
 import SharedModels
 import Styling
 import SwiftUI
@@ -27,7 +28,7 @@ extension DiscoverFeature.View: View {
             )
         ) {
             WithViewStore(store, observe: \.listings) { viewStore in
-                ZStack {
+                ZStack(alignment: .bottom) {
                     LoadableView(loadable: viewStore.state) { listings in
                         Group {
                             if listings.isEmpty {
@@ -110,6 +111,63 @@ extension DiscoverFeature.View: View {
                         .disabled(true)
                         .transition(.opacity)
                     }
+                    .safeAreaInset(edge: .top) {
+                        TopBarView(
+                            backgroundStyle: .gradientSystem(),
+                            leadingAccessory: {
+                                WithViewStore(store, observe: \.selectedRepoModule) { viewStore in
+                                    Button {
+                                        viewStore.send(.didTapOpenModules)
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            if let url = viewStore.state?.module.icon.flatMap({ URL(string: $0) }) {
+                                                LazyImage(url: url) { state in
+                                                    if let image = state.image {
+                                                        image
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
+                                                    } else {
+                                                        EmptyView()
+                                                    }
+                                                }
+                                                .transition(.opacity)
+                                            }
+
+                                            Text(viewStore.state?.module.name ?? "Home")
+                                            Image(systemName: "chevron.down")
+                                                .font(.body.weight(.bold))
+                                            Spacer()
+                                        }
+                                        .font(.title.bold())
+                                        .contentShape(Rectangle())
+                                        .scaleEffect(1.0)
+                                        .transition(.opacity)
+                                        .animation(.easeInOut, value: viewStore.state?.module.icon)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .animation(.easeInOut, value: viewStore.state)
+                                }
+                            }
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .safeAreaInset(edge: .bottom) {
+                        Spacer()
+                            .frame(height: searchBarSize.height)
+                    }
+                    .zIndex(1)
+
+                    SearchFeature.View(
+                        store: store.scope(
+                            state: \.search,
+                            action: Action.InternalAction.search
+                        )
+                    )
+                    .onSearchBarSizeChanged { size in
+                        searchBarSize = size
+                    }
+                    .zIndex(2)
                 }
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state.didFinish)
             }
@@ -117,83 +175,6 @@ extension DiscoverFeature.View: View {
                 maxWidth: .infinity,
                 maxHeight: .infinity
             )
-            .safeAreaInset(edge: .top) {
-                TopBarView(
-                    backgroundStyle: .gradientSystem(),
-                    leadingAccessory: {
-                        WithViewStore(store, observe: \.selectedRepoModule) { viewStore in
-                            Button {
-                                viewStore.send(.didTapOpenModules)
-                            } label: {
-                                HStack(spacing: 8) {
-                                    if let url = viewStore.state?.module.icon.flatMap({ URL(string: $0) }) {
-                                        LazyImage(url: url) { state in
-                                            if let image = state.image {
-                                                image
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 22, height: 22)
-                                            } else {
-                                                EmptyView()
-                                            }
-                                        }
-                                        .transition(.opacity)
-                                    }
-
-                                    Text(viewStore.state?.module.name ?? "Home")
-                                    Image(systemName: "chevron.down")
-                                        .font(.body.weight(.bold))
-                                    Spacer()
-                                }
-                                .font(.title.bold())
-                                .contentShape(Rectangle())
-                                .scaleEffect(1.0)
-                                .transition(.opacity)
-                                .animation(.easeInOut, value: viewStore.state?.module.icon)
-                            }
-                            .buttonStyle(.plain)
-                            .animation(.easeInOut, value: viewStore.state)
-                        }
-                    }
-                )
-                .frame(maxWidth: .infinity)
-            }
-            .safeAreaInset(edge: .bottom) {
-                WithViewStore(store, observe: \.search.query) { viewStore in
-                    VStack(spacing: 10) {
-                        Capsule()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 30, height: 6)
-                        
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.gray)
-                            TextField("Search", text: .constant(""))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background {
-                            RoundedRectangle(cornerRadius: 8)
-                                .style(
-                                    withStroke: Color.gray.opacity(0.24),
-                                    lineWidth: 1,
-                                    fill: Color.gray.opacity(0.14)
-                                )
-                        }
-                        .padding(.horizontal)
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.bottom, 8)
-                    .background {
-                        RoundedCorners(topRadius: 16)
-                            .style(
-                                withStroke: Color.gray.opacity(0.2),
-                                lineWidth: 1,
-                                fill: .thinMaterial
-                            )
-                    }
-                }
-            }
             .onAppear { store.send(.view(.didAppear)) }
             .moduleListsSheet(
                 store.scope(

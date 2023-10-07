@@ -11,6 +11,7 @@ import Foundation
 struct RepoClient: Client {
     var dependencies: any Dependencies {
         DatabaseClient()
+        FileClient()
         SharedModels()
         TOMLDecoder()
         Tagged()

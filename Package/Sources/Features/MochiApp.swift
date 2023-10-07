@@ -21,7 +21,6 @@ struct MochiApp: Product, Target {
         Architecture()
         Discover()
         Repos()
-        Search()
         Settings()
         SharedModels()
         Styling()

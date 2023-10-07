@@ -23,7 +23,7 @@ extension UserSettingsClient: TestDependencyKey {
 }
 
 public extension DependencyValues {
-    var clientUserSettings: UserSettingsClient {
+    var userSettings: UserSettingsClient {
         get { self[UserSettingsClient.self] }
         set { self[UserSettingsClient.self] = newValue }
     }

@@ -6,8 +6,10 @@
 //
 //
 
+import ComposableArchitecture
 import ConcurrencyExtras
 import DatabaseClient
+import FileClient
 import Foundation
 import SharedModels
 import SwiftSoup
@@ -22,8 +24,15 @@ public extension ModuleClient {
         let hostBindings: HostBindings<WasmInstance.Memory>
 
         init(module: Module) throws {
+            @Dependency(\.fileClient)
+            var fileClient
+
             self.module = module
-            self.instance = try .init(module: .init(contentsOf: module.moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm")))
+            self.instance = try .init(
+                module: .init(contentsOf: fileClient.retrieveModuleFolder(module.moduleLocation)
+                    .appendingPathComponent("main", isDirectory: false)
+                    .appendingPathExtension("wasm"))
+            )
             self.hostBindings = .init(memory: instance.memory)
             try initializeImports()
         }

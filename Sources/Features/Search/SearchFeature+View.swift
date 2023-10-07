@@ -21,68 +21,63 @@ import ViewComponents
 extension SearchFeature.View: View {
     @MainActor
     public var body: some View {
-        NavStack(
-            store.scope(
-                state: \.screens,
-                action: Action.InternalAction.screens
-            )
+        SheetDetent(
+            isExpanded: $shouldExpand,
+            initialHeight: searchBarSize - 8
         ) {
             ZStack {
-                WithViewStore(store, observe: \.`self`) { viewStore in
-                    LoadableView(loadable: viewStore.items) { pagings in
-                        Group {
-                            if pagings.isEmpty {
-                                Text("No results found.")
-                            } else {
-                                ScrollView(.vertical) {
-                                    LazyVGrid(
-                                        columns: .init(
-                                            repeating: .init(alignment: .top),
-                                            count: 3
-                                        ),
-                                        alignment: .leading
-                                    ) {
-                                        let allItems = pagings.values.flatMap { $0.value?.items ?? [] }
-                                        ForEach(allItems) { item in
-                                            VStack(alignment: .leading) {
-                                                FillAspectImage(url: item.posterImage)
-                                                    .aspectRatio(2 / 3, contentMode: .fit)
-                                                    .cornerRadius(12)
+                WithViewStore(store, observe: \.items) { viewStore in
+                    LoadableView(loadable: viewStore.state) { pagings in
+                        if pagings.isEmpty {
+                            Text("No results found.")
+                        } else {
+                            ScrollView(.vertical) {
+                                LazyVGrid(
+                                    columns: .init(
+                                        repeating: .init(alignment: .top),
+                                        count: 3
+                                    ),
+                                    alignment: .leading
+                                ) {
+                                    let allItems = pagings.values.flatMap { $0.value?.items ?? [] }
+                                    ForEach(allItems) { item in
+                                        VStack(alignment: .leading) {
+                                            FillAspectImage(url: item.posterImage)
+                                                .aspectRatio(2 / 3, contentMode: .fit)
+                                                .cornerRadius(12)
 
-                                                Text(item.title ?? "Title Unavailable")
-                                                    .font(.footnote)
-                                            }
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                viewStore.send(.didTapPlaylist(item))
-                                            }
+                                            Text(item.title ?? "Title Unavailable")
+                                                .font(.footnote)
+                                        }
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            viewStore.send(.didTapPlaylist(item))
                                         }
                                     }
-                                    .padding(.horizontal)
+                                }
+                                .padding(.horizontal)
 
-                                    if let lastPage = pagings.values.last {
-                                        LoadableView(loadable: lastPage) { page in
-                                            LazyView {
-                                                Spacer()
-                                                    .frame(height: 1)
-                                                    .onAppear {
-                                                        if let nextPageId = page.nextPage {
-                                                            store.send(.view(.didShowNextPageIndicator(nextPageId)))
-                                                        }
+                                if let lastPage = pagings.values.last {
+                                    LoadableView(loadable: lastPage) { page in
+                                        LazyView {
+                                            Spacer()
+                                                .frame(height: 1)
+                                                .onAppear {
+                                                    if let nextPageId = page.nextPage {
+                                                        store.send(.view(.didShowNextPageIndicator(nextPageId)))
                                                     }
-                                            }
-                                        } failedView: { _ in
-                                            Text("Failed to retrieve content")
-                                                .foregroundColor(.red)
-                                        } waitingView: {
-                                            ProgressView()
-                                                .padding(.vertical, 8)
+                                                }
                                         }
+                                    } failedView: { _ in
+                                        Text("Failed to retrieve content")
+                                            .foregroundColor(.red)
+                                    } waitingView: {
+                                        ProgressView()
+                                            .padding(.vertical, 8)
                                     }
                                 }
                             }
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } failedView: { _ in
                         Rectangle()
                             .frame(maxWidth: .infinity)
@@ -93,93 +88,83 @@ extension SearchFeature.View: View {
                         ProgressView()
                     } pendingView: {
                         Text("Type to search")
+                            .font(.body.weight(.semibold))
+                            .foregroundColor(.gray)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .topBar(title: "Search") {
-                WithViewStore(store, observe: \.selectedModule) { viewStore in
-                    ModuleSelectionButton(module: viewStore.state?.module) {
-                        store.send(.view(.didTapOpenModules))
-                    }
-                }
-            } bottomAccessory: {
-                WithViewStore(store, observe: \.`self`) { viewStore in
-                    HStack(spacing: 12) {
-                        HStack(spacing: 12) {
+            .safeAreaInset(edge: .top) {
+                VStack(spacing: 10) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 30, height: 6)
+
+                    WithViewStore(store, observe: \.`self`) { viewStore in
+                        HStack(spacing: 8) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.gray)
+                            TextField("Search", text: viewStore.$query.removeDuplicates())
+                                .textFieldStyle(.plain)
+                                .focused($textFieldFocused)
+                                .frame(maxWidth: .infinity)
 
-                            TextField(
-                                "Search for content...",
-                                text: viewStore.$searchQuery
-                                    .removeDuplicates()
-                            )
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 16, weight: .regular))
-                            .frame(maxWidth: .infinity)
-
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(Color.gray)
-                                .opacity(viewStore.searchQuery.isEmpty ? 0.0 : 1.0)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    viewStore.send(.didClearQuery)
+                            ZStack {
+                                if !viewStore.query.isEmpty {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .onTapGesture {
+                                            store.send(.view(.didTapClearQuery))
+                                        }
                                 }
+                            }
+                            .animation(.easeInOut, value: viewStore.query.isEmpty)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background {
+                            RoundedRectangle(cornerRadius: 8)
+                                .style(
+                                    withStroke: Color.gray.opacity(0.24),
+                                    lineWidth: 1,
+                                    fill: Color.gray.opacity(0.14)
+                                )
                         }
                         .padding(.horizontal)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .foregroundColor(.gray.opacity(0.1))
-                        )
-                        .frame(maxHeight: .infinity)
-
-                        if !viewStore.searchFilters.isEmpty {
-                            Button {
-                                viewStore.send(.didTapFilterOptions)
-                            } label: {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.1))
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .overlay(
-                                        Image(systemName: "line.horizontal.3.decrease")
-                                            .font(.system(size: 18, weight: .bold))
-                                            .contentShape(Rectangle())
-                                            .aspectRatio(contentMode: .fit)
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                            .transition(.opacity)
-                        }
                     }
-                    .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.vertical, 10)
+                .padding(.bottom, 10)
+                .background(
+                    RoundedCorners(topRadius: 16)
+                        .style(
+                            withStroke: Color.gray.opacity(0.2),
+                            lineWidth: 1,
+                            fill: .regularMaterial
+                        )
+                )
+                .readSize { sizeInset in
+                    searchBarSize = sizeInset.size.height
+                    onSearchBarSizeChanged(sizeInset.size)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } destination: { store in
-            SwitchStore(store) { state in
-                switch state {
-                case .playlistDetails:
-                    CaseLet(
-                        /SearchFeature.Screens.State.playlistDetails,
-                        action: SearchFeature.Screens.Action.playlistDetails,
-                        then: PlaylistDetailsFeature.View.init
-                    )
-                }
-            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.top, 0.1)
         .onAppear {
             store.send(.view(.didAppear))
         }
-        .moduleListsSheet(
-            store.scope(
-                state: \.$moduleLists,
-                action: Action.InternalAction.moduleLists
-            )
-        )
+        .onChange(of: textFieldFocused) { focused in
+            if focused { shouldExpand = true }
+        }
+    }
+}
+
+public extension SearchFeature.View {
+    func onSearchBarSizeChanged(_ callback: @escaping (CGSize) -> Void) -> Self {
+        var view = self
+        view.onSearchBarSizeChanged = callback
+        return view
     }
 }
 
@@ -189,30 +174,6 @@ extension SearchFeature.View {
     private enum SearchStatus {}
 }
 
-// MARK: - LazyView
-
-@MainActor
-private struct LazyView<Content: View>: View {
-    let build: () -> Content
-
-    @MainActor
-    init(@ViewBuilder _ build: @escaping () -> Content) {
-        self.build = build
-    }
-
-    @MainActor
-    init(_ build: @autoclosure @escaping () -> Content) {
-        self.build = build
-    }
-
-    @MainActor
-    var body: some View {
-        LazyVStack {
-            build()
-        }
-    }
-}
-
 // MARK: - SearchFeatureView_Previews
 
 struct SearchFeatureView_Previews: PreviewProvider {
@@ -220,9 +181,8 @@ struct SearchFeatureView_Previews: PreviewProvider {
         SearchFeature.View(
             store: .init(
                 initialState: .init(
-                    searchQuery: "demo",
-                    searchFilters: .init(),
-                    selectedModule: nil,
+                    query: "demo",
+                    filters: .init(),
                     items: .pending
                 ),
                 reducer: { EmptyReducer() }

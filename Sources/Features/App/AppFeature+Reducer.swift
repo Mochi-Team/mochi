@@ -12,7 +12,6 @@ import DatabaseClient
 import Discover
 import ModuleLists
 import Repos
-import Search
 import Settings
 import VideoPlayer
 
@@ -34,8 +33,6 @@ extension AppFeature: Reducer {
                         state.discover.screens.removeAll()
                     case .repos:
                         state.repos.path.removeAll()
-                    case .search:
-                        state.search.screens.removeAll()
                     case .settings:
                         break
                     }
@@ -46,8 +43,7 @@ extension AppFeature: Reducer {
             case .internal(.appDelegate):
                 break
 
-            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))),
-                 let .internal(.search(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))):
+            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))):
                 let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
                     repoModuleID: repoModuleID,
                     playlist: playlist,
@@ -76,9 +72,6 @@ extension AppFeature: Reducer {
             case .internal(.repos):
                 break
 
-            case .internal(.search):
-                break
-
             case .internal(.settings):
                 break
 
@@ -97,10 +90,6 @@ extension AppFeature: Reducer {
 
         Scope(state: \.repos, action: /Action.InternalAction.repos) {
             ReposFeature()
-        }
-
-        Scope(state: \.search, action: /Action.InternalAction.search) {
-            SearchFeature()
         }
 
         Scope(state: \.settings, action: /Action.InternalAction.settings) {

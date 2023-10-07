@@ -15,6 +15,7 @@ struct Discover: Feature {
         ModuleClient()
         ModuleLists()
         RepoClient()
+        Search()
         Styling()
         SharedModels()
         ViewComponents()

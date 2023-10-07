@@ -14,6 +14,7 @@ import ModuleLists
 import OrderedCollections
 import PlaylistDetails
 import RepoClient
+import Search
 import SharedModels
 import Styling
 import SwiftUI
@@ -59,15 +60,27 @@ public struct DiscoverFeature: Feature {
         }
     }
 
+    public enum Section: Equatable, Sendable {
+        case home(HomeState = .init())
+        case module(ModuleState)
+
+        public struct HomeState: Equatable, Sendable {
+            public init() {}
+        }
+
+        public struct ModuleState: Equatable, Sendable {
+            public var repoModule: RepoClient.SelectedModule
+            public var listings: Loadable<[DiscoverListing]>
+        }
+    }
 
     public struct State: FeatureState {
         // TODO: Move listings and selectedRepoModule to Section enum
+//        public var section: DiscoverFeature.Section
         public var listings: Loadable<[DiscoverListing]>
         public var selectedRepoModule: RepoClient.SelectedModule?
         public var screens: StackState<Screens.State>
-
-        @BindingState
-        public var search: Search
+        public var search: SearchFeature.State
 
         @PresentationState
         public var moduleLists: ModuleListsFeature.State?
@@ -75,43 +88,19 @@ public struct DiscoverFeature: Feature {
         var initialized = false
 
         public init(
+            section: DiscoverFeature.Section = .home(),
             listings: Loadable<[DiscoverListing]> = .pending,
             selectedRepoModule: RepoClient.SelectedModule? = nil,
             screens: StackState<Screens.State> = .init(),
-            search: Search = .init(),
+            search: SearchFeature.State = .init(),
             moduleLists: ModuleListsFeature.State? = nil
         ) {
+//            self.section = section
             self.listings = listings
             self.selectedRepoModule = selectedRepoModule
             self.screens = screens
             self.search = search
             self.moduleLists = moduleLists
-        }
-
-        public enum Section: Equatable, Sendable {
-            case home
-            case module(ModuleListings)
-
-            public struct ModuleListings: Equatable, Sendable {
-                public let module: RepoClient.SelectedModule
-                public let listings: Loadable<[DiscoverListing]>
-            }
-        }
-
-        public struct Search: Equatable, Sendable {
-            public var query: String
-            public var searchFilters: [SearchFilter]
-            public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
-
-            public init(
-                query: String = "",
-                searchFilters: [SearchFilter] = [],
-                items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
-            ) {
-                self.query = query
-                self.searchFilters = searchFilters
-                self.items = items
-            }
         }
     }
 
@@ -120,7 +109,6 @@ public struct DiscoverFeature: Feature {
             case didAppear
             case didTapOpenModules
             case didTapPlaylist(Playlist)
-            case binding(BindingAction<State.Search>)
         }
 
         public enum DelegateAction: SendableAction {
@@ -139,6 +127,7 @@ public struct DiscoverFeature: Feature {
             case loadedListings(Result<[DiscoverListing], Error>)
             case screens(StackAction<Screens.State, Screens.Action>)
             case moduleLists(PresentationAction<ModuleListsFeature.Action>)
+            case search(SearchFeature.Action)
         }
 
         case view(ViewAction)
@@ -150,8 +139,8 @@ public struct DiscoverFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<DiscoverFeature>
 
-        @InsetValue(\.bottomNavigation)
-        var bottomNavigationSize
+        @SwiftUI.State
+        var searchBarSize = CGSize.zero
 
         public nonisolated init(store: StoreOf<DiscoverFeature>) {
             self.store = store

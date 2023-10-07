@@ -13,7 +13,6 @@ import Foundation
 import FoundationHelpers
 import ModuleLists
 import Repos
-import Search
 import Settings
 import Styling
 import SwiftUI
@@ -26,35 +25,35 @@ extension AppFeature.View: View {
     @MainActor
     public var body: some View {
         WithViewStore(store, observe: \.selected) { viewStore in
-            TabView(selection: viewStore.binding(send: { .view(.didSelectTab($0)) })) {
-                DiscoverFeature.View(
-                    store: store.scope(
-                        state: \.discover,
-                        action: Action.InternalAction.discover
+            ZStack {
+                switch viewStore.state {
+                case .discover:
+                    DiscoverFeature.View(
+                        store: store.scope(
+                            state: \.discover,
+                            action: Action.InternalAction.discover
+                        )
                     )
-                )
-                .tabItem { CustomTabItemStyle(tab: .discover) }
-                .tag(AppFeature.State.Tab.discover)
-
-                ReposFeature.View(
-                    store: store.scope(
-                        state: \.repos,
-                        action: Action.InternalAction.repos
+                case .repos:
+                    ReposFeature.View(
+                        store: store.scope(
+                            state: \.repos,
+                            action: Action.InternalAction.repos
+                        )
                     )
-                )
-                .tabItem { CustomTabItemStyle(tab: .repos) }
-                .tag(AppFeature.State.Tab.repos)
-
-                SettingsFeature.View(
-                    store: store.scope(
-                        state: \.settings,
-                        action: Action.InternalAction.settings
+                case .settings:
+                    SettingsFeature.View(
+                        store: store.scope(
+                            state: \.settings,
+                            action: Action.InternalAction.settings
+                        )
                     )
-                )
-                .tabItem { CustomTabItemStyle(tab: .settings) }
-                .tag(AppFeature.State.Tab.settings)
+                }
             }
-            .tint(viewStore.state.colorAccent)
+            .safeAreaInset(edge: .bottom) {
+                navbar(viewStore.state)
+            }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
         .background(
             Color.theme.backgroundColor
@@ -86,6 +85,66 @@ private struct CustomTabItemStyle: View {
 
     var body: some View {
         Label(tab.rawValue, systemImage: tab.image)
+    }
+}
+
+extension AppFeature.View {
+    @MainActor
+    func navbar(_ selected: Self.State.Tab) -> some View {
+        HStack(alignment: .bottom, spacing: 0) {
+            ForEach(State.Tab.allCases, id: \.rawValue) { tab in
+                VStack(spacing: 2) {
+                    if tab == selected {
+                        RoundedRectangle(cornerRadius: 12)
+                            .frame(width: 18, height: 4)
+                            .transition(.opacity.combined(with: .scale))
+                    }
+
+                    Image(systemName: tab == selected ? tab.selected : tab.image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .font(.system(size: 20, weight: .semibold))
+                        .frame(height: 18)
+                        .padding(.top, 8)
+
+                    Text(tab.rawValue)
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .foregroundColor(tab == selected ? tab.colorAccent : .gray)
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    store.send(.view(.didSelectTab(tab)))
+                }
+                .background(
+                    Rectangle()
+                        .foregroundColor(tab.colorAccent.opacity(tab == selected ? 0.08 : 0.0))
+                        .ignoresSafeArea(.all)
+                        .edgesIgnoringSafeArea(.all)
+                        .blur(radius: 24)
+                )
+                .animation(.easeInOut(duration: 0.2), value: tab == selected)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(
+            maxWidth: .infinity,
+            alignment: .bottom
+        )
+        .background {
+            Rectangle()
+                .fill(.regularMaterial)
+                .ignoresSafeArea()
+                .edgesIgnoringSafeArea(.all)
+        }
+        .overlay(alignment: .top) {
+            Color.gray.opacity(0.2)
+                .frame(height: 0.5)
+                .frame(maxWidth: .infinity)
+                .ignoresSafeArea()
+                .edgesIgnoringSafeArea(.all)
+        }
     }
 }
 

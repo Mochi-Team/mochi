@@ -49,6 +49,8 @@ public extension RepoClient {
             self.repoId = repoId
             self.module = module
         }
+
+        public var id: RepoModuleID { .init(repoId: repoId, moduleId: module.id) }
     }
 
     @dynamicMemberLookup

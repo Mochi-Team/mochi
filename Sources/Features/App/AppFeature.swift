@@ -12,7 +12,6 @@ import Discover
 import Foundation
 import ModuleLists
 import Repos
-import Search
 import Settings
 import SharedModels
 import SwiftUI
@@ -23,7 +22,6 @@ public struct AppFeature: Feature {
     public struct State: FeatureState {
         public var discover = DiscoverFeature.State()
         public var repos = ReposFeature.State()
-        public var search = SearchFeature.State()
         public var settings = SettingsFeature.State()
 
         public var selected = Tab.discover
@@ -34,13 +32,11 @@ public struct AppFeature: Feature {
         public init(
             discover: DiscoverFeature.State = .init(),
             repos: ReposFeature.State = .init(),
-            search: SearchFeature.State = .init(),
             settings: SettingsFeature.State = .init(),
             selected: AppFeature.State.Tab = Tab.discover
         ) {
             self.discover = discover
             self.repos = repos
-            self.search = search
             self.settings = settings
             self.selected = selected
         }
@@ -48,7 +44,6 @@ public struct AppFeature: Feature {
         public enum Tab: String, CaseIterable, Sendable {
             case discover = "Discover"
             case repos = "Repos"
-            case search = "Search"
             case settings = "Settings"
 
             var image: String {
@@ -57,8 +52,6 @@ public struct AppFeature: Feature {
                     return "doc.text.image"
                 case .repos:
                     return "globe"
-                case .search:
-                    return "magnifyingglass"
                 case .settings:
                     return "gearshape"
                 }
@@ -69,8 +62,6 @@ public struct AppFeature: Feature {
                 case .discover:
                     return "doc.text.image.fill"
                 case .repos:
-                    return image
-                case .search:
                     return image
                 case .settings:
                     return "gearshape.fill"
@@ -83,8 +74,6 @@ public struct AppFeature: Feature {
                     return .init(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
                 case .repos:
                     return .init(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
-                case .search:
-                    return .init(hue: 351 / 360, saturation: 0.68, brightness: 0.81)
                 case .settings:
                     return .init(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
                 }
@@ -104,7 +93,6 @@ public struct AppFeature: Feature {
             case appDelegate(AppDelegateFeature.Action)
             case discover(DiscoverFeature.Action)
             case repos(ReposFeature.Action)
-            case search(SearchFeature.Action)
             case settings(SettingsFeature.Action)
             case videoPlayer(PresentationAction<VideoPlayerFeature.Action>)
         }

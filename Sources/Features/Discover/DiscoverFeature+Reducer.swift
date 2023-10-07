@@ -12,6 +12,7 @@ import ModuleClient
 import ModuleLists
 import PlaylistDetails
 import RepoClient
+import Search
 import SharedModels
 
 // MARK: - DiscoverFeature
@@ -21,6 +22,7 @@ extension DiscoverFeature {
         case fetchDiscoverList
     }
 
+    @ReducerBuilder<State, Action>
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -31,16 +33,7 @@ extension DiscoverFeature {
 
                 state.initialized = true
 
-                // TODO: Set default module to load.
-//                return .merge(
-//                    .run { send in
-//                        let moduleStream = repoClient.module()
-//
-//                        for await module in moduleStream {
-//                            await send(.internal(.selectedModule(module)))
-//                        }
-//                    }
-//                )
+                // TODO: Set default module to load or show home.
 
             case .view(.didTapOpenModules):
                 state.moduleLists = .init()
@@ -52,12 +45,12 @@ extension DiscoverFeature {
                 }
                 state.screens.append(.playlistDetails(.init(repoModuleID: .init(repoId: repoId, moduleId: moduleId), playlist: playlist)))
 
-            case .view(.binding):
-                break
-
             case let .internal(.selectedModule(selection)):
                 state.selectedRepoModule = selection
-                return state.fetchLatestListings(selection)
+                return .merge(
+                    state.search.updateModule(with: selection?.id).map { .internal(.search($0)) },
+                    state.fetchLatestListings(selection)
+                )
 
             case let .internal(.loadedListings(.success(listing))):
                 state.listings = .loaded(listing)
@@ -67,6 +60,12 @@ extension DiscoverFeature {
 
             case let .internal(.moduleLists(.presented(.delegate(.selectedModule(repoModule))))):
                 return .send(.internal(.selectedModule(repoModule)))
+
+            case let .internal(.search(.delegate(.playlistTapped(repoModuleID, playlist)))):
+                state.screens.append(.playlistDetails(.init(repoModuleID: repoModuleID, playlist: playlist)))
+
+            case .internal(.search):
+                break
 
             case .internal(.moduleLists):
                 break
@@ -98,6 +97,10 @@ extension DiscoverFeature {
         }
         .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
             DiscoverFeature.Screens()
+        }
+
+        Scope(state: \.search, action: /Action.InternalAction.search) {
+            SearchFeature()
         }
     }
 }

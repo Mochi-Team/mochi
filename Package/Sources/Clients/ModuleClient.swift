@@ -11,6 +11,7 @@ import Foundation
 struct ModuleClient: Client {
     var dependencies: any Dependencies {
         DatabaseClient()
+        FileClient()
         SharedModels()
         WasmInterpreter()
         Tagged()

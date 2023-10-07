@@ -666,6 +666,19 @@ struct DatabaseClient: Client {
     }
 }
 //
+//  FileClient.swift
+//  
+//
+//  Created by ErrorErrorError on 10/6/23.
+//  
+//
+
+struct FileClient: Client {
+    var dependencies: any Dependencies {
+        ComposableArchitecture()
+    }
+}
+//
 //  LoggerClient.swift
 //  
 //
@@ -693,6 +706,7 @@ import Foundation
 struct ModuleClient: Client {
     var dependencies: any Dependencies {
         DatabaseClient()
+        FileClient()
         SharedModels()
         WasmInterpreter()
         Tagged()
@@ -736,6 +750,7 @@ import Foundation
 struct RepoClient: Client {
     var dependencies: any Dependencies {
         DatabaseClient()
+        FileClient()
         SharedModels()
         TOMLDecoder()
         Tagged()
@@ -922,6 +937,7 @@ struct Discover: Feature {
         ModuleClient()
         ModuleLists()
         RepoClient()
+        Search()
         Styling()
         SharedModels()
         ViewComponents()
@@ -952,7 +968,6 @@ struct MochiApp: Product, Target {
         Architecture()
         Discover()
         Repos()
-        Search()
         Settings()
         SharedModels()
         Styling()

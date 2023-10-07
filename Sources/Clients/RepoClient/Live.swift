@@ -10,6 +10,7 @@ import Combine
 import ConcurrencyExtras
 import DatabaseClient
 import Dependencies
+import FileClient
 import Foundation
 import Semaphore
 import SharedModels
@@ -54,21 +55,9 @@ extension RepoClient: DependencyKey {
         },
         removeModule: { repoId, module in
             let id = RepoModuleID(repoId: repoId, moduleId: module.id)
-
             Self.downloadManager.cancelModuleDownload(id)
-
             try await databaseClient.delete(module)
-
             try FileManager.default.removeItem(at: module.moduleLocation)
-
-//            guard var repo = try await databaseClient.fetch(.all.where(\Repo.remoteURL == repoId.rawValue)).first else {
-//                return
-//            }
-//
-//            if let index = repo.modules.firstIndex(where: { $0.id == moduleId }) {
-//                repo.modules.remove(at: index)
-//                _ = try await databaseClient.update(repo)
-//            }
         },
         moduleDownloads: {
             .init { continuation in
@@ -104,6 +93,9 @@ private class ModulesDownloadManager {
     private var semaphore = AsyncSemaphore(value: 1)
     private var downloadTasks = [RepoModuleID: Task<Module?, Never>]()
 
+    @Dependency(\.fileClient)
+    var fileClient
+
     @Dependency(\.databaseClient)
     var databaseClient
 
@@ -136,21 +128,17 @@ private class ModulesDownloadManager {
                             throw RepoClient.Error.failedToDownloadModule
                         }
 
-                        // TODO: Move to FileClient
-                        let reposDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                            .appendingPathComponent("Repos", isDirectory: true)
-                        try FileManager.default.createDirectory(at: reposDirectory, withIntermediateDirectories: true)
+                        let moduleFolderString = "\(repoModuleID.repoId.host ?? "Default")/\(repoModuleID.moduleId.rawValue)"
 
-                        let repoDirectory = reposDirectory.appendingPathComponent(repoModuleID.repoId.host ?? "Default", isDirectory: true)
-                        try FileManager.default.createDirectory(at: repoDirectory, withIntermediateDirectories: true)
+                        guard let moduleLocationRelativeURL = URL(string: moduleFolderString, relativeTo: nil) else {
+                            throw RepoClient.Error.failedToInstallModule
+                        }
 
-                        let moduleFolder = repoDirectory.appendingPathComponent(repoModuleID.moduleId.rawValue, isDirectory: true)
-                        try FileManager.default.createDirectory(at: moduleFolder, withIntermediateDirectories: true)
-
-                        try data.write(to: moduleFolder.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm"))
+                        let moduleLocation = fileClient.createModuleFolder(moduleFolderString)
+                        try data.write(to: moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm"))
 
                         let module = Module(
-                            moduleLocation: moduleFolder,
+                            moduleLocation: moduleLocationRelativeURL,
                             installDate: .init(),
                             manifest: module
                         )
