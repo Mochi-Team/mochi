@@ -9,7 +9,7 @@
 struct Settings: Feature {
     var dependencies: any Dependencies {
         Architecture()
-        Build()
+        BuildClient()
         SharedModels()
         Styling()
         ViewComponents()

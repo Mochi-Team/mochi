@@ -26,9 +26,6 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
     @GestureState
     private var translation: CGFloat = 0
 
-    @State
-    private var maxWidth = CGFloat.zero
-
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat = 0,
@@ -45,48 +42,49 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
     }
 
     public var body: some View {
-        HStack(alignment: alignment, spacing: spacing) {
-            ForEach(list.indices, id: \.self) { idx in
-                content(list[idx])
-                    .frame(width: max(0, maxWidth - edgeInsets.horizontal - (spacing * 2)))
+        GeometryReader { proxy in
+            let maxWidth = proxy.size.width
+            HStack(alignment: alignment, spacing: spacing) {
+                ForEach(list.indices, id: \.self) { idx in
+                    content(list[idx])
+                        .frame(width: max(0, maxWidth - edgeInsets.horizontal - (spacing * 2)))
+                }
             }
-        }
-        .frame(width: maxWidth, alignment: .leading)
-        .offset(x: -CGFloat(position) * maxWidth)
-        .offset(x: CGFloat(position) * spacing)
-        .offset(x: CGFloat(position) * edgeInsets.horizontal)
-        .offset(x: edgeInsets.leading)
-        .offset(x: spacing)
-        .offset(x: translation)
-        .contentShape(Rectangle())
-        .highPriorityGesture(
-            DragGesture()
-                .updating($translation) { value, out, _ in
-                    let leftOverscrol = position == 0 && value.translation.width > 0
-                    let rightOverscroll = position == list.count - 1 && value.translation.width < 0
-                    let shouldRestrict = leftOverscrol || rightOverscroll
-                    out = value.translation.width / (shouldRestrict ? log10(abs(value.translation.width)) : 1)
-                }
-                .onEnded { value in
-                    let offset = -(value.translation.width / maxWidth)
-                    let roundIndex: Int
-
-                    if abs(value.translation.width) > maxWidth / 2 ||
-                        abs(value.predictedEndTranslation.width) > maxWidth / 2 {
-                        roundIndex = offset > 0 ? 1 : -1
-                    } else {
-                        roundIndex = 0
+            .frame(width: maxWidth, alignment: .leading)
+            .offset(x: -CGFloat(position) * maxWidth)
+            .offset(x: CGFloat(position) * spacing)
+            .offset(x: CGFloat(position) * edgeInsets.horizontal)
+            .offset(x: edgeInsets.leading)
+            .offset(x: spacing)
+            .offset(x: translation)
+            .contentShape(Rectangle())
+            .highPriorityGesture(
+                DragGesture()
+                    .updating($translation) { value, out, _ in
+                        let leftOverscrol = position == 0 && value.translation.width > 0
+                        let rightOverscroll = position == list.count - 1 && value.translation.width < 0
+                        let shouldRestrict = leftOverscrol || rightOverscroll
+                        out = value.translation.width / (shouldRestrict ? log10(abs(value.translation.width)) : 1)
                     }
+                    .onEnded { value in
+                        let offset = -(value.translation.width / maxWidth)
+                        let roundIndex: Int
 
-                    position = max(min(position + roundIndex, list.count - 1), 0)
-                }
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .readSize { size in
-            maxWidth = size.size.width
+                        if abs(value.translation.width) > maxWidth / 2 ||
+                            abs(value.predictedEndTranslation.width) > maxWidth / 2 {
+                            roundIndex = offset > 0 ? 1 : -1
+                        } else {
+                            roundIndex = 0
+                        }
+
+                        position = max(min(position + roundIndex, list.count - 1), 0)
+                    }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.76), value: translation != .zero)
+            .animation(.interactiveSpring(response: 0.25, dampingFraction: 0.66), value: position)
         }
-        .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.76), value: translation != .zero)
-        .animation(.interactiveSpring(response: 0.25, dampingFraction: 0.66), value: position)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -103,6 +101,10 @@ public extension SnapScroll {
         ) {
             self.leading = leading
             self.trailing = trailing
+        }
+
+        public init(_ size: CGFloat) {
+            self.init(leading: size, trailing: size)
         }
     }
 }

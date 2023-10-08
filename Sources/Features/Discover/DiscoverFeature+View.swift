@@ -386,44 +386,62 @@ extension DiscoverFeature.View {
     @MainActor
     @ViewBuilder
     func featuredListing(_ listing: DiscoverListing) -> some View {
-        if !listing.items.isEmpty {
-            TabView {
-                ForEach(listing.items, id: \.id) { playlist in
-                    ZStack(alignment: .bottom) {
-                        FillAspectImage(url: playlist.bannerImage ?? playlist.posterImage)
-                            .overlay {
-                                LinearGradient(
-                                    gradient: .init(
-                                        colors: [
-                                            .black.opacity(0),
-                                            .black.opacity(0.4)
-                                        ],
-                                        easing: .easeIn
-                                    ),
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            }
+        VStack {
+            HStack {
+                Text(listing.title)
+                    .font(.title3.weight(.semibold))
 
-                        Text(playlist.title ?? "No Title")
-                            .font(.title2.weight(.medium))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
-                            .padding(.bottom, 42)
+                Spacer()
+
+                if listing.paging.nextPage != nil {
+                    Button {} label: {
+                        Text("Show All")
+                            .font(.footnote.weight(.bold))
+                            .foregroundColor(.gray)
+                            .opacity(listing.items.isEmpty ? 0 : 1.0)
                     }
-                    .onTapGesture {
-                        store.send(.view(.didTapPlaylist(playlist)))
-                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            // TODO: Make size based on listing's size type
-            .aspectRatio(5 / 7, contentMode: .fill)
-            .cornerRadius(12)
             .padding(.horizontal)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.opacity)
+
+            // TODO: Make size based on listing's size type
+            SnapScroll(
+                alignment: .center,
+                spacing: 8,
+                edgeInsets: .init(leading: 8, trailing: 8),
+                items: listing.items
+            ) { playlist in
+                ZStack(alignment: .bottom) {
+                    FillAspectImage(url: playlist.bannerImage ?? playlist.posterImage)
+                        .overlay {
+                            LinearGradient(
+                                gradient: .init(
+                                    colors: [
+                                        .black.opacity(0),
+                                        .black.opacity(0.4)
+                                    ],
+                                    easing: .easeIn
+                                ),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        }
+
+                    Text(playlist.title ?? "No Title")
+                        .font(.title2.weight(.medium))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.bottom)
+                }
+                .cornerRadius(12)
+                .onTapGesture {
+                    store.send(.view(.didTapPlaylist(playlist)))
+                }
+            }
+            .aspectRatio(6 / 7, contentMode: .fill)
+            .frame(maxWidth: .infinity)
         }
     }
 }

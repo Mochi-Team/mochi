@@ -629,7 +629,7 @@ struct AnalyticsClient: Client {
     }
 }
 //
-//  Build.swift
+//  BuildClient.swift
 //  
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -638,7 +638,7 @@ struct AnalyticsClient: Client {
 
 import Foundation
 
-struct Build: Client {
+struct BuildClient: Client {
     var dependencies: any Dependencies {
         Semver()
         ComposableArchitecture()
@@ -1081,7 +1081,7 @@ struct Search: Feature {
 struct Settings: Feature {
     var dependencies: any Dependencies {
         Architecture()
-        Build()
+        BuildClient()
         SharedModels()
         Styling()
         ViewComponents()
