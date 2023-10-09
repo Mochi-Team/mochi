@@ -105,8 +105,6 @@ public struct DiscoverFeature: Feature {
         @PresentationState
         public var moduleLists: ModuleListsFeature.State?
 
-        var initialized = false
-
         public init(
             selected: DiscoverFeature.Section = .home(),
             screens: StackState<Screens.State> = .init(),
@@ -170,4 +168,14 @@ public struct DiscoverFeature: Feature {
     var moduleClient
 
     public init() {}
+}
+
+public extension DiscoverFeature.State {
+    var isSearchExpanded: Bool {
+        search.expandView
+    }
+
+    mutating func collapseSearch() -> Effect<DiscoverFeature.Action> {
+        search.collapse().map { .internal(.search($0)) }
+    }
 }

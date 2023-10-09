@@ -27,13 +27,8 @@ extension DiscoverFeature {
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                if state.initialized {
-                    break
-                }
-
-                state.initialized = true
-
                 // TODO: Set default module to load or show home.
+                break
 
             case .view(.didTapOpenModules):
                 state.moduleLists = .init()

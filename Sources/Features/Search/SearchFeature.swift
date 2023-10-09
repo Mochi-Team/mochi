@@ -23,6 +23,9 @@ public struct SearchFeature: Feature {
         public var repoModuleID: RepoModuleID?
 
         @BindingState
+        public var expandView = false
+
+        @BindingState
         public var query: String
         public var filters: [SearchFilter]
         public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>

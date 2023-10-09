@@ -25,19 +25,25 @@ extension AppFeature: Reducer {
             switch action {
             case .view(.didAppear):
                 break
-                
+
             case let .view(.didSelectTab(tab)):
                 if state.selected == tab {
                     switch tab {
                     case .discover:
-                        state.discover.screens.removeAll()
+                        if !state.discover.screens.isEmpty {
+                            state.discover.screens.removeAll()
+                        } else if state.discover.isSearchExpanded {
+                            return state.discover.collapseSearch()
+                                .map { .internal(.discover($0)) }
+                        }
                     case .repos:
                         state.repos.path.removeAll()
                     case .settings:
                         break
                     }
+                } else {
+                    state.selected = tab
                 }
-                state.selected = tab
 
             case .internal(.appDelegate):
                 break

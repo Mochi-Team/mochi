@@ -21,13 +21,13 @@ import ViewComponents
 extension SearchFeature.View: View {
     @MainActor
     public var body: some View {
-        SheetDetent(
-            isExpanded: $shouldExpand,
-            initialHeight: searchBarSize - 8
-        ) {
-            ZStack {
-                WithViewStore(store, observe: \.items) { viewStore in
-                    LoadableView(loadable: viewStore.state) { pagings in
+        WithViewStore(store, observe: \.`self`) { viewStore in
+            SheetDetent(
+                isExpanded: viewStore.$expandView,
+                initialHeight: searchBarSize - 8
+            ) {
+                ZStack {
+                    LoadableView(loadable: viewStore.items) { pagings in
                         if pagings.isEmpty {
                             Text("No results found.")
                         } else {
@@ -93,14 +93,12 @@ extension SearchFeature.View: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-            }
-            .safeAreaInset(edge: .top) {
-                VStack(spacing: 10) {
-                    Capsule()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 30, height: 6)
+                .safeAreaInset(edge: .top) {
+                    VStack(spacing: 10) {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 30, height: 6)
 
-                    WithViewStore(store, observe: \.`self`) { viewStore in
                         HStack(spacing: 8) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.gray)
@@ -131,21 +129,22 @@ extension SearchFeature.View: View {
                         }
                         .padding(.horizontal)
                     }
+                    .padding(.vertical, 10)
+                    .padding(.bottom, 10)
+                    .background(
+                        RoundedCorners(topRadius: 16)
+                            .style(
+                                withStroke: Color.gray.opacity(0.2),
+                                lineWidth: 1,
+                                fill: .regularMaterial
+                            )
+                    )
+                    .readSize { sizeInset in
+                        searchBarSize = sizeInset.size.height
+                        onSearchBarSizeChanged(sizeInset.size)
+                    }
                 }
-                .padding(.vertical, 10)
-                .padding(.bottom, 10)
-                .background(
-                    RoundedCorners(topRadius: 16)
-                        .style(
-                            withStroke: Color.gray.opacity(0.2),
-                            lineWidth: 1,
-                            fill: .regularMaterial
-                        )
-                )
-                .readSize { sizeInset in
-                    searchBarSize = sizeInset.size.height
-                    onSearchBarSizeChanged(sizeInset.size)
-                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -155,7 +154,10 @@ extension SearchFeature.View: View {
             store.send(.view(.didAppear))
         }
         .onChange(of: textFieldFocused) { focused in
-            if focused { shouldExpand = true }
+            if focused {
+                shouldExpand = true
+                store.send(.view(.binding(.set(\.$expandView, true))))
+            }
         }
     }
 }

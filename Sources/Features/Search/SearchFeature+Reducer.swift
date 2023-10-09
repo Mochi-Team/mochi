@@ -145,6 +145,11 @@ extension SearchFeature: Reducer {
 }
 
 public extension SearchFeature.State {
+    mutating func collapse() -> Effect<SearchFeature.Action> {
+        self.expandView = false
+        return .none
+    }
+
     mutating func clearQuery() -> Effect<SearchFeature.Action> {
         self.query = ""
         self.items = .pending
