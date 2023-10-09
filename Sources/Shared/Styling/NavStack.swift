@@ -101,12 +101,14 @@ public extension NavStack {
     }
 }
 
-// From: https://github.com/pointfreeco/swift-composable-architecture/blob/main/Sources/ComposableArchitecture/SwiftUI/ForEachStore.swift#L134
+// From: https://forums.swift.org/t/handling-the-new-forming-unsaferawpointer-warning/65523/5
 @inlinable
 func areOrderedSetsDuplicates<T>(_ lhs: OrderedSet<T>, _ rhs: OrderedSet<T>) -> Bool {
-    var lhs = lhs
-    var rhs = rhs
-    return memcmp(&lhs, &rhs, MemoryLayout<OrderedSet<T>>.size) == 0 || lhs == rhs
+    withUnsafePointer(to: lhs) { lhs in
+        withUnsafePointer(to: rhs) { rhs in
+            memcmp(lhs, rhs, MemoryLayout<OrderedSet<T>>.size) == 0
+        }
+    } || rhs == lhs
 }
 
 /// Hacky way to allow swipe back navigation when status bar is hidden

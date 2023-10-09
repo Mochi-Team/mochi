@@ -12,7 +12,6 @@ struct PlaylistDetails: Feature {
     var dependencies: any Dependencies {
         Architecture()
         ContentCore()
-        RepoClient()
         LoggerClient()
         ModuleClient()
         RepoClient()

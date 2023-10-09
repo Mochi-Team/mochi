@@ -39,24 +39,28 @@ extension DiscoverFeature {
                 state.moduleLists = .init()
 
             case let .view(.didTapPlaylist(playlist)):
-                guard let repoId = state.selectedRepoModule?.repoId,
-                      let moduleId = state.selectedRepoModule?.module.id else {
+                guard case let .module(moduleState) = state.selected else {
                     break
                 }
-                state.screens.append(.playlistDetails(.init(repoModuleID: .init(repoId: repoId, moduleId: moduleId), playlist: playlist)))
+                let repoModuleID = RepoModuleID(repoId: moduleState.module.repoId, moduleId: moduleState.module.module.id)
+                state.screens.append(.playlistDetails(.init(repoModuleID: repoModuleID, playlist: playlist)))
 
             case let .internal(.selectedModule(selection)):
-                state.selectedRepoModule = selection
+                if let selection {
+                    state.selected = .module(.init(module: selection, listings: .pending))
+                } else {
+                    state.selected = .home()
+                }
                 return .merge(
                     state.search.updateModule(with: selection?.id).map { .internal(.search($0)) },
                     state.fetchLatestListings(selection)
                 )
 
-            case let .internal(.loadedListings(.success(listing))):
-                state.listings = .loaded(listing)
-
-            case let .internal(.loadedListings(.failure(error))):
-                state.listings = .failed(error)
+            case let .internal(.loadedListings(id, loadable)):
+                if case var .module(moduleState) = state.selected, moduleState.module.repoId == id.repoId, moduleState.module.module.id == id.moduleId {
+                    moduleState.listings = loadable
+                    state.selected = .module(moduleState)
+                }
 
             case let .internal(.moduleLists(.presented(.delegate(.selectedModule(repoModule))))):
                 return .send(.internal(.selectedModule(repoModule)))
@@ -111,22 +115,24 @@ extension DiscoverFeature.State {
         var moduleClient
 
         guard let selectedModule else {
-            listings = .failed(DiscoverFeature.Error.system(.moduleNotSelected))
+            selected = .home(.init())
             return .none
         }
 
-        listings = .loading
+        selected = .module(.init(module: selectedModule, listings: .loading))
+        let id = RepoModuleID(repoId: selectedModule.repoId, moduleId: selectedModule.module.id)
 
         return .run { send in
             try await withTaskCancellation(id: DiscoverFeature.Cancellables.fetchDiscoverList) {
-                let value = try await moduleClient.withModule(id: .init(repoId: selectedModule.repoId, moduleId: selectedModule.module.id)) { module in
+                let value = try await moduleClient.withModule(id: id) { module in
                     try await module.discoverListings()
                 }
 
                 await send(
                     .internal(
                         .loadedListings(
-                            .success(
+                            id,
+                            .loaded(
                                 value.sorted { leftElement, rightElement in
                                     switch (leftElement.type, rightElement.type) {
                                     case (.featured, .featured):
@@ -143,11 +149,10 @@ extension DiscoverFeature.State {
                 )
             }
         } catch: { error, send in
-            print(error)
             if let error = error as? ModuleClient.Error {
-                await send(.internal(.loadedListings(.failure(.module(error)))))
+                await send(.internal(.loadedListings(id, .failed(DiscoverFeature.Error.module(error)))))
             } else {
-                await send(.internal(.loadedListings(.failure(.system(.unknown)))))
+                await send(.internal(.loadedListings(id, .failed(DiscoverFeature.Error.system(.unknown)))))
             }
         }
     }

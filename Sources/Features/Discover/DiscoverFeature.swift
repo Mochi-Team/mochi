@@ -47,38 +47,58 @@ public struct DiscoverFeature: Feature {
     public struct Screens: Reducer {
         public enum State: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.State)
+//            case playlistItems
         }
 
         public enum Action: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.Action)
+//            case playlistItems
         }
 
         public var body: some ReducerOf<Self> {
             Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
                 PlaylistDetailsFeature()
             }
+
+//            Scope(state: State.playlistItems, action: /Action.playlistItems) {
+//            }
         }
     }
 
     public enum Section: Equatable, Sendable {
         case home(HomeState = .init())
-        case module(ModuleState)
+        case module(ModuleListingState)
+
+        var title: String {
+            switch self {
+            case .home:
+                "Home"
+            case let .module(moduleState):
+                moduleState.module.module.name
+            }
+        }
+
+        var icon: URL? {
+            switch self {
+            case .home:
+                nil
+            case let .module(moduleState):
+                moduleState.module.module.icon.flatMap { URL(string: $0) }
+            }
+        }
 
         public struct HomeState: Equatable, Sendable {
             public init() {}
         }
 
-        public struct ModuleState: Equatable, Sendable {
-            public var repoModule: RepoClient.SelectedModule
+        public struct ModuleListingState: Equatable, Sendable {
+            public var module: RepoClient.SelectedModule
             public var listings: Loadable<[DiscoverListing]>
         }
     }
 
     public struct State: FeatureState {
-        // TODO: Move listings and selectedRepoModule to Section enum
-//        public var section: DiscoverFeature.Section
-        public var listings: Loadable<[DiscoverListing]>
-        public var selectedRepoModule: RepoClient.SelectedModule?
+        public var selected: Section
         public var screens: StackState<Screens.State>
         public var search: SearchFeature.State
 
@@ -88,16 +108,12 @@ public struct DiscoverFeature: Feature {
         var initialized = false
 
         public init(
-            section: DiscoverFeature.Section = .home(),
-            listings: Loadable<[DiscoverListing]> = .pending,
-            selectedRepoModule: RepoClient.SelectedModule? = nil,
+            selected: DiscoverFeature.Section = .home(),
             screens: StackState<Screens.State> = .init(),
             search: SearchFeature.State = .init(),
             moduleLists: ModuleListsFeature.State? = nil
         ) {
-//            self.section = section
-            self.listings = listings
-            self.selectedRepoModule = selectedRepoModule
+            self.selected = selected
             self.screens = screens
             self.search = search
             self.moduleLists = moduleLists
@@ -124,7 +140,7 @@ public struct DiscoverFeature: Feature {
 
         public enum InternalAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)
-            case loadedListings(Result<[DiscoverListing], Error>)
+            case loadedListings(RepoModuleID, Loadable<[DiscoverListing]>)
             case screens(StackAction<Screens.State, Screens.Action>)
             case moduleLists(PresentationAction<ModuleListsFeature.Action>)
             case search(SearchFeature.Action)

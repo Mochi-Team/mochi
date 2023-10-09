@@ -27,127 +27,56 @@ extension DiscoverFeature.View: View {
                 action: Action.InternalAction.screens
             )
         ) {
-            WithViewStore(store, observe: \.listings) { viewStore in
-                ZStack(alignment: .bottom) {
-                    LoadableView(loadable: viewStore.state) { listings in
-                        Group {
-                            if listings.isEmpty {
-                                VStack(spacing: 12) {
-                                    Spacer()
-                                    Text("Listings Empty")
-                                        .font(.title2.weight(.medium))
-                                    Text("There are no listings for this module.")
-                                    Spacer()
-                                }
-                                .foregroundColor(.gray)
-                            } else {
-                                buildListingsView(listings)
+            ZStack(alignment: .bottom) {
+                WithViewStore(store, observe: \.selected) { viewStore in
+                    ZStack {
+                        switch viewStore.state {
+                        case .home:
+                            // TODO: Create home listing
+                            VStack {
+                                Spacer()
+                                Text("Coming soon!")
+                                Spacer()
                             }
+                        case let .module(moduleState):
+                            buildModuleView(moduleState: moduleState)
                         }
-                        .transition(.opacity)
-                    } failedView: { _ in
-                        VStack(spacing: 12) {
-                            Spacer()
-
-                            Text("Module Error")
-                                .font(.title2.weight(.medium))
-                            Text("There was an error fetching content.")
-                            Button {
-                                // TODO: Allow retrying
-                            } label: {
-                                Text("Retry")
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                            .fill(Color.gray.opacity(0.25))
-                                    }
-                            }
-                            .buttonStyle(.plain)
-
-                            Spacer()
-                        }
-                        .transition(.opacity)
-                    } waitingView: {
-                        let placeholders: [Playlist] = (0..<10).map { .placeholder($0) }
-
-                        buildListingsView(
-                            [
-                                .init(
-                                    title: "placeholder title 1",
-                                    type: .featured,
-                                    paging: .init(
-                                        id: "demo-1",
-                                        items: placeholders
-                                    )
-                                ),
-                                .init(
-                                    title: "placeholder title 2",
-                                    type: .default,
-                                    paging: .init(
-                                        id: "demo-1",
-                                        items: placeholders
-                                    )
-                                ),
-                                .init(
-                                    title: "placeholder title 3",
-                                    type: .rank,
-                                    paging: .init(
-                                        id: "demo-1",
-                                        items: placeholders
-                                    )
-                                ),
-                                .init(
-                                    title: "placeholder title 4",
-                                    type: .default,
-                                    paging: .init(
-                                        id: "demo-1",
-                                        items: placeholders
-                                    )
-                                )
-                            ]
-                        )
-                        .shimmering()
-                        .disabled(true)
-                        .transition(.opacity)
                     }
+                    .animation(.easeInOut(duration: 0.25), value: viewStore.state)
                     .safeAreaInset(edge: .top) {
                         TopBarView(
                             backgroundStyle: .gradientSystem(),
                             leadingAccessory: {
-                                WithViewStore(store, observe: \.selectedRepoModule) { viewStore in
-                                    Button {
-                                        viewStore.send(.didTapOpenModules)
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            if let url = viewStore.state?.module.icon.flatMap({ URL(string: $0) }) {
-                                                LazyImage(url: url) { state in
-                                                    if let image = state.image {
-                                                        image
-                                                            .resizable()
-                                                            .scaledToFit()
-                                                            .frame(width: 22, height: 22)
-                                                    } else {
-                                                        EmptyView()
-                                                    }
+                                Button {
+                                    viewStore.send(.didTapOpenModules)
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        if let url = viewStore.icon {
+                                            LazyImage(url: url) { state in
+                                                if let image = state.image {
+                                                    image
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
+                                                } else {
+                                                    EmptyView()
                                                 }
-                                                .transition(.opacity)
                                             }
-
-                                            Text(viewStore.state?.module.name ?? "Home")
-                                            Image(systemName: "chevron.down")
-                                                .font(.body.weight(.bold))
-                                            Spacer()
+                                            .transition(.opacity)
                                         }
-                                        .font(.title.bold())
-                                        .contentShape(Rectangle())
-                                        .scaleEffect(1.0)
-                                        .transition(.opacity)
-                                        .animation(.easeInOut, value: viewStore.state?.module.icon)
+
+                                        Text(viewStore.title)
+                                        Image(systemName: "chevron.down")
+                                            .font(.body.weight(.bold))
+                                        Spacer()
                                     }
-                                    .buttonStyle(.plain)
-                                    .animation(.easeInOut, value: viewStore.state)
+                                    .font(.title.bold())
+                                    .contentShape(Rectangle())
+                                    .scaleEffect(1.0)
+                                    .transition(.opacity)
+                                    .animation(.easeInOut, value: viewStore.icon)
                                 }
+                                .buttonStyle(.plain)
                             }
                         )
                         .frame(maxWidth: .infinity)
@@ -156,20 +85,19 @@ extension DiscoverFeature.View: View {
                         Spacer()
                             .frame(height: searchBarSize.height)
                     }
-                    .zIndex(1)
-
-                    SearchFeature.View(
-                        store: store.scope(
-                            state: \.search,
-                            action: Action.InternalAction.search
-                        )
-                    )
-                    .onSearchBarSizeChanged { size in
-                        searchBarSize = size
-                    }
-                    .zIndex(2)
                 }
-                .animation(.easeInOut(duration: 0.25), value: viewStore.state.didFinish)
+                .zIndex(1)
+
+                SearchFeature.View(
+                    store: store.scope(
+                        state: \.search,
+                        action: Action.InternalAction.search
+                    )
+                )
+                .onSearchBarSizeChanged { size in
+                    searchBarSize = size
+                }
+                .zIndex(2)
             }
             .frame(
                 maxWidth: .infinity,
@@ -193,6 +121,94 @@ extension DiscoverFeature.View: View {
                     )
                 }
             }
+        }
+    }
+}
+
+extension DiscoverFeature.View {
+    @MainActor
+    func buildModuleView(moduleState: DiscoverFeature.Section.ModuleListingState) -> some View {
+        LoadableView(loadable: moduleState.listings) { listings in
+            Group {
+                if listings.isEmpty {
+                    VStack(spacing: 12) {
+                        Spacer()
+                        Text("Listings Empty")
+                            .font(.title2.weight(.medium))
+                        Text("There are no listings for this module.")
+                        Spacer()
+                    }
+                    .foregroundColor(.gray)
+                } else {
+                    buildListingsView(listings)
+                }
+            }
+            .transition(.opacity)
+        } failedView: { _ in
+            VStack(spacing: 12) {
+                Spacer()
+
+                Text("Module Error")
+                    .font(.title2.weight(.medium))
+                Text("There was an error fetching content.")
+                Button {
+                    // TODO: Allow retrying
+                } label: {
+                    Text("Retry")
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background {
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color.gray.opacity(0.25))
+                        }
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+            }
+            .transition(.opacity)
+        } waitingView: {
+            let placeholders: [Playlist] = (0..<10).map { .placeholder($0) }
+
+            buildListingsView(
+                [
+                    .init(
+                        title: "placeholder title 1",
+                        type: .featured,
+                        paging: .init(
+                            id: "demo-1",
+                            items: placeholders
+                        )
+                    ),
+                    .init(
+                        title: "placeholder title 2",
+                        type: .default,
+                        paging: .init(
+                            id: "demo-1",
+                            items: placeholders
+                        )
+                    ),
+                    .init(
+                        title: "placeholder title 3",
+                        type: .rank,
+                        paging: .init(
+                            id: "demo-1",
+                            items: placeholders
+                        )
+                    ),
+                    .init(
+                        title: "placeholder title 4",
+                        type: .default,
+                        paging: .init(
+                            id: "demo-1",
+                            items: placeholders
+                        )
+                    )
+                ]
+            )
+            .shimmering()
+            .disabled(true)
+            .transition(.opacity)
         }
     }
 }
@@ -448,15 +464,11 @@ extension DiscoverFeature.View {
 
 // MARK: - DiscoverView_Previews
 
-struct DiscoverView_Previews: PreviewProvider {
-    static var previews: some View {
-        DiscoverFeature.View(
-            store: .init(
-                initialState: .init(
-                    listings: .loaded(.init())
-                ),
-                reducer: { EmptyReducer() }
-            )
+#Preview {
+    DiscoverFeature.View(
+        store: .init(
+            initialState: .init(selected: .home()),
+            reducer: { EmptyReducer() }
         )
-    }
+    )
 }

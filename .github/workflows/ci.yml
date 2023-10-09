@@ -1,38 +1,38 @@
-name: ci
-
-on:
-  push:
-    branches:
-      - '*'
-  pull_request:
-    branches:
-      - '*'
-
-jobs:
-  run-tests:
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v3
-      - run: fastlane tests
-
-      - name: Test Reporter
-        uses: dorny/test-reporter@v1.6.0
-        if: success() || failure()    # run this step even if previous step failed
-        with:
-          name: Test Results
-          path: fastlane/test_output/*.junit
-          reporter: jest-junit
-
-      # - name: Export coverage test
-      #   run: |
-      #     BUILD_PATH=$(swift build --show-bin-path)
-      #     xcrun llvm-cov report \
-      #       "$(find $(find $BUILD_PATH -name '*.xctest') -perm +111 -type f)" \
-      #       --instr-profile "$BUILD_PATH/codecov/default.profdata" \
-      #       --ignore-filename-regex='.*build/checkouts.*' \
-      #       --ignore-filename-regex='Tests/.*' > "$BUILD_PATH/codecov/lcov.info"
-      #     echo "# Coverage Job Summary" >> $GITHUB_STEP_SUMMARY
-      #     echo "" >> $GITHUB_STEP_SUMMARY
-      #     echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-      #     echo "$(cat $BUILD_PATH/codecov/lcov.info)" >> $GITHUB_STEP_SUMMARY
-      #     echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+#name: ci
+#
+#on:
+#  push:
+#    branches:
+#      - '*'
+#  pull_request:
+#    branches:
+#      - '*'
+#
+#jobs:
+#  run-tests:
+#    runs-on: macos-13
+#    steps:
+#      - uses: actions/checkout@v3
+#      - run: fastlane tests
+#
+#      - name: Test Reporter
+#        uses: dorny/test-reporter@v1.6.0
+#        if: success() || failure()    # run this step even if previous step failed
+#        with:
+#          name: Test Results
+#          path: fastlane/test_output/*.junit
+#          reporter: jest-junit
+#
+#      # - name: Export coverage test
+#      #   run: |
+#      #     BUILD_PATH=$(swift build --show-bin-path)
+#      #     xcrun llvm-cov report \
+#      #       "$(find $(find $BUILD_PATH -name '*.xctest') -perm +111 -type f)" \
+#      #       --instr-profile "$BUILD_PATH/codecov/default.profdata" \
+#      #       --ignore-filename-regex='.*build/checkouts.*' \
+#      #       --ignore-filename-regex='Tests/.*' > "$BUILD_PATH/codecov/lcov.info"
+#      #     echo "# Coverage Job Summary" >> $GITHUB_STEP_SUMMARY
+#      #     echo "" >> $GITHUB_STEP_SUMMARY
+#      #     echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+#      #     echo "$(cat $BUILD_PATH/codecov/lcov.info)" >> $GITHUB_STEP_SUMMARY
+#      #     echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

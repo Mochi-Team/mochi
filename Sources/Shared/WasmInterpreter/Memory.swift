@@ -96,11 +96,12 @@ public extension WasmInstance.Memory {
     }
 
     func write<T: WasmValue>(with values: [T], byteOffset: Int) throws {
-        var values = values
-        try write(
-            with: Data(bytes: &values, count: values.count * MemoryLayout<T>.size),
-            byteOffset: byteOffset
-        )
+        try withUnsafePointer(to: values) { valuesPtr in
+            try write(
+                with: Data(bytes: valuesPtr, count: values.count * MemoryLayout<T>.size),
+                byteOffset: byteOffset
+            )
+        }
     }
 
     func write(with data: Data, byteOffset: Int) throws {

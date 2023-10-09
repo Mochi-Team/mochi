@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - CircularProgressView
 
 public struct CircularProgressView<BarColor: ShapeStyle, Accessory: View>: View {
-    public struct BarStyle<BarColor: ShapeStyle> {
+    public struct BarStyle {
         public init(
             fill: BarColor,
             width: CGFloat = 12,
@@ -29,12 +29,12 @@ public struct CircularProgressView<BarColor: ShapeStyle, Accessory: View>: View 
     }
 
     private let progress: Double
-    private let barStyle: BarStyle<BarColor>
+    private let barStyle: BarStyle
     private let accessory: () -> Accessory
 
     public init(
         progress: Double,
-        barStyle: BarStyle<BarColor>,
+        barStyle: BarStyle,
         @ViewBuilder accessory: @escaping () -> Accessory
     ) {
         self.progress = progress
@@ -86,7 +86,7 @@ public struct CircularProgressView<BarColor: ShapeStyle, Accessory: View>: View 
 public extension CircularProgressView {
     init(
         progress: Double,
-        barStyle: BarStyle<BarColor>
+        barStyle: BarStyle
     ) where Accessory == EmptyView {
         self.init(
             progress: progress,

@@ -8,6 +8,6 @@
 
 struct ComposableArchitecture: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.1.0")
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.2.0")
     }
 }

@@ -25,7 +25,7 @@ extension AppFeature: Reducer {
             switch action {
             case .view(.didAppear):
                 break
-
+                
             case let .view(.didSelectTab(tab)):
                 if state.selected == tab {
                     switch tab {
@@ -36,9 +36,8 @@ extension AppFeature: Reducer {
                     case .settings:
                         break
                     }
-                } else {
-                    state.selected = tab
                 }
+                state.selected = tab
 
             case .internal(.appDelegate):
                 break

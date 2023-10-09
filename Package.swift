@@ -815,7 +815,7 @@ extension Client {
 
 struct ComposableArchitecture: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.1.0")
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.2.0")
     }
 }
 //
@@ -1012,7 +1012,6 @@ struct PlaylistDetails: Feature {
     var dependencies: any Dependencies {
         Architecture()
         ContentCore()
-        RepoClient()
         LoggerClient()
         ModuleClient()
         RepoClient()
