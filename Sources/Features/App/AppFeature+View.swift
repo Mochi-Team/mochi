@@ -53,7 +53,7 @@ extension AppFeature.View: View {
             .safeAreaInset(edge: .bottom) {
                 navbar(viewStore.state)
             }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .ignoresSafeArea(.keyboard, edges: .all)
         }
         .background(
             Color.theme.backgroundColor
@@ -91,14 +91,13 @@ private struct CustomTabItemStyle: View {
 extension AppFeature.View {
     @MainActor
     func navbar(_ selected: Self.State.Tab) -> some View {
-        HStack(alignment: .bottom, spacing: 0) {
+        HStack(alignment: .top, spacing: 0) {
             ForEach(State.Tab.allCases, id: \.rawValue) { tab in
                 VStack(spacing: 2) {
-                    if tab == selected {
-                        RoundedRectangle(cornerRadius: 12)
-                            .frame(width: 18, height: 4)
-                            .transition(.opacity.combined(with: .scale))
-                    }
+                    RoundedRectangle(cornerRadius: 12)
+                        .frame(width: tab == selected ? 18 : 0, height: 4)
+                        .transition(.scale.combined(with: .opacity))
+                        .opacity(tab == selected ? 1.0 : 0.0)
 
                     Image(systemName: tab == selected ? tab.selected : tab.image)
                         .resizable()
@@ -127,11 +126,7 @@ extension AppFeature.View {
             }
             .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .frame(
-            maxWidth: .infinity,
-            alignment: .bottom
-        )
+        .frame(maxWidth: .infinity, alignment: .bottom)
         .background {
             Rectangle()
                 .fill(.regularMaterial)

@@ -30,17 +30,14 @@ public struct FillAspectImage: View {
                 transaction: .init(animation: .easeInOut(duration: 0.4))
             ) { state in
                 if let image = state.image {
-                    image.resizable()
-                        .onAppear {
-                            averageColor?(state.imageContainer?.image.averageColor)
-                        }
+                    image
+                        .resizable()
+                        .onAppear { averageColor?(state.imageContainer?.image.averageColor) }
                 } else {
                     Color.gray.opacity(0.2)
                 }
             }
-            .onCompletion { result in
-                averageColor?(try? result.get().image.averageColor)
-            }
+            .onCompletion { averageColor?(try? $0.get().image.averageColor) }
             .scaledToFill()
             .frame(
                 width: proxy.size.width,
@@ -61,8 +58,20 @@ public struct FillAspectImage: View {
 
 #if canImport(AppKit)
 typealias PlatformImage = NSImage
+
+extension Image {
+    init(_ image: PlatformImage) {
+        self.init(nsImage: image)
+    }
+}
 #else
 typealias PlatformImage = UIImage
+extension Image {
+    init(_ image: PlatformImage) {
+        self.init(uiImage: image)
+    }
+}
+
 #endif
 
 extension PlatformImage {

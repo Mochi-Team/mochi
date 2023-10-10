@@ -134,7 +134,7 @@ private class ModulesDownloadManager {
                             throw RepoClient.Error.failedToInstallModule
                         }
 
-                        let moduleLocation = fileClient.createModuleFolder(moduleFolderString)
+                        let moduleLocation = try fileClient.createModuleFolder(moduleFolderString)
                         try data.write(to: moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm"))
 
                         let module = Module(

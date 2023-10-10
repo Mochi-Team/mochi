@@ -10,7 +10,7 @@ import ComposableArchitecture
 import Foundation
 
 public struct FileClient {
-    public let createModuleFolder: @Sendable (String) -> URL
+    public let createModuleFolder: @Sendable (String) throws -> URL
     public let retrieveModuleFolder: @Sendable (URL) -> URL
 }
 

@@ -21,16 +21,16 @@ extension FileClient: DependencyKey {
 
         let reposDirectory = documentDirectory.appendingPathComponent("Repos", isDirectory: true)
 
-        let create: (String) throws -> Void = { path in
-            if !FileManager.default.fileExists(atPath: path) {
-                try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+        let create: (URL) throws -> Void = { url in
+            if !FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.createDirectory(atPath: url.path, withIntermediateDirectories: true)
             }
         }
 
         return Self(
             createModuleFolder: { path in
                 let url = documentDirectory.appendingPathComponent("Repos", isDirectory: true).appendingPathComponent(path, isDirectory: true)
-                try? create(path)
+                try create(url)
                 return url
             },
             retrieveModuleFolder: { documentDirectory.appendingPathComponent("Repos", isDirectory: true).appendingPathComponent($0.relativePath) }

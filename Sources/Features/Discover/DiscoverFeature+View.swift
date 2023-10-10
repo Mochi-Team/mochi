@@ -8,6 +8,7 @@
 
 import Architecture
 import ModuleLists
+import Nuke
 import NukeUI
 import PlaylistDetails
 import Search
