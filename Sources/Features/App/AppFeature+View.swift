@@ -56,7 +56,7 @@ extension AppFeature.View: View {
             .ignoresSafeArea(.keyboard, edges: .all)
         }
         .background(
-            Color.theme.backgroundColor
+            theme.backgroundColor
                 .edgesIgnoringSafeArea(.all)
                 .ignoresSafeArea()
         )

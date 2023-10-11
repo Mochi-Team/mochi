@@ -17,7 +17,7 @@ import VideoPlayer
 
 extension AppFeature: Reducer {
     public var body: some ReducerOf<Self> {
-        Scope(state: \.settings.userSettings, action: /Action.InternalAction.appDelegate) {
+        Scope(state: \.appDelegate, action: /Action.InternalAction.appDelegate) {
             AppDelegateFeature()
         }
 

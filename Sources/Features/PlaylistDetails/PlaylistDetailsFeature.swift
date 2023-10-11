@@ -157,6 +157,8 @@ public struct PlaylistDetailsFeature: Feature {
         @SwiftUI.State
         var imageDominatColor: Color?
 
+        @EnvironmentObject var theme: ThemeManager
+
         public nonisolated init(store: StoreOf<PlaylistDetailsFeature>) {
             self.store = store
         }

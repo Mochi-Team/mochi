@@ -786,6 +786,7 @@ struct UserSettingsClient: Client {
     var dependencies: any Dependencies {
         UserDefaultsClient()
         ComposableArchitecture()
+        ViewComponents()
     }
 }
 //
@@ -1223,6 +1224,7 @@ struct Styling: Shared {
         ComposableArchitecture()
         Tagged()
         SwiftUIBackports()
+        UserSettingsClient()
     }
 }
 //

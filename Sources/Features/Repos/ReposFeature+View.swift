@@ -47,7 +47,7 @@ extension ReposFeature.View: View {
                             ForEach(viewStore.state) { repo in
                                 repoRow(repo)
                                     .padding(.horizontal)
-                                    .background(Color.theme.backgroundColor)
+                                    .background(theme.backgroundColor)
                                     .contentShape(Rectangle())
                                     .onTapGesture {
                                         self.store.send(.view(.didTapRepo(repo.id)))

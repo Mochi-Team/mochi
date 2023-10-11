@@ -1,37 +1,30 @@
 //
-//  File.swift
+//  Theme.swift
 //
 //
-//  Created by ErrorErrorError on 4/23/23.
-//
+//  Created by ErrorErrorError on 10/11/23.
+//  
 //
 
-import Dependencies
 import Foundation
-import SwiftUI
 import Tagged
+import SwiftUI
+import ViewComponents
 
-public extension Color {
-    static let theme = Theme.default
-}
-
-extension EnvironmentValues {
-    public var theme: Theme {
-        get { self[Theme.self] }
-        set { self[Theme.self] = newValue }
-    }
-}
-
-extension Theme: EnvironmentKey {
-    public static var defaultValue: Theme = .default
-}
-
-// MARK: - Theme
-
-public enum Theme: Hashable, Identifiable {
+public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
     public var id: Tagged<Self, Int> { .init(self.hashValue) }
 
     case `default`
+    case bruh
+
+    public var name: String {
+        switch self {
+        case .default:
+            "Default"
+        case .bruh:
+            "Bruh"
+        }
+    }
 
     public var primaryColor: Color { .green }
 
@@ -42,6 +35,8 @@ public enum Theme: Hashable, Identifiable {
                 light: .init(white: 0.0),
                 dark: .init(white: 1.0)
             )
+        case .bruh:
+            return .red
         }
     }
 
@@ -60,14 +55,8 @@ public enum Theme: Hashable, Identifiable {
                     blue: 0x0A / 0xFF
                 )
             )
+        case .bruh:
+            return .blue
         }
-    }
-}
-
-// TODO: Add theme dependency for changing in settings
-
-struct ThemableModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        EmptyView()
     }
 }

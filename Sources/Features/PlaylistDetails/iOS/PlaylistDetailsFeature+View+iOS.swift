@@ -63,11 +63,11 @@ extension PlaylistDetailsFeature.View: View {
             LinearGradient(
                 stops: [
                     .init(
-                        color: imageDominatColor ?? .theme.backgroundColor,
+                        color: imageDominatColor ?? theme.backgroundColor,
                         location: 0
                     ),
                     .init(
-                        color: .theme.backgroundColor,
+                        color: theme.backgroundColor,
                         location: 1.0
                     )
                 ],
@@ -117,7 +117,7 @@ extension PlaylistDetailsFeature.View: View {
             WithViewStore(store, observe: \.`self`) { viewStore in
                 ScrollView(.vertical) {
                     Text(viewStore.description)
-                        .foregroundColor(.theme.textColor)
+                        .foregroundColor(theme.textColor)
                         .padding()
                 }
                 .safeAreaInset(edge: .top, alignment: .center, spacing: 0) {

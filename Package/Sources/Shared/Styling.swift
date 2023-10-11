@@ -14,5 +14,6 @@ struct Styling: Shared {
         ComposableArchitecture()
         Tagged()
         SwiftUIBackports()
+        UserSettingsClient()
     }
 }

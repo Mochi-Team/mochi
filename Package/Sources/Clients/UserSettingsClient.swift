@@ -12,5 +12,6 @@ struct UserSettingsClient: Client {
     var dependencies: any Dependencies {
         UserDefaultsClient()
         ComposableArchitecture()
+        ViewComponents()
     }
 }

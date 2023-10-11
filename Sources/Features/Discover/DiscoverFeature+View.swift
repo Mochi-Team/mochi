@@ -46,7 +46,7 @@ extension DiscoverFeature.View: View {
                     .animation(.easeInOut(duration: 0.25), value: viewStore.state)
                     .safeAreaInset(edge: .top) {
                         TopBarView(
-                            backgroundStyle: .gradientSystem(),
+                            backgroundStyle: .gradient(),
                             leadingAccessory: {
                                 Button {
                                     viewStore.send(.didTapOpenModules)

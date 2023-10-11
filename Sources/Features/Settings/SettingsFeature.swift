@@ -13,18 +13,19 @@ import UserSettingsClient
 
 public struct SettingsFeature: Feature {
     public struct State: FeatureState {
+        @BindingState
         public var userSettings: UserSettings
 
-        public init(
-            userSettings: UserSettings = .init()
-        ) {
-            self.userSettings = userSettings
+        public init() {
+            @Dependency(\.userSettings) var userSettings
+            self.userSettings = userSettings.get()
         }
     }
 
     public enum Action: FeatureAction {
-        public enum ViewAction: SendableAction {
+        public enum ViewAction: SendableAction, BindableAction {
             case didAppear
+            case binding(BindingAction<State>)
         }
 
         public enum DelegateAction: SendableAction {}
@@ -43,6 +44,9 @@ public struct SettingsFeature: Feature {
             self.store = store
         }
     }
+
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.userSettings) var userSettingsClient
 
     public init() {}
 }

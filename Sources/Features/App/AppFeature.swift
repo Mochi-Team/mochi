@@ -15,11 +15,13 @@ import Repos
 import Settings
 import SharedModels
 import SwiftUI
+import UserSettingsClient
 import VideoPlayer
 import ViewComponents
 
 public struct AppFeature: Feature {
     public struct State: FeatureState {
+        public var appDelegate = AppDelegateFeature.State()
         public var discover = DiscoverFeature.State()
         public var repos = ReposFeature.State()
         public var settings = SettingsFeature.State()
@@ -105,6 +107,8 @@ public struct AppFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: StoreOf<AppFeature>
+
+        @EnvironmentObject var theme: ThemeManager
 
         public nonisolated init(store: StoreOf<AppFeature>) {
             self.store = store

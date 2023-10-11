@@ -8,13 +8,14 @@
 
 import Foundation
 import SwiftUI
+import UserSettingsClient
 import ViewComponents
 
 // MARK: - TopBarBackgroundStyle
 
 public enum TopBarBackgroundStyle: Equatable {
     case system
-    case gradientSystem(Easing = .easeIn)
+    case gradient(Easing = .easeIn)
     case blurred
     case clear
 }
@@ -28,6 +29,8 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
     let leadingAccessory: () -> LeadingAccessory
     let trailingAccessory: () -> TrailingAccessory
     let bottomAccessory: () -> BottomAccessory
+
+    @EnvironmentObject var theme: ThemeManager
 
     public init(
         backgroundStyle: TopBarBackgroundStyle = .system,
@@ -72,14 +75,14 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
             ZStack {
                 switch backgroundStyle {
                 case .system:
-                    Color.theme.backgroundColor
+                    theme.backgroundColor
                         .transition(.opacity)
-                case .gradientSystem:
+                case .gradient:
                     LinearGradient(
                         gradient: .init(
                             colors: [
-                                .theme.backgroundColor,
-                                .theme.backgroundColor.opacity(0.0)
+                                theme.backgroundColor,
+                                theme.backgroundColor.opacity(0.0)
                             ]
                         ),
                         startPoint: .top,

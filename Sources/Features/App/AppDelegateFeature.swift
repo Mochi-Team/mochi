@@ -15,7 +15,7 @@ import SharedModels
 import SwiftUI
 
 public struct AppDelegateFeature: Reducer {
-    public typealias State = UserSettings
+    public struct State: FeatureState {}
 
     public enum Action: SendableAction {
         case didFinishLaunching

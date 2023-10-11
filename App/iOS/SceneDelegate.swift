@@ -11,6 +11,7 @@ import App
 import ComposableArchitecture
 import Foundation
 import UIKit
+import UserSettingsClient
 
 final class SceneDelegate: NSObject, UISceneDelegate {
     var window: UIWindow?
@@ -21,7 +22,7 @@ final class SceneDelegate: NSObject, UISceneDelegate {
         options _: UIScene.ConnectionOptions
     ) {
         window = (scene as? UIWindowScene).flatMap { UIWindow(windowScene: $0) }
-        window?.rootViewController = HostingController(rootView: AppFeature.View(store: store))
+        window?.rootViewController = HostingController(rootView: AppFeature.View(store: store).themable())
         window?.makeKeyAndVisible()
     }
 }

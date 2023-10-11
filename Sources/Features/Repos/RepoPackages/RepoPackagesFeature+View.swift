@@ -105,7 +105,7 @@ extension RepoPackagesFeature.View: View {
         .onAppear {
             store.send(.view(.didAppear))
         }
-        .background(Color.theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
+        .background(theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
         .transition(.move(edge: .trailing).combined(with: .opacity))
     }
 }
@@ -356,7 +356,7 @@ extension RepoPackagesFeature.View {
                 }
             }
         }
-        .background(Color.theme.backgroundColor)
+        .background(theme.backgroundColor)
     }
 }
 
