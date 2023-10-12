@@ -8,8 +8,13 @@
 
 public struct UserSettings: Sendable, Equatable, Codable {
     public var theme: Theme
+    public var appIcon: AppIcon
 
-    public init(theme: Theme = .default) {
+    public init(
+        theme: Theme = .automatic,
+        appIcon: AppIcon = .default
+    ) {
         self.theme = theme
+        self.appIcon = appIcon
     }
 }

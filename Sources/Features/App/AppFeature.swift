@@ -14,8 +14,8 @@ import ModuleLists
 import Repos
 import Settings
 import SharedModels
+import Styling
 import SwiftUI
-import UserSettingsClient
 import VideoPlayer
 import ViewComponents
 
@@ -108,7 +108,8 @@ public struct AppFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<AppFeature>
 
-        @EnvironmentObject var theme: ThemeManager
+        @Environment(\.theme) var theme
+//        @EnvironmentObject var theme: ThemeManager
 
         public nonisolated init(store: StoreOf<AppFeature>) {
             self.store = store

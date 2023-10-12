@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import UserSettingsClient
 
 extension SettingsFeature {
     @ReducerBuilder<State, Action>
@@ -17,13 +18,17 @@ extension SettingsFeature {
                 .onChange(of: \.userSettings) { _, userSettings in
                     Reduce { _, _ in
                         enum CancelID { case saveDebounce }
-                        return .run { _ in await userSettingsClient.set(userSettings) }
-                            .debounce(id: CancelID.saveDebounce, for: .seconds(0.5), scheduler: mainQueue)
+                        return .run { _ in
+                            await userSettingsClient.set(userSettings)
+                            try await withTaskCancellation(id: CancelID.saveDebounce) {
+                                try await Task.sleep(nanoseconds: 500_000_000)
+                            }
+                        }
                     }
                 }
         }
 
-        Reduce { state, action in
+        Reduce { _, action in
             switch action {
             case let .view(viewAction):
                 switch viewAction {

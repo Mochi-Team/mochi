@@ -14,10 +14,10 @@ import XCTestDynamicOverlay
 
 @dynamicMemberLookup
 public struct UserSettingsClient: Sendable {
-    // TODO: Add client interface types
-    public let get: @Sendable () -> UserSettings
-    public let set: @Sendable (UserSettings) async -> Void
-    public let stream: @Sendable () -> AsyncStream<UserSettings>
+    public var get: @Sendable () -> UserSettings
+    public var set: @Sendable (UserSettings) async -> Void
+    public var save: @Sendable () async -> Void
+    public var stream: @Sendable () -> AsyncStream<UserSettings>
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<UserSettings, Value>) -> Value {
         self.get()[keyPath: keyPath]
@@ -27,7 +27,6 @@ public struct UserSettingsClient: Sendable {
     public subscript<Value>(
         dynamicMember keyPath: KeyPath<UserSettings, Value>
     ) -> AsyncStream<Value> {
-        // TODO: This should probably remove duplicates.
         self.stream().map { $0[keyPath: keyPath] }.eraseToStream()
     }
 
@@ -44,6 +43,7 @@ extension UserSettingsClient: TestDependencyKey {
     public static let testValue = Self(
         get: unimplemented(".get"),
         set: unimplemented(".set"),
+        save: unimplemented(".save"),
         stream: unimplemented(".stream")
     )
 }

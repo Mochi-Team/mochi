@@ -10,6 +10,7 @@ struct Settings: Feature {
     var dependencies: any Dependencies {
         Architecture()
         BuildClient()
+        FluidGradient()
         SharedModels()
         Styling()
         ViewComponents()

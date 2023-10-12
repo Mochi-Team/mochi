@@ -88,7 +88,8 @@ extension RepoPackagesFeature {
     public struct View: FeatureView {
         public let store: StoreOf<RepoPackagesFeature>
 
-        @EnvironmentObject var theme: ThemeManager
+        @Environment(\.theme) var theme
+//        @EnvironmentObject var theme: ThemeManager
 
         public nonisolated init(store: StoreOf<RepoPackagesFeature>) {
             self.store = store

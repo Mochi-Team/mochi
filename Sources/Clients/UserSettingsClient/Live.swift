@@ -15,14 +15,16 @@ extension UserSettingsClient: DependencyKey {
         let userSettings = LockIsolated(UserSettings())
         let subject = PassthroughSubject<UserSettings, Never>()
 
-        return Self.init {
+        return Self {
             userSettings.value
         } set: { newValue in
             userSettings.withValue { state in
                 state = newValue
                 subject.send(newValue)
-                // TODO: Store user settings
             }
+        } save: {
+            // TODO: Save UserSettingsClient
+            print("Save UserSettings")
         } stream: {
             subject.values.eraseToStream()
         }

@@ -11,6 +11,7 @@ enum TargetType {
   case executable
   case test
   case binary(BinaryTarget)
+  case macro
 
   enum BinaryTarget {
     case path(String)

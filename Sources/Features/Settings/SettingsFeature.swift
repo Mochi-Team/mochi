@@ -9,6 +9,8 @@
 import Architecture
 import ComposableArchitecture
 import SharedModels
+import Styling
+import SwiftUI
 import UserSettingsClient
 
 public struct SettingsFeature: Feature {
@@ -19,6 +21,10 @@ public struct SettingsFeature: Feature {
         public init() {
             @Dependency(\.userSettings) var userSettings
             self.userSettings = userSettings.get()
+        }
+
+        init(userSettings: UserSettings) {
+            self.userSettings = userSettings
         }
     }
 
@@ -39,6 +45,8 @@ public struct SettingsFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: StoreOf<SettingsFeature>
+
+        @Environment(\.theme) var theme
 
         public nonisolated init(store: StoreOf<SettingsFeature>) {
             self.store = store

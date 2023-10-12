@@ -69,7 +69,8 @@ public struct ReposFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<ReposFeature>
 
-        @EnvironmentObject var theme: ThemeManager
+        @Environment(\.theme) var theme
+//        @EnvironmentObject var theme: ThemeManager
 
         @Dependency(\.dateFormatter)
         var dateFormatter

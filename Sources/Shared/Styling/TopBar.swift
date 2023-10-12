@@ -30,7 +30,8 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
     let trailingAccessory: () -> TrailingAccessory
     let bottomAccessory: () -> BottomAccessory
 
-    @EnvironmentObject var theme: ThemeManager
+    @Environment(\.theme) var theme
+//    @EnvironmentObject var theme: ThemeManager
 
     public init(
         backgroundStyle: TopBarBackgroundStyle = .system,

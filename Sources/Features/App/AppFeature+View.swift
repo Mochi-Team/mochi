@@ -55,11 +55,6 @@ extension AppFeature.View: View {
             }
             .ignoresSafeArea(.keyboard, edges: .all)
         }
-        .background(
-            theme.backgroundColor
-                .edgesIgnoringSafeArea(.all)
-                .ignoresSafeArea()
-        )
         .onAppear {
             store.send(.view(.didAppear))
         }
@@ -77,6 +72,7 @@ extension AppFeature.View: View {
                 .animation(.easeInOut, value: isVisible.state)
             }
         }
+        .themable()
     }
 }
 
@@ -93,28 +89,30 @@ extension AppFeature.View {
     func navbar(_ selected: Self.State.Tab) -> some View {
         HStack(alignment: .top, spacing: 0) {
             ForEach(State.Tab.allCases, id: \.rawValue) { tab in
-                VStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .frame(width: tab == selected ? 18 : 0, height: 4)
-                        .transition(.scale.combined(with: .opacity))
-                        .opacity(tab == selected ? 1.0 : 0.0)
-
-                    Image(systemName: tab == selected ? tab.selected : tab.image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .font(.system(size: 20, weight: .semibold))
-                        .frame(height: 18)
-                        .padding(.top, 8)
-
-                    Text(tab.rawValue)
-                        .font(.system(size: 10, weight: .medium))
-                }
-                .foregroundColor(tab == selected ? tab.colorAccent : .gray)
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture {
+                Button {
                     store.send(.view(.didSelectTab(tab)))
+                } label: {
+                    VStack(spacing: 2) {
+                        RoundedRectangle(cornerRadius: 12)
+                            .frame(width: tab == selected ? 18 : 0, height: 4)
+                            .transition(.scale.combined(with: .opacity))
+                            .opacity(tab == selected ? 1.0 : 0.0)
+
+                        Image(systemName: tab == selected ? tab.selected : tab.image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .font(.system(size: 20, weight: .semibold))
+                            .frame(height: 18)
+                            .padding(.top, 8)
+
+                        Text(tab.rawValue)
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                    .foregroundColor(tab == selected ? tab.colorAccent : .gray)
+                    .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.scaled)
+                .contentShape(Rectangle())
                 .background(
                     Rectangle()
                         .foregroundColor(tab.colorAccent.opacity(tab == selected ? 0.08 : 0.0))

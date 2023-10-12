@@ -8,8 +8,6 @@
 
 import Foundation
 
-import PackageDescription
-
 struct MochiPlatforms: PlatformSet {
     var body: any SupportedPlatforms {
         SupportedPlatform.macOS(.v12)

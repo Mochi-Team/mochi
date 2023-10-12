@@ -50,6 +50,14 @@ extension _PackageDescription_Target {
         url: url,
         checksum: checksum
       )
+
+    case .macro:
+      return .macro(
+        name: entry.name,
+        dependencies: dependencies,
+        path: entry.path,
+        swiftSettings: swiftSettings + entry.swiftSettings
+      )
     }
   }
 }

@@ -113,8 +113,8 @@ public extension Color {
 
     #if canImport(AppKit)
     init(light: NSColor, dark: NSColor) {
-        self.init(nsColor: NSColor(name: nil, dynamicProvider: { appearance in
-            switch appearance.name {
+        self.init(nsColor: NSColor(name: nil, dynamicProvider: { colorScheme in
+            switch colorScheme.name {
             case .aqua,
                  .vibrantLight,
                  .accessibilityHighContrastAqua,
@@ -128,7 +128,7 @@ public extension Color {
                 return dark
 
             default:
-                assertionFailure("Unknown appearance: \(appearance.name)")
+                assertionFailure("Unknown appearance: \(colorScheme.name)")
                 return light
             }
         }))
