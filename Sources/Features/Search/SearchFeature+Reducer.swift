@@ -26,10 +26,7 @@ extension SearchFeature: Reducer {
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                if state.hasLoaded {
-                    break
-                }
-                state.hasLoaded = true
+                break
 
             case let .view(.didShowNextPageIndicator(pagingId)):
                 guard var value = state.items.value, value[pagingId] == nil else {
@@ -80,6 +77,7 @@ extension SearchFeature: Reducer {
 
             case let .view(.didTapPlaylist(playlist)):
                 if let repoModuleID = state.repoModuleID {
+                    state.searchFieldFocused = false
                     return .send(.delegate(.playlistTapped(repoModuleID, playlist)))
                 }
 
@@ -116,6 +114,16 @@ extension SearchFeature: Reducer {
                     }
                 } catch: { error, _ in
                     logger.error("There was an error fetching page \(error.localizedDescription)")
+                }
+
+            case .view(.binding(\.$searchFieldFocused)):
+                if state.searchFieldFocused {
+                    state.expandView = true
+                }
+
+            case .view(.binding(\.$expandView)):
+                if state.searchFieldFocused {
+                    state.searchFieldFocused = false
                 }
 
             case .view(.binding):

@@ -110,16 +110,17 @@ extension AppFeature.View {
                     }
                     .foregroundColor(tab == selected ? tab.colorAccent : .gray)
                     .frame(maxWidth: .infinity)
+                    .background(
+                        Rectangle()
+                            .foregroundColor(tab.colorAccent.opacity(tab == selected ? 0.08 : 0.0))
+                            .ignoresSafeArea(.all)
+                            .edgesIgnoringSafeArea(.all)
+                            .blur(radius: 24)
+                    )
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.scaled)
                 .contentShape(Rectangle())
-                .background(
-                    Rectangle()
-                        .foregroundColor(tab.colorAccent.opacity(tab == selected ? 0.08 : 0.0))
-                        .ignoresSafeArea(.all)
-                        .edgesIgnoringSafeArea(.all)
-                        .blur(radius: 24)
-                )
                 .animation(.easeInOut(duration: 0.2), value: tab == selected)
             }
             .frame(maxWidth: .infinity)

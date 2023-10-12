@@ -20,25 +20,25 @@ import ViewComponents
 
 public struct SearchFeature: Feature {
     public struct State: FeatureState {
+        @BindingState public var expandView: Bool
+        @BindingState public var searchFieldFocused: Bool
+        @BindingState public var query: String
+
         public var repoModuleID: RepoModuleID?
-
-        @BindingState
-        public var expandView = false
-
-        @BindingState
-        public var query: String
         public var filters: [SearchFilter]
         public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
 
-        var hasLoaded = false
-
         public init(
+            expandView: Bool = false,
+            searchFieldFocused: Bool = false,
             repoModuleID: RepoModuleID? = nil,
             query: String = "",
             filters: [SearchFilter] = [],
             items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
         ) {
             self.repoModuleID = repoModuleID
+            self.expandView = expandView
+            self.searchFieldFocused = searchFieldFocused
             self.query = query
             self.filters = filters
             self.items = items
@@ -79,11 +79,8 @@ public struct SearchFeature: Feature {
         @SwiftUI.State
         var searchBarSize = 0.0
 
-        @SwiftUI.State
-        var shouldExpand = false
-
         @FocusState
-        var textFieldFocused: Bool
+        var searchFieldFocused: Bool
 
         public nonisolated init(store: StoreOf<SearchFeature>) {
             self.store = store

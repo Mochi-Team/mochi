@@ -104,7 +104,7 @@ extension SearchFeature.View: View {
                                 .foregroundColor(.gray)
                             TextField("Search", text: viewStore.$query.removeDuplicates())
                                 .textFieldStyle(.plain)
-                                .focused($textFieldFocused)
+                                .focused($searchFieldFocused)
                                 .frame(maxWidth: .infinity)
 
                             ZStack {
@@ -147,17 +147,12 @@ extension SearchFeature.View: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .bind(viewStore.$searchFieldFocused, to: self.$searchFieldFocused)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.top, 0.1)
         .onAppear {
             store.send(.view(.didAppear))
-        }
-        .onChange(of: textFieldFocused) { focused in
-            if focused {
-                shouldExpand = true
-                store.send(.view(.binding(.set(\.$expandView, true))))
-            }
         }
     }
 }

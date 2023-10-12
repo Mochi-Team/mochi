@@ -18,6 +18,13 @@ public struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
+private struct DelayedScaleModifier: ViewModifier {
+
+    func body(content: Content) -> some View {
+        content
+    }
+}
+
 extension ButtonStyle where Self == ScaleButtonStyle {
 
     /// A button style that doesn't style or decorate its content while idle,

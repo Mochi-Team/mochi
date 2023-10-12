@@ -19,17 +19,25 @@ extension SettingsFeature.View: View {
     public var body: some View {
         WithViewStore(store, observe: \.`self`) { viewStore in
             ScrollView(.vertical) {
-                SettingsGroup(title: "Apearance") {
-                    SettingRow(title: "Theme") {
-                        Text(viewStore.userSettings.theme.name)
-                            .font(.callout.weight(.medium))
-                            .foregroundColor(theme.textColor.opacity(0.5))
-                    } content: {
-                        ThemePicker(theme: viewStore.$userSettings.theme)
+                VStack(spacing: 16) {
+                    SettingsGroup(title: "General") {
+                        SettingRow(title: "Discover Page", accessory: {
+                            Toggle("", isOn: .constant(true))
+                                .labelsHidden()
+                        })
                     }
 
-                    SettingRow(title: "App Icon", accessory: EmptyView.init) {
+                    SettingsGroup(title: "Apearance") {
+                        SettingRow(title: "Theme") {
+                            Text(viewStore.userSettings.theme.name)
+                                .font(.callout.weight(.medium))
+                                .foregroundColor(theme.textColor.opacity(0.5))
+                        } content: {
+                            ThemePicker(theme: viewStore.$userSettings.theme)
+                        }
 
+                        SettingRow(title: "App Icon", accessory: EmptyView.init) {
+                        }
                     }
                 }
             }
@@ -53,19 +61,38 @@ struct ThemePicker: View {
                         self.theme = theme
                     } label: {
                         VStack(alignment: .center, spacing: 12) {
-                            Circle()
-                                .style(
-                                    withStroke: self.theme == theme ? Color.accentColor : Color.clear,
-                                    lineWidth: 2,
-                                    fill: LinearGradient(
-                                        colors: [theme.backgroundColor, theme.overBackgroundColor],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
+                            if theme == .automatic {
+                                Circle()
+                                    .style(
+                                        withStroke: self.theme == theme ? Color.accentColor : Color.gray.opacity(0.5),
+                                        lineWidth: 2,
+                                        fill: LinearGradient(
+                                            colors: [
+                                                Theme.light.backgroundColor,
+                                                Theme.light.overBackgroundColor,
+                                                Theme.dark.overBackgroundColor,
+                                                Theme.dark.backgroundColor
+                                            ],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
-
-                                )
-                                .frame(height: 54)
-                                .padding(.top, 1)
+                                    .frame(height: 54)
+                                    .padding(.top, 1)
+                            } else {
+                                Circle()
+                                    .style(
+                                        withStroke: self.theme == theme ? Color.accentColor : Color.gray.opacity(0.5),
+                                        lineWidth: 2,
+                                        fill: LinearGradient(
+                                            colors: [theme.backgroundColor, theme.overBackgroundColor],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .frame(height: 54)
+                                    .padding(.top, 1)
+                            }
 
                             Text(theme.name)
                                 .font(.caption.weight(.medium))
@@ -84,23 +111,6 @@ struct ThemePicker: View {
                     .buttonStyle(.scaled)
                 }
             }
-        }
-    }
-
-    struct ScreenView: View {
-        let theme: Theme
-
-        var body: some View {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(theme.backgroundColor)
-//                .overlay {
-//                    RoundedRectangle(cornerRadius: 2)
-//                        .fill(theme.overBackgroundColor)
-//                        .padding()
-//                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .aspectRatio(5 / 7, contentMode: .fill)
-                .padding(.top, 2)
         }
     }
 }
