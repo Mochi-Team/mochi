@@ -7,7 +7,9 @@
 //
 
 import Architecture
+import BuildClient
 import ComposableArchitecture
+@preconcurrency import Semver
 import SharedModels
 import Styling
 import SwiftUI
@@ -15,16 +17,21 @@ import UserSettingsClient
 
 public struct SettingsFeature: Feature {
     public struct State: FeatureState {
+        public var buildVersion: Semver
+        public var buildNumber: Int
+
         @BindingState
         public var userSettings: UserSettings
 
-        public init() {
+        public init(
+            buildVersion: Semver = .init(0, 0, 1),
+            buildNumber: Int = 0
+        ) {
+            self.buildVersion = buildVersion
+            self.buildNumber = buildNumber
+
             @Dependency(\.userSettings) var userSettings
             self.userSettings = userSettings.get()
-        }
-
-        init(userSettings: UserSettings) {
-            self.userSettings = userSettings
         }
     }
 
