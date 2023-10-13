@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  AppDelegateFeature.swift
 //
 //
 //  Created by ErrorErrorError on 5/19/23.
@@ -33,7 +33,7 @@ public struct AppDelegateFeature: Reducer {
         Reduce { _, action in
             switch action {
             case .didFinishLaunching:
-                return .run { _ in
+                .run { _ in
                     try? await databaseClient.initialize()
                     try? await moduleClient.initialize()
                 }

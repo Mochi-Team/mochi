@@ -1,5 +1,5 @@
 //
-//  HostModuleInterop+Crypto.swift
+//  Bindings+Crypto.swift
 //
 //
 //  Created by ErrorErrorError on 6/7/23.
@@ -136,3 +136,5 @@ extension ModuleClient.Instance {
         }
     }
 }
+
+// swiftlint:enable closure_parameter_position

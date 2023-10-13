@@ -5,6 +5,7 @@ included:
 
 excluded:
   - "**/.build"
+  - "**/Package"
 
 disabled_rules:
   - nesting

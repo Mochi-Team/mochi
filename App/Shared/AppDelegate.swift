@@ -18,7 +18,7 @@ let store = Store(
     reducer: { AppFeature() }
 )
 
-@UIApplicationMain
+@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(
         _: UIApplication,

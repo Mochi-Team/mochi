@@ -131,11 +131,11 @@ extension DiscoverFeature.State {
                                 value.sorted { leftElement, rightElement in
                                     switch (leftElement.type, rightElement.type) {
                                     case (.featured, .featured):
-                                        return true
+                                        true
                                     case (_, .featured):
-                                        return false
+                                        false
                                     default:
-                                        return true
+                                        true
                                     }
                                 }
                             )

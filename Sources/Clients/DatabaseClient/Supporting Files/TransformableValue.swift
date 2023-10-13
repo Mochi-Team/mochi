@@ -168,8 +168,6 @@ extension TransformableValue {
             return
         } else if Self.Primitive.self == Int16.self {
             return
-        } else if Self.Primitive.self == Int16.self {
-            return
         } else if Self.Primitive.self == Int32.self {
             return
         } else if Self.Primitive.self == Int64.self {

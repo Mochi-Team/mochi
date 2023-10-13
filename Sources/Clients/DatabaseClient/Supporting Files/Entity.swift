@@ -1,9 +1,9 @@
 //
-//  File.swift
-//  
+//  Entity.swift
+//
 //
 //  Created by ErrorErrorError on 9/12/23.
-//  
+// 
 //
 
 import CoreData
@@ -21,14 +21,11 @@ public extension Entity {
     static var entityName: String { .init(describing: Self.self) }
 }
 
-// MARK: - EntityError
-
 public enum EntityError: Error {
     case managedObjectIdIsNotPermanent
 }
 
 extension Entity {
-
     /// Decodes an NSManagedObject data to Entity type
     ///
     init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {

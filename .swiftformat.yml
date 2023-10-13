@@ -57,3 +57,7 @@
 # op-ins (disable)
 
 --disable wrapMultilineStatementBraces
+
+# exclude
+--exclude "**/Package/*"
+--exclude "**/Package.swift"

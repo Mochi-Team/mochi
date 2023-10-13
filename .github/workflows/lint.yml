@@ -31,4 +31,4 @@ jobs:
       - name: Lint code using SwiftFormat
         run: |
           swiftformat --version
-          swiftformat --config .swiftformat.yml --lint --quiet .
+          swiftformat --config .swiftformat.yml --lint --quiet --reporter github-actions-log .

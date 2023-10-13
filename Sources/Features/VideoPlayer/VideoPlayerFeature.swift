@@ -38,15 +38,15 @@ public struct VideoPlayerFeature: Feature {
                 var image: Image {
                     switch self {
                     case .episodes:
-                        return Image(systemName: "rectangle.stack.badge.play")
+                        Image(systemName: "rectangle.stack.badge.play")
                     case .sourcesAndServers:
-                        return Image(systemName: "server.rack")
+                        Image(systemName: "server.rack")
                     case .qualityAndSubtitles:
-                        return Image(systemName: "captions.bubble")
+                        Image(systemName: "captions.bubble")
                     case .speed:
-                        return Image(systemName: "speedometer")
+                        Image(systemName: "speedometer")
                     case .settings:
-                        return Image(systemName: "gearshape")
+                        Image(systemName: "gearshape")
                     }
                 }
             }
@@ -291,27 +291,27 @@ extension VideoPlayerFeature.View {
             var action: VideoPlayerFeature.Action {
                 switch self {
                 case let .next(_, group, paging, itemId):
-                    return .view(.didTapPlayEpisode(group, paging, itemId))
+                    .view(.didTapPlayEpisode(group, paging, itemId))
                 case let .times(time):
-                    return .view(.didSkipTo(time: time.endTime))
+                    .view(.didSkipTo(time: time.endTime))
                 }
             }
 
             var description: String {
                 switch self {
                 case let .times(time):
-                    return time.type.description
+                    time.type.description
                 case let .next(number, _, _, _):
-                    return "Play E\(number.withoutTrailingZeroes)"
+                    "Play E\(number.withoutTrailingZeroes)"
                 }
             }
 
             var image: String {
                 switch self {
                 case .next:
-                    return "play.fill"
+                    "play.fill"
                 default:
-                    return "forward.fill"
+                    "forward.fill"
                 }
             }
 

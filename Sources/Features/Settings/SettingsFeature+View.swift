@@ -21,6 +21,7 @@ extension SettingsFeature.View: View {
             ScrollView(.vertical) {
                 VStack(spacing: 16) {
                     SettingsGroup(title: "General") {
+                        // TODO: Actually allow users to set which discover page to show on startup
                         SettingRow(title: "Discover Page", accessory: {
                             Toggle("", isOn: .constant(true))
                                 .labelsHidden()
@@ -39,6 +40,15 @@ extension SettingsFeature.View: View {
                         SettingRow(title: "App Icon", accessory: EmptyView.init) {
                         }
                     }
+
+                    VStack {
+                        Text("Made with ❤️")
+                        Text("Version: \(viewStore.buildVersion.description) (\(viewStore.buildNumber))")
+                    }
+                    .font(.footnote.weight(.medium))
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical)
                 }
             }
         }

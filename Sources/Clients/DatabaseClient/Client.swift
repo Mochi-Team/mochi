@@ -33,8 +33,6 @@ public extension DatabaseClient {
     }
 }
 
-// MARK: DependencyKey
-
 extension DatabaseClient: DependencyKey {}
 
 public extension DependencyValues {

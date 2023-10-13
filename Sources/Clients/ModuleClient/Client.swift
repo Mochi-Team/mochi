@@ -46,7 +46,7 @@ extension SwiftSoup.Exception: Equatable {
     public static func == (lhs: Exception, rhs: Exception) -> Bool {
         switch (lhs, rhs) {
         case let (.Error(typeOne, messageOne), .Error(typeTwo, messageTwo)):
-            return typeOne == typeTwo && messageOne == messageTwo
+            typeOne == typeTwo && messageOne == messageTwo
         }
     }
 }

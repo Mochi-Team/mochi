@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Binding+Equatable.swift
 //
 //
 //  Created by ErrorErrorError on 5/20/23.

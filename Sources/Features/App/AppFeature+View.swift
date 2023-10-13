@@ -142,15 +142,12 @@ extension AppFeature.View {
     }
 }
 
-// MARK: - AppFeatureView_Previews
-
-struct AppFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        AppFeature.View(
-            store: .init(
-                initialState: .init(),
-                reducer: { AppFeature() }
-            )
+#Preview {
+    AppFeature.View(
+        store: .init(
+            initialState: .init(),
+            reducer: { AppFeature() }
         )
-    }
+    )
+
 }

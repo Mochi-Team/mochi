@@ -372,6 +372,7 @@ extension CWasm3Tests {
         // swiftlint:disable line_length
         let base64 =
             "AGFzbQEAAAABBQFgAAF/AwIBAAeSAQsKY29uc3RhbnRfMQAACmNvbnN0YW50XzIAAApjb25zdGFudF8zAAAKY29uc3RhbnRfNAAACmNvbnN0YW50XzUAAApjb25zdGFudF82AAAKY29uc3RhbnRfNwAACmNvbnN0YW50XzgAAApjb25zdGFudF85AAALY29uc3RhbnRfMTAAAAtjb25zdGFudF8xMQAACggBBgBBgIAECw=="
+        // swiftlint:enable line_length
         guard let data = Data(base64Encoded: base64) else {
             throw TestError.couldNotDecodeWasm("constant.wasm")
         }

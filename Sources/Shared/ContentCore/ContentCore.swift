@@ -150,10 +150,5 @@ private extension ContentCore.Groupings {
     }
 }
 
-// MARK: - ContentCore.State + Sendable
-
 extension ContentCore.State: Sendable {}
-
-// MARK: - OrderedDictionary + Sendable
-
 extension OrderedDictionary: @unchecked Sendable where Key: Sendable, Value: Sendable {}

@@ -1,5 +1,5 @@
 //
-//  HostModuleInterop+Structs.swift
+//  Bindings+Meta.swift
 //
 //
 //  Created by ErrorErrorError on 5/9/23.
@@ -12,7 +12,7 @@ import WasmInterpreter
 
 // MARK: Meta Structs Imports
 
-// swiftlint:disable closure_parameter_position closure_parameter_position
+// swiftlint:disable closure_parameter_position
 extension ModuleClient.Instance {
     func metaImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "structs_meta") {
@@ -236,3 +236,5 @@ extension ModuleClient.Instance {
         }
     }
 }
+
+// swiftlint:enable closure_parameter_position

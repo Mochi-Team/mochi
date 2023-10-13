@@ -181,3 +181,5 @@ extension ModuleClient.Instance {
         }
     }
 }
+
+// swiftlint:enable closure_parameter_position

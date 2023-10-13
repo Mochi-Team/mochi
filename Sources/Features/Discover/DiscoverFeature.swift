@@ -33,13 +33,13 @@ public struct DiscoverFeature: Feature {
         var description: String {
             switch self {
             case .system(.moduleNotSelected):
-                return "There Is No Module Select"
+                "There Is No Module Select"
             case .system(.unknown):
-                return "Unknown System Error Has Occurred"
+                "Unknown System Error Has Occurred"
             case .module(.unknown):
-                return "Unknown Module Error Has Occurred"
+                "Unknown Module Error Has Occurred"
             case .module:
-                return "Failed to Load Module Discovery"
+                "Failed to Load Module Discovery"
             }
         }
     }

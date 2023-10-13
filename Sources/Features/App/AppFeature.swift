@@ -51,33 +51,33 @@ public struct AppFeature: Feature {
             var image: String {
                 switch self {
                 case .discover:
-                    return "doc.text.image"
+                    "doc.text.image"
                 case .repos:
-                    return "globe"
+                    "globe"
                 case .settings:
-                    return "gearshape"
+                    "gearshape"
                 }
             }
 
             var selected: String {
                 switch self {
                 case .discover:
-                    return "doc.text.image.fill"
+                    "doc.text.image.fill"
                 case .repos:
-                    return image
+                    image
                 case .settings:
-                    return "gearshape.fill"
+                    "gearshape.fill"
                 }
             }
 
             var colorAccent: Color {
                 switch self {
                 case .discover:
-                    return .init(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
+                    .init(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
                 case .repos:
-                    return .init(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
+                    .init(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
                 case .settings:
-                    return .init(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
+                    .init(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
                 }
             }
         }
@@ -108,8 +108,8 @@ public struct AppFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<AppFeature>
 
-        @Environment(\.theme) var theme
-//        @EnvironmentObject var theme: ThemeManager
+        @Environment(\.theme) 
+        var theme
 
         public nonisolated init(store: StoreOf<AppFeature>) {
             self.store = store

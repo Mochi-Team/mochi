@@ -1,5 +1,5 @@
 //
-//  HostModuleInterop+Video.swift
+//  Bindings+Video.swift
 //
 //
 //  Created by ErrorErrorError on 6/1/23.
@@ -116,3 +116,5 @@ extension ModuleClient.Instance {
         }
     }
 }
+
+// swiftlint:enable closure_parameter_position
