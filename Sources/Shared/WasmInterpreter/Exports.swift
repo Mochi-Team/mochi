@@ -36,14 +36,14 @@ extension WasmInstance.Exports {
             let function = try self.function(name: functionName)
             let size = UnsafeMutablePointer<Int>.allocate(capacity: 1)
             defer { size.deallocate() }
-            let r = wasm3_CallWithArgs(
+            let result = wasm3_CallWithArgs(
                 function,
                 UInt32(args.count),
                 &cStrings,
                 size,
                 nil
             )
-            if let result = r {
+            if let result {
                 throw WasmInstance.Error.functions(.onCallFunction(String(cString: result)))
             } else if size.pointee != 0 {
                 throw WasmInstance.Error.functions(.invalidFunctionReturnType)

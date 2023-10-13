@@ -11,22 +11,16 @@ import Foundation
 // MARK: - Signature
 
 enum Signature {
-    static func generate(
-        args: WasmValueType...,
-        ret: WasmValueType? = nil
-    ) -> String {
-        generate(args: args, ret: ret)
-    }
-
-    static func generate(
-        args: [WasmValueType],
+    static func parse<each T: WasmValue>(
+        _ item: (repeat (each T).Type),
         ret: WasmValueType? = nil
     ) -> String {
         var signature = ""
         signature += ret?.signatureIdentifier ?? "v"
         signature += "("
-        signature += args.map(\.signatureIdentifier)
-            .joined(separator: " ")
+        var args: [String] = []
+        repeat (args.append((each T).wasmType.signatureIdentifier))
+        signature += args.joined(separator: " ")
         signature += ")"
         return signature
     }
@@ -36,13 +30,13 @@ private extension WasmValueType {
     var signatureIdentifier: String {
         switch self {
         case .int32:
-            return "i"
+            "i"
         case .int64:
-            return "I"
+            "I"
         case .float32:
-            return "f"
+            "f"
         case .float64:
-            return "F"
+            "F"
         }
     }
 }
