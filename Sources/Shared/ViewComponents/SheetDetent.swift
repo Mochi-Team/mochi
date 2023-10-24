@@ -1,9 +1,9 @@
 //
 //  SheetDetent.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
@@ -51,7 +51,7 @@ public struct SheetDetent<Content: View>: View {
                             let dragCoefficient = 4.0
 
                             if isExpanded {
-                                if translation > 0 && translation < maxHeight {
+                                if translation > 0, translation < maxHeight {
                                     state = translation
                                 } else if translation > 0 {
                                     state = maxHeight + (dragCoefficient * log((translation - maxHeight) / dragCoefficient))
@@ -59,7 +59,7 @@ public struct SheetDetent<Content: View>: View {
                                     state = -(dragCoefficient * log(abs(translation) / dragCoefficient))
                                 }
                             } else {
-                                if translation < 0 && -maxHeight < translation {
+                                if translation < 0, -maxHeight < translation {
                                     state = translation
                                 } else if translation < 0 {
                                     state = -maxHeight - (dragCoefficient * log(abs(maxHeight + translation) / dragCoefficient))

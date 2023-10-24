@@ -68,13 +68,11 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
                     }
                     .onEnded { value in
                         let offset = -(value.translation.width / maxWidth)
-                        let roundIndex: Int
+                        var roundIndex: Int = 0
 
                         if abs(value.translation.width) > maxWidth / 2 ||
                             abs(value.predictedEndTranslation.width) > maxWidth / 2 {
                             roundIndex = offset > 0 ? 1 : -1
-                        } else {
-                            roundIndex = 0
                         }
 
                         position = max(min(position + roundIndex, list.count - 1), 0)
@@ -117,25 +115,23 @@ extension SnapScroll.EdgeInsets {
 
 // MARK: - SnapScroll_Previews
 
-struct SnapScroll_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack {
-            SnapScroll(
-                spacing: 20,
-                edgeInsets: .init(
-                    leading: 20,
-                    trailing: 40
-                ),
-                items: [
-                    Color.red,
-                    Color.green,
-                    Color.blue
-                ]
-            ) { color in
-                color
-            }
-
-            Text("lol")
+#Preview {
+    VStack {
+        SnapScroll(
+            spacing: 20,
+            edgeInsets: .init(
+                leading: 20,
+                trailing: 40
+            ),
+            items: [
+                Color.red,
+                Color.green,
+                Color.blue
+            ]
+        ) { color in
+            color
         }
+
+        Text("lol")
     }
 }

@@ -65,7 +65,7 @@ public struct SearchFilter: Identifiable, Equatable, Sendable {
         public let displayName: String
 
         public init(
-            id: Option.ID,
+            id: Self.ID,
             displayName: String
         ) {
             self.id = id
@@ -84,7 +84,7 @@ public struct SearchQuery: Equatable, Sendable {
     public init(
         query: String,
         page: PagingID? = nil,
-        filters: [SearchQuery.Filter] = []
+        filters: [Self.Filter] = []
     ) {
         self.query = query
         self.page = page

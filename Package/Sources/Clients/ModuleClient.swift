@@ -20,3 +20,13 @@ struct ModuleClient: Client {
         Semaphore()
     }
 }
+
+extension ModuleClient: Testable {
+    struct Tests: TestTarget {
+        var name: String { "ModuleClientTests" }
+
+        var dependencies: any Dependencies {
+            ModuleClient()
+        }
+    }
+}

@@ -26,12 +26,16 @@ public extension DatabaseClient {
     }
 }
 
+// MARK: DatabaseClient.Error
+
 public extension DatabaseClient {
     enum Error: Swift.Error {
         case managedContextNotAvailable
         case managedObjectIdIsTemporary
     }
 }
+
+// MARK: DependencyKey
 
 extension DatabaseClient: DependencyKey {}
 

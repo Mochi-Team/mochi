@@ -1,5 +1,5 @@
 //
-//  NSManagedObject.swift
+//  NSManagedObject+Ext.swift
 //
 //
 //  Created by ErrorErrorError on 5/15/23.

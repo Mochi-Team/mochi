@@ -1,5 +1,5 @@
 //
-//  HomeIndicator.swift
+//  View+HomeIndicator.swift
 //
 //
 //  Created by ErrorErrorError on 6/27/23.

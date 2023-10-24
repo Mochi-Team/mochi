@@ -10,10 +10,14 @@ import Dependencies
 import Foundation
 import Semver
 
+// MARK: - BuildClient
+
 public struct BuildClient {
     public let version: Semver
     public let buildNumber: Int
 }
+
+// MARK: TestDependencyKey
 
 extension BuildClient: TestDependencyKey {
     public static var testValue: BuildClient = .init(
@@ -28,6 +32,8 @@ public extension DependencyValues {
         set { self[BuildClient.self] = newValue }
     }
 }
+
+// MARK: - BuildClient + DependencyKey
 
 extension BuildClient: DependencyKey {
     public static var liveValue: BuildClient {

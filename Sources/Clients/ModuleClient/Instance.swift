@@ -29,9 +29,11 @@ public extension ModuleClient {
 
             self.module = module
             self.instance = try .init(
-                module: .init(contentsOf: fileClient.retrieveModuleFolder(module.moduleLocation)
-                    .appendingPathComponent("main", isDirectory: false)
-                    .appendingPathExtension("wasm"))
+                module: .init(
+                    contentsOf: fileClient.retrieveModuleFolder(module.moduleLocation)
+                        .appendingPathComponent("main", isDirectory: false)
+                        .appendingPathExtension("wasm")
+                )
             )
             self.hostBindings = .init(memory: instance.memory)
             try initializeImports()

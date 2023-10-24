@@ -113,15 +113,15 @@ private extension Easing {
     var points: (CGPoint, CGPoint) {
         switch self {
         case .ease:
-            return (.init(x: 0.25, y: 0.1), .init(x: 0.25, y: 1))
+            (.init(x: 0.25, y: 0.1), .init(x: 0.25, y: 1))
         case .easeIn:
-            return (.init(x: 0.42, y: 0), .init(x: 1, y: 1))
+            (.init(x: 0.42, y: 0), .init(x: 1, y: 1))
         case .easeOut:
-            return (.init(x: 0, y: 0), .init(x: 0.58, y: 1))
+            (.init(x: 0, y: 0), .init(x: 0.58, y: 1))
         case .easeInOut:
-            return (.init(x: 0.42, y: 0), .init(x: 0.58, y: 1))
+            (.init(x: 0.42, y: 0), .init(x: 0.58, y: 1))
         case let .cubicBezier(point, point2):
-            return (point.clamped(), point2.clamped())
+            (point.clamped(), point2.clamped())
         }
     }
 

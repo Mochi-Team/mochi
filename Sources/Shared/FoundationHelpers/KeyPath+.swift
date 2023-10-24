@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  KeyPath+.swift
 //
 //
 //  Created by ErrorErrorError on 4/21/23.
@@ -43,3 +43,5 @@ infix operator !|>
 public func !|> <T, L: Sequence, V: Equatable>(keyPath: KeyPath<T, V>, _ into: L) -> (T) -> Bool where V == L.Element {
     { !into.contains($0[keyPath: keyPath]) }
 }
+
+// swiftlint:enable static_operator

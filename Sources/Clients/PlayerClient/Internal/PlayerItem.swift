@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  PlayerItem.swift
 //
 //
 //  Created by ErrorErrorError on 6/18/23.
@@ -15,7 +15,7 @@ import Foundation
 final class PlayerItem: AVPlayerItem {
     static let dashCustomPlaylistScheme = "mochi-mpd"
 
-    internal let payload: PlayerClient.VideoCompositionItem
+    let payload: PlayerClient.VideoCompositionItem
 
     private let resourceQueue: DispatchQueue
 
@@ -30,12 +30,10 @@ final class PlayerItem: AVPlayerItem {
         self.resourceQueue = DispatchQueue(label: "playeritem-\(payload.link.absoluteString)", qos: .utility)
 
         let headers = payload.headers
-        let url: URL
-
-        if payload.subtitles.isEmpty {
-            url = payload.link
+        let url: URL = if payload.subtitles.isEmpty {
+            payload.link
         } else {
-            url = payload.link.change(scheme: Self.hlsCommonScheme)
+            payload.link.change(scheme: Self.hlsCommonScheme)
         }
 
         let asset = AVURLAsset(

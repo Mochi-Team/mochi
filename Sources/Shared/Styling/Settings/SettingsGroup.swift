@@ -1,9 +1,9 @@
 //
-//  SettingGroup.swift
+//  SettingsGroup.swift
 //
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import ComposableArchitecture
@@ -14,7 +14,8 @@ public struct SettingsGroup<Content: View>: View {
     let title: String
     let content: () -> Content
 
-    @Environment(\.theme) var theme
+    @Environment(\.theme)
+    var theme
 
     public init(
         title: String,

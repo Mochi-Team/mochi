@@ -120,12 +120,10 @@ struct ArcShape: Shape {
 
 // MARK: - CircularProgressView_Previews
 
-struct CircularProgressView_Previews: PreviewProvider {
-    static var previews: some View {
-        CircularProgressView(
-            progress: 0.5,
-            barStyle: .init(fill: Color.blue, width: 12, blurRadius: 4)
-        )
-        .padding()
-    }
+#Preview {
+    CircularProgressView(
+        progress: 0.5,
+        barStyle: .init(fill: Color.blue, width: 12, blurRadius: 4)
+    )
+    .padding()
 }

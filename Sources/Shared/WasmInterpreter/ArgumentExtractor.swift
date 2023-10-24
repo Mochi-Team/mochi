@@ -1,6 +1,8 @@
 import CWasm3
 import Foundation
 
+// MARK: - ArgumentExtractor
+
 struct ArgumentExtractor {
     private var index: Int
 
@@ -8,8 +10,9 @@ struct ArgumentExtractor {
         self.index = hasReturn ? 1 : 0
     }
 
-    mutating func extract<each T: WasmValue>(from stack: UnsafeMutablePointer<UInt64>?, _ itemType: (repeat (each T).Type)) throws -> (repeat each T) {
-        (repeat try (self.retrieve(from: stack, (each T).self)))
+    mutating func extract<each T: WasmValue>(from stack: UnsafeMutablePointer<UInt64>?) throws -> (repeat each T) {
+        // swiftformat:disable redundantParens
+        try (repeat (retrieve(from: stack, (each T).self)))
     }
 
     mutating func retrieve<T: WasmValue>(from stack: UnsafeMutablePointer<UInt64>?, _: T.Type = T.self) throws -> T {

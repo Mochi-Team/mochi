@@ -1,4 +1,4 @@
-//  CoreData+Request.swift
+//  Request.swift
 //  mochi
 //
 //  Created by ErrorErrorError on 11/16/22.
@@ -230,7 +230,7 @@ public extension Optional where Wrapped: PrimitiveValue & Comparable {
 
 // MARK: - internal
 
-internal extension ComparisonPredicate {
+extension ComparisonPredicate {
     convenience init<Value: PrimitiveValue>(
         _ keyPath: KeyPath<Root, Value>,
         _ op: NSComparisonPredicate.Operator,

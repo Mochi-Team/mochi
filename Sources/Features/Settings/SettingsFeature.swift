@@ -30,7 +30,8 @@ public struct SettingsFeature: Feature {
             self.buildVersion = buildVersion
             self.buildNumber = buildNumber
 
-            @Dependency(\.userSettings) var userSettings
+            @Dependency(\.userSettings)
+            var userSettings
             self.userSettings = userSettings.get()
         }
     }
@@ -53,15 +54,18 @@ public struct SettingsFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<SettingsFeature>
 
-        @Environment(\.theme) var theme
+        @Environment(\.theme)
+        var theme
 
         public nonisolated init(store: StoreOf<SettingsFeature>) {
             self.store = store
         }
     }
 
-    @Dependency(\.mainQueue) var mainQueue
-    @Dependency(\.userSettings) var userSettingsClient
+    @Dependency(\.mainQueue)
+    var mainQueue
+    @Dependency(\.userSettings)
+    var userSettingsClient
 
     public init() {}
 }

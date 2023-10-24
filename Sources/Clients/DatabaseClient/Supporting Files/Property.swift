@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Property.swift
 //
 //
 //  Created by ErrorErrorError on 5/15/23.
@@ -9,6 +9,8 @@
 import CoreData
 import Foundation
 
+// MARK: - Property
+
 public struct Property<E: Entity> {
     let name: String
     let keyPath: AnyKeyPath
@@ -16,6 +18,8 @@ public struct Property<E: Entity> {
     let decode: (inout E, NSManagedObject) throws -> Void
     var isRelation = true
 }
+
+// MARK: Hashable
 
 extension Property: Hashable {
     public func hash(into hasher: inout Hasher) {
@@ -78,7 +82,6 @@ public extension Property {
 // Relations
 
 public extension Property {
-
     /// This represents an optional to one relationship
     ///
     init<DestinationEntity: Entity>(
@@ -394,6 +397,8 @@ public extension Property {
         self.keyPath = keyPath
     }
 }
+
+// MARK: Property.Error
 
 extension Property {
     enum Error: Swift.Error {

@@ -123,6 +123,8 @@ public extension ContentCore.State {
     }
 }
 
+// MARK: - ContentAction
+
 public protocol ContentAction {
     static func content(_: ContentCore.Action) -> Self
 }
@@ -150,5 +152,10 @@ private extension ContentCore.Groupings {
     }
 }
 
+// MARK: - ContentCore.State + Sendable
+
 extension ContentCore.State: Sendable {}
+
+// MARK: - OrderedDictionary + Sendable
+
 extension OrderedDictionary: @unchecked Sendable where Key: Sendable, Value: Sendable {}

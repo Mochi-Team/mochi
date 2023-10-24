@@ -14,7 +14,6 @@ import SwiftUI
 
 // MARK: - SelectableState
 
-// swiftlint:disable type_name
 @propertyWrapper
 public struct SelectableState<C: IdentifiableAccess> {
     var _selected: C.ID?
@@ -67,6 +66,7 @@ public struct SelectableState<C: IdentifiableAccess> {
 
 // MARK: - IdentifiableAccess
 
+// swiftlint:disable type_name
 public protocol IdentifiableAccess {
     associatedtype ID: Hashable
     associatedtype Value
@@ -86,6 +86,8 @@ extension Dictionary: IdentifiableAccess {
 }
 
 // MARK: - IdentifiedArray + IdentifiableAccess
+
+// swiftlint:enable type_name
 
 extension IdentifiedArray: IdentifiableAccess {}
 

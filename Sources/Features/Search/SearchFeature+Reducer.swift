@@ -13,9 +13,13 @@ import ModuleLists
 import OrderedCollections
 import SharedModels
 
+// MARK: - Cancellables
+
 private enum Cancellables: Hashable {
     case fetchingItemsDebounce
 }
+
+// MARK: - SearchFeature + Reducer
 
 extension SearchFeature: Reducer {
     public var body: some ReducerOf<Self> {
@@ -154,18 +158,18 @@ extension SearchFeature: Reducer {
 
 public extension SearchFeature.State {
     mutating func collapse() -> Effect<SearchFeature.Action> {
-        self.expandView = false
+        expandView = false
         return .none
     }
 
     mutating func clearQuery() -> Effect<SearchFeature.Action> {
-        self.query = ""
-        self.items = .pending
+        query = ""
+        items = .pending
         return .cancel(id: Cancellables.fetchingItemsDebounce)
     }
 
     mutating func updateModule(with repoModuleID: RepoModuleID?) -> Effect<SearchFeature.Action> {
         self.repoModuleID = repoModuleID
-        return self.clearQuery()
+        return clearQuery()
     }
 }

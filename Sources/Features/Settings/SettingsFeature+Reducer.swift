@@ -10,9 +10,9 @@ import Architecture
 import ComposableArchitecture
 import UserSettingsClient
 
-extension SettingsFeature {
+public extension SettingsFeature {
     @ReducerBuilder<State, Action>
-    public var body: some ReducerOf<Self> {
+    var body: some ReducerOf<Self> {
         Scope(state: /State.self, action: /Action.view) {
             BindingReducer()
                 .onChange(of: \.userSettings) { _, userSettings in

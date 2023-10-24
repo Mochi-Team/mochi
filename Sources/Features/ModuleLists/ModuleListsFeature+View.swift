@@ -150,7 +150,7 @@ public extension View {
     func moduleListsSheet(
         _ store: Store<PresentationState<ModuleListsFeature.State>, PresentationAction<ModuleListsFeature.Action>>
     ) -> some View {
-        self.sheet(
+        sheet(
             store: store,
             detents: [.medium(), .large()],
             content: ModuleListsFeature.View.init
@@ -162,26 +162,24 @@ import Styling
 
 // MARK: - ModuleListsFeatureView_Previews
 
-struct ModuleListsFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        ModuleListsFeature.View(
-            store: .init(
-                initialState: .init(
-                    repos: [
-                        Repo(
-                            remoteURL: .init(string: "/").unsafelyUnwrapped,
-                            manifest: .init(
-                                name: "Local Repo",
-                                author: "errorerrorerror",
-                                description: "This is a local repo"
-                            )
+#Preview {
+    ModuleListsFeature.View(
+        store: .init(
+            initialState: .init(
+                repos: [
+                    Repo(
+                        remoteURL: .init(string: "/").unsafelyUnwrapped,
+                        manifest: .init(
+                            name: "Local Repo",
+                            author: "errorerrorerror",
+                            description: "This is a local repo"
                         )
-                    ],
-                    selected: nil
-                ),
-                reducer: { EmptyReducer() }
-            )
+                    )
+                ],
+                selected: nil
+            ),
+            reducer: { EmptyReducer() }
         )
-        .previewLayout(.sizeThatFits)
-    }
+    )
+    .previewLayout(.sizeThatFits)
 }

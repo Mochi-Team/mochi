@@ -108,7 +108,7 @@ public struct AppFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<AppFeature>
 
-        @Environment(\.theme) 
+        @Environment(\.theme)
         var theme
 
         public nonisolated init(store: StoreOf<AppFeature>) {

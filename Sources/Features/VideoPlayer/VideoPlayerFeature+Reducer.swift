@@ -22,6 +22,8 @@ private enum Cancellables: Hashable, CaseIterable {
     case fetchingServer
 }
 
+// MARK: - VideoPlayerFeature + Reducer
+
 extension VideoPlayerFeature: Reducer {
     public var body: some ReducerOf<Self> {
         Scope(state: \.player, action: /Action.internal .. Action.InternalAction.player) {
@@ -150,14 +152,14 @@ extension VideoPlayerFeature: Reducer {
 extension VideoPlayerFeature.State {
     func delayDismissOverlayIfNeeded() -> Effect<VideoPlayerFeature.Action> {
         if overlay == .tools {
-            return .run { send in
+            .run { send in
                 try await withTaskCancellation(id: Cancellables.delayCloseTab, cancelInFlight: true) {
                     try await Task.sleep(nanoseconds: 1_000_000_000 * 5)
                     await send(.internal(.hideToolsOverlay))
                 }
             }
         } else {
-            return .cancel(id: Cancellables.delayCloseTab)
+            .cancel(id: Cancellables.delayCloseTab)
         }
     }
 }

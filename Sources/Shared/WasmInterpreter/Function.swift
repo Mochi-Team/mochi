@@ -41,7 +41,7 @@ public extension WasmInstance.Function {
         ) { stack, _ in
             var arguments = ArgumentExtractor(hasReturn: false)
             do {
-                let args = try arguments.extract(from: stack, (repeat (each T).self))
+                let args: (repeat (each T)) = try arguments.extract(from: stack)
                 try block(repeat (each args))
                 return nil
             } catch {
@@ -60,7 +60,7 @@ public extension WasmInstance.Function {
         ) { stack, _ in
             var arguments = ArgumentExtractor(hasReturn: true)
             do {
-                let args = try arguments.extract(from: stack, (repeat (each T).self))
+                let args: (repeat (each T)) = try arguments.extract(from: stack)
                 let ret = try block(repeat (each args))
                 try arguments.push(value: ret, to: stack)
                 return nil

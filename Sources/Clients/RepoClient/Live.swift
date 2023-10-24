@@ -16,6 +16,8 @@ import Semaphore
 import SharedModels
 import TOMLDecoder
 
+// MARK: - RepoClient + DependencyKey
+
 extension RepoClient: DependencyKey {
     private static let downloadManager = ModulesDownloadManager()
 
@@ -24,13 +26,13 @@ extension RepoClient: DependencyKey {
 
     public static let liveValue = Self(
         validateRepo: { url in
-            let manifestURL = url.appendingPathComponent("Manifest.toml", isDirectory: false)
+            let manifestURL = url.appendingPathComponent("Manifest.json", isDirectory: false)
             let request = URLRequest(url: manifestURL)
             let (data, response) = try await URLSession.shared.data(for: request)
-            let manifest = try TOMLDecoder().decode(Repo.Manifest.self, from: data)
+            let manifest = try RepoManifest.decode(from: data)
             let repoPayload = RepoPayload(
                 remoteURL: url,
-                manifest: manifest
+                manifest: manifest.repository
             )
             return repoPayload
         },
@@ -74,18 +76,15 @@ extension RepoClient: DependencyKey {
         },
         repos: { try await databaseClient.fetch($0) },
         fetchRemoteRepoModules: { repoId in
-            struct ModulesContainer: Decodable {
-                let modules: [Module.Manifest]
-            }
-
-            let url = repoId.rawValue.appendingPathComponent("Releases.toml", isDirectory: false)
+            let url = repoId.rawValue.appendingPathComponent("Manifest.json", isDirectory: false)
             let request = URLRequest(url: url)
             let (data, response) = try await URLSession.shared.data(for: request)
-            return try TOMLDecoder().decode(ModulesContainer.self, from: data).modules
-
+            return try RepoManifest.decode(from: data).modules
         }
     )
 }
+
+// MARK: - ModulesDownloadManager
 
 private class ModulesDownloadManager {
     let states = CurrentValueSubject<[RepoModuleID: RepoClient.RepoModuleDownloadState], Never>([:])
@@ -123,8 +122,8 @@ private class ModulesDownloadManager {
                         states.value[repoModuleID] = .downloading(percent: progress)
                     case let .value(data, response):
                         guard let response = response as? HTTPURLResponse,
-                                response.mimeType == "application/wasm",
-                                (200..<300).contains(response.statusCode) else {
+                              response.mimeType == "application/wasm",
+                              (200..<300).contains(response.statusCode) else {
                             throw RepoClient.Error.failedToDownloadModule
                         }
 

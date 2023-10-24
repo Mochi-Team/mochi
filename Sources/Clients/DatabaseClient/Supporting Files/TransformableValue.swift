@@ -1,5 +1,5 @@
 //
-//  Attrribute.swift
+//  TransformableValue.swift
 //
 //
 //  Created by ErrorErrorError on 5/3/23.
@@ -35,7 +35,7 @@ public protocol TransformableValue {
 
 extension TransformableValue {
     static func decode(_ value: Any?) throws -> Self {
-        guard let value = value as? Self.Primitive else {
+        guard let value = value as? Primitive else {
             throw TransformableValueError.badInput(value)
         }
         return try Self.decode(value: value)
@@ -47,17 +47,17 @@ public extension TransformableValue where Self: PrimitiveValue {
     static func decode(value: Self) throws -> Self { value }
 }
 
-extension Optional where Wrapped: TransformableValue {
-    public typealias Primitive = Wrapped.Primitive
+public extension Optional where Wrapped: TransformableValue {
+    typealias Primitive = Wrapped.Primitive
 
-    public func encode() throws -> Primitive {
+    func encode() throws -> Primitive {
         guard let value = self else {
             throw TransformableValueError.badInput()
         }
         return try value.encode()
     }
 
-    public static func decode(value: Primitive) throws -> Self {
+    static func decode(value: Primitive) throws -> Self {
         try Wrapped.decode(value: value)
     }
 }

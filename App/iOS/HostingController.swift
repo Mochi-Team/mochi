@@ -15,7 +15,7 @@ import ViewComponents
 final class HostingController<Content: View>: UIHostingController<Content>, OpaqueController {
     override var prefersHomeIndicatorAutoHidden: Bool { _homeIndicatorAutoHidden }
 
-    internal var _homeIndicatorAutoHidden = false {
+    var _homeIndicatorAutoHidden = false {
         didSet {
             setNeedsUpdateOfHomeIndicatorAutoHidden()
         }

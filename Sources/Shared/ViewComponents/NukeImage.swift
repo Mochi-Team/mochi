@@ -3,7 +3,7 @@
 //
 //
 //  Created by ErrorErrorError on 10/10/23.
-//  
+//
 //
 
 import Foundation
@@ -11,9 +11,12 @@ import Nuke
 import NukeUI
 import SwiftUI
 
+// MARK: - NukeImage
+
 @MainActor
 public struct NukeImage<Content: View>: View {
-    @StateObject private var viewModel = FetchImage()
+    @StateObject
+    private var viewModel = FetchImage()
     private var request: ImageRequest?
     private var content: (AsyncImagePhase) -> Content
 
@@ -33,9 +36,9 @@ public struct NukeImage<Content: View>: View {
         ZStack {
             if let result = viewModel.result {
                 switch result {
-                case .success(let success):
+                case let .success(success):
                     content(.success(Image(success.image)))
-                case .failure(let failure):
+                case let .failure(failure):
                     content(.failure(failure))
                 }
             } else {
@@ -48,11 +51,13 @@ public struct NukeImage<Content: View>: View {
     }
 }
 
+// MARK: - ImageRequest + Equatable
+
 extension ImageRequest: Equatable {
     public static func == (lhs: Nuke.ImageRequest, rhs: Nuke.ImageRequest) -> Bool {
         lhs.urlRequest == rhs.urlRequest &&
-        lhs.options == rhs.options &&
-        lhs.priority == rhs.priority 
+            lhs.options == rhs.options &&
+            lhs.priority == rhs.priority
 //        &&
 //        lhs.processors == rhs.processors
     }

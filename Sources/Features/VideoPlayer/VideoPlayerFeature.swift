@@ -275,6 +275,8 @@ public extension VideoPlayerFeature.State {
     }
 }
 
+// MARK: - VideoPlayerFeature.View.SkipActionViewState
+
 extension VideoPlayerFeature.View {
     struct SkipActionViewState: Equatable {
         enum Action: Hashable, CustomStringConvertible {

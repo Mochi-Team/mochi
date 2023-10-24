@@ -61,7 +61,9 @@ extension ReposFeature {
                 )
 
             case let .view(.didTapRepo(repoId)):
-                guard let repo = state.repos[id: repoId] else { break }
+                guard let repo = state.repos[id: repoId] else {
+                    break
+                }
                 state.path.append(RepoPackagesFeature.State(repo: repo))
 
             case .view(.binding(\.$url)):
@@ -75,11 +77,11 @@ extension ReposFeature {
                 return .run { send in
                     try await withTaskCancellation(id: Cancellables.repoURLDebounce, cancelInFlight: true) {
                         try await Task.sleep(nanoseconds: 1_000_000 * 1_250)
-                        await send(
+                        try await send(
                             .internal(
                                 .validateRepoURL(
                                     .loaded(
-                                        try await repoClient.validateRepo(url)
+                                        repoClient.validateRepo(url)
                                     )
                                 )
                             )
@@ -126,7 +128,7 @@ extension ReposFeature.State {
 
         return .run { send in
             try await withTaskCancellation(id: ReposFeature.Cancellables.loadRepos, cancelInFlight: true) {
-                await send(.internal(.loadRepos(try await repoClient.repos(.all))))
+                try await send(.internal(.loadRepos(repoClient.repos(.all))))
             }
         }
     }

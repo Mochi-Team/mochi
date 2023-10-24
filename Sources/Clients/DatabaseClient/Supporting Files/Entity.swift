@@ -3,11 +3,13 @@
 //
 //
 //  Created by ErrorErrorError on 9/12/23.
-// 
+//
 //
 
 import CoreData
 import Foundation
+
+// MARK: - Entity
 
 public protocol Entity {
     static var entityName: String { get }
@@ -20,6 +22,8 @@ public protocol Entity {
 public extension Entity {
     static var entityName: String { .init(describing: Self.self) }
 }
+
+// MARK: - EntityError
 
 public enum EntityError: Error {
     case managedObjectIdIsNotPermanent

@@ -1,9 +1,9 @@
 //
-//  File.swift
-//  
+//  SettingsRow.swift
+//
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import Foundation
@@ -35,7 +35,7 @@ public struct SettingRow<Accessory: View, Content: View>: View {
         self.init(
             title: title,
             footer: footer,
-            accessory: EmptyView.init, 
+            accessory: EmptyView.init,
             content: content
         )
     }
@@ -53,7 +53,8 @@ public struct SettingRow<Accessory: View, Content: View>: View {
         )
     }
 
-    @Environment(\.theme) var theme
+    @Environment(\.theme)
+    var theme
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -86,15 +87,12 @@ public struct SettingRow<Accessory: View, Content: View>: View {
                     Color.clear
                         .frame(width: 0, height: 0, alignment: .trailing)
                         .padding(.trailing, 4)
-                    
                 }
                 .safeAreaInset(edge: .bottom) {
                     Color.clear
                         .frame(width: 0, height: 0, alignment: .trailing)
                         .padding(.bottom, 12)
-                    
                 }
-
         }
         .frame(maxWidth: .infinity)
     }

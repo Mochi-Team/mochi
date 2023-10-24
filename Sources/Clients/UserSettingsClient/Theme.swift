@@ -3,7 +3,7 @@
 //
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import Foundation
@@ -12,7 +12,7 @@ import Tagged
 import ViewComponents
 
 public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
-    public var id: Tagged<Self, Int> { .init(self.hashValue) }
+    public var id: Tagged<Self, Int> { .init(hashValue) }
 
     case automatic
     case light
@@ -73,7 +73,7 @@ public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
                 dark: Self.dark.overBackgroundColor
             )
         case .light:
-                .init(white: 1.0)
+            .init(white: 1.0)
         case .dark:
             .init(white: 0.12)
         }

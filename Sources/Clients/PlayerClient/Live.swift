@@ -261,8 +261,7 @@ private class NowPlaying {
             if let image = ImagePipeline.shared.cache.cachedImage(for: .init(url: imageURL))?.image {
                 let artwork = MPMediaItemArtwork(boundsSize: image.size) { size in
                     #if os(macOS)
-                    // swiftlint:disable force_cast
-                    let copy = image.copy() as! NSImage
+                    let copy = (image.copy() as? NSImage).unsafelyUnwrapped
                     copy.size = size
                     #else
                     let copy = image.resize(to: size) ?? .init()

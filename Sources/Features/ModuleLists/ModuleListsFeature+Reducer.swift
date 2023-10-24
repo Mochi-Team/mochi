@@ -11,8 +11,8 @@ import ComposableArchitecture
 import DatabaseClient
 import RepoClient
 
-extension ModuleListsFeature {
-    public var body: some ReducerOf<Self> {
+public extension ModuleListsFeature {
+    var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .view(.didAppear):

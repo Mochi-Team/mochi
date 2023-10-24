@@ -11,7 +11,12 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 import SwiftUIBackports
+
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 public extension View {
     func sheet(
@@ -19,18 +24,18 @@ public extension View {
         detents: [UISheetPresentationController.Detent],
         @ViewBuilder content: @escaping () -> some View
     ) -> some View {
-        self.sheet(isPresented: isPresenting, onDismiss: nil) {
+        sheet(isPresented: isPresenting, onDismiss: nil) {
             if #available(iOS 16.0, *) {
                 content()
                     .presentationDetents(
                         .init(
                             detents.compactMap { detent in
                                 if detent == .medium() {
-                                    return .medium
+                                    .medium
                                 } else if detent == .large() {
-                                    return .large
+                                    .large
                                 } else {
-                                    return nil
+                                    nil
                                 }
                             }
                         )
@@ -42,11 +47,11 @@ public extension View {
                         .init(
                             detents.compactMap { detent in
                                 if detent == .medium() {
-                                    return .medium
+                                    .medium
                                 } else if detent == .large() {
-                                    return .large
+                                    .large
                                 } else {
-                                    return nil
+                                    nil
                                 }
                             }
                         )
@@ -106,10 +111,8 @@ public extension View {
 
 // MARK: - SheetView_Previews
 
-struct SheetView_Previews: PreviewProvider {
-    static var previews: some View {
-        EmptyView()
-    }
+#Preview {
+    EmptyView()
 }
 
 private extension Binding {

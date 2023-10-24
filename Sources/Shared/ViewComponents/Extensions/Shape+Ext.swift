@@ -1,24 +1,26 @@
 //
-//  File.swift
-//  
+//  Shape+Ext.swift
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
 
 public extension Shape {
-    func style<S: ShapeStyle, F: ShapeStyle>(
-        withStroke strokeContent: S,
+    func style(
+        withStroke strokeContent: some ShapeStyle,
         lineWidth: CGFloat = 1,
-        fill fillContent: F
+        fill fillContent: some ShapeStyle
     ) -> some View {
-        self.stroke(strokeContent, lineWidth: lineWidth)
+        stroke(strokeContent, lineWidth: lineWidth)
             .background(fill(fillContent))
     }
 }
+
+// MARK: - RoundedCorners
 
 public struct RoundedCorners: Shape {
     public init(_ radius: CGFloat = 0.0) {
@@ -52,10 +54,10 @@ public struct RoundedCorners: Shape {
         let w = rect.size.width
         let h = rect.size.height
 
-        let tr = min(min(self.tr, h / 2), w / 2)
-        let tl = min(min(self.tl, h / 2), w / 2)
-        let bl = min(min(self.bl, h / 2), w / 2)
-        let br = min(min(self.br, h / 2), w / 2)
+        let tr = min(min(tr, h / 2), w / 2)
+        let tl = min(min(tl, h / 2), w / 2)
+        let bl = min(min(bl, h / 2), w / 2)
+        let br = min(min(br, h / 2), w / 2)
 
         path.move(to: CGPoint(x: w / 2.0, y: 0))
         path.addLine(to: CGPoint(x: w - tr, y: 0))

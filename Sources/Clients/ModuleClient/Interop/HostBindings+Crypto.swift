@@ -290,3 +290,5 @@ extension HostBindings {
         }
     }
 }
+
+// swiftlint:enable function_parameter_count

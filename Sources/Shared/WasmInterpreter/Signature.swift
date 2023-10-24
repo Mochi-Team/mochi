@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Signature.swift
 //
 //
 //  Created by ErrorErrorError on 4/5/23.
@@ -11,15 +11,16 @@ import Foundation
 // MARK: - Signature
 
 enum Signature {
+    // swiftformat:disable redundantParens
     static func parse<each T: WasmValue>(
-        _ item: (repeat (each T).Type),
+        _: (repeat (each T).Type),
         ret: WasmValueType? = nil
     ) -> String {
         var signature = ""
-        signature += ret?.signatureIdentifier ?? "v"
+        signature += ret?.identifier ?? "v"
         signature += "("
         var args: [String] = []
-        repeat (args.append((each T).wasmType.signatureIdentifier))
+        repeat (args.append((each T).wasmType.identifier))
         signature += args.joined(separator: " ")
         signature += ")"
         return signature
@@ -27,7 +28,7 @@ enum Signature {
 }
 
 private extension WasmValueType {
-    var signatureIdentifier: String {
+    var identifier: String {
         switch self {
         case .int32:
             "i"

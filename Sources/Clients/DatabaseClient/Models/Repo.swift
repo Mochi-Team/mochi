@@ -9,6 +9,8 @@
 import Foundation
 import Tagged
 
+// MARK: - Repo
+
 @dynamicMemberLookup
 public struct Repo: Entity, Equatable, Sendable {
     public var remoteURL: URL = .init(string: "/").unsafelyUnwrapped
@@ -50,9 +52,9 @@ public extension Repo {
             .flatMap { URL(string: $0) }
             .flatMap { url in
                 if url.baseURL == nil {
-                    return .init(string: url.relativeString, relativeTo: remoteURL)
+                    .init(string: url.relativeString, relativeTo: remoteURL)
                 } else {
-                    return url
+                    url
                 }
             }
     }

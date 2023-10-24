@@ -43,12 +43,16 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
     }
 
     public var body: some View {
-//        if #available(iOS 16.0, *) {
-//            NavigationStackStore(store, root: root) { store in
-//                destination(store)
-//                    .navigationBarHidden(true)
-//            }
-//        } else {
+        if #available(iOS 18.0, macOS 18.0, *) {
+            NavigationStackStore(store, root: root) { store in
+                #if canImport(UIKit)
+                destination(store)
+                    .navigationBarHidden(true)
+                #elseif canImport(AppKit)
+                destination(store)
+                #endif
+            }
+        } else {
             ZStack {
                 root()
                     .zIndex(0)
@@ -69,9 +73,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                 ) { viewStore in
                     ForEach(viewStore.state, id: \.self) { id in
                         IfLetStore(
-                            store.scope(state: \.[id: id]) { (childAction: Action) in
-                                    .element(id: id, action: childAction)
-                            }
+                            store.scope(state: \.[id: id]) { .element(id: id, action: $0 as Action) }
                         ) { store in
                             destination(store)
                                 .screenDismissed {
@@ -84,7 +86,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                 .zIndex(2)
             }
             .animation(.navStackTransion, value: viewStore.ids)
-//        }
+        }
     }
 }
 
@@ -111,14 +113,16 @@ func areOrderedSetsDuplicates<T>(_ lhs: OrderedSet<T>, _ rhs: OrderedSet<T>) -> 
     } || rhs == lhs
 }
 
-/// Hacky way to allow swipe back navigation when status bar is hidden
-extension UINavigationController: UIGestureRecognizerDelegate {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        interactivePopGestureRecognizer?.delegate = self
-    }
+// // MARK: - UINavigationController + UIGestureRecognizerDelegate
 
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        viewControllers.count > 1
-    }
-}
+// /// Hacky way to allow swipe back navigation when status bar is hidden
+// extension UINavigationController: UIGestureRecognizerDelegate {
+//     override open func viewDidLoad() {
+//         super.viewDidLoad()
+//         interactivePopGestureRecognizer?.delegate = self
+//     }
+
+//     public func gestureRecognizerShouldBegin(_: UIGestureRecognizer) -> Bool {
+//         viewControllers.count > 1
+//     }
+// } du

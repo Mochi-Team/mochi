@@ -27,18 +27,18 @@ public enum PiPStatus: Equatable, Sendable {
         self == .willStart || self == .didStart
     }
 
-    public static func == (lhs: PiPStatus, rhs: PiPStatus) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.willStart, .willStart),
              (.didStart, .didStart),
              (.willStop, .willStop),
              (.didStop, .didStop),
              (.restoreUI, .restoreUI):
-            return true
+            true
         case let (.failed(lhsError), .failed(rhsError)):
-            return _isEqual(lhsError, rhsError)
+            _isEqual(lhsError, rhsError)
         default:
-            return false
+            false
         }
     }
 }
@@ -221,8 +221,7 @@ extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
 // MARK: - AVPlayerView
 
 final class AVPlayerView: PlatformView {
-    // swiftlint:disable force_cast
-    var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
+    var playerLayer: AVPlayerLayer { (layer as? AVPlayerLayer).unsafelyUnwrapped }
 
     var player: AVPlayer? {
         get { playerLayer.player }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  PlatformColor+Ext.swift
 //
 //
 //  Created by ErrorErrorError on 5/21/23.
@@ -51,8 +51,12 @@ extension PlatformColor {
             var green: CGFloat = 0.0
             var blue: CGFloat = 0.0
             var alpha: CGFloat = 0.0
+            #if canImport(UIKit)
             color.resolvedColor(with: .current)
                 .getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            #elseif canImport(AppKit)
+            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            #endif
             return [red, green, blue, alpha]
         }
 

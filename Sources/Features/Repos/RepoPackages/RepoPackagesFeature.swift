@@ -17,7 +17,7 @@ import SwiftUI
 import Tagged
 import ViewComponents
 
-// MARK: - RepoPackagesFeature + Reducer
+// MARK: - RepoPackagesFeature
 
 public struct RepoPackagesFeature: Feature {
     @Dependency(\.dismiss)
@@ -31,10 +31,10 @@ public struct RepoPackagesFeature: Feature {
 
 // MARK: - RepoPackagesFeature + State & Action
 
-extension RepoPackagesFeature {
-    public typealias Package = [Module.Manifest]
+public extension RepoPackagesFeature {
+    typealias Package = [Module.Manifest]
 
-    public struct State: FeatureState {
+    struct State: FeatureState {
         public var repo: Repo
         public var fetchedModules: Loadable<[Module.Manifest]>
         public var downloadStates: [Module.ID: RepoClient.RepoModuleDownloadState]
@@ -57,7 +57,7 @@ extension RepoPackagesFeature {
         }
     }
 
-    public enum Action: FeatureAction {
+    enum Action: FeatureAction {
         case view(ViewAction)
         case `internal`(InternalAction)
         case delegate(DelegateAction)
@@ -81,14 +81,15 @@ extension RepoPackagesFeature {
     }
 }
 
-// MARK: - RepoPackagesFeature + View
+// MARK: RepoPackagesFeature.View
 
-extension RepoPackagesFeature {
+public extension RepoPackagesFeature {
     @MainActor
-    public struct View: FeatureView {
+    struct View: FeatureView {
         public let store: StoreOf<RepoPackagesFeature>
 
-        @Environment(\.theme) var theme
+        @Environment(\.theme)
+        var theme
 //        @EnvironmentObject var theme: ThemeManager
 
         public nonisolated init(store: StoreOf<RepoPackagesFeature>) {

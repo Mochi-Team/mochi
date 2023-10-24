@@ -181,10 +181,8 @@ private struct PopupViewModifier<
 
 // MARK: - PopupView_Previews
 
-struct PopupView_Previews: PreviewProvider {
-    static var previews: some View {
-        PopupView(isPresenting: .constant(true)) {
-            Color.red
-        }
+#Preview {
+    PopupView(isPresenting: .constant(true)) {
+        Color.red
     }
 }

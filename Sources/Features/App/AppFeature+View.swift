@@ -72,9 +72,11 @@ extension AppFeature.View: View {
                 .animation(.easeInOut, value: isVisible.state)
             }
         }
-        .themable()
+        .themeable()
     }
 }
+
+// MARK: - CustomTabItemStyle
 
 private struct CustomTabItemStyle: View {
     let tab: AppFeature.State.Tab
@@ -149,5 +151,4 @@ extension AppFeature.View {
             reducer: { AppFeature() }
         )
     )
-
 }

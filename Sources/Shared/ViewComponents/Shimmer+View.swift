@@ -1,5 +1,5 @@
 //
-//  Shimmer.swift
+//  Shimmer+View.swift
 //
 //  Created by Vikram Kriplaney on 23.03.21.
 //
@@ -127,23 +127,20 @@ public extension View {
 }
 
 #if DEBUG
-struct Shimmer_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            Text("SwiftUI Shimmer")
-            if #available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *) {
-                Text("SwiftUI Shimmer").preferredColorScheme(.light)
-                Text("SwiftUI Shimmer").preferredColorScheme(.dark)
-                VStack(alignment: .leading) {
-                    Text("Loading...").font(.title)
-                    Text(String(repeating: "Shimmer", count: 12))
-                        .redacted(reason: .placeholder)
-                }.frame(maxWidth: 200)
-            }
+#Preview {
+    Group {
+        Text("SwiftUI Shimmer")
+        Text("SwiftUI Shimmer").preferredColorScheme(.light)
+        Text("SwiftUI Shimmer").preferredColorScheme(.dark)
+        VStack(alignment: .leading) {
+            Text("Loading...").font(.title)
+            Text(String(repeating: "Shimmer", count: 12))
+                .redacted(reason: .placeholder)
         }
-        .padding()
-        .shimmering()
-        .previewLayout(.sizeThatFits)
+        .frame(maxWidth: 200)
     }
+    .padding()
+    .shimmering()
+    .previewLayout(.sizeThatFits)
 }
 #endif

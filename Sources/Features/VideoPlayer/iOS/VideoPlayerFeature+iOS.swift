@@ -447,7 +447,7 @@ extension VideoPlayerFeature.State {
             return content
         } else if let content = selectedLink.videoContentState(for: .link) {
             return content
-        } else if self.player.status == .failed {
+        } else if player.status == .failed {
             return .failed(.playback)
         }
 
@@ -482,9 +482,9 @@ extension VideoPlayerFeature.View {
 
         private var progress: Double {
             if canUseControls {
-                return min(1.0, max(0, viewStore.progress.seconds / viewStore.duration.seconds))
+                min(1.0, max(0, viewStore.progress.seconds / viewStore.duration.seconds))
             } else {
-                return .zero
+                .zero
             }
         }
 
@@ -1117,30 +1117,27 @@ extension VideoPlayerFeature.View {
 }
 #endif
 
-struct VideoPlayerFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        VideoPlayerFeature.View(
-            store: .init(
-                initialState: .init(
-                    repoModuleID: .init(
-                        repoId: .init(
-                            .init(string: "/")
-                                .unsafelyUnwrapped
-                        ),
-                        moduleId: .init("")
+#Preview {
+    VideoPlayerFeature.View(
+        store: .init(
+            initialState: .init(
+                repoModuleID: .init(
+                    repoId: .init(
+                        .init(string: "/").unsafelyUnwrapped
                     ),
-                    playlist: .empty,
-                    loadables: .init(),
-                    selected: .init(
-                        group: .init(id: .init(0)),
-                        page: .init(id: .init(""), displayName: ""),
-                        episodeId: .init("")
-                    ),
-                    overlay: .tools
+                    moduleId: .init("")
                 ),
-                reducer: { EmptyReducer() }
-            )
+                playlist: .empty,
+                loadables: .init(),
+                selected: .init(
+                    group: .init(id: .init(0)),
+                    page: .init(id: .init(""), displayName: ""),
+                    episodeId: .init("")
+                ),
+                overlay: .tools
+            ),
+            reducer: { EmptyReducer() }
         )
-        .previewInterfaceOrientation(.landscapeRight)
-    }
+    )
+    .previewInterfaceOrientation(.landscapeRight)
 }

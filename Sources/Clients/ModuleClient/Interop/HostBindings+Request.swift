@@ -240,15 +240,15 @@ struct WasmRequest: KVAccess {
         var description: String {
             switch self {
             case .GET:
-                return "GET"
+                "GET"
             case .POST:
-                return "POST"
+                "POST"
             case .PUT:
-                return "PUT"
+                "PUT"
             case .PATCH:
-                return "PATCH"
+                "PATCH"
             case .DELETE:
-                return "DELETE"
+                "DELETE"
             }
         }
     }

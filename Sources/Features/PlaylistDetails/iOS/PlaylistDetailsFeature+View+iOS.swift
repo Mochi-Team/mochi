@@ -590,34 +590,32 @@ extension PlaylistDetailsFeature.View {
 
 // MARK: - PlaylistDetailsFeatureView_Previews
 
-struct PlaylistDetailsFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        PlaylistDetailsFeature.View(
-            store: .init(
-                initialState: .init(
-                    repoModuleID: .init(
-                        repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                        moduleId: .init("")
-                    ),
-                    playlist: .placeholder(0),
-                    details: .loaded(
-                        .init(
-                            genres: ["Action", "Thriller"],
-                            yearReleased: 2_023,
-                            previews: .init()
-                        )
-                    ),
-                    content: .loaded(.init()),
-                    destination: .readMore(
-                        .init(
-                            title: "This is a title",
-                            description: "This will not only elaborate on the description but also use as a screen demo."
-                        )
+#Preview {
+    PlaylistDetailsFeature.View(
+        store: .init(
+            initialState: .init(
+                repoModuleID: .init(
+                    repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
+                    moduleId: .init("")
+                ),
+                playlist: .placeholder(0),
+                details: .loaded(
+                    .init(
+                        genres: ["Action", "Thriller"],
+                        yearReleased: 2_023,
+                        previews: .init()
                     )
                 ),
-                reducer: { EmptyReducer() }
-            )
+                content: .loaded(.init()),
+                destination: .readMore(
+                    .init(
+                        title: "This is a title",
+                        description: "This will not only elaborate on the description but also use as a screen demo."
+                    )
+                )
+            ),
+            reducer: { EmptyReducer() }
         )
-    }
+    )
 }
 #endif

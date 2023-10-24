@@ -37,8 +37,7 @@ extension SettingsFeature.View: View {
                             ThemePicker(theme: viewStore.$userSettings.theme)
                         }
 
-                        SettingRow(title: "App Icon", accessory: EmptyView.init) {
-                        }
+                        SettingRow(title: "App Icon", accessory: EmptyView.init) {}
                     }
 
                     VStack {
@@ -60,8 +59,11 @@ extension SettingsFeature.View: View {
     }
 }
 
+// MARK: - ThemePicker
+
 struct ThemePicker: View {
-    @Binding var theme: Theme
+    @Binding
+    var theme: Theme
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -139,5 +141,5 @@ struct ThemePicker: View {
             }
         )
     )
-    .themable()
+    .themeable()
 }

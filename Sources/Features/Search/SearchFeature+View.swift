@@ -173,17 +173,15 @@ extension SearchFeature.View {
 
 // MARK: - SearchFeatureView_Previews
 
-struct SearchFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        SearchFeature.View(
-            store: .init(
-                initialState: .init(
-                    query: "demo",
-                    filters: .init(),
-                    items: .pending
-                ),
-                reducer: { EmptyReducer() }
-            )
+#Preview {
+    SearchFeature.View(
+        store: .init(
+            initialState: .init(
+                query: "demo",
+                filters: .init(),
+                items: .pending
+            ),
+            reducer: { EmptyReducer() }
         )
-    }
+    )
 }

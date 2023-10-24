@@ -398,8 +398,9 @@ extension CWasm3Tests {
     }
 
     private func memoryWasm() throws -> [UInt8] {
-        let base64 =
-            "AGFzbQEAAAABDQNgAn9/AGAAAGABfwACEAEGbmF0aXZlBXdyaXRlAAADAwIBAgUDAQABBxwCCndyaXRlX3V0ZjgAAQttb2RpZnlfdXRmOAACChoCCABBAEENEAALDwAgACAAKAIAQQFqNgIACw=="
+        // swiftlint:disable line_length
+        let base64 = "AGFzbQEAAAABDQNgAn9/AGAAAGABfwACEAEGbmF0aXZlBXdyaXRlAAADAwIBAgUDAQABBxwCCndyaXRlX3V0ZjgAAQttb2RpZnlfdXRmOAACChoCCABBAEENEAALDwAgACAAKAIAQQFqNgIACw=="
+        // swiftlint:enable line_length
         guard let data = Data(base64Encoded: base64) else {
             throw TestError.couldNotDecodeWasm("memory.wasm")
         }

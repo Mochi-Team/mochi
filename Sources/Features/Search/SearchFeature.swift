@@ -20,9 +20,12 @@ import ViewComponents
 
 public struct SearchFeature: Feature {
     public struct State: FeatureState {
-        @BindingState public var expandView: Bool
-        @BindingState public var searchFieldFocused: Bool
-        @BindingState public var query: String
+        @BindingState
+        public var expandView: Bool
+        @BindingState
+        public var searchFieldFocused: Bool
+        @BindingState
+        public var query: String
 
         public var repoModuleID: RepoModuleID?
         public var filters: [SearchFilter]

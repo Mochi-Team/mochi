@@ -16,7 +16,7 @@ import Styling
 import SwiftUI
 import ViewComponents
 
-// MARK: - RepoPackagesFeature + View
+// MARK: - RepoPackagesFeature.View + View
 
 extension RepoPackagesFeature.View: View {
     @MainActor
@@ -158,31 +158,31 @@ extension RepoPackagesFeature.View {
         var description: String? {
             switch self {
             case .failedToFetch:
-                return "There was an error communicating with the repo."
+                "There was an error communicating with the repo."
             default:
-                return nil
+                nil
             }
         }
 
         var packageIconColor: Color {
             switch self {
             case .fetchingModules:
-                return .gray
+                .gray
             case .noModulesFound:
-                return .orange
+                .orange
             case .failedToFetch:
-                return .red
+                .red
             }
         }
 
         var backgroundColor: Color {
             switch self {
             case .fetchingModules:
-                return .gray
+                .gray
             case .noModulesFound:
-                return .gray
+                .gray
             case .failedToFetch:
-                return .red
+                .red
             }
         }
     }
@@ -362,18 +362,16 @@ extension RepoPackagesFeature.View {
 
 // MARK: - RepoPackagesFeatureView_Previews
 
-struct RepoPackagesFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        RepoPackagesFeature.View(
-            store: .init(
-                initialState: .init(
-                    repo: .init(
-                        remoteURL: .init(string: "/").unsafelyUnwrapped,
-                        manifest: .init(name: "Repo 1", author: "errorerrorerror")
-                    )
-                ),
-                reducer: { EmptyReducer() }
-            )
+#Preview {
+    RepoPackagesFeature.View(
+        store: .init(
+            initialState: .init(
+                repo: .init(
+                    remoteURL: .init(string: "/").unsafelyUnwrapped,
+                    manifest: .init(name: "Repo 1", author: "errorerrorerror")
+                )
+            ),
+            reducer: { EmptyReducer() }
         )
-    }
+    )
 }

@@ -528,6 +528,19 @@ protocol TestTargets: Sequence where Element == TestTarget {
   func appending(_ testTargets: any TestTargets) -> Self
 }
 //
+//  Testable.swift
+//
+//
+//  Created by ErrorErrorError on 10/13/23.
+//
+//
+
+import Foundation
+
+protocol Testable {
+    associatedtype Tests: TestTarget
+}
+//
 // _Depending.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
@@ -670,8 +683,8 @@ extension _Path {
   var path: String? { nil }
 }
 //
-//  File.swift
-//  
+//  AnalyticsClient.swift
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
 //  
@@ -769,6 +782,16 @@ struct ModuleClient: Client {
         ComposableArchitecture()
         SwiftSoup()
         Semaphore()
+    }
+}
+
+extension ModuleClient: Testable {
+    struct Tests: TestTarget {
+        var name: String { "ModuleClientTests" }
+
+        var dependencies: any Dependencies {
+            ModuleClient()
+        }
     }
 }
 //
@@ -1402,6 +1425,8 @@ let package = Package {
     VideoPlayer()
 
     MochiApp()
+} testTargets: {
+    ModuleClient.Tests()
 }
 .supportedPlatforms {
     MochiPlatforms()

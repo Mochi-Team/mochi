@@ -1,5 +1,5 @@
 //
-//  HostBindings+Core.swift
+//  HostBIndings+Core.swift
 //
 //
 //  Created by ErrorErrorError on 5/9/23.

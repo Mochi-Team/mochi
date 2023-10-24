@@ -1,9 +1,9 @@
 //
 //  RepoPackagesFeature+Reducer.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 8/16/23.
-//  
+//
 //
 
 import Architecture
@@ -37,7 +37,9 @@ extension RepoPackagesFeature {
                 return state.fetchRemoteModules(forced: true)
 
             case let .view(.didTapAddModule(moduleId)):
-                guard let manifest = state.packages.value?.map(\.latestModule).first(where: \.id == moduleId) else { break}
+                guard let manifest = state.packages.value?.map(\.latestModule).first(where: \.id == moduleId) else {
+                    break
+                }
                 let repoId = state.repo.id
 
                 return .run { await repoClient.addModule(repoId, manifest) }
@@ -64,11 +66,11 @@ extension RepoPackagesFeature {
             case let .internal(.repoModules(modules)):
                 state.fetchedModules = modules
                 state.packages = modules.map { manifests in
-                        Dictionary(grouping: manifests, by: \.id)
-                            .map(\.value)
-                            .filter { !$0.isEmpty }
-                            .sorted { $0.latestModule.name < $1.latestModule.name }
-                    }
+                    Dictionary(grouping: manifests, by: \.id)
+                        .map(\.value)
+                        .filter { !$0.isEmpty }
+                        .sorted { $0.latestModule.name < $1.latestModule.name }
+                }
 
             case let .internal(.downloadStates(modules)):
                 state.downloadStates = modules
@@ -90,7 +92,7 @@ extension RepoPackagesFeature.State {
             return .none
         }
 
-        self.fetchedModules = .loading
+        fetchedModules = .loading
 
         let id = repo.id
 

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SwipeToDismiss.swift
 //
 //
 //  Created by ErrorErrorError on 5/12/23.

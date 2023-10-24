@@ -18,8 +18,6 @@ struct ContentListingView: View {
 
 // MARK: - ContentListingView_Previews
 
-struct ContentListingView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentListingView()
-    }
+#Preview {
+    ContentListingView()
 }

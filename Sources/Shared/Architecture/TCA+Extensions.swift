@@ -54,6 +54,7 @@ public extension Scope where ParentAction: FeatureAction {
     }
 }
 
+// swiftformat:disable redundantSelf
 public extension Reducer where Action: FeatureAction {
     func ifLet<DestinationState, DestinationAction, Destination: Reducer>(
         _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
@@ -89,7 +90,7 @@ public extension Effect {
     }
 
     static func run(
-        animation: Animation? = nil,
+        animation _: Animation? = nil,
         _ operation: @escaping () async throws -> Void
     ) -> Self {
         run { _ in try await operation() }

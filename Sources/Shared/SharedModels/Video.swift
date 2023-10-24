@@ -1,5 +1,5 @@
 //
-//  Playlist+Video.swift
+//  Video.swift
 //
 //
 //  Created by ErrorErrorError on 4/18/23.
@@ -121,34 +121,34 @@ public extension Playlist {
                 public var rawValue: Int {
                     switch self {
                     case .auto:
-                        return Int.max
+                        Int.max
                     case .q1080:
-                        return 1_080
+                        1_080
                     case .q720:
-                        return 720
+                        720
                     case .q480:
-                        return 480
+                        480
                     case .q360:
-                        return 360
+                        360
                     case let .custom(res):
-                        return res
+                        res
                     }
                 }
 
                 public var description: String {
                     switch self {
                     case .auto:
-                        return "Auto"
+                        "Auto"
                     case .q1080:
-                        return "1080p"
+                        "1080p"
                     case .q720:
-                        return "720p"
+                        "720p"
                     case .q480:
-                        return "480p"
+                        "480p"
                     case .q360:
-                        return "360p"
+                        "360p"
                     case let .custom(resolution):
-                        return "\(resolution)p"
+                        "\(resolution)p"
                     }
                 }
             }
@@ -211,11 +211,11 @@ public extension Playlist {
                 public var description: String {
                     switch self {
                     case .opening:
-                        return "Skip Opening"
+                        "Skip Opening"
                     case .ending:
-                        return "Skip Ending"
+                        "Skip Ending"
                     case .recap:
-                        return "Skip Recap"
+                        "Skip Recap"
                     }
                 }
             }

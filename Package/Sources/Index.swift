@@ -18,6 +18,8 @@ let package = Package {
     VideoPlayer()
 
     MochiApp()
+} testTargets: {
+    ModuleClient.Tests()
 }
 .supportedPlatforms {
     MochiPlatforms()

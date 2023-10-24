@@ -1,9 +1,9 @@
 //
 //  LazyView.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/6/23.
-//  
+//
 //
 
 import Foundation

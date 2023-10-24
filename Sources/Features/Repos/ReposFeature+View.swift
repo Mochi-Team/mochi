@@ -281,13 +281,11 @@ extension ReposFeature.View {
 
 // MARK: - ReposFeatureView_Previews
 
-struct ReposFeatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        ReposFeature.View(
-            store: .init(
-                initialState: .init(),
-                reducer: { ReposFeature() }
-            )
+#Preview {
+    ReposFeature.View(
+        store: .init(
+            initialState: .init(),
+            reducer: { ReposFeature() }
         )
-    }
+    )
 }

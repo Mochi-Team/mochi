@@ -1,9 +1,9 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/6/23.
-//  
+//
 //
 
 import ComposableArchitecture
@@ -11,12 +11,15 @@ import Foundation
 
 extension FileClient: DependencyKey {
     public static var liveValue: FileClient = {
-        let documentDirectory: URL
-
-        if let document = (try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)) {
-            documentDirectory = document
+        let documentDirectory: URL = if let document = try? FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ) {
+            document
         } else {
-            documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         }
 
         let reposDirectory = documentDirectory.appendingPathComponent("Repos", isDirectory: true)

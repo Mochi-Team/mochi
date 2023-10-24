@@ -98,13 +98,13 @@ public struct PlaylistDetailsFeature: Feature {
             var description: String {
                 switch self {
                 case .loading:
-                    return ""
+                    ""
                 case .start:
-                    return "Start"
+                    "Start"
                 case .continue:
-                    return "Continue"
+                    "Continue"
                 case .unavailable:
-                    return "Unavailable"
+                    "Unavailable"
                 }
             }
         }
@@ -157,7 +157,8 @@ public struct PlaylistDetailsFeature: Feature {
         @SwiftUI.State
         var imageDominatColor: Color?
 
-        @Environment(\.theme) var theme
+        @Environment(\.theme)
+        var theme
 
 //        @EnvironmentObject var theme: ThemeManager
 

@@ -20,6 +20,8 @@ import Styling
 import SwiftUI
 import ViewComponents
 
+// MARK: - DiscoverFeature
+
 public struct DiscoverFeature: Feature {
     public enum Error: Swift.Error, Equatable, Sendable {
         case system(System)

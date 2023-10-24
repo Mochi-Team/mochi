@@ -14,6 +14,8 @@ import SwiftUI
 
 // MARK: - PlayerFeature
 
+// TODO: Move this to Player Client
+
 // swiftlint:disable type_body_length
 public struct PlayerFeature: Feature {
     public struct State: FeatureState {
@@ -397,3 +399,5 @@ public extension PlayerFeature.State {
         !isPlaybackBufferFull && isPlaybackBufferEmpty || !isPlaybackLikelyToKeepUp
     }
 }
+
+// swiftlint:enable type_body_length

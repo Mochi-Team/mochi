@@ -31,9 +31,9 @@ public extension RepoClient {
         var canRestartDownload: Bool {
             switch self {
             case .failed:
-                return true
+                true
             default:
-                return false
+                false
             }
         }
     }
@@ -61,9 +61,9 @@ public extension RepoClient {
                 .flatMap { URL(string: $0) }
                 .flatMap { url in
                     if url.baseURL == nil {
-                        return .init(string: url.relativeString, relativeTo: remoteURL)
+                        .init(string: url.relativeString, relativeTo: remoteURL)
                     } else {
-                        return url
+                        url
                     }
                 }
         }
@@ -80,6 +80,15 @@ public extension RepoClient {
         ) {
             self.remoteURL = remoteURL
             self.manifest = manifest
+        }
+    }
+
+    struct RepoManifest: Equatable, Codable {
+        let repository: Repo.Manifest
+        let modules: [Module.Manifest]
+
+        static func decode(from data: Data) throws -> Self {
+            try JSONDecoder().decode(Self.self, from: data)
         }
     }
 }

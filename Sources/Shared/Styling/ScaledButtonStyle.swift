@@ -3,11 +3,13 @@
 //
 //
 //  Created by ErrorErrorError on 10/12/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - ScaleButtonStyle
 
 public struct ScaleButtonStyle: ButtonStyle {
     public func makeBody(configuration: Self.Configuration) -> some View {
@@ -18,20 +20,20 @@ public struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-private struct DelayedScaleModifier: ViewModifier {
+// MARK: - DelayedScaleModifier
 
+private struct DelayedScaleModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
     }
 }
 
-extension ButtonStyle where Self == ScaleButtonStyle {
-
+public extension ButtonStyle where Self == ScaleButtonStyle {
     /// A button style that doesn't style or decorate its content while idle,
     /// but may apply a visual effect to indicate the pressed, focused, or
     /// enabled state of the button.
     ///
     /// To apply this style to a button, or to a view that contains buttons, use
     /// the ``View/buttonStyle(_:)-66fbx`` modifier.
-    public static var scaled: ScaleButtonStyle { .init() }
+    static var scaled: ScaleButtonStyle { .init() }
 }

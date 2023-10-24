@@ -39,9 +39,9 @@ public enum Loadable<T> {
     public var didFinish: Bool {
         switch self {
         case .pending, .loading:
-            return false
+            false
         default:
-            return true
+            true
         }
     }
 
@@ -71,13 +71,13 @@ public enum Loadable<T> {
     public func map<V>(_ block: @escaping (T) -> V) -> Loadable<V> {
         switch self {
         case .pending:
-            return .pending
+            .pending
         case .loading:
-            return .loading
+            .loading
         case let .loaded(t):
-            return .loaded(block(t))
+            .loaded(block(t))
         case let .failed(e):
-            return .failed(e)
+            .failed(e)
         }
     }
 
@@ -85,13 +85,13 @@ public enum Loadable<T> {
     public func flatMap<V>(_ transform: (T) -> Loadable<V>) -> Loadable<V> {
         switch self {
         case .pending:
-            return .pending
+            .pending
         case .loading:
-            return .loading
+            .loading
         case let .loaded(value):
-            return transform(value)
+            transform(value)
         case let .failed(error):
-            return .failed(error)
+            .failed(error)
         }
     }
 }
@@ -102,13 +102,13 @@ extension Loadable: Equatable where T: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.loaded(lhs), .loaded(rhs)):
-            return lhs == rhs
+            lhs == rhs
         case let (.failed(lhs), .failed(rhs)):
-            return _isEqual(lhs, rhs)
+            _isEqual(lhs, rhs)
         case (.loading, .loading), (.pending, .pending):
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 }

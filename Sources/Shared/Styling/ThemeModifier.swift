@@ -1,9 +1,9 @@
 //
-//  File.swift
-//  
+//  ThemeModifier.swift
+//
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import ComposableArchitecture
@@ -11,10 +11,14 @@ import Foundation
 import SwiftUI
 import UserSettingsClient
 
-private struct ThemeModifier: ViewModifier {
-    @Dependency(\.userSettings) var userSettingsClient
+// MARK: - ThemeModifier
 
-    @State var currentTheme: Theme = ThemeKey.defaultValue
+private struct ThemeModifier: ViewModifier {
+    @Dependency(\.userSettings)
+    var userSettingsClient
+
+    @State
+    var currentTheme: Theme = ThemeKey.defaultValue
 
     func body(content: Content) -> some View {
         content
@@ -30,22 +34,25 @@ private struct ThemeModifier: ViewModifier {
     }
 }
 
+// MARK: - ThemeKey
+
 private struct ThemeKey: EnvironmentKey {
     static var defaultValue: Theme {
-        @Dependency(\.userSettings) var userSettingsClient
+        @Dependency(\.userSettings)
+        var userSettingsClient
         return userSettingsClient.theme
     }
 }
 
-extension EnvironmentValues {
-    public var theme: Theme {
+public extension EnvironmentValues {
+    var theme: Theme {
         get { self[ThemeKey.self] }
         set { self[ThemeKey.self] = newValue }
     }
 }
 
 public extension View {
-    func themable() -> some View {
+    func themeable() -> some View {
         modifier(ThemeModifier())
     }
 }
