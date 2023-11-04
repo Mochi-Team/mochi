@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Shared.swift
 //  
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -8,9 +8,9 @@
 
 import Foundation
 
-protocol Shared: Product, Target {}
+protocol _Shared: Product, Target {}
 
-extension Shared {
+extension _Shared {
     var path: String? {
         "Sources/Shared/\(self.name)"
     }

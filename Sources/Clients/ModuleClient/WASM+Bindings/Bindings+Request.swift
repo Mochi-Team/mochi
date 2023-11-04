@@ -12,7 +12,7 @@ import WasmInterpreter
 // MARK: HTTP Imports
 
 // swiftlint:disable closure_parameter_position
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func httpImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "http") {
             WasmInstance.Function("create") { [self] (method: Int32) -> Int32 in

@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ModuleLists: Feature {
+struct ModuleLists: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         RepoClient()

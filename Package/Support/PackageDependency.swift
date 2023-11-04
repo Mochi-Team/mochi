@@ -7,6 +7,8 @@
 import PackageDescription
 
 protocol PackageDependency: Dependency {
+  init()
+
   var packageName: String { get }
   var dependency: _PackageDescription_PackageDependency { get }
 }
@@ -15,7 +17,7 @@ extension PackageDependency {
   var productName: String {
     "\(Self.self)"
   }
-  
+
   var packageName : String {
     switch self.dependency.kind {
     case let .sourceControl(name: name, location: location, requirement: _):

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  _Client.swift
 //  
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -8,9 +8,9 @@
 
 import Foundation
 
-protocol Client: Target {}
+protocol _Client: Product, Target {}
 
-extension Client {
+extension _Client {
     var path: String? {
         "Sources/Clients/\(self.name)"
     }

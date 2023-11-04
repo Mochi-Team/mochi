@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct PlaylistDetails: Feature {
+struct PlaylistDetails: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         ContentCore()

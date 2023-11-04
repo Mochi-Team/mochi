@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Styling: Shared {
+struct Styling: _Shared {
     var dependencies: any Dependencies {
         ViewComponents()
         ComposableArchitecture()

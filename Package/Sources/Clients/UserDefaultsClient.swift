@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct UserDefaultsClient: Client {
+struct UserDefaultsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }

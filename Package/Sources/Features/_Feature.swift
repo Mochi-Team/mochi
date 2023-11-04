@@ -8,9 +8,9 @@
 
 import Foundation
 
-protocol Feature: Product, Target {}
+protocol _Feature: Product, Target {}
 
-extension Feature {
+extension _Feature {
     var path: String? {
         "Sources/Features/\(self.name)"
     }

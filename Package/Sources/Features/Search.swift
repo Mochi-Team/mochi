@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Search: Feature {
+struct Search: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         LoggerClient()

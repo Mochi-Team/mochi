@@ -11,7 +11,7 @@ import Tagged
 
 // MARK: - Playlist
 
-public struct Playlist: Sendable, Identifiable, Hashable {
+public struct Playlist: Sendable, Identifiable, Hashable, Codable {
     public let id: Tagged<Self, String>
     public let title: String?
     public let posterImage: URL?
@@ -38,13 +38,13 @@ public struct Playlist: Sendable, Identifiable, Hashable {
         self.type = type
     }
 
-    public enum PlaylistType: Int, Sendable, Hashable {
+    public enum PlaylistType: Int, Sendable, Hashable, Codable {
         case video
         case image
         case text
     }
 
-    public enum Status: Int, Sendable, Hashable {
+    public enum Status: Int, Sendable, Hashable, Codable {
         case unknown
         case upcoming
         case ongoing
@@ -57,7 +57,7 @@ public struct Playlist: Sendable, Identifiable, Hashable {
 // MARK: Playlist.Details
 
 public extension Playlist {
-    struct Details: Sendable, Equatable {
+    struct Details: Sendable, Equatable, Codable {
         public let contentDescription: String?
         public let alternativeTitles: [String]
         public let alternativePosters: [URL]
@@ -87,14 +87,14 @@ public extension Playlist {
             self.previews = previews
         }
 
-        public struct Preview: Sendable, Equatable {
+        public struct Preview: Sendable, Equatable, Codable {
             public let title: String?
             public let description: String?
             public let thumbnail: URL?
             public let link: URL
             public let type: PreviewType
 
-            public enum PreviewType: Int, Sendable, Equatable {
+            public enum PreviewType: Int, Sendable, Equatable, Codable {
                 case video
                 case image
             }
@@ -119,7 +119,7 @@ public extension Playlist {
 // MARK: Playlist.Item
 
 public extension Playlist {
-    struct Item: Sendable, Equatable, Identifiable {
+    struct Item: Sendable, Equatable, Identifiable, Codable {
         public let id: Tagged<Self, String>
         public let title: String?
         public let description: String?
@@ -149,7 +149,7 @@ public extension Playlist {
 }
 
 public extension Playlist {
-    struct ItemsRequest {
+    struct ItemsRequest: Codable {
         public let playlistId: Playlist.ID
         public let groupId: Playlist.Group.ID?
         public let pageId: PagingID?
@@ -168,7 +168,7 @@ public extension Playlist {
         }
     }
 
-    struct ItemsResponse: Equatable, Sendable {
+    struct ItemsResponse: Equatable, Sendable, Codable {
         public let contents: [Group.Content]
         public let allGroups: [Group]
 
@@ -181,7 +181,7 @@ public extension Playlist {
         }
     }
 
-    struct Group: Sendable, Hashable, Identifiable {
+    struct Group: Sendable, Hashable, Identifiable, Codable {
         public let id: Tagged<Self, Double>
         public let displayTitle: String?
 
@@ -193,7 +193,7 @@ public extension Playlist {
             self.displayTitle = displayTitle
         }
 
-        public struct Content: Equatable, Sendable {
+        public struct Content: Equatable, Sendable, Codable {
             public let groupId: Group.ID
             public let pagings: [Paging<Item>]
             public let allPages: [Page]
@@ -208,7 +208,7 @@ public extension Playlist {
                 self.allPages = allPagesInfo
             }
 
-            public struct Page: Hashable, Sendable, Identifiable {
+            public struct Page: Hashable, Sendable, Identifiable, Codable {
                 public let id: PagingID
                 public let displayName: String
 
@@ -227,7 +227,7 @@ public extension Playlist {
 // MARK: - PlaylistInfo
 
 @dynamicMemberLookup
-public struct PlaylistInfo: Equatable, Sendable {
+public struct PlaylistInfo: Equatable, Sendable, Codable {
     let playlist: Playlist
     let details: Playlist.Details
 

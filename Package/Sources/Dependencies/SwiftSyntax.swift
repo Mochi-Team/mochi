@@ -8,14 +8,21 @@
 
 import Foundation
 
-struct SwiftSyntaxMacros: PackageDependency {
+struct SwiftSyntax: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0")
+        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.1")
     }
 }
 
-struct SwiftCompilerPlugin: PackageDependency {
-    var dependency: Package.Dependency {
-        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0")
+struct SwiftSyntaxMacros: Dependency {
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
     }
 }
+
+struct SwiftCompilerPlugin: Dependency {
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
+    }
+}
+

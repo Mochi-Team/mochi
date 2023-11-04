@@ -1,5 +1,5 @@
 //
-//  Instance.swift
+//  WAInstance.swift
 //
 //
 //  Created by ErrorErrorError on 6/3/23.
@@ -15,10 +15,10 @@ import SharedModels
 import SwiftSoup
 import WasmInterpreter
 
-// MARK: - ModuleClient.Instance
+// MARK: - ModuleClient.WAInstance
 
 public extension ModuleClient {
-    struct Instance {
+    struct WAInstance {
         let module: Module
         let instance: WasmInstance
         let hostBindings: HostBindings<WasmInstance.Memory>
@@ -43,7 +43,7 @@ public extension ModuleClient {
 
 /// Available method calls
 ///
-public extension ModuleClient.Instance {
+public extension ModuleClient.WAInstance {
     func search(_ query: SearchQuery) async throws -> Paging<Playlist> {
         let queryPtr = hostBindings.addToHostMemory(query)
         let resultsPtr: Int32 = try instance.exports.search(queryPtr)
@@ -58,7 +58,7 @@ public extension ModuleClient.Instance {
     }
 
     func discoverListings() async throws -> [DiscoverListing] {
-        let resultsPtr: Int32 = try instance.exports.discover_listings()
+        let resultsPtr: Int32 = try instance.exports.discoverListings()
 
         if let values = hostBindings.getHostObject(resultsPtr) as? [DiscoverListing] {
             return values
@@ -70,7 +70,7 @@ public extension ModuleClient.Instance {
     }
 
     func searchFilters() async throws -> [SearchFilter] {
-        let resultsPtr: Int32 = try instance.exports.search_filters()
+        let resultsPtr: Int32 = try instance.exports.searchFilters()
         if let values = hostBindings.getHostObject(resultsPtr) as? [SearchFilter] {
             return values
         } else if let result = hostBindings.getHostObject(resultsPtr) as? ModuleClient.Error {
@@ -82,7 +82,7 @@ public extension ModuleClient.Instance {
 
     func playlistDetails(_ id: Playlist.ID) async throws -> Playlist.Details {
         let idPtr = hostBindings.addToHostMemory(id.rawValue)
-        let resultsPtr: Int32 = try instance.exports.playlist_details(idPtr)
+        let resultsPtr: Int32 = try instance.exports.playlistDetails(idPtr)
 
         if let details = hostBindings.getHostObject(resultsPtr) as? Playlist.Details {
             return details
@@ -93,9 +93,9 @@ public extension ModuleClient.Instance {
         }
     }
 
-    func playlistVideos(_ request: Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse {
+    func playlistEpisodes(_ request: Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse {
         let requestPtr = hostBindings.addToHostMemory(request)
-        let resultsPtr: Int32 = try instance.exports.playlist_episodes(requestPtr)
+        let resultsPtr: Int32 = try instance.exports.playlistEpisodes(requestPtr)
 
         if let response = hostBindings.getHostObject(resultsPtr) as? Playlist.ItemsResponse {
             return response
@@ -106,9 +106,9 @@ public extension ModuleClient.Instance {
         }
     }
 
-    func playlistVideoSources(_ request: Playlist.EpisodeSourcesRequest) async throws -> [Playlist.EpisodeSource] {
+    func playlistEpisodeSources(_ request: Playlist.EpisodeSourcesRequest) async throws -> [Playlist.EpisodeSource] {
         let requestPtr = hostBindings.addToHostMemory(request)
-        let resultsPtr: Int32 = try instance.exports.playlist_episode_sources(requestPtr)
+        let resultsPtr: Int32 = try instance.exports.playlistEpisodeSources(requestPtr)
 
         if let response = hostBindings.getHostObject(resultsPtr) as? [Playlist.EpisodeSource] {
             return response
@@ -119,9 +119,9 @@ public extension ModuleClient.Instance {
         }
     }
 
-    func playlistVideoServer(_ request: Playlist.EpisodeServerRequest) async throws -> Playlist.EpisodeServerResponse {
+    func playlistEpisodeServer(_ request: Playlist.EpisodeServerRequest) async throws -> Playlist.EpisodeServerResponse {
         let requestPtr = hostBindings.addToHostMemory(request)
-        let resultsPtr: Int32 = try instance.exports.playlist_episode_server(requestPtr)
+        let resultsPtr: Int32 = try instance.exports.playlistEpisodeServer(requestPtr)
 
         if let response = hostBindings.getHostObject(resultsPtr) as? Playlist.EpisodeServerResponse {
             return response
@@ -133,7 +133,7 @@ public extension ModuleClient.Instance {
     }
 }
 
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func initializeImports() throws {
         try instance.importFunctions {
             self.envImports()

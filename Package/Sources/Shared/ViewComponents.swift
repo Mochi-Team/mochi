@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ViewComponents: Shared {
+struct ViewComponents: _Shared {
     var dependencies: any Dependencies {
         SharedModels()
         ComposableArchitecture()

@@ -104,7 +104,7 @@ public extension ContentCore.State {
         return .run { send in
             try await withTaskCancellation(id: Cancellable.fetchContent, cancelInFlight: true) {
                 let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                    try await module.playlistVideos(
+                    try await module.playlistEpisodes(
                         .init(
                             playlistId: playlistId,
                             groupId: group?.id,

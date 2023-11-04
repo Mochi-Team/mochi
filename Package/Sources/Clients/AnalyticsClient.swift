@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct AnalyticsClient: Client {
+struct AnalyticsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }

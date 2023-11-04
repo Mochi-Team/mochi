@@ -6,7 +6,7 @@
 //  
 //
 
-struct VideoPlayer: Feature {
+struct VideoPlayer: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         ContentCore()

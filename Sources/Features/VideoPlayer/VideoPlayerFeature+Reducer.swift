@@ -368,7 +368,7 @@ public extension VideoPlayerFeature.State {
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingSources, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                        try await module.playlistVideoSources(
+                        try await module.playlistEpisodeSources(
                             .init(
                                 playlistId: playlist.id,
                                 episodeId: episodeId
@@ -409,7 +409,7 @@ public extension VideoPlayerFeature.State {
             return .run { send in
                 try await withTaskCancellation(id: Cancellables.fetchingServer, cancelInFlight: true) {
                     let value = try await moduleClient.withModule(id: repoModuleId) { module in
-                        try await module.playlistVideoServer(
+                        try await module.playlistEpisodeServer(
                             .init(
                                 playlistId: playlist.id,
                                 episodeId: episodeId,

@@ -9,6 +9,9 @@
 import Foundation
 
 let package = Package {
+    // Clients
+    ModuleClient()
+
     ModuleLists()
     PlaylistDetails()
     Discover()

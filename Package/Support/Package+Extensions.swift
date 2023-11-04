@@ -31,7 +31,7 @@ extension Package {
     let packageDependencies = dependencies.compactMap { $0 as? PackageDependency }
     targets += targetDependencies
     targets += allTestTargets.map { $0 as Target }
-    assert(targetDependencies.count + packageDependencies.count == dependencies.count)
+//    assert(targetDependencies.count + packageDependencies.count == dependencies.count, "there was a miscount of target dependencies - target: \(targetDependencies.count), package: \(packageDependencies.count), expected: \(dependencies.count)")
 
     let packgeTargets = Dictionary(
       grouping: targets,

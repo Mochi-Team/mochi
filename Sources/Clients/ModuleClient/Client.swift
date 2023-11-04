@@ -17,11 +17,16 @@ import XCTestDynamicOverlay
 
 public struct ModuleClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> Instance
+    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> WAInstance
+    var getModuleForJS: @Sendable (_ module: Module.Manifest) async throws -> JSInstance
 }
 
 public extension ModuleClient {
-    func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleClient.Instance) async throws -> R) async throws -> R {
+    func withModuleJS<R>(module: Module.Manifest, work: @Sendable (ModuleClient.JSInstance) async throws -> R) async throws -> R {
+        try await work(getModuleForJS(module))
+    }
+
+    func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleClient.WAInstance) async throws -> R) async throws -> R {
         try await work(getModule(id))
     }
 }
@@ -56,7 +61,8 @@ extension SwiftSoup.Exception: Equatable {
 extension ModuleClient: TestDependencyKey {
     public static let testValue = Self(
         initialize: unimplemented(),
-        getModule: unimplemented()
+        getModule: unimplemented(),
+        getModuleForJS: unimplemented()
     )
 }
 

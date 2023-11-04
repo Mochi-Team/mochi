@@ -32,16 +32,3 @@ extension Macro {
     []
   }
 }
-
-// Skeleton
-//.macro(
-//    name: <#T##String#>,
-//    dependencies: <#T##[Dependency]#>,
-//    path: <#T##String?#>,
-//    exclude: <#T##[String]#>,
-//    sources: <#T##[String]?#>,
-//    packageAccess: <#T##Bool#>,
-//    swiftSettings: <#T##[SwiftSetting]?#>,
-//    linkerSettings: <#T##[LinkerSetting]?#>,
-//    plugins: <#T##[PluginUsage]?#>
-//)

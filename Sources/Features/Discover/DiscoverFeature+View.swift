@@ -394,6 +394,7 @@ extension DiscoverFeature.View {
                     }
                     .frame(maxWidth: .infinity)
                 }
+                .aspectRatio(1.5, contentMode: .fill)
                 .frame(maxWidth: .infinity)
             }
         }

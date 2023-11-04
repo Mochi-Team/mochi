@@ -8,12 +8,11 @@
 
 import Foundation
 
-struct RepoClient: Client {
+struct RepoClient: _Client {
     var dependencies: any Dependencies {
         DatabaseClient()
         FileClient()
         SharedModels()
-        TOMLDecoder()
         Tagged()
         ComposableArchitecture()
     }

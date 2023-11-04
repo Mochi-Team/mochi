@@ -13,7 +13,7 @@ import WasmInterpreter
 // MARK: Video Structs Imports
 
 // swiftlint:disable closure_parameter_position
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func videoImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "structs_video") {
             WasmInstance.Function("create_episode_source") { [self] (

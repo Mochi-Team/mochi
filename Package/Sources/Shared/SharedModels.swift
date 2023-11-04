@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct SharedModels: Shared {
+struct SharedModels: _Shared {
     var dependencies: any Dependencies {
         DatabaseClient()
         Tagged()

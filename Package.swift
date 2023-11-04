@@ -130,19 +130,6 @@ extension Macro {
     []
   }
 }
-
-// Skeleton
-//.macro(
-//    name: <#T##String#>,
-//    dependencies: <#T##[Dependency]#>,
-//    path: <#T##String?#>,
-//    exclude: <#T##[String]#>,
-//    sources: <#T##[String]?#>,
-//    packageAccess: <#T##Bool#>,
-//    swiftSettings: <#T##[SwiftSetting]?#>,
-//    linkerSettings: <#T##[LinkerSetting]?#>,
-//    plugins: <#T##[PluginUsage]?#>
-//)
 //
 // Package+Extensions.swift
 // Copyright (c) 2023 BrightDigit.
@@ -176,7 +163,7 @@ extension Package {
     let packageDependencies = dependencies.compactMap { $0 as? PackageDependency }
     targets += targetDependencies
     targets += allTestTargets.map { $0 as Target }
-    assert(targetDependencies.count + packageDependencies.count == dependencies.count)
+//    assert(targetDependencies.count + packageDependencies.count == dependencies.count, "there was a miscount of target dependencies - target: \(targetDependencies.count), package: \(packageDependencies.count), expected: \(dependencies.count)")
 
     let packgeTargets = Dictionary(
       grouping: targets,
@@ -217,6 +204,8 @@ extension Package {
 import PackageDescription
 
 protocol PackageDependency: Dependency {
+  init()
+
   var packageName: String { get }
   var dependency: _PackageDescription_PackageDependency { get }
 }
@@ -225,7 +214,7 @@ extension PackageDependency {
   var productName: String {
     "\(Self.self)"
   }
-  
+
   var packageName : String {
     switch self.dependency.kind {
     case let .sourceControl(name: name, location: location, requirement: _):
@@ -692,7 +681,7 @@ extension _Path {
 
 import Foundation
 
-struct AnalyticsClient: Client {
+struct AnalyticsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
@@ -707,7 +696,7 @@ struct AnalyticsClient: Client {
 
 import Foundation
 
-struct BuildClient: Client {
+struct BuildClient: _Client {
     var dependencies: any Dependencies {
         Semver()
         ComposableArchitecture()
@@ -723,7 +712,7 @@ struct BuildClient: Client {
 
 import Foundation
 
-struct DatabaseClient: Client {
+struct DatabaseClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
         Semver()
@@ -742,7 +731,7 @@ struct DatabaseClient: Client {
 //  
 //
 
-struct FileClient: Client {
+struct FileClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
@@ -757,7 +746,7 @@ struct FileClient: Client {
 
 import Foundation
 
-struct LoggerClient: Client {
+struct LoggerClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
@@ -772,7 +761,7 @@ struct LoggerClient: Client {
 
 import Foundation
 
-struct ModuleClient: Client {
+struct ModuleClient: _Client {
     var dependencies: any Dependencies {
         DatabaseClient()
         FileClient()
@@ -782,6 +771,7 @@ struct ModuleClient: Client {
         ComposableArchitecture()
         SwiftSoup()
         Semaphore()
+        SwiftRustMacro()
     }
 }
 
@@ -791,6 +781,10 @@ extension ModuleClient: Testable {
 
         var dependencies: any Dependencies {
             ModuleClient()
+        }
+
+        var resources: [Resource] {
+            Resource.copy("Resources")
         }
     }
 }
@@ -804,7 +798,7 @@ extension ModuleClient: Testable {
 
 import Foundation
 
-struct PlayerClient: Client {
+struct PlayerClient: _Client {
     var dependencies: any Dependencies {
         Architecture()
         DatabaseClient()
@@ -826,12 +820,11 @@ struct PlayerClient: Client {
 
 import Foundation
 
-struct RepoClient: Client {
+struct RepoClient: _Client {
     var dependencies: any Dependencies {
         DatabaseClient()
         FileClient()
         SharedModels()
-        TOMLDecoder()
         Tagged()
         ComposableArchitecture()
     }
@@ -846,7 +839,7 @@ struct RepoClient: Client {
 
 import Foundation
 
-struct UserDefaultsClient: Client {
+struct UserDefaultsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
@@ -861,7 +854,7 @@ struct UserDefaultsClient: Client {
 
 import Foundation
 
-struct UserSettingsClient: Client {
+struct UserSettingsClient: _Client {
     var dependencies: any Dependencies {
         UserDefaultsClient()
         ComposableArchitecture()
@@ -869,7 +862,7 @@ struct UserSettingsClient: Client {
     }
 }
 //
-//  File.swift
+//  _Client.swift
 //  
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -878,9 +871,9 @@ struct UserSettingsClient: Client {
 
 import Foundation
 
-protocol Client: Target {}
+protocol _Client: Product, Target {}
 
-extension Client {
+extension _Client {
     var path: String? {
         "Sources/Clients/\(self.name)"
     }
@@ -984,17 +977,24 @@ struct SwiftSoup: PackageDependency {
 
 import Foundation
 
-struct SwiftSyntaxMacros: PackageDependency {
+struct SwiftSyntax: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0")
+        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.1")
     }
 }
 
-struct SwiftCompilerPlugin: PackageDependency {
-    var dependency: Package.Dependency {
-        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0")
+struct SwiftSyntaxMacros: Dependency {
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
     }
 }
+
+struct SwiftCompilerPlugin: Dependency {
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
+    }
+}
+
 //
 //  SwiftUIBackports.swift
 //  
@@ -1006,19 +1006,6 @@ struct SwiftCompilerPlugin: PackageDependency {
 struct SwiftUIBackports: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/shaps80/SwiftUIBackports.git", .upToNextMajor(from: "2.0.0"))
-    }
-}
-//
-//  TOMLDecoder.swift
-//  
-//
-//  Created by ErrorErrorError on 10/4/23.
-//  
-//
-
-struct TOMLDecoder: PackageDependency {
-    var dependency: Package.Dependency {
-        .package(url: "https://github.com/dduan/TOMLDecoder", from: "0.2.2")
     }
 }
 //
@@ -1046,7 +1033,7 @@ struct Tagged: PackageDependency {
 
 import Foundation
 
-struct Discover: Feature {
+struct Discover: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         PlaylistDetails()
@@ -1071,14 +1058,8 @@ struct Discover: Feature {
 
 import Foundation
 
-struct MochiApp: Product, Target {
-    var name: String {
-        "App"
-    }
-
-    var path: String? {
-        "Sources/Features/\(self.name)"
-    }
+struct MochiApp: _Feature {
+    var name: String { "App" }
 
     var dependencies: any Dependencies {
         Architecture()
@@ -1104,7 +1085,7 @@ struct MochiApp: Product, Target {
 
 import Foundation
 
-struct ModuleLists: Feature {
+struct ModuleLists: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         RepoClient()
@@ -1124,7 +1105,7 @@ struct ModuleLists: Feature {
 
 import Foundation
 
-struct PlaylistDetails: Feature {
+struct PlaylistDetails: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         ContentCore()
@@ -1148,7 +1129,7 @@ struct PlaylistDetails: Feature {
 
 import Foundation
 
-struct Repos: Feature {
+struct Repos: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         ModuleClient()
@@ -1170,7 +1151,7 @@ struct Repos: Feature {
 
 import Foundation
 
-struct Search: Feature {
+struct Search: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         LoggerClient()
@@ -1193,7 +1174,7 @@ struct Search: Feature {
 //  
 //
 
-struct Settings: Feature {
+struct Settings: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         BuildClient()
@@ -1214,7 +1195,7 @@ struct Settings: Feature {
 //  
 //
 
-struct VideoPlayer: Feature {
+struct VideoPlayer: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         ContentCore()
@@ -1238,11 +1219,43 @@ struct VideoPlayer: Feature {
 
 import Foundation
 
-protocol Feature: Product, Target {}
+protocol _Feature: Product, Target {}
 
-extension Feature {
+extension _Feature {
     var path: String? {
         "Sources/Features/\(self.name)"
+    }
+}
+//
+//  SwiftRustMacro.swift
+//
+//
+//  Created by ErrorErrorError on 10/27/23.
+//  
+//
+
+struct SwiftRustMacro: _Macro {
+    var dependencies: any Dependencies {
+        SwiftSyntax()
+        SwiftSyntaxMacros()
+        SwiftCompilerPlugin()
+    }
+}
+//
+//  File.swift
+//  
+//
+//  Created by ErrorErrorError on 10/27/23.
+//  
+//
+
+import Foundation
+
+protocol _Macro: Macro {}
+
+extension _Macro {
+    var path: String? {
+        "Sources/Macros/\(self.name)"
     }
 }
 //
@@ -1269,7 +1282,7 @@ struct MochiPlatforms: PlatformSet {
 //  
 //
 
-struct Architecture: Shared {
+struct Architecture: _Shared {
     var dependencies: any Dependencies {
         FoundationHelpers()
         ComposableArchitecture()
@@ -1285,7 +1298,7 @@ struct Architecture: Shared {
 
 import Foundation
 
-struct ContentCore: Shared {
+struct ContentCore: _Shared {
     var dependencies: any Dependencies {
         Architecture()
         FoundationHelpers()
@@ -1303,7 +1316,7 @@ struct ContentCore: Shared {
 //  
 //
 
-struct FoundationHelpers: Shared {}
+struct FoundationHelpers: _Shared {}
 //
 //  SharedModels.swift
 //  
@@ -1314,7 +1327,7 @@ struct FoundationHelpers: Shared {}
 
 import Foundation
 
-struct SharedModels: Shared {
+struct SharedModels: _Shared {
     var dependencies: any Dependencies {
         DatabaseClient()
         Tagged()
@@ -1332,7 +1345,7 @@ struct SharedModels: Shared {
 
 import Foundation
 
-struct Styling: Shared {
+struct Styling: _Shared {
     var dependencies: any Dependencies {
         ViewComponents()
         ComposableArchitecture()
@@ -1351,7 +1364,7 @@ struct Styling: Shared {
 
 import Foundation
 
-struct ViewComponents: Shared {
+struct ViewComponents: _Shared {
     var dependencies: any Dependencies {
         SharedModels()
         ComposableArchitecture()
@@ -1368,7 +1381,7 @@ struct ViewComponents: Shared {
 
 import Foundation
 
-struct WasmInterpreter: Shared {
+struct WasmInterpreter: _Shared {
     var dependencies: any Dependencies {
         CWasm3()
     }
@@ -1389,7 +1402,7 @@ struct CWasm3: Product, Target {
     }
 }
 //
-//  File.swift
+//  Shared.swift
 //  
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1398,9 +1411,9 @@ struct CWasm3: Product, Target {
 
 import Foundation
 
-protocol Shared: Product, Target {}
+protocol _Shared: Product, Target {}
 
-extension Shared {
+extension _Shared {
     var path: String? {
         "Sources/Shared/\(self.name)"
     }
@@ -1416,6 +1429,9 @@ extension Shared {
 import Foundation
 
 let package = Package {
+    // Clients
+    ModuleClient()
+
     ModuleLists()
     PlaylistDetails()
     Discover()

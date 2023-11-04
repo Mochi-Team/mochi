@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ModuleClient: Client {
+struct ModuleClient: _Client {
     var dependencies: any Dependencies {
         DatabaseClient()
         FileClient()
@@ -18,6 +18,7 @@ struct ModuleClient: Client {
         ComposableArchitecture()
         SwiftSoup()
         Semaphore()
+        SwiftRustMacro()
     }
 }
 
@@ -27,6 +28,10 @@ extension ModuleClient: Testable {
 
         var dependencies: any Dependencies {
             ModuleClient()
+        }
+
+        var resources: [Resource] {
+            Resource.copy("Resources")
         }
     }
 }

@@ -100,10 +100,31 @@ extension WasmInstance.Exports {
 
 public extension WasmInstance.Exports {
     subscript(dynamicMember member: String) -> (_ args: any WasmValue...) throws -> Void {
-        { try self.call(member, $0) }
+        { try self.call(member.snake_case(), $0) }
     }
 
     subscript<R: WasmValue>(dynamicMember member: String) -> (_ args: any WasmValue...) throws -> R {
-        { try self.call(member, $0) }
+        { try self.call(member.snake_case(), $0) }
+    }
+}
+
+private extension String {
+    func snake_case() -> String {
+        var result = ""
+
+        for index in indices {
+            let char = self[index]
+            if char.isUppercase {
+                let newChar = char.lowercased()
+
+                if index != startIndex, index != endIndex {
+                    result += "_"
+                }
+                result += newChar
+            } else {
+                result += String(char)
+            }
+        }
+        return result
     }
 }

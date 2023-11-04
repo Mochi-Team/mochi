@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Discover: Feature {
+struct Discover: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         PlaylistDetails()

@@ -8,14 +8,8 @@
 
 import Foundation
 
-struct MochiApp: Product, Target {
-    var name: String {
-        "App"
-    }
-
-    var path: String? {
-        "Sources/Features/\(self.name)"
-    }
+struct MochiApp: _Feature {
+    var name: String { "App" }
 
     var dependencies: any Dependencies {
         Architecture()

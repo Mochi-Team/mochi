@@ -12,7 +12,7 @@ import Tagged
 // MARK: - PagingID
 
 @dynamicMemberLookup
-public struct PagingID: Hashable, Sendable, ExpressibleByStringLiteral {
+public struct PagingID: Hashable, Sendable, ExpressibleByStringLiteral, Codable {
     public typealias RawValue = String
     var id: Tagged<Self, RawValue>
 
@@ -65,6 +65,8 @@ extension Paging: Sendable where T: Sendable {}
 // MARK: Hashable
 
 extension Paging: Hashable where T: Hashable {}
+
+extension Paging: Codable where T: Codable {}
 
 public extension Paging {
     func cast<V>(_: V.Type = V.self) -> Paging<V> {

@@ -14,7 +14,7 @@ import WasmInterpreter
 // MARK: Crypto
 
 // swiftlint:disable closure_parameter_position
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func cryptoImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "crypto") {
             WasmInstance.Function("crypto_get_data_len") { [self] (

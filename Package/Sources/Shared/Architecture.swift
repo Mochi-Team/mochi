@@ -6,7 +6,7 @@
 //  
 //
 
-struct Architecture: Shared {
+struct Architecture: _Shared {
     var dependencies: any Dependencies {
         FoundationHelpers()
         ComposableArchitecture()

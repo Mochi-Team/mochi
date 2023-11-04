@@ -10,7 +10,7 @@ import Foundation
 import Tagged
 
 public extension Playlist {
-    struct EpisodeSourcesRequest: Sendable, Equatable {
+    struct EpisodeSourcesRequest: Sendable, Equatable, Codable {
         public let playlistId: Playlist.ID
         public let episodeId: Playlist.Item.ID
 
@@ -23,7 +23,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeServerRequest: Sendable, Equatable {
+    struct EpisodeServerRequest: Sendable, Equatable, Codable {
         public let playlistId: Playlist.ID
         public let episodeId: Playlist.Item.ID
         public let sourceId: EpisodeSource.ID
@@ -42,7 +42,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeSource: Sendable, Equatable, Identifiable {
+    struct EpisodeSource: Sendable, Equatable, Identifiable, Codable {
         public let id: Tagged<Self, String>
         public let displayName: String
         public let description: String?
@@ -61,7 +61,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeServer: Sendable, Equatable, Identifiable {
+    struct EpisodeServer: Sendable, Equatable, Identifiable, Codable {
         public let id: Tagged<Self, String>
         public let displayName: String
         public let description: String?
@@ -76,7 +76,7 @@ public extension Playlist {
             self.description = description
         }
 
-        public struct Link: Sendable, Equatable, Identifiable {
+        public struct Link: Sendable, Equatable, Identifiable, Codable {
             public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let quality: Quality
@@ -92,7 +92,7 @@ public extension Playlist {
                 self.format = format
             }
 
-            public enum Quality: RawRepresentable, Sendable, Equatable, CustomStringConvertible {
+            public enum Quality: RawRepresentable, Sendable, Equatable, CustomStringConvertible, Codable {
                 case auto
                 case q1080
                 case q720
@@ -153,13 +153,13 @@ public extension Playlist {
                 }
             }
 
-            public enum Format: Int32, Equatable, Sendable {
+            public enum Format: Int32, Equatable, Sendable, Codable {
                 case hls
                 case dash
             }
         }
 
-        public struct Subtitle: Sendable, Equatable, Identifiable {
+        public struct Subtitle: Sendable, Equatable, Identifiable, Codable {
             public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let name: String
@@ -181,14 +181,14 @@ public extension Playlist {
                 self.autoselect = autoselect
             }
 
-            public enum Format: Int32, Sendable, Equatable {
+            public enum Format: Int32, Sendable, Equatable, Codable {
                 case vtt
                 case ass
                 case srt
             }
         }
 
-        public struct SkipTime: Hashable, Sendable {
+        public struct SkipTime: Hashable, Sendable, Codable {
             public let startTime: Double
             public let endTime: Double
             public let type: SkipType
@@ -203,7 +203,7 @@ public extension Playlist {
                 self.type = type
             }
 
-            public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible {
+            public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible, Codable {
                 case opening
                 case ending
                 case recap
@@ -222,7 +222,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeServerResponse: Equatable, Sendable {
+    struct EpisodeServerResponse: Equatable, Sendable, Codable {
         public let links: [Playlist.EpisodeServer.Link]
         public let subtitles: [Playlist.EpisodeServer.Subtitle]
         public let headers: [String: String]

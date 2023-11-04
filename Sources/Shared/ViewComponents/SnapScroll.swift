@@ -78,7 +78,7 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
                         position = max(min(position + roundIndex, list.count - 1), 0)
                     }
             )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(width: proxy.size.width, height: proxy.size.height)
             .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.76), value: translation != .zero)
             .animation(.interactiveSpring(response: 0.25, dampingFraction: 0.66), value: position)
         }

@@ -11,7 +11,7 @@ import Tagged
 
 // MARK: - DiscoverListing
 
-public struct DiscoverListing: Sendable, Hashable {
+public struct DiscoverListing: Sendable, Hashable, Codable {
     public let title: String
     public let type: ListingType
     public var paging: Paging<Playlist>
@@ -20,7 +20,7 @@ public struct DiscoverListing: Sendable, Hashable {
         paging.items
     }
 
-    public enum ListingType: Int, Sendable, Hashable {
+    public enum ListingType: Int, Sendable, Hashable, Codable {
         case `default`
         case rank
         case featured
@@ -39,7 +39,7 @@ public struct DiscoverListing: Sendable, Hashable {
 
 // MARK: - SearchFilter
 
-public struct SearchFilter: Identifiable, Equatable, Sendable {
+public struct SearchFilter: Identifiable, Equatable, Sendable, Codable {
     public let id: Tagged<Self, String>
     public let displayName: String
     public let multiSelect: Bool
@@ -60,7 +60,7 @@ public struct SearchFilter: Identifiable, Equatable, Sendable {
         self.options = options
     }
 
-    public struct Option: Identifiable, Equatable, Sendable {
+    public struct Option: Identifiable, Equatable, Sendable, Codable {
         public let id: Tagged<Self, String>
         public let displayName: String
 
@@ -76,7 +76,7 @@ public struct SearchFilter: Identifiable, Equatable, Sendable {
 
 // MARK: - SearchQuery
 
-public struct SearchQuery: Equatable, Sendable {
+public struct SearchQuery: Equatable, Sendable, Codable {
     public var query: String
     public var page: PagingID?
     public var filters: [Filter]
@@ -91,7 +91,7 @@ public struct SearchQuery: Equatable, Sendable {
         self.filters = filters
     }
 
-    public struct Filter: Identifiable, Equatable, Sendable {
+    public struct Filter: Identifiable, Equatable, Sendable, Codable {
         public let id: SearchFilter.ID
         public let optionId: SearchFilter.Option.ID
 

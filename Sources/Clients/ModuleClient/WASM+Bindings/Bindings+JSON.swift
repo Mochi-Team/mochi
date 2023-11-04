@@ -12,7 +12,7 @@ import WasmInterpreter
 // MARK: JSON Imports
 
 // swiftlint:disable closure_parameter_position
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func jsonImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "json") {
             WasmInstance.Function("json_parse") { [self] (

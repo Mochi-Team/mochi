@@ -86,9 +86,11 @@ public extension RepoClient {
     struct RepoManifest: Equatable, Codable {
         let repository: Repo.Manifest
         let modules: [Module.Manifest]
+    }
+}
 
-        static func decode(from data: Data) throws -> Self {
-            try JSONDecoder().decode(Self.self, from: data)
-        }
+extension Decodable {
+    static func decode(from data: Data) throws -> Self {
+        try JSONDecoder().decode(Self.self, from: data)
     }
 }

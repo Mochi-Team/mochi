@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ContentCore: Shared {
+struct ContentCore: _Shared {
     var dependencies: any Dependencies {
         Architecture()
         FoundationHelpers()

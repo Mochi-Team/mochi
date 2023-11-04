@@ -13,7 +13,7 @@ import WasmInterpreter
 // MARK: HTML Imports
 
 // swiftlint:disable closure_parameter_position
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func htmlImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "html") {
             WasmInstance.Function("parse") { (

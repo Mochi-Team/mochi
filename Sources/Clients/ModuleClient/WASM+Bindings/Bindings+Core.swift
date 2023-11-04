@@ -13,7 +13,7 @@ import WasmInterpreter
 // MARK: - Core Imports
 
 // swiftlint:disable closure_parameter_position
-extension ModuleClient.Instance {
+extension ModuleClient.WAInstance {
     func coreImports() -> WasmInstance.Import {
         WasmInstance.Import(namespace: "core") {
             WasmInstance.Function("copy") { [self] (

@@ -6,7 +6,7 @@
 //  
 //
 
-struct Settings: Feature {
+struct Settings: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         BuildClient()

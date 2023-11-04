@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct PlayerClient: Client {
+struct PlayerClient: _Client {
     var dependencies: any Dependencies {
         Architecture()
         DatabaseClient()

@@ -6,4 +6,4 @@
 //  
 //
 
-struct FoundationHelpers: Shared {}
+struct FoundationHelpers: _Shared {}

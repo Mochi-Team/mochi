@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct LoggerClient: Client {
+struct LoggerClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }

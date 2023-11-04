@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct BuildClient: Client {
+struct BuildClient: _Client {
     var dependencies: any Dependencies {
         Semver()
         ComposableArchitecture()

@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Repos: Feature {
+struct Repos: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         ModuleClient()

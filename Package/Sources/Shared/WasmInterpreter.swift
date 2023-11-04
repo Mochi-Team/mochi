@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct WasmInterpreter: Shared {
+struct WasmInterpreter: _Shared {
     var dependencies: any Dependencies {
         CWasm3()
     }
