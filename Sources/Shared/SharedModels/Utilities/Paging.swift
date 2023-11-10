@@ -11,27 +11,12 @@ import Tagged
 
 // MARK: - PagingID
 
-@dynamicMemberLookup
-public struct PagingID: Hashable, Sendable, ExpressibleByStringLiteral, Codable {
-    public typealias RawValue = String
-    var id: Tagged<Self, RawValue>
-
-    public init(stringLiteral value: String) {
-        self.id = .init(rawValue: value)
-    }
-
-    public init(_ rawValue: RawValue) {
-        self.id = .init(rawValue: rawValue)
-    }
-
-    public subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Tagged<Self, RawValue>, Value>) -> Value {
-        id[keyPath: dynamicMember]
-    }
-}
+public enum _Paging {}
+public typealias PagingID = Tagged<_Paging, String>
 
 // MARK: - Paging
 
-public struct Paging<T> {
+public struct Paging<T>: Identifiable {
     public let id: PagingID
     public let previousPage: PagingID?
     public let nextPage: PagingID?
@@ -49,10 +34,6 @@ public struct Paging<T> {
         self.items = items
     }
 }
-
-// MARK: Identifiable
-
-extension Paging: Identifiable {}
 
 // MARK: Equatable
 

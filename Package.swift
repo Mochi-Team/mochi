@@ -766,12 +766,11 @@ struct ModuleClient: _Client {
         DatabaseClient()
         FileClient()
         SharedModels()
-        WasmInterpreter()
         Tagged()
         ComposableArchitecture()
         SwiftSoup()
         Semaphore()
-        SwiftRustMacro()
+        JSValueCoder()
     }
 }
 
@@ -1227,21 +1226,6 @@ extension _Feature {
     }
 }
 //
-//  SwiftRustMacro.swift
-//
-//
-//  Created by ErrorErrorError on 10/27/23.
-//  
-//
-
-struct SwiftRustMacro: _Macro {
-    var dependencies: any Dependencies {
-        SwiftSyntax()
-        SwiftSyntaxMacros()
-        SwiftCompilerPlugin()
-    }
-}
-//
 //  File.swift
 //  
 //
@@ -1318,6 +1302,27 @@ struct ContentCore: _Shared {
 
 struct FoundationHelpers: _Shared {}
 //
+//  JSValueCoder.swift
+//
+//
+//  Created by ErrorErrorError on 11/6/23.
+//  
+//
+
+import Foundation
+
+struct JSValueCoder: _Shared {}
+
+extension JSValueCoder: Testable {
+    struct Tests: TestTarget {
+        var name: String { "JSValueCoderTests" }
+
+        var dependencies: any Dependencies {
+            JSValueCoder()
+        }
+    }
+}
+//
 //  SharedModels.swift
 //  
 //
@@ -1372,36 +1377,6 @@ struct ViewComponents: _Shared {
     }
 }
 //
-//  File.swift
-//  
-//
-//  Created by ErrorErrorError on 10/5/23.
-//  
-//
-
-import Foundation
-
-struct WasmInterpreter: _Shared {
-    var dependencies: any Dependencies {
-        CWasm3()
-    }
-
-    var cSettings: [CSetting] {
-        CSetting.define("APPLICATION_EXTENSION_API_ONLY", to: "YES")
-    }
-}
-
-struct CWasm3: Product, Target {
-    var targetType: TargetType {
-        .binary(
-            .remote(
-                url: "https://github.com/shareup/cwasm3/releases/download/v0.5.2/CWasm3-0.5.0.xcframework.zip",
-                checksum: "a2b0785be1221767d926cee76b087f168384ec9735b4f46daf26e12fae2109a3"
-            )
-        )
-    }
-}
-//
 //  Shared.swift
 //  
 //
@@ -1443,6 +1418,7 @@ let package = Package {
     MochiApp()
 } testTargets: {
     ModuleClient.Tests()
+    JSValueCoder.Tests()
 }
 .supportedPlatforms {
     MochiPlatforms()

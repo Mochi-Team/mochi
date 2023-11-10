@@ -134,11 +134,7 @@ extension PlaylistDetailsFeature.State {
                     }
                 } catch: { error, send in
                     logger.error("\(#function) - \(error)")
-                    if let error = error as? ModuleClient.Error {
-                        await send(.internal(.playlistDetailsResponse(.failed(error))))
-                    } else {
-                        await send(.internal(.playlistDetailsResponse(.failed(ModuleClient.Error.unknown()))))
-                    }
+                    await send(.internal(.playlistDetailsResponse(.failed(error))))
                 }
             )
         }

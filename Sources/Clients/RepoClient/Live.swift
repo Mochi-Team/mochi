@@ -121,7 +121,7 @@ private class ModulesDownloadManager {
                         states.value[repoModuleID] = .downloading(percent: progress)
                     case let .value(data, response):
                         guard let response = response as? HTTPURLResponse,
-                              response.mimeType == "application/wasm",
+                              response.mimeType == "text/javascript",
                               (200..<300).contains(response.statusCode) else {
                             throw RepoClient.Error.failedToDownloadModule
                         }
@@ -133,7 +133,7 @@ private class ModulesDownloadManager {
                         }
 
                         let moduleLocation = try fileClient.createModuleFolder(moduleFolderString)
-                        try data.write(to: moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("wasm"))
+                        try data.write(to: moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("js"))
 
                         let module = Module(
                             moduleLocation: moduleLocationRelativeURL,

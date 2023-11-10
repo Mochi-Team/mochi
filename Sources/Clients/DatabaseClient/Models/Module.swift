@@ -15,10 +15,13 @@ import Tagged
 
 @dynamicMemberLookup
 public struct Module: Entity, Hashable, Sendable {
+    // TODO: Rename moduleLocation to moduleDirectory
     public var moduleLocation: URL = .init(string: "/").unsafelyUnwrapped
     public var installDate: Date = .init()
     public var manifest: Manifest = .init()
     public var objectID: ManagedObjectID?
+
+    public var moduleDirectory: URL { self.moduleLocation }
 
     public static var properties: Set<Property> = [
         .init("moduleLocation", \Self.moduleLocation),

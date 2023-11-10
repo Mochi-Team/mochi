@@ -16,6 +16,7 @@ import RepoClient
 import SharedModels
 import Styling
 import SwiftUI
+import Tagged
 import ViewComponents
 
 public struct SearchFeature: Feature {

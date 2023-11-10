@@ -13,12 +13,11 @@ struct ModuleClient: _Client {
         DatabaseClient()
         FileClient()
         SharedModels()
-        WasmInterpreter()
         Tagged()
         ComposableArchitecture()
         SwiftSoup()
         Semaphore()
-        SwiftRustMacro()
+        JSValueCoder()
     }
 }
 

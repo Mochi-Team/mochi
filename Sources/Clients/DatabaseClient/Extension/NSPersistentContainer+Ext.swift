@@ -24,7 +24,7 @@ extension NSPersistentContainer {
 
     @MainActor
     func loadPersistentStores() async throws {
-        try await withCheckedThrowingContinuation { [unowned self] continuation in
+        try await withUnsafeThrowingContinuation { [unowned self] continuation in
             loadPersistentStores { _, error in
                 if let error {
                     continuation.resume(throwing: error)

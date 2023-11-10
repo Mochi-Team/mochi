@@ -89,6 +89,7 @@ line_length:
   ignores_urls: true
 
 type_name:
+  allowed_symbols: "_"
   max_length:
     warning: 60
     error: 60

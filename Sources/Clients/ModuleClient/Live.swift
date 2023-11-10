@@ -28,7 +28,7 @@ extension ModuleClient: DependencyKey {
 // MARK: - ModulesCache
 
 private actor ModulesCache {
-    private var cached: [RepoModuleID: Module] = [:]
+    private var cached: [RepoModuleID: ModuleClient.Instance] = [:]
     private let semaphore = AsyncSemaphore(value: 1)
 
     init() {}
@@ -41,46 +41,29 @@ private actor ModulesCache {
 
     @Sendable
     func getCached(for id: RepoModuleID) async throws -> ModuleClient.Instance {
-//        if let module = cached[id] {
-//            return try .init(module: module)
-//        }
-
-        let module = try await fetchFromDB(for: id)
-        return try .init(module: module)
+        try await fetchFromDB(for: id)
     }
 
-    private func fetchFromDB(for id: RepoModuleID) async throws -> Module {
+    private func fetchFromDB(for id: RepoModuleID) async throws -> ModuleClient.Instance {
         @Dependency(\.databaseClient)
         var databaseClient
 
         try await semaphore.waitUnlessCancelled()
         defer { semaphore.signal() }
 
-        // Check if the module is cached already
-        if let module = cached[id] {
-            return module
+        // TODO: Check if the module is cached already & validate version & file hash or reload
+        if let instance = cached[id] {
+            return instance
         }
 
         guard let repo = try await databaseClient.fetch(.all.where(\Repo.remoteURL == id.repoId.rawValue)).first,
               let module: Module = repo.modules.first(where: { $0.id == id.moduleId }) else {
-            throw ModuleClient.Error.moduleNotFound
+            throw ModuleClient.Error.client(.moduleNotFound)
         }
 
-        cached[id] = module
+        let instance = try ModuleClient.Instance(module: module)
+        cached[id] = instance
 
-        return module
+        return instance
     }
-
-//    private func validateCachedModules(_ repos: [Repo]) {
-//        for cachedModule in cached {
-//            if let repo = repos.first(where: { $0.id == cachedModule.key.repoId }),
-//               let module = repo.modules.first(where: { $0.id == cachedModule.key.moduleId }) {
-//                if module.version != cachedModule.value.version || module.binaryModule.hashValue != cachedModule.value.binaryModule.hashValue {
-//                    cached[cachedModule.key] = nil
-//                }
-//            } else {
-//                cached[cachedModule.key] = nil
-//            }
-//        }
-//    }
 }

@@ -23,6 +23,7 @@ let package = Package {
     MochiApp()
 } testTargets: {
     ModuleClient.Tests()
+    JSValueCoder.Tests()
 }
 .supportedPlatforms {
     MochiPlatforms()

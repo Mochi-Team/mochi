@@ -10,23 +10,17 @@ import Dependencies
 import Foundation
 import SharedModels
 import SwiftSoup
-import WasmInterpreter
 import XCTestDynamicOverlay
 
 // MARK: - ModuleClient
 
 public struct ModuleClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> WAInstance
-    var getModuleForJS: @Sendable (_ module: Module.Manifest) async throws -> JSInstance
+    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> Self.Instance
 }
 
 public extension ModuleClient {
-    func withModuleJS<R>(module: Module.Manifest, work: @Sendable (ModuleClient.JSInstance) async throws -> R) async throws -> R {
-        try await work(getModuleForJS(module))
-    }
-
-    func withModule<R>(id: RepoModuleID, work: @Sendable (ModuleClient.WAInstance) async throws -> R) async throws -> R {
+    func withModule<R>(id: RepoModuleID, work: @Sendable (Self.Instance) async throws -> R) async throws -> R {
         try await work(getModule(id))
     }
 }
@@ -35,13 +29,23 @@ public extension ModuleClient {
 
 public extension ModuleClient {
     enum Error: Swift.Error, Equatable, Sendable {
-        case wasm3(WasmInstance.Error)
-        case nullPtr(for: String = #function, message: String = "")
-        case castError(for: String = #function, got: String = "", expected: String = "")
-        case swiftSoup(for: String = #function, SwiftSoup.Exception)
-        case indexOutOfBounds(for: String = #function)
-        case unknown(for: String = #function, msg: String = "")
+        case client(ClientError)
+        case jsRuntime(JSRuntimeError)
+    }
+}
+
+public extension ModuleClient.Error {
+    enum ClientError: Equatable, Sendable {
         case moduleNotFound
+    }
+}
+
+public extension ModuleClient.Error {
+    enum JSRuntimeError: Equatable, Sendable {
+        case promiseValueError
+        case retrievingInstanceFailed
+        case instanceCreationFailed
+        case instanceCall(function: String, msg: String)
     }
 }
 
@@ -61,8 +65,7 @@ extension SwiftSoup.Exception: Equatable {
 extension ModuleClient: TestDependencyKey {
     public static let testValue = Self(
         initialize: unimplemented(),
-        getModule: unimplemented(),
-        getModuleForJS: unimplemented()
+        getModule: unimplemented()
     )
 }
 

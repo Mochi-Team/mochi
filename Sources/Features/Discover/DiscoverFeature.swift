@@ -38,8 +38,6 @@ public struct DiscoverFeature: Feature {
                 "There Is No Module Select"
             case .system(.unknown):
                 "Unknown System Error Has Occurred"
-            case .module(.unknown):
-                "Unknown Module Error Has Occurred"
             case .module:
                 "Failed to Load Module Discovery"
             }
