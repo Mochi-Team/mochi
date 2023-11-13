@@ -174,6 +174,7 @@ extension DiscoverFeature.View {
             buildListingsView(
                 [
                     .init(
+                        id: "0",
                         title: "placeholder title 1",
                         type: .featured,
                         paging: .init(
@@ -182,6 +183,7 @@ extension DiscoverFeature.View {
                         )
                     ),
                     .init(
+                        id: "1",
                         title: "placeholder title 2",
                         type: .default,
                         paging: .init(
@@ -190,6 +192,7 @@ extension DiscoverFeature.View {
                         )
                     ),
                     .init(
+                        id: "2",
                         title: "placeholder title 3",
                         type: .rank,
                         paging: .init(
@@ -198,6 +201,7 @@ extension DiscoverFeature.View {
                         )
                     ),
                     .init(
+                        id: "3",
                         title: "placeholder title 4",
                         type: .default,
                         paging: .init(
@@ -219,7 +223,7 @@ extension DiscoverFeature.View {
     func buildListingsView(_ listings: [DiscoverListing]) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
-                ForEach(listings, id: \.self) { listing in
+                ForEach(listings, id: \.id) { listing in
                     switch listing.type {
                     case .default:
                         rowListing(listing)

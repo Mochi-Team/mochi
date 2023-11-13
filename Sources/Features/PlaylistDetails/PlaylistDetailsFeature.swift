@@ -98,7 +98,7 @@ public struct PlaylistDetailsFeature: Feature {
             var description: String {
                 switch self {
                 case .loading:
-                    ""
+                    "Loading..."
                 case .start:
                     "Start"
                 case .continue:
@@ -116,9 +116,9 @@ public struct PlaylistDetailsFeature: Feature {
             case didTappedBackButton
             case didTapToRetryDetails
             case didTapOnReadMore
-            case didTapContentGroup(Playlist.Group)
-            case didTapContentGroupPage(Playlist.Group, Playlist.Group.Content.Page)
-            case didTapVideoItem(Playlist.Group, Playlist.Group.Content.Page, Playlist.Item.ID)
+            case didTapContentGroup(Playlist.Group.ID)
+            case didTapContentGroupPage(Playlist.Group.ID, Playlist.Group.Variant.ID)
+            case didTapVideoItem(Playlist.Group.ID, Playlist.Group.Variant.ID, Playlist.Item.ID)
             case binding(BindingAction<State>)
         }
 
@@ -127,8 +127,8 @@ public struct PlaylistDetailsFeature: Feature {
                 Playlist.ItemsResponse,
                 repoModuleID: RepoModuleID,
                 playlist: Playlist,
-                group: Playlist.Group,
-                paging: Playlist.Group.Content.Page,
+                group: Playlist.Group.ID,
+                paging: Playlist.Group.Variant.ID,
                 itemId: Playlist.Item.ID
             )
         }
@@ -159,8 +159,6 @@ public struct PlaylistDetailsFeature: Feature {
 
         @Environment(\.theme)
         var theme
-
-//        @EnvironmentObject var theme: ThemeManager
 
         public nonisolated init(store: StoreOf<PlaylistDetailsFeature>) {
             self.store = store

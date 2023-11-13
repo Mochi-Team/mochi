@@ -24,7 +24,7 @@ extension RepoPackagesFeature {
                 return .merge(
                     state.fetchRemoteModules(),
                     .run { send in
-                        let stream = repoClient.moduleDownloads()
+                        let stream = repoClient.downloads()
                         for await value in stream {
                             let filteredRepo = value.filter(\.key.repoId == repoId)
                             let mapped = Dictionary(uniqueKeysWithValues: filteredRepo.map { ($0.moduleId, $1) })
@@ -54,7 +54,7 @@ extension RepoPackagesFeature {
                 let repoId = state.repo.id
                 return .merge(
                     .run { try await repoClient.removeModule(repoId, module) },
-                    .send(.delegate(.removeModule(.init(repoId: state.repo.id, moduleId: moduleId))))
+                    .send(.delegate(.removeModule(state.repo.id(moduleId))))
                 )
 
             case .view(.didTapClose):

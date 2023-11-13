@@ -81,7 +81,7 @@ extension ReposFeature {
                             .internal(
                                 .validateRepoURL(
                                     .loaded(
-                                        repoClient.validateRepo(url)
+                                        repoClient.validate(url)
                                     )
                                 )
                             )

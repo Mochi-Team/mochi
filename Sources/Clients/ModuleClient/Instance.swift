@@ -44,8 +44,8 @@ public extension ModuleClient.Instance {
         try await reportError(await runtime.search(query))
     }
 
-    func discoverListings() async throws -> [DiscoverListing] {
-        try await reportError(await runtime.discoverListings())
+    func discoverListings(_ request: DiscoverListing.Request? = nil) async throws -> [DiscoverListing] {
+        try await reportError(await runtime.discoverListings(request))
     }
 
     func searchFilters() async throws -> [SearchFilter] {
@@ -56,8 +56,8 @@ public extension ModuleClient.Instance {
         try await reportError(await runtime.playlistDetails(id))
     }
 
-    func playlistEpisodes(_ request: Playlist.ItemsRequest) async throws -> Playlist.ItemsResponse {
-        try await reportError(await runtime.playlistEpisodes(request))
+    func playlistEpisodes(_ id: Playlist.ID, _ options: Playlist.ItemsRequestOptions?) async throws -> Playlist.ItemsResponse {
+        try await reportError(await runtime.playlistEpisodes(id, options))
     }
 
     func playlistEpisodeSources(_ request: Playlist.EpisodeSourcesRequest) async throws -> [Playlist.EpisodeSource] {

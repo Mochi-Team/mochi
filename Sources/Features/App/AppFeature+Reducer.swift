@@ -48,28 +48,29 @@ extension AppFeature: Reducer {
             case .internal(.appDelegate):
                 break
 
-            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))):
-                let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
-                    repoModuleID: repoModuleID,
-                    playlist: playlist,
-                    group: group,
-                    page: paging,
-                    episodeId: itemId
-                )
-                .map { Action.internal(.videoPlayer(.presented($0))) }
-
-                if let effect {
-                    return effect
-                } else {
-                    state.videoPlayer = .init(
-                        repoModuleID: repoModuleID,
-                        playlist: playlist,
-                        contents: .init(),
-                        group: group,
-                        page: paging,
-                        episodeId: itemId
-                    )
-                }
+//            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))):
+//                break
+//                let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
+//                    repoModuleID: repoModuleID,
+//                    playlist: playlist,
+//                    group: group,
+//                    page: paging,
+//                    episodeId: itemId
+//                )
+//                .map { Action.internal(.videoPlayer(.presented($0))) }
+//
+//                if let effect {
+//                    return effect
+//                } else {
+//                    state.videoPlayer = .init(
+//                        repoModuleID: repoModuleID,
+//                        playlist: playlist,
+//                        contents: .init(),
+//                        group: group,
+//                        page: paging,
+//                        episodeId: itemId
+//                    )
+//                }
 
             case .internal(.discover):
                 break

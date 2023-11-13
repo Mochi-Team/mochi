@@ -131,7 +131,7 @@ public struct DiscoverFeature: Feature {
                 repoModuleID: RepoModuleID,
                 playlist: Playlist,
                 group: Playlist.Group,
-                paging: Playlist.Group.Content.Page,
+                paging: Playlist.Group.Variant.ID,
                 itemId: Playlist.Item.ID
             )
         }

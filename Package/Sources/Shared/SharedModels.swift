@@ -14,5 +14,6 @@ struct SharedModels: _Shared {
         Tagged()
         ComposableArchitecture()
         Semver()
+        JSValueCoder()
     }
 }

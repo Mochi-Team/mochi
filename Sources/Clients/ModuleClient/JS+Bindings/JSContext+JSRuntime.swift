@@ -127,9 +127,8 @@ extension JSContext {
     private func loadModuleAndInitialize(_ module: Module) throws {
         @Dependency(\.fileClient)
         var fileClient
-        let mainModuleURL = module.moduleDirectory.appendingPathComponent("main")
-            .appendingPathExtension("js")
-        let jsURL = fileClient.retrieveModuleFolder(mainModuleURL)
+
+        let jsURL = try fileClient.retrieveModuleDirectory(module.mainJSFile)
         try self.evaluateScript(String(contentsOf: jsURL))
         self.evaluateScript("const Instance = new source.default()")
     }

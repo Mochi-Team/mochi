@@ -283,7 +283,7 @@ extension PlaylistDetailsFeature.View {
     func contentView(_ playlistInfo: PlaylistInfo) -> some View {
         LazyVStack(spacing: 24) {
             HeaderWithContent(title: "Description") {
-                ExpandableText(playlistInfo.contentDescription ?? "Description is not available for this content.") {
+                ExpandableText(playlistInfo.synopsis ?? "Description is not available for this content.") {
                     store.send(.view(.didTapOnReadMore))
                 }
                 .lineLimit(3)
@@ -330,13 +330,14 @@ extension PlaylistDetailsFeature.View {
 
             switch playlistInfo.type {
             case .video:
-                PlaylistVideoContentView(
-                    store: store.scope(
-                        state: \.content,
-                        action: { $0 }
-                    ),
-                    playlistInfo: playlistInfo
-                )
+                EmptyView()
+//                PlaylistVideoContentView(
+//                    store: store.scope(
+//                        state: \.content,
+//                        action: { $0 }
+//                    ),
+//                    playlistInfo: playlistInfo
+//                )
             case .image:
                 EmptyView()
             case .text:
@@ -352,10 +353,10 @@ private struct PlaylistVideoContentView: View {
     let playlistInfo: PlaylistInfo
 
     @State
-    private var selectedGroup: Playlist.Group?
+    private var selectedGroupID: Playlist.Group.ID?
 
     @State
-    private var selectedPage: Playlist.Group.Content.Page?
+    private var selectedPage: Playlist.Group.Variant.ID?
 
     private static let placeholderItems = [
         Playlist.Item(
@@ -387,151 +388,157 @@ private struct PlaylistVideoContentView: View {
     @MainActor
     var body: some View {
         WithViewStore(store, observe: \.`self`) { viewStore in
-            let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
+//            let defaultSelectedGroupID = selectedGroupID ?? viewStore.value.flatMap(\.first?.id)
 
-            let group = viewStore.state.flatMap { groups in
-                defaultSelectedGroup.flatMap { groups[$0] } ?? groups.values.first ?? .loaded([:])
-            }
+//            let group = viewStore.state.map { groups in
+//                defaultSelectedGroupID.flatMap { groups[id: $0] } ?? groups.first ?? .failed(ContentCore.Error.contentNotFound)
+//            }
 
-            let defaultSelectedPage = selectedPage ?? group.value.flatMap(\.keys.first)
+//            let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
 
-            let page = group.flatMap { pages in
-                defaultSelectedPage.flatMap { pages[$0] } ?? pages.values.first ?? .loaded(.init(id: ""))
-            }
+//            let group = viewStore.state.flatMap { groups in
+//                defaultSelectedGroup.flatMap { groups[$0] } ?? groups.values.first ?? .loaded([:])
+//            }
 
-            HeaderWithContent {
-                HStack {
-                    if let value = viewStore.state.value, value.keys.count > 1 {
-                        Menu {
-                            ForEach(value.keys, id: \.self) { group in
-                                Button {
-                                    selectedGroup = group
-                                    viewStore.send(.didTapContentGroup(group))
-                                } label: {
-                                    Text(group.displayTitle ?? "Group \(group.id.withoutTrailingZeroes)")
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                if let group = defaultSelectedGroup {
-                                    Text(group.displayTitle ?? "Group \(group.id.withoutTrailingZeroes)")
-                                } else {
-                                    Text("Episodes")
-                                }
+//            let defaultSelectedPage = selectedPage ?? group.value.flatMap(\.keys.first)
+//
+//            let page = group.flatMap { pages in
+//                defaultSelectedPage.flatMap { pages[$0] } ?? pages.values.first ?? .loaded(.init(id: ""))
+//            }
 
-                                if (viewStore.value?.count ?? 0) > 1 {
-                                    Image(systemName: "chevron.down")
-                                        .font(.footnote.weight(.bold))
-                                }
-                            }
-                            .foregroundColor(.label)
-                        }
-                    } else {
-                        Text(defaultSelectedGroup?.displayTitle ?? "Episodes")
-                    }
-
-                    Spacer()
-
-                    if let pages = group.value, pages.keys.count > 1 {
-                        Menu {
-                            ForEach(pages.keys, id: \.id) { page in
-                                Button {
-                                    selectedPage = page
-                                    if let defaultSelectedGroup {
-                                        viewStore.send(.didTapContentGroupPage(defaultSelectedGroup, page))
-                                    }
-                                } label: {
-                                    Text(page.displayName)
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Text(defaultSelectedPage?.displayName ?? "Unknown")
-                                    .font(.system(size: 14))
-                                Image(systemName: "chevron.down")
-                                    .font(.footnote.weight(.semibold))
-                            }
-                            .foregroundColor(.label)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 4)
-                            .background {
-                                Capsule()
-                                    .fill(Color.gray.opacity(0.24))
-                            }
-                        }
-                    }
-                }
-            } content: {
-                ZStack {
-                    if page.error != nil {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.red.opacity(0.16))
-                            .padding(.horizontal)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 125)
-                            .overlay {
-                                Text("There was an error loading content.")
-                                    .font(.callout.weight(.semibold))
-                            }
-                    } else if page.didFinish, (page.value?.items.count ?? 0) == 0 {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.12))
-                            .padding(.horizontal)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 125)
-                            .overlay {
-                                Text("There is no content available.")
-                                    .font(.callout.weight(.medium))
-                            }
-                    } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(alignment: .top, spacing: 12) {
-                                ForEach(page.value?.items ?? Self.placeholderItems, id: \.id) { item in
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        FillAspectImage(url: item.thumbnail ?? playlistInfo.posterImage)
-                                            .aspectRatio(16 / 9, contentMode: .fit)
-                                            .cornerRadius(12)
-
-                                        Spacer()
-                                            .frame(height: 8)
-
-                                        Text("Episode \(item.number.withoutTrailingZeroes)")
-                                            .font(.footnote.weight(.semibold))
-                                            .foregroundColor(.init(white: 0.4))
-
-                                        Spacer()
-                                            .frame(height: 4)
-
-                                        Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
-                                            .font(.body.weight(.semibold))
-                                    }
-                                    .frame(width: 228)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        if let group = defaultSelectedGroup, let page = defaultSelectedPage {
-                                            viewStore.send(.didTapVideoItem(group, page, item.id))
-                                        }
-                                    }
-                                }
-                                .frame(maxHeight: .infinity, alignment: .top)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .shimmering(active: !page.didFinish)
-                        .disabled(!page.didFinish)
-                    }
-                }
-                .animation(.easeInOut, value: viewStore.state)
-                .animation(.easeInOut, value: selectedGroup)
-                .animation(.easeInOut, value: selectedPage)
-            }
-            .shimmering(active: !viewStore.didFinish)
-            .disabled(!viewStore.didFinish)
-            .onChange(of: selectedGroup) { _ in
-                selectedPage = nil
-            }
+//            HeaderWithContent {
+//                HStack {
+//                    if let value = viewStore.state.value, value.keys.count > 1 {
+//                        Menu {
+//                            ForEach(value.keys, id: \.self) { group in
+//                                Button {
+//                                    selectedGroup = group
+//                                    viewStore.send(.didTapContentGroup(group))
+//                                } label: {
+//                                    Text(group.altTitle ?? "Group \(group.id.withoutTrailingZeroes)")
+//                                }
+//                            }
+//                        } label: {
+//                            HStack {
+//                                if let group = defaultSelectedGroup {
+//                                    Text(group.altTitle ?? "Group \(group.id.withoutTrailingZeroes)")
+//                                } else {
+//                                    Text("Episodes")
+//                                }
+//
+//                                if (viewStore.value?.count ?? 0) > 1 {
+//                                    Image(systemName: "chevron.down")
+//                                        .font(.footnote.weight(.bold))
+//                                }
+//                            }
+//                            .foregroundColor(.label)
+//                        }
+//                    } else {
+//                        Text(defaultSelectedGroup?.altTitle ?? "Episodes")
+//                    }
+//
+//                    Spacer()
+//
+//                    if let pages = group.value, pages.keys.count > 1 {
+//                        Menu {
+//                            ForEach(pages.keys, id: \.id) { page in
+//                                Button {
+//                                    selectedPage = page
+//                                    if let defaultSelectedGroup {
+//                                        viewStore.send(.didTapContentGroupPage(defaultSelectedGroup, page))
+//                                    }
+//                                } label: {
+//                                    Text(page.displayName)
+//                                }
+//                            }
+//                        } label: {
+//                            HStack {
+//                                Text(defaultSelectedPage?.displayName ?? "Unknown")
+//                                    .font(.system(size: 14))
+//                                Image(systemName: "chevron.down")
+//                                    .font(.footnote.weight(.semibold))
+//                            }
+//                            .foregroundColor(.label)
+//                            .padding(.horizontal, 6)
+//                            .padding(.vertical, 4)
+//                            .background {
+//                                Capsule()
+//                                    .fill(Color.gray.opacity(0.24))
+//                            }
+//                        }
+//                    }
+//                }
+//            } content: {
+//                ZStack {
+//                    if page.error != nil {
+//                        RoundedRectangle(cornerRadius: 12)
+//                            .fill(Color.red.opacity(0.16))
+//                            .padding(.horizontal)
+//                            .frame(maxWidth: .infinity)
+//                            .frame(height: 125)
+//                            .overlay {
+//                                Text("There was an error loading content.")
+//                                    .font(.callout.weight(.semibold))
+//                            }
+//                    } else if page.didFinish, (page.value?.items.count ?? 0) == 0 {
+//                        RoundedRectangle(cornerRadius: 12)
+//                            .fill(Color.gray.opacity(0.12))
+//                            .padding(.horizontal)
+//                            .frame(maxWidth: .infinity)
+//                            .frame(height: 125)
+//                            .overlay {
+//                                Text("There is no content available.")
+//                                    .font(.callout.weight(.medium))
+//                            }
+//                    } else {
+//                        ScrollView(.horizontal, showsIndicators: false) {
+//                            HStack(alignment: .top, spacing: 12) {
+//                                ForEach(page.value?.items ?? Self.placeholderItems, id: \.id) { item in
+//                                    VStack(alignment: .leading, spacing: 0) {
+//                                        FillAspectImage(url: item.thumbnail ?? playlistInfo.posterImage)
+//                                            .aspectRatio(16 / 9, contentMode: .fit)
+//                                            .cornerRadius(12)
+//
+//                                        Spacer()
+//                                            .frame(height: 8)
+//
+//                                        Text("Episode \(item.number.withoutTrailingZeroes)")
+//                                            .font(.footnote.weight(.semibold))
+//                                            .foregroundColor(.init(white: 0.4))
+//
+//                                        Spacer()
+//                                            .frame(height: 4)
+//
+//                                        Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
+//                                            .font(.body.weight(.semibold))
+//                                    }
+//                                    .frame(width: 228)
+//                                    .contentShape(Rectangle())
+//                                    .onTapGesture {
+//                                        if let group = defaultSelectedGroup, let page = defaultSelectedPage {
+//                                            viewStore.send(.didTapVideoItem(group, page, item.id))
+//                                        }
+//                                    }
+//                                }
+//                                .frame(maxHeight: .infinity, alignment: .top)
+//                            }
+//                            .frame(maxWidth: .infinity)
+//                            .padding(.horizontal)
+//                        }
+//                        .frame(maxWidth: .infinity)
+//                        .shimmering(active: !page.didFinish)
+//                        .disabled(!page.didFinish)
+//                    }
+//                }
+//                .animation(.easeInOut, value: viewStore.state)
+//                .animation(.easeInOut, value: selectedGroup)
+//                .animation(.easeInOut, value: selectedPage)
+//            }
+//            .shimmering(active: !viewStore.didFinish)
+//            .disabled(!viewStore.didFinish)
+//            .onChange(of: selectedGroup) { _ in
+//                selectedPage = nil
+//            }
         }
     }
 }
@@ -539,9 +546,9 @@ private struct PlaylistVideoContentView: View {
 // MARK: - HeaderWithContent
 
 @MainActor
-private struct HeaderWithContent<Label: View, Content: View>: View {
+private struct HeaderWithContent<Label: View, Variant: View>: View {
     let label: () -> Label
-    let content: () -> Content
+    let content: () -> Variant
 
     @MainActor
     var body: some View {
@@ -557,7 +564,7 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
     @MainActor
     init(
         @ViewBuilder label: @escaping () -> Label,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Variant
     ) {
         self.label = label
         self.content = content
@@ -566,7 +573,7 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
     @MainActor
     init(
         title: String = "",
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Variant
     ) where Label == Text {
         self.init {
             Text(title)
@@ -594,10 +601,7 @@ extension PlaylistDetailsFeature.View {
     PlaylistDetailsFeature.View(
         store: .init(
             initialState: .init(
-                repoModuleID: .init(
-                    repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
-                    moduleId: .init("")
-                ),
+                repoModuleID: Module().id(repoID: "/"),
                 playlist: .placeholder(0),
                 details: .loaded(
                     .init(

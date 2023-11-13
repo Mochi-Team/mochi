@@ -20,7 +20,8 @@ extension ModuleClient: DependencyKey {
 
         return Self(
             initialize: cached.initialize,
-            getModule: cached.getCached
+            getModule: cached.getCached,
+            removeModule: cached.removeModule
         )
     }()
 }
@@ -65,5 +66,12 @@ private actor ModulesCache {
         cached[id] = instance
 
         return instance
+    }
+
+    @Sendable
+    func removeModule(id: RepoModuleID) async throws {
+        try await semaphore.waitUnlessCancelled()
+        defer { semaphore.signal() }
+        self.cached[id] = nil
     }
 }

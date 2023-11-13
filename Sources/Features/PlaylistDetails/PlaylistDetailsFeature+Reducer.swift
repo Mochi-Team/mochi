@@ -53,33 +53,41 @@ extension PlaylistDetailsFeature {
                 state.destination = .readMore(
                     .init(
                         title: state.playlist.title ?? "No Title",
-                        description: state.details.value?.contentDescription ?? "No Description Available"
+                        description: state.details.value?.synopsis ?? "No Description Available"
                     )
                 )
 
-            case let .view(.didTapVideoItem(group, page, itemId)):
+            case let .view(.didTapVideoItem(groupID, variantID, itemId)):
                 guard state.content.value != nil else {
                     break
                 }
 
-                return .send(
-                    .delegate(
-                        .playbackVideoItem(
-                            .init(contents: [], allGroups: []),
-                            repoModuleID: state.repoModuleId,
-                            playlist: state.playlist,
-                            group: group,
-                            paging: page,
-                            itemId: itemId
-                        )
-                    )
+//                return .send(
+//                    .delegate(
+//                        .playbackVideoItem(
+//                            .init(contents: [], allGroups: []),
+//                            repoModuleID: state.repoModuleId,
+//                            playlist: state.playlist,
+//                            group: group,
+//                            paging: page,
+//                            itemId: itemId
+//                        )
+//                    )
+//                )
+
+            case let .view(.didTapContentGroup(id)):
+                return state.content.fetchPlaylistContentIfNecessary(
+                    state.repoModuleId,
+                    state.playlist.id,
+                    .group(id)
                 )
 
-            case let .view(.didTapContentGroup(group)):
-                return state.content.fetchPlaylistContentIfNecessary(state.repoModuleId, state.playlist.id, group)
-
-            case let .view(.didTapContentGroupPage(group, page)):
-                return state.content.fetchPlaylistContentIfNecessary(state.repoModuleId, state.playlist.id, group, page)
+            case let .view(.didTapContentGroupPage(groupID, variantID)):
+                return state.content.fetchPlaylistContentIfNecessary(
+                    state.repoModuleId,
+                    state.playlist.id,
+                    .variant(groupID, variantID)
+                )
 
             case .view(.binding):
                 break

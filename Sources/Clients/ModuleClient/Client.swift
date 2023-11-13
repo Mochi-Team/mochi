@@ -16,7 +16,8 @@ import XCTestDynamicOverlay
 
 public struct ModuleClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-    var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> Self.Instance
+    public var getModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> Self.Instance
+    public var removeModule: @Sendable (_ repoModuleID: RepoModuleID) async throws -> Void
 }
 
 public extension ModuleClient {
@@ -65,7 +66,8 @@ extension SwiftSoup.Exception: Equatable {
 extension ModuleClient: TestDependencyKey {
     public static let testValue = Self(
         initialize: unimplemented(),
-        getModule: unimplemented()
+        getModule: unimplemented(),
+        removeModule: unimplemented()
     )
 }
 

@@ -14,19 +14,19 @@ import Tagged
 public enum _Paging {}
 public typealias PagingID = Tagged<_Paging, String>
 
-// MARK: - Paging
+// MARK: BasePaging
 
-public struct Paging<T>: Identifiable {
+public struct BasePaging<T> {
     public let id: PagingID
     public let previousPage: PagingID?
     public let nextPage: PagingID?
-    public let items: [T]
+    public let items: T
 
     public init(
         id: PagingID,
         previousPage: PagingID? = nil,
         nextPage: PagingID? = nil,
-        items: [T] = []
+        items: T
     ) {
         self.id = id
         self.previousPage = previousPage
@@ -35,21 +35,35 @@ public struct Paging<T>: Identifiable {
     }
 }
 
+// MARK: - Paging
+
+public typealias Paging<Element> = BasePaging<[Element]>
+
+// MARK: - LoadablePaging
+
+public typealias LoadablePaging<T> = BasePaging<Loadable<[T]>>
+
+// MARK: Identifable
+
+extension BasePaging: Identifiable {}
+
 // MARK: Equatable
 
-extension Paging: Equatable where T: Equatable {}
+extension BasePaging: Equatable where T: Equatable {}
 
 // MARK: Sendable
 
-extension Paging: Sendable where T: Sendable {}
+extension BasePaging: Sendable where T: Sendable {}
 
 // MARK: Hashable
 
-extension Paging: Hashable where T: Hashable {}
+extension BasePaging: Hashable where T: Hashable {}
 
-extension Paging: Codable where T: Codable {}
+// MARK: Codable
 
-public extension Paging {
+extension BasePaging: Codable where T: Codable {}
+
+public extension BasePaging where T: Sequence {
     func cast<V>(_: V.Type = V.self) -> Paging<V> {
         .init(
             id: id,
@@ -59,7 +73,7 @@ public extension Paging {
         )
     }
 
-    func map<V>(to value: (T) -> V) -> Paging<V> {
+    func map<V>(to value: (T.Element) -> V) -> Paging<V> {
         .init(
             id: id,
             previousPage: previousPage.flatMap { $0 },
@@ -68,3 +82,61 @@ public extension Paging {
         )
     }
 }
+
+//    // MARK: - LoadablePaging
+//
+//    public struct LoadablePaging<T>: BasePaging {
+//        public let id: PagingID
+//        public let previousPage: PagingID?
+//        public let nextPage: PagingID?
+//        public let items: [T]
+//
+//        public init(
+//            id: PagingID,
+//            previousPage: PagingID? = nil,
+//            nextPage: PagingID? = nil,
+//            items: [T]
+//        ) {
+//            self.id = id
+//            self.previousPage = previousPage
+//            self.nextPage = nextPage
+//            self.items = items
+//        }
+//    }
+//
+//    // MARK: Equatable
+//
+//    extension LoadablePaging: Equatable where T: Equatable {}
+//
+//    // MARK: Sendable
+//
+//    extension LoadablePaging: Sendable where T: Sendable {}
+//
+//    // MARK: Hashable
+//
+//    extension LoadablePaging: Hashable where T: Hashable {}
+//
+//    // MARK: Codable
+//
+//    extension LoadablePaging: Codable where T: Codable {}
+//
+//    public extension LoadablePaging {
+//        func cast<V>(_: V.Type = V.self) -> LoadablePaging<V> {
+//            .init(
+//                id: id,
+//                previousPage: previousPage.flatMap { $0 },
+//                nextPage: nextPage.flatMap { $0 },
+//                items: items.compactMap { $0 as? V }
+//            )
+//        }
+//
+//        func map<V>(to value: (T) -> V) -> LoadablePaging<V> {
+//            .init(
+//                id: id,
+//                previousPage: previousPage.flatMap { $0 },
+//                nextPage: nextPage.flatMap { $0 },
+//                items: items.compactMap(value)
+//            )
+//        }
+//    }
+//

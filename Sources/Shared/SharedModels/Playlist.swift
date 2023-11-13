@@ -8,6 +8,7 @@
 
 import Foundation
 import Tagged
+import JSValueCoder
 
 // MARK: - Playlist
 
@@ -58,29 +59,29 @@ public struct Playlist: Sendable, Identifiable, Hashable, Codable {
 
 public extension Playlist {
     struct Details: Sendable, Equatable, Codable {
-        public let contentDescription: String?
-        public let alternativeTitles: [String]
-        public let alternativePosters: [URL]
-        public let alternativeBanners: [URL]
+        public let synopsis: String?
+        public let altTitles: [String]
+        public let altPosters: [URL]
+        public let altBanners: [URL]
         public let genres: [String]
         public let yearReleased: Int?
         public let ratings: Int?
         public let previews: [Preview]
 
         public init(
-            contentDescription: String? = nil,
-            alternativeTitles: [String] = [],
-            alternativePosters: [URL] = [],
-            alternativeBanners: [URL] = [],
+            synopsis: String? = nil,
+            altTitles: [String] = [],
+            altPosters: [URL] = [],
+            altBanners: [URL] = [],
             genres: [String] = [],
             yearReleased: Int? = nil,
             ratings: Int? = nil,
             previews: [Preview] = []
         ) {
-            self.contentDescription = contentDescription
-            self.alternativeTitles = alternativeTitles
-            self.alternativePosters = alternativePosters
-            self.alternativeBanners = alternativeBanners
+            self.synopsis = synopsis
+            self.altTitles = altTitles
+            self.altPosters = altPosters
+            self.altBanners = altBanners
             self.genres = genres
             self.yearReleased = yearReleased
             self.ratings = ratings
@@ -149,76 +150,130 @@ public extension Playlist {
 }
 
 public extension Playlist {
-    struct ItemsRequest: Codable {
-        public let playlistId: Playlist.ID
-        public let groupId: Playlist.Group.ID?
-        public let pageId: PagingID?
-        public let itemId: Playlist.Item.ID?
 
-        public init(
-            playlistId: Playlist.ID,
-            groupId: Playlist.Group.ID?,
-            pageId: PagingID?,
-            itemId: Playlist.Item.ID?
-        ) {
-            self.playlistId = playlistId
-            self.groupId = groupId
-            self.pageId = pageId
-            self.itemId = itemId
+    // TODO: Write a codable that handles all the boilerplate when converting to JSValue
+
+    enum ItemsRequestOptions: Sendable, Equatable, Encodable {
+        case group(Playlist.Group.ID)
+        case variant(Playlist.Group.ID, Playlist.Group.Variant.ID)
+        case page(Playlist.Group.ID, Playlist.Group.Variant.ID, PagingID)
+
+        var type: String {
+            switch self {
+            case .group:
+                "group"
+            case .variant:
+                "variant"
+            case .page:
+                "page"
+            }
+        }
+
+        enum GroupCodingKeys: JSValueEnumCodingKey {
+            case type
+            case groupID
+        }
+
+        enum VariantCodingKeys: JSValueEnumCodingKey {
+            case type
+            case groupID
+            case variantID
+        }
+
+        enum PageCodingKeys: JSValueEnumCodingKey {
+            case type
+            case groupID
+            case variantID
+            case pageID
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            switch self {
+            case let .group(groupID):
+                var container = encoder.container(keyedBy: GroupCodingKeys.self)
+                try container.encode(type, forKey: .type)
+                try container.encode(groupID, forKey: .groupID)
+            case let .variant(groupID, variantID):
+                var container = encoder.container(keyedBy: VariantCodingKeys.self)
+                try container.encode(type, forKey: .type)
+                try container.encode(groupID, forKey: .groupID)
+                try container.encode(variantID, forKey: .variantID)
+            case let .page(groupID, variantID, pageID):
+                var container = encoder.container(keyedBy: PageCodingKeys.self)
+                try container.encode(type, forKey: .type)
+                try container.encode(groupID, forKey: .groupID)
+                try container.encode(variantID, forKey: .variantID)
+                try container.encode(pageID, forKey: .pageID)
+            }
         }
     }
 
-    struct ItemsResponse: Equatable, Sendable, Codable {
-        public let contents: [Group.Content]
-        public let allGroups: [Group]
+    enum ItemsResponse: Equatable, Sendable, Decodable {
+        case groups([Playlist.Group])
+        case variants([Playlist.Group.Variant])
+        case pagings([Paging<Playlist.Item>])
 
-        public init(
-            contents: [Group.Content],
-            allGroups: [Group]
-        ) {
-            self.contents = contents
-            self.allGroups = allGroups
+        enum CodingKeys: CodingKey {
+            case type
+            case items
+        }
+
+        private enum ResponseType: String, Decodable {
+            case groups
+            case variants
+            case pagings
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            let type = try container.decode(ResponseType.self, forKey: .type)
+
+            switch type {
+            case .groups:
+                self = try .groups(container.decode([Playlist.Group].self, forKey: .items))
+            case .variants:
+                self = try .variants(container.decode([Playlist.Group.Variant].self, forKey: .items))
+            case .pagings:
+                self = try .pagings(container.decode([Paging<Playlist.Item>].self, forKey: .items))
+            }
         }
     }
 
-    struct Group: Sendable, Hashable, Identifiable, Codable {
-        public let id: Tagged<Self, Double>
-        public let displayTitle: String?
+    struct Group: Sendable, Equatable, Identifiable, Decodable {
+        public let id: Tagged<Self, String>
+        public let number: Double
+        public let altTitle: String?
+        public let variants: Loadable<[Variant]>
 
         public init(
             id: Self.ID,
-            displayTitle: String? = nil
+            number: Double,
+            altTitle: String? = nil,
+            variants: Loadable<[Variant]> = .pending
         ) {
             self.id = id
-            self.displayTitle = displayTitle
+            self.number = number
+            self.altTitle = altTitle
+            self.variants = variants
         }
 
-        public struct Content: Equatable, Sendable, Codable {
-            public let groupId: Group.ID
-            public let pagings: [Paging<Item>]
-            public let allPages: [Page]
+        public struct Variant: Equatable, Sendable, Decodable, Identifiable {
+            public let id: Tagged<Self, String>
+            public let title: String
+            public let icon: URL?
+            public let pagings: Loadable<[LoadablePaging<Item>]>
 
             public init(
-                groupId: Playlist.Group.ID,
-                pagings: [Paging<Playlist.Item>],
-                allPagesInfo: [Page]
+                id: Self.ID,
+                title: String,
+                icon: URL? = nil,
+                pagings: Loadable<[LoadablePaging<Item>]> = .pending
             ) {
-                self.groupId = groupId
+                self.id = id
+                self.title = title
+                self.icon = icon
                 self.pagings = pagings
-                self.allPages = allPagesInfo
-            }
-
-            public struct Page: Hashable, Sendable, Identifiable, Codable {
-                public let id: PagingID
-                public let displayName: String
-
-                public init(
-                    id: Paging<Playlist.Item>.ID,
-                    displayName: String
-                ) {
-                    self.id = id
-                    self.displayName = displayName
-                }
             }
         }
     }

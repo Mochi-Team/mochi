@@ -25,7 +25,7 @@ public extension ModuleListsFeature {
                     break
                 }
                 return .concatenate(
-                    .send(.delegate(.selectedModule(RepoClient.SelectedModule(repoId: repoId, module: module)))),
+                    .send(.delegate(.selectedModule(.init(repoId: repoId, module: module)))),
                     .run { _ in await self.dismiss() }
                 )
 

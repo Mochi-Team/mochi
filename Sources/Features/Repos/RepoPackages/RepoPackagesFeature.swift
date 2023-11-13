@@ -90,7 +90,6 @@ public extension RepoPackagesFeature {
 
         @Environment(\.theme)
         var theme
-//        @EnvironmentObject var theme: ThemeManager
 
         public nonisolated init(store: StoreOf<RepoPackagesFeature>) {
             self.store = store

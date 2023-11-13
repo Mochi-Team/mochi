@@ -37,7 +37,7 @@ extension DiscoverFeature {
                 guard case let .module(moduleState) = state.selected else {
                     break
                 }
-                let repoModuleID = RepoModuleID(repoId: moduleState.module.repoId, moduleId: moduleState.module.module.id)
+                let repoModuleID = moduleState.module.id
                 state.screens.append(.playlistDetails(.init(repoModuleID: repoModuleID, playlist: playlist)))
 
             case let .internal(.selectedModule(selection)):
@@ -69,19 +69,19 @@ extension DiscoverFeature {
             case .internal(.moduleLists):
                 break
 
-            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, paging, itemId)))))):
-                return .send(
-                    .delegate(
-                        .playbackVideoItem(
-                            items,
-                            repoModuleID: id,
-                            playlist: playlist,
-                            group: group,
-                            paging: paging,
-                            itemId: itemId
-                        )
-                    )
-                )
+//            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, paging, itemId)))))):
+//                return .send(
+//                    .delegate(
+//                        .playbackVideoItem(
+//                            items,
+//                            repoModuleID: id,
+//                            playlist: playlist,
+//                            group: group,
+//                            paging: paging,
+//                            itemId: itemId
+//                        )
+//                    )
+//                )
 
             case .internal(.screens):
                 break
@@ -115,7 +115,7 @@ extension DiscoverFeature.State {
         }
 
         selected = .module(.init(module: selectedModule, listings: .loading))
-        let id = RepoModuleID(repoId: selectedModule.repoId, moduleId: selectedModule.module.id)
+        let id = selectedModule.id
 
         return .run { send in
             try await withTaskCancellation(id: DiscoverFeature.Cancellables.fetchDiscoverList) {

@@ -12,16 +12,20 @@ import Foundation
 // MARK: - FileClient
 
 public struct FileClient {
-    public let createModuleFolder: @Sendable (String) throws -> URL
-    public let retrieveModuleFolder: @Sendable (URL) -> URL
+    public let url: @Sendable (FileManager.SearchPathDirectory, FileManager.SearchPathDomainMask, URL?, Bool) throws -> URL
+    public let fileExists: @Sendable (String) -> Bool
+    public let create: @Sendable (URL) throws -> Void
+    public let remove: @Sendable (URL) throws -> Void
 }
 
 // MARK: TestDependencyKey
 
 extension FileClient: TestDependencyKey {
     public static var testValue: FileClient = .init(
-        createModuleFolder: unimplemented(".createModuleFolder"),
-        retrieveModuleFolder: unimplemented(".retrieveModuleFolder")
+        url: unimplemented(".url"),
+        fileExists: unimplemented(".remove"),
+        create: unimplemented(".create"),
+        remove: unimplemented(".remove")
     )
 }
 

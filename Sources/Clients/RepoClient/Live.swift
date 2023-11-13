@@ -23,8 +23,11 @@ extension RepoClient: DependencyKey {
     @Dependency(\.databaseClient)
     private static var databaseClient
 
+    @Dependency(\.fileClient)
+    private static var fileClient
+
     public static let liveValue = Self(
-        validateRepo: { url in
+        validate: { url in
             let manifestURL = url.appendingPathComponent("Manifest.json", isDirectory: false)
             let request = URLRequest(url: manifestURL)
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -51,16 +54,16 @@ extension RepoClient: DependencyKey {
             await Self.downloadManager.cancelAllRepoDownloads(repoId)
         },
         addModule: { repoId, manifest in
-            let id = RepoModuleID(repoId: repoId, moduleId: manifest.id)
+            let id = manifest.id(repoID: repoId)
             await Self.downloadManager.download(id, module: manifest)
         },
         removeModule: { repoId, module in
-            let id = RepoModuleID(repoId: repoId, moduleId: module.id)
+            let id = module.id(repoID: repoId)
             Self.downloadManager.cancelModuleDownload(id)
             try await databaseClient.delete(module)
-            try FileManager.default.removeItem(at: module.moduleLocation)
+            try Self.fileClient.remove(fileClient.retrieveModuleDirectory(module.directory))
         },
-        moduleDownloads: {
+        downloads: {
             .init { continuation in
                 let cancellation = Self.downloadManager.states.sink { _ in
                     continuation.finish()
@@ -126,20 +129,22 @@ private class ModulesDownloadManager {
                             throw RepoClient.Error.failedToDownloadModule
                         }
 
-                        let moduleFolderString = "\(repoModuleID.repoId.host ?? "Default")/\(repoModuleID.moduleId.rawValue)"
-
-                        guard let moduleLocationRelativeURL = URL(string: moduleFolderString, relativeTo: nil) else {
+                        guard let directory = URL(
+                            string: "\(repoModuleID.repoId.host ?? "Default")/\(repoModuleID.moduleId.rawValue)",
+                            relativeTo: nil
+                        ) else {
                             throw RepoClient.Error.failedToInstallModule
                         }
 
-                        let moduleLocation = try fileClient.createModuleFolder(moduleFolderString)
-                        try data.write(to: moduleLocation.appendingPathComponent("main", isDirectory: false).appendingPathExtension("js"))
-
                         let module = Module(
-                            moduleLocation: moduleLocationRelativeURL,
+                            directory: directory,
                             installDate: .init(),
                             manifest: module
                         )
+
+                        try fileClient.createModuleDirectory(directory)
+                        try data.write(to: fileClient.retrieveModuleDirectory(module.mainJSFile))
+
                         return module
                     }
                 }

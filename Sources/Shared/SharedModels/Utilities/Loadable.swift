@@ -82,7 +82,7 @@ public enum Loadable<T> {
     }
 
     @inlinable
-    public func flatMap<V>(_ transform: (T) -> Loadable<V>) -> Loadable<V> {
+    public func flatMap<V>(_ transform: @escaping (T) -> Loadable<V>) -> Loadable<V> {
         switch self {
         case .pending:
             .pending
@@ -130,6 +130,30 @@ extension Loadable: Hashable where T: Hashable {
                 hasher.combine(error)
                 hasher.combine(3)
             }
+        }
+    }
+}
+
+extension Loadable: Encodable where T: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+
+        if case .loaded(let t) = self {
+            try container.encode(t)
+        } else {
+            try container.encodeNil()
+        }
+    }
+}
+
+extension Loadable: Decodable where T: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        if container.decodeNil() {
+            self = .pending
+        } else {
+            self = try .loaded(container.decode(T.self))
         }
     }
 }

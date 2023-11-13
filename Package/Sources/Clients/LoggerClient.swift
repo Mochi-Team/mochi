@@ -11,5 +11,6 @@ import Foundation
 struct LoggerClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
+        Logging()
     }
 }

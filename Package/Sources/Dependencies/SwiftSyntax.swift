@@ -14,15 +14,23 @@ struct SwiftSyntax: PackageDependency {
     }
 }
 
-struct SwiftSyntaxMacros: Dependency {
+struct SwiftSyntaxMacros: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
         .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
     }
+
+    var dependencies: any Dependencies {
+        SwiftSyntax()
+    }
 }
 
-struct SwiftCompilerPlugin: Dependency {
+struct SwiftCompilerPlugin: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
         .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
+    }
+
+    var dependencies: any Dependencies {
+        SwiftSyntax()
     }
 }
 

@@ -12,7 +12,7 @@ import SwiftUI
 import UIKit
 import ViewComponents
 
-final class HostingController<Content: View>: UIHostingController<Content>, OpaqueController {
+final class HostingController<Variant: View>: UIHostingController<Variant>, OpaqueController {
     override var prefersHomeIndicatorAutoHidden: Bool { _homeIndicatorAutoHidden }
 
     var _homeIndicatorAutoHidden = false {
@@ -23,7 +23,7 @@ final class HostingController<Content: View>: UIHostingController<Content>, Opaq
 
     private let box: Box
 
-    init<InnerView: View>(rootView: InnerView) where Content == BoxedView<InnerView> {
+    init<InnerView: View>(rootView: InnerView) where Variant == BoxedView<InnerView> {
         self.box = .init()
         super.init(rootView: .init(box: box, content: rootView))
         box.object = self
@@ -35,15 +35,15 @@ final class HostingController<Content: View>: UIHostingController<Content>, Opaq
     }
 }
 
-struct BoxedView<Content: View>: View {
+struct BoxedView<Variant: View>: View {
     let box: Box
 
-    init(box: Box, content: @autoclosure @escaping () -> Content) {
+    init(box: Box, content: @autoclosure @escaping () -> Variant) {
         self.content = content
         self.box = box
     }
 
-    let content: () -> Content
+    let content: () -> Variant
 
     var body: some View {
         content()

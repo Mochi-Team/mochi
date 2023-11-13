@@ -749,6 +749,7 @@ import Foundation
 struct LoggerClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
+        Logging()
     }
 }
 //
@@ -954,6 +955,32 @@ struct Semver: PackageDependency {
     }
 }
 //
+//  File.swift
+//  
+//
+//  Created by ErrorErrorError on 11/9/23.
+//  
+//
+
+struct SwiftLog: PackageDependency {
+    var name: String { "swift-log" }
+    var productName: String { "swift-log" }
+
+    var dependency: Package.Dependency {
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0")
+    }
+}
+
+struct Logging: _Depending, Dependency {
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .product(name: "\(Self.self)", package: SwiftLog().packageName)
+    }
+
+    var dependencies: any Dependencies {
+        SwiftLog()
+    }
+}
+//
 //  SwiftSoup.swift
 //  
 //
@@ -982,15 +1009,23 @@ struct SwiftSyntax: PackageDependency {
     }
 }
 
-struct SwiftSyntaxMacros: Dependency {
+struct SwiftSyntaxMacros: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
         .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
     }
+
+    var dependencies: any Dependencies {
+        SwiftSyntax()
+    }
 }
 
-struct SwiftCompilerPlugin: Dependency {
+struct SwiftCompilerPlugin: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
         .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
+    }
+
+    var dependencies: any Dependencies {
+        SwiftSyntax()
     }
 }
 
@@ -1020,6 +1055,26 @@ import Foundation
 struct Tagged: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0")
+    }
+}
+//
+//  ContentCore.swift
+//  
+//
+//  Created by ErrorErrorError on 10/5/23.
+//  
+//
+
+import Foundation
+
+struct ContentCore: _Feature {
+    var dependencies: any Dependencies {
+        Architecture()
+        FoundationHelpers()
+        ModuleClient()
+        LoggerClient()
+        Tagged()
+        ComposableArchitecture()
     }
 }
 //
@@ -1273,26 +1328,6 @@ struct Architecture: _Shared {
     }
 }
 //
-//  ContentCore.swift
-//  
-//
-//  Created by ErrorErrorError on 10/5/23.
-//  
-//
-
-import Foundation
-
-struct ContentCore: _Shared {
-    var dependencies: any Dependencies {
-        Architecture()
-        FoundationHelpers()
-        ModuleClient()
-        LoggerClient()
-        Tagged()
-        ComposableArchitecture()
-    }
-}
-//
 //  FoundationHelpers.swift
 //  
 //
@@ -1338,6 +1373,7 @@ struct SharedModels: _Shared {
         Tagged()
         ComposableArchitecture()
         Semver()
+        JSValueCoder()
     }
 }
 //
