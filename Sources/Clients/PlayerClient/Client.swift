@@ -15,15 +15,16 @@ import XCTestDynamicOverlay
 // MARK: - PlayerClient
 
 public struct PlayerClient: Sendable {
-    public let load: @Sendable (VideoCompositionItem) async throws -> Void
-    public let setRate: @Sendable (Float) async -> Void
-    public let play: @Sendable () async -> Void
-    public let pause: @Sendable () async -> Void
-    public let seek: @Sendable (_ progress: Double) async -> Void
-    public let volume: @Sendable (_ amount: Double) async -> Void
-    public let clear: @Sendable () async -> Void
-    public let status: @Sendable () async -> AsyncStream<Status>
-    let player: AVPlayer
+    public var load: @Sendable (VideoCompositionItem) async throws -> Void
+    public var setRate: @Sendable (Float) async -> Void
+    public var play: @Sendable () async -> Void
+    public var pause: @Sendable () async -> Void
+    public var seek: @Sendable (_ progress: Double) async -> Void
+    public var volume: @Sendable (_ amount: Double) async -> Void
+    public var clear: @Sendable () async -> Void
+    public var get: @Sendable () -> Status
+    public var observe: @Sendable () -> AsyncStream<Status>
+    var player: @Sendable () -> AVPlayer
 }
 
 // MARK: TestDependencyKey
@@ -37,7 +38,8 @@ extension PlayerClient: TestDependencyKey {
         seek: unimplemented(),
         volume: unimplemented(),
         clear: unimplemented(),
-        status: unimplemented(),
+        get: unimplemented(),
+        observe: unimplemented(),
         player: unimplemented()
     )
 }

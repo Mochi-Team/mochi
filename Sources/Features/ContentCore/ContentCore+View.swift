@@ -13,137 +13,118 @@ import Styling
 import SwiftUI
 import ViewComponents
 
-// MARK: - ContentListingView
+// MARK: - ContentCore+View
 
 public extension ContentCore {
     @MainActor
     struct View: FeatureView {
         public let store: StoreOf<ContentCore>
 
+        @ObservedObject
+        private var viewStore: ViewStoreOf<ContentCore>
+        private let contentType: Playlist.PlaylistType
+
         @MainActor
-        public init(store: StoreOf<ContentCore>) {
+        public init(
+            store: StoreOf<ContentCore>,
+            contentType: Playlist.PlaylistType = .video,
+            selectedGroupId: Playlist.Group.ID? = nil,
+            selectedVariantId: Playlist.Group.Variant.ID? = nil,
+            selectedPageId: PagingID? = nil,
+            selectedItemId: Playlist.Item.ID? = nil
+        ) {
             self.store = store
+            self.contentType = contentType
+            self._viewStore = .init(wrappedValue: .init(store, observe: \.`self`))
+            self.__selectedGroupId = .init(wrappedValue: selectedGroupId)
+            self.__selectedVariantId = .init(wrappedValue: selectedVariantId)
+            self.__selectedPagingId = .init(wrappedValue: selectedPageId)
+            self.selectedItemId = selectedItemId
         }
 
         @Environment(\.theme)
         var theme
 
         @SwiftUI.State
-        private var selectedGroupId: Playlist.Group.ID?
+        private var _selectedGroupId: Playlist.Group.ID?
 
         @SwiftUI.State
-        private var selectedVariantId: Playlist.Group.Variant.ID?
+        private var _selectedVariantId: Playlist.Group.Variant.ID?
 
         @SwiftUI.State
-        private var selectedPagingId: PagingID?
+        private var _selectedPagingId: PagingID?
 
-        private static let placeholderItems = [
-            Playlist.Item(
-                id: "/1",
-                title: "Placeholder",
-                description: "Placeholder",
-                number: 1,
-                timestamp: "May 12, 2023",
-                tags: []
-            ),
-            Playlist.Item(
-                id: "/2",
-                title: "Placeholder",
-                description: "Placeholder",
-                number: 2,
-                timestamp: "May 12, 2023",
-                tags: []
-            ),
-            Playlist.Item(
-                id: "/3",
-                title: "Placeholder",
-                description: "Placeholder",
-                number: 3,
-                timestamp: "May 12, 2023",
-                tags: []
-            )
-        ]
+        private let selectedItemId: Playlist.Item.ID?
 
-        @MainActor
-        public var body: some SwiftUI.View {
-            WithViewStore(store, observe: \.`self`) { viewStore in
-                LoadableView(loadable: viewStore.state) { groups in
-                    content(groups)
-                } failedView: { _ in
-                    content([])
-                } waitingView: {
-                    content([])
-                }
-                .shimmering(active: !viewStore.didFinish)
-                .disabled(!viewStore.didFinish)
-                .onChange(of: selectedGroupId) { _ in
-                    selectedVariantId = nil
-                    selectedPagingId = nil
-                }
-                .onChange(of: selectedVariantId) { _ in
-                    selectedPagingId = nil
-                }
-            }
+        private var groupLoadable: Loadable<Playlist.Group> {
+            viewStore.groups.map { groups in _selectedGroupId.flatMap { groups[id: $0] } ?? groups.first }
+                .flatMap(Loadable.init)
+        }
+
+        private var variantLoadable: Loadable<Playlist.Group.Variant> {
+            groupLoadable.flatMap(\.variants)
+                .map { variants in _selectedVariantId.flatMap { variants[id: $0] } ?? variants.first }
+                .flatMap(Loadable.init)
+        }
+
+        private var pageLoadable: Loadable<LoadablePaging<Playlist.Item>> {
+            variantLoadable.flatMap(\.pagings)
+                .map { pagings in _selectedPagingId.flatMap { pagings[id: $0] } ?? pagings.first }
+                .flatMap(Loadable.init)
+        }
+
+        private var hasMultipleGroups: Bool {
+            (viewStore.groups.value?.count ?? 0) > 1
         }
 
         @MainActor
-        @ViewBuilder
-        private func content(_ groups: [Playlist.Group]) -> some SwiftUI.View {
-            let defaultSelectedGroupId = selectedGroupId ?? groups.first?.id
-            let group = defaultSelectedGroupId.flatMap { groups[id: $0] }
-            let groupLoadable = groups.group(id: defaultSelectedGroupId)
-            
-            let defaultSelectedVariantId = selectedVariantId ?? group?.variants.value?.first?.id
-            let variant = defaultSelectedVariantId.flatMap { group?.variants.value?[id: $0] }
-            let variantLoadable = groupLoadable.flatMap { $0.variant(variantId: defaultSelectedVariantId) }
-            
-            let defaultSelectedPagingId = selectedPagingId ?? variant?.pagings.value?.first?.id
-            let page = defaultSelectedPagingId.flatMap { variant?.pagings.value?[id: $0] }
-            let pageLoadable = variantLoadable.flatMap { $0.page(pageId: defaultSelectedPagingId) }
-            
-            let hasMultipleGroups = groups.count > 1
-            
+        public var body: some SwiftUI.View {
             HeaderWithContent {
                 VStack {
                     HStack(alignment: .center) {
                         /// Groups
                         Menu {
                             if hasMultipleGroups {
-                                ForEach(groups, id: \.id) { group in
+                                ForEach(viewStore.groups.value ?? [], id: \.id) { group in
                                     Button {
-                                        selectedGroupId = group.id
-                                        //                                    store.send(.view(.didTapContent(.group(group.id))))
+                                        _selectedGroupId = group.id
+                                        store.send(.view(.didTapContent(.group(group.id))))
                                     } label: {
-                                        Text(group.altTitle ?? "Season \(group.number.withoutTrailingZeroes)")
+                                        Text(group.altTitle ?? .init(
+                                            format: contentType.multiGroupsDefaultTitle,
+                                            group.number.withoutTrailingZeroes
+                                        ))
                                     }
                                 }
                             }
                         } label: {
-                            if let group, hasMultipleGroups {
+                            if let selectedGroup = groupLoadable.value, hasMultipleGroups {
                                 HStack {
-                                    Text(group.altTitle ?? "Season \(group.number.withoutTrailingZeroes)")
+                                    Text(selectedGroup.altTitle ?? .init(
+                                        format: contentType.multiGroupsDefaultTitle,
+                                        selectedGroup.number.withoutTrailingZeroes)
+                                    )
                                     Image(systemName: "chevron.compact.down")
                                     Spacer()
                                 }
-                            } else if let group {
-                                Text(group.altTitle ?? "Episodes")
                             } else {
-                                Text("Episodes")
+                                Text(groupLoadable.value?.altTitle ?? contentType.oneGroupDefaultTitle)
                             }
                         }
-                        .animation(.easeInOut, value: defaultSelectedGroupId)
-                        
+                        .animation(.easeInOut, value: _selectedGroupId)
+
                         Spacer()
-                        
+
                         // TODO: Add option to show/hide pagings with infinie scroll
                         /// Pagings
                         Menu {
-                            if let pagings = variant?.pagings.value {
+                            if let pagings = variantLoadable.value?.pagings.value {
                                 ForEach(Array(zip(pagings.indices, pagings)), id: \.1.id) { index, paging in
                                     Button {
-                                        selectedPagingId = paging.id
-                                        if let groupId = defaultSelectedGroupId, let variantId = defaultSelectedVariantId {
-                                            //                                        store.send(.view(.didTapContent(.page(groupId, variantId, paging.id))))
+                                        _selectedPagingId = paging.id
+
+                                        if let groupId = groupLoadable.value?.id, let variantId = variantLoadable.value?.id {
+                                            store.send(.view(.didTapContent(.page(groupId, variantId, paging.id))))
                                         }
                                     } label: {
                                         Text(paging.title ?? "Page \(index + 1)")
@@ -157,47 +138,49 @@ public extension ContentCore {
                                     .padding(.vertical, 6)
                                     .background(.thinMaterial, in: Capsule())
                             }
-                            
-                            if let page, let index = variant?.pagings.value?.firstIndex(where: \.id == page.id) {
-                                textView(page.title ?? "Page \(index + 1)")
+
+                            if let selectedPage = pageLoadable.value, let index = variantLoadable.value?.pagings.value?.firstIndex(where: \.id == selectedPage.id) {
+                                textView(selectedPage.title ?? "Page \(index + 1)")
                             } else {
                                 textView("Not Selected")
                             }
                         }
                         .font(.footnote.weight(.semibold))
                         .shimmering(active: !variantLoadable.didFinish)
-                        .animation(.easeInOut, value: defaultSelectedPagingId)
+                        .animation(.easeInOut, value: _selectedPagingId)
                     }
                     .frame(maxWidth: .infinity)
-                    
+                    .padding(.horizontal)
+
                     // TODO: Allow variations to also be a menu
                     ScrollView(.horizontal) {
                         HStack(spacing: 6) {
-                            if let variant {
-                                ChipView(text: variant.title)
+                            if let selectedVariant = variantLoadable.value {
+                                ChipView(text: selectedVariant.title)
                                     .background(Color.blue)
                                     .foregroundColor(.white)
                             }
-                            
-                            if let variants = group?.variants.value {
+
+                            if let variants = groupLoadable.value?.variants.value {
                                 ForEach(variants, id: \.id) { variant in
-                                    if variant.id != defaultSelectedVariantId {
+                                    if variant.id != variantLoadable.value?.id {
                                         ChipView(text: variant.title)
                                             .onTapGesture {
-                                                if let defaultSelectedGroupId {
-                                                    selectedVariantId = variant.id
-                                                    //                                                store.send(.view(.didTapContent(.variant(defaultSelectedGroupId, variant.id))))
+                                                if let groupId = groupLoadable.value?.id {
+                                                    _selectedVariantId = variant.id
+                                                    store.send(.view(.didTapContent(.variant(groupId, variant.id))))
                                                 }
                                             }
                                     }
                                 }
                             }
                         }
+                        .padding(.horizontal)
                     }
                     .font(.footnote.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .shimmering(active: !groupLoadable.didFinish)
-                    .animation(.easeInOut, value: defaultSelectedVariantId)
+                    .animation(.easeInOut, value: _selectedVariantId)
                 }
                 .frame(maxWidth: .infinity)
                 .foregroundColor(theme.textColor)
@@ -213,6 +196,16 @@ public extension ContentCore {
                             .overlay {
                                 Text("There was an error loading content.")
                                     .font(.callout.weight(.semibold))
+
+                                Button {
+//                                    viewStore.send(.view(.didTapRetry(items)))
+                                } label: {
+                                    Text("Retry")
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 6)
+                                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                }
+                                .buttonStyle(.plain)
                             }
                     } else if items.didFinish, (items.value?.count ?? 0) == 0 {
                         RoundedRectangle(cornerRadius: 12)
@@ -225,53 +218,96 @@ public extension ContentCore {
                                     .font(.callout.weight(.medium))
                             }
                     } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(alignment: .top, spacing: 12) {
-                                ForEach(items.value ?? Self.placeholderItems, id: \.id) { item in
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        FillAspectImage(url: item.thumbnail)
-                                            .aspectRatio(16 / 9, contentMode: .fit)
-                                            .cornerRadius(12)
-                                        
-                                        Spacer()
-                                            .frame(height: 8)
-                                        
-                                        Text("Episode \(item.number.withoutTrailingZeroes)")
-                                            .font(.footnote.weight(.semibold))
-                                            .foregroundColor(.init(white: 0.4))
-                                        
-                                        Spacer()
-                                            .frame(height: 4)
-                                        
-                                        Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
-                                            .font(.body.weight(.semibold))
-                                    }
-                                    .frame(width: 228)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        if let groupId = defaultSelectedGroupId,
-                                           let variantId = defaultSelectedVariantId,
-                                           let pageId = defaultSelectedPagingId {
-                                            //                                        store.send(.view(.didTapVideoItem(groupId, variantId, pageId, item.id)))
+                        ScrollViewReader { proxy in
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(alignment: .top, spacing: 12) {
+                                    ForEach(items.value ?? Self.placeholderItems, id: \.id) { item in
+                                        VStack(alignment: .leading, spacing: 0) {
+                                            FillAspectImage(url: item.thumbnail ?? viewStore.playlist.posterImage)
+                                                .aspectRatio(16 / 9, contentMode: .fit)
+                                                .cornerRadius(12)
+
+                                            Spacer()
+                                                .frame(height: 8)
+
+                                            Text(String(format: contentType.itemTypeWithNumber, item.number.withoutTrailingZeroes))
+                                                .font(.footnote.weight(.semibold))
+                                                .foregroundColor(.init(white: 0.4))
+
+                                            Spacer()
+                                                .frame(height: 4)
+
+                                            Text(item.title ?? String(format: contentType.itemTypeWithNumber, item.number.withoutTrailingZeroes))
+                                                .font(.body.weight(.semibold))
                                         }
+                                        .frame(width: 228)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            if let groupId = groupLoadable.value?.id,
+                                               let variantId = variantLoadable.value?.id,
+                                               let pageId = pageLoadable.value?.id {
+                                                store.send(.view(.didTapPlaylistItem(groupId, variantId, pageId, id: item.id)))
+                                            }
+                                        }
+                                        .id(item.id)
                                     }
+                                    .frame(maxHeight: .infinity, alignment: .top)
                                 }
-                                .frame(maxHeight: .infinity, alignment: .top)
+                                .frame(maxWidth: .infinity)
+                                .padding(.horizontal)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal)
+                            .onAppear {
+                                proxy.scrollTo(selectedItemId, anchor: .center)
+                            }
                         }
                         .frame(maxWidth: .infinity)
                         .shimmering(active: !items.didFinish)
                         .disabled(!items.didFinish)
                     }
                 }
-                .animation(.easeInOut, value: defaultSelectedGroupId)
-                .animation(.easeInOut, value: defaultSelectedVariantId)
-                .animation(.easeInOut, value: defaultSelectedPagingId)
+                .animation(.easeInOut, value: items.didFinish)
+                .animation(.easeInOut, value: _selectedGroupId)
+                .animation(.easeInOut, value: _selectedVariantId)
+                .animation(.easeInOut, value: _selectedPagingId)
+            }
+            .onChange(of: _selectedGroupId) { _ in
+                _selectedVariantId = nil
+                _selectedPagingId = nil
+            }
+            .onChange(of: _selectedVariantId) { _ in
+                _selectedPagingId = nil
             }
         }
     }
+}
+
+extension ContentCore.View {
+    static let placeholderItems = [
+        Playlist.Item(
+            id: "/1",
+            title: "Placeholder",
+            description: "Placeholder",
+            number: 1,
+            timestamp: "May 12, 2023",
+            tags: []
+        ),
+        Playlist.Item(
+            id: "/2",
+            title: "Placeholder",
+            description: "Placeholder",
+            number: 2,
+            timestamp: "May 12, 2023",
+            tags: []
+        ),
+        Playlist.Item(
+            id: "/3",
+            title: "Placeholder",
+            description: "Placeholder",
+            number: 3,
+            timestamp: "May 12, 2023",
+            tags: []
+        )
+    ]
 }
 
 @MainActor
@@ -284,7 +320,6 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
         LazyVStack(alignment: .leading, spacing: 12) {
             label()
                 .font(.title3.bold())
-                .padding(.horizontal)
             content()
         }
         .frame(maxWidth: .infinity)
@@ -312,12 +347,46 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
     }
 }
 
+// TODO: Move these to translatable content
+
+private extension Playlist.PlaylistType {
+    var multiGroupsDefaultTitle: String {
+        switch self {
+        case .video:
+            "Season %@"
+        case .image, .text:
+            "Volume %@"
+        }
+    }
+
+    var oneGroupDefaultTitle: String {
+        switch self {
+        case .video:
+            "Episodes"
+        case .image, .text:
+            "Chapters"
+        }
+    }
+
+    var itemTypeWithNumber: String {
+        switch self {
+        case .video:
+            "Episode %@"
+        case .image, .text:
+            "Chanpter %@"
+        }
+    }
+}
+
 // MARK: - ContentListingView_Previews
 
 #Preview {
     ContentCore.View(
         store: .init(
-            initialState: .pending,
+            initialState: .init(
+                repoModuleId: Repo().id(.init("")),
+                playlist: .empty
+            ),
             reducer: { EmptyReducer() }
         )
     )

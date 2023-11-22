@@ -30,7 +30,7 @@ public extension RepoClient {
 
         var canRestartDownload: Bool {
             switch self {
-            case .failed:
+            case .failed, .installed:
                 true
             default:
                 false

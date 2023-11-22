@@ -14,6 +14,7 @@ import SharedModels
 
 public struct ModuleListsFeature: Feature {
     public struct State: FeatureState {
+        // TODO: Set as loadable
         public var repos: [Repo]
         public var selected: ModuleSelectable?
 
@@ -41,7 +42,7 @@ public struct ModuleListsFeature: Feature {
 
     public enum Action: FeatureAction {
         public enum ViewAction: SendableAction {
-            case didAppear
+            case onTask
             case didSelectModule(Repo.ID, Module.ID)
         }
 

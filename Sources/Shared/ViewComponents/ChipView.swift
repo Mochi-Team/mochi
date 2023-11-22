@@ -16,7 +16,7 @@ public struct ChipView<Accessory: View, Background: ShapeStyle>: View {
     let background: () -> Background
 
     public init(
-        accessory: @escaping () -> Accessory,
+        @ViewBuilder accessory: @escaping () -> Accessory,
         background: @escaping () -> Background
     ) {
         self.accessory = accessory
@@ -31,9 +31,7 @@ public struct ChipView<Accessory: View, Background: ShapeStyle>: View {
     }
 
     public func background<S: ShapeStyle>(_ style: S) -> ChipView<Accessory, S> {
-        .init(accessory: accessory) {
-            style
-        }
+        .init(accessory: accessory) { style }
     }
 }
 

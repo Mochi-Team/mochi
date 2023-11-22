@@ -10,7 +10,6 @@ import Foundation
 import JavaScriptCore
 import os
 import SharedModels
-import WebKit
 
 public extension ModuleClient {
     struct Instance {
@@ -39,7 +38,23 @@ public extension ModuleClient {
     }
 }
 
+extension ModuleClient.Instance {
+    private func reportError<R>(_ callback: @autoclosure @escaping () async throws -> R) async rethrows -> R {
+        do {
+            return try await callback()
+        } catch {
+            self.logger.error("\(error)")
+            throw error
+        }
+    }
+}
+
+/// Available SourceModule Methods
 public extension ModuleClient.Instance {
+    func searchFilters() async throws -> [SearchFilter] {
+        try await reportError(await runtime.searchFilters())
+    }
+
     func search(_ query: SearchQuery) async throws -> Paging<Playlist> {
         try await reportError(await runtime.search(query))
     }
@@ -48,14 +63,13 @@ public extension ModuleClient.Instance {
         try await reportError(await runtime.discoverListings(request))
     }
 
-    func searchFilters() async throws -> [SearchFilter] {
-        try await reportError(await runtime.searchFilters())
-    }
-
     func playlistDetails(_ id: Playlist.ID) async throws -> Playlist.Details {
         try await reportError(await runtime.playlistDetails(id))
     }
+}
 
+/// Available VideoContent Methods
+public extension ModuleClient.Instance {
     func playlistEpisodes(_ id: Playlist.ID, _ options: Playlist.ItemsRequestOptions?) async throws -> Playlist.ItemsResponse {
         try await reportError(await runtime.playlistEpisodes(id, options))
     }
@@ -66,14 +80,5 @@ public extension ModuleClient.Instance {
 
     func playlistEpisodeServer(_ request: Playlist.EpisodeServerRequest) async throws -> Playlist.EpisodeServerResponse {
         try await reportError(await runtime.playlistEpisodeServer(request))
-    }
-
-    private func reportError<R>(_ callback: @autoclosure @escaping () async throws -> R) async rethrows -> R {
-        do {
-            return try await callback()
-        } catch {
-            self.logger.error("\(error)")
-            throw error
-        }
     }
 }

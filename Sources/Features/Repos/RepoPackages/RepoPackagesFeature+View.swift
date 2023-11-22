@@ -102,8 +102,8 @@ extension RepoPackagesFeature.View: View {
             }
             .buttonStyle(.materialToolbarImage)
         }
-        .onAppear {
-            store.send(.view(.didAppear))
+        .task {
+            await store.send(.view(.onTask)).finish()
         }
         .background(theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
         .transition(.move(edge: .trailing).combined(with: .opacity))

@@ -28,19 +28,19 @@ public struct SearchFeature: Feature {
         @BindingState
         public var query: String
 
-        public var repoModuleID: RepoModuleID?
+        public var repoModuleId: RepoModuleID?
         public var filters: [SearchFilter]
         public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
 
         public init(
             expandView: Bool = false,
             searchFieldFocused: Bool = false,
-            repoModuleID: RepoModuleID? = nil,
+            repoModuleId: RepoModuleID? = nil,
             query: String = "",
             filters: [SearchFilter] = [],
             items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
         ) {
-            self.repoModuleID = repoModuleID
+            self.repoModuleId = repoModuleId
             self.expandView = expandView
             self.searchFieldFocused = searchFieldFocused
             self.query = query

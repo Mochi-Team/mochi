@@ -53,6 +53,4 @@ public protocol FeatureView: View {
     associatedtype State: FeatureState
     associatedtype Action: FeatureAction
     var store: Store<State, Action> { get }
-
-    init(store: Store<State, Action>)
 }

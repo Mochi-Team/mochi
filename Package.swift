@@ -801,7 +801,6 @@ import Foundation
 struct PlayerClient: _Client {
     var dependencies: any Dependencies {
         Architecture()
-        DatabaseClient()
         ModuleClient()
         SharedModels()
         Styling()
@@ -888,7 +887,7 @@ extension _Client {
 
 struct ComposableArchitecture: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.2.0")
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.4.2")
     }
 }
 //
@@ -1075,6 +1074,7 @@ struct ContentCore: _Feature {
         LoggerClient()
         Tagged()
         ComposableArchitecture()
+        Styling()
     }
 }
 //
@@ -1450,6 +1450,7 @@ let package = Package {
     Search()
     Settings()
     VideoPlayer()
+    ContentCore()
 
     MochiApp()
 } testTargets: {

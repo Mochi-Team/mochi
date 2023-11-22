@@ -15,19 +15,18 @@ public extension ModuleListsFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .view(.didAppear):
-                return .run {
-                    await .internal(.fetchRepos(.init { try await databaseClient.fetch(.all) }))
+            case .view(.onTask):
+                return .run { send in
+                    for await items in databaseClient.observe(Request<Repo>.all) {
+                        await send(.internal(.fetchRepos(.success(items))))
+                    }
                 }
 
             case let .view(.didSelectModule(repoId, moduleId)):
                 guard let module = state.repos[id: repoId]?.modules[id: moduleId]?.manifest else {
                     break
                 }
-                return .concatenate(
-                    .send(.delegate(.selectedModule(.init(repoId: repoId, module: module)))),
-                    .run { _ in await self.dismiss() }
-                )
+                return .concatenate(.send(.delegate(.selectedModule(.init(repoId: repoId, module: module)))))
 
             case let .internal(.fetchRepos(.success(repos))):
                 state.repos = repos

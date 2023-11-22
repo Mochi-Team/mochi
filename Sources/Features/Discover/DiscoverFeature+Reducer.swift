@@ -37,8 +37,8 @@ extension DiscoverFeature {
                 guard case let .module(moduleState) = state.selected else {
                     break
                 }
-                let repoModuleID = moduleState.module.id
-                state.screens.append(.playlistDetails(.init(repoModuleID: repoModuleID, playlist: playlist)))
+                let repoModuleId = moduleState.module.id
+                state.screens.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
 
             case let .internal(.selectedModule(selection)):
                 if let selection {
@@ -58,10 +58,11 @@ extension DiscoverFeature {
                 }
 
             case let .internal(.moduleLists(.presented(.delegate(.selectedModule(repoModule))))):
+                state.moduleLists = nil
                 return .send(.internal(.selectedModule(repoModule)))
 
-            case let .internal(.search(.delegate(.playlistTapped(repoModuleID, playlist)))):
-                state.screens.append(.playlistDetails(.init(repoModuleID: repoModuleID, playlist: playlist)))
+            case let .internal(.search(.delegate(.playlistTapped(repoModuleId, playlist)))):
+                state.screens.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
 
             case .internal(.search):
                 break
@@ -69,19 +70,20 @@ extension DiscoverFeature {
             case .internal(.moduleLists):
                 break
 
-//            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, paging, itemId)))))):
-//                return .send(
-//                    .delegate(
-//                        .playbackVideoItem(
-//                            items,
-//                            repoModuleID: id,
-//                            playlist: playlist,
-//                            group: group,
-//                            paging: paging,
-//                            itemId: itemId
-//                        )
-//                    )
-//                )
+            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, variant, paging, itemId)))))):
+                return .send(
+                    .delegate(
+                        .playbackVideoItem(
+                            items,
+                            repoModuleId: id,
+                            playlist: playlist,
+                            group: group,
+                            variant: variant,
+                            paging: paging,
+                            itemId: itemId
+                        )
+                    )
+                )
 
             case .internal(.screens):
                 break

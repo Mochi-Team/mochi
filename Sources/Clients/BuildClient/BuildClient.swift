@@ -13,8 +13,8 @@ import Semver
 // MARK: - BuildClient
 
 public struct BuildClient {
-    public let version: Semver
-    public let buildNumber: Int
+    public var version: Semver
+    public var buildNumber: Int
 }
 
 // MARK: TestDependencyKey

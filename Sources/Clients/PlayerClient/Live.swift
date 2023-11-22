@@ -29,8 +29,9 @@ extension PlayerClient: DependencyKey {
             seek: { @MainActor progress in await impl.seek(to: progress) },
             volume: { @MainActor volume in await impl.volume(to: volume) },
             clear: { @MainActor in await impl.clear() },
-            status: { @MainActor in impl.status() },
-            player: impl.player
+            get: { impl.status() },
+            observe: { impl.observe() },
+            player:  { impl.player }
         )
     }()
 }
@@ -124,8 +125,11 @@ private class InternalPlayer {
         nowPlaying.clear()
     }
 
-    @MainActor
-    func status() -> AsyncStream<PlayerClient.Status> {
+    func status() -> PlayerClient.Status {
+        .idle
+    }
+
+    func observe() -> AsyncStream<PlayerClient.Status> {
         .finished
     }
 }

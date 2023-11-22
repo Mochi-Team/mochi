@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import DatabaseClient
+import ModuleClient
 import RepoClient
 import Semver
 import SharedModels
@@ -22,6 +23,9 @@ import ViewComponents
 public struct RepoPackagesFeature: Feature {
     @Dependency(\.dismiss)
     var dismiss
+
+    @Dependency(\.moduleClient)
+    var moduleClient
 
     @Dependency(\.repoClient)
     var repoClient
@@ -63,7 +67,7 @@ public extension RepoPackagesFeature {
         case delegate(DelegateAction)
 
         public enum ViewAction: SendableAction {
-            case didAppear
+            case onTask
             case didTapClose
             case didTapToRefreshRepo
             case didTapAddModule(Module.ID)
@@ -71,13 +75,13 @@ public extension RepoPackagesFeature {
         }
 
         public enum InternalAction: SendableAction {
+            case delayDeletingModule(id: Module.ID)
+            case updateRepo(Repo?)
             case repoModules(Loadable<[Module.Manifest]>)
             case downloadStates([Module.ID: RepoClient.RepoModuleDownloadState])
         }
 
-        public enum DelegateAction: SendableAction {
-            case removeModule(RepoModuleID)
-        }
+        public enum DelegateAction: SendableAction {}
     }
 }
 

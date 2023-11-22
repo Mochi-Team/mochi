@@ -21,7 +21,8 @@ extension ModuleClient: DependencyKey {
         return Self(
             initialize: cached.initialize,
             getModule: cached.getCached,
-            removeModule: cached.removeModule
+            removeCachedModule: cached.removeModule,
+            removeCachedModules: cached.removeModules
         )
     }()
 }
@@ -53,6 +54,7 @@ private actor ModulesCache {
         defer { semaphore.signal() }
 
         // TODO: Check if the module is cached already & validate version & file hash or reload
+
         if let instance = cached[id] {
             return instance
         }
@@ -73,5 +75,15 @@ private actor ModulesCache {
         try await semaphore.waitUnlessCancelled()
         defer { semaphore.signal() }
         self.cached[id] = nil
+    }
+
+    @Sendable
+    func removeModules(id: Repo.ID) async throws {
+        try await semaphore.waitUnlessCancelled()
+        defer { semaphore.signal() }
+
+        for key in cached.keys where key.repoId == id {
+            cached[key] = nil
+        }
     }
 }

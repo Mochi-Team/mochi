@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import Foundation
+import ModuleClient
 import RepoClient
 import SharedModels
 import Styling
@@ -19,6 +20,9 @@ import ViewComponents
 public struct ReposFeature: Feature {
     @Dependency(\.repoClient)
     var repoClient
+
+    @Dependency(\.moduleClient)
+    var moduleClient
 
     public init() {}
 
@@ -44,7 +48,7 @@ public struct ReposFeature: Feature {
 
     public enum Action: FeatureAction {
         public enum ViewAction: SendableAction, BindableAction {
-            case didAppear
+            case onTask
             case didTapRefreshRepos(Repo.ID? = nil)
             case didTapRepo(Repo.ID)
             case didTapAddNewRepo(RepoClient.RepoPayload)
@@ -71,7 +75,6 @@ public struct ReposFeature: Feature {
 
         @Environment(\.theme)
         var theme
-//        @EnvironmentObject var theme: ThemeManager
 
         @Dependency(\.dateFormatter)
         var dateFormatter

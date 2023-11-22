@@ -28,8 +28,8 @@ public extension Store where Action: FeatureAction {
 
 public extension Scope where ParentAction: FeatureAction {
     init<ChildState, ChildAction>(
-        state toChildState: CasePath<ParentState, ChildState>,
-        action toChildAction: CasePath<ParentAction.InternalAction, ChildAction>,
+        state toChildState: AnyCasePath<ParentState, ChildState>,
+        action toChildAction: AnyCasePath<ParentAction.InternalAction, ChildAction>,
         @ReducerBuilder<ChildState, ChildAction> child: () -> Child
     ) where ChildState == Child.State, ChildAction == Child.Action {
         self.init(
@@ -43,7 +43,7 @@ public extension Scope where ParentAction: FeatureAction {
 public extension Scope where ParentAction: FeatureAction {
     init<ChildState, ChildAction>(
         state toChildState: WritableKeyPath<ParentState, ChildState>,
-        action toChildAction: CasePath<ParentAction.InternalAction, ChildAction>,
+        action toChildAction: AnyCasePath<ParentAction.InternalAction, ChildAction>,
         @ReducerBuilder<ChildState, ChildAction> child: () -> Child
     ) where ChildState == Child.State, ChildAction == Child.Action {
         self.init(
@@ -58,7 +58,7 @@ public extension Scope where ParentAction: FeatureAction {
 public extension Reducer where Action: FeatureAction {
     func ifLet<DestinationState, DestinationAction, Destination: Reducer>(
         _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
-        action toPresentationAction: CasePath<Action.InternalAction, PresentationAction<DestinationAction>>,
+        action toPresentationAction: AnyCasePath<Action.InternalAction, PresentationAction<DestinationAction>>,
         @ReducerBuilder<DestinationState, DestinationAction> destination: () -> Destination
     ) -> _PresentationReducer<Self, Destination> where Destination.State == DestinationState, Destination.Action == DestinationAction {
         self.ifLet(
@@ -70,7 +70,7 @@ public extension Reducer where Action: FeatureAction {
 
     func ifLet<WrappedState, WrappedAction, Wrapped: Reducer>(
         _ toWrappedState: WritableKeyPath<State, WrappedState?>,
-        action toWrappedAction: CasePath<Action.InternalAction, WrappedAction>,
+        action toWrappedAction: AnyCasePath<Action.InternalAction, WrappedAction>,
         @ReducerBuilder<WrappedState, WrappedAction> then wrapped: () -> Wrapped
     ) -> _IfLetReducer<Self, Wrapped> where WrappedState == Wrapped.State, WrappedAction == Wrapped.Action {
         self.ifLet(
@@ -103,13 +103,13 @@ public extension Effect {
 /// in a reducer, specifically pullback
 ///
 public struct Case<ParentState, ParentAction, Child: Reducer>: Reducer where Child.State == ParentState {
-    public let toChildAction: CasePath<ParentAction, Child.Action>
+    public let toChildAction: AnyCasePath<ParentAction, Child.Action>
     public let child: Child
 
     // swiftformat:disable opaqueGenericParameters
     @inlinable
     public init<ChildAction>(
-        _ toChildAction: CasePath<ParentAction, ChildAction>,
+        _ toChildAction: AnyCasePath<ParentAction, ChildAction>,
         @ReducerBuilder<Child.State, Child.Action> _ child: () -> Child
     ) where ChildAction == Child.Action {
         self.toChildAction = toChildAction

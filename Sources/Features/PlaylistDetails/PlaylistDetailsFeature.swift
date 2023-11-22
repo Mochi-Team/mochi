@@ -55,10 +55,9 @@ public struct PlaylistDetailsFeature: Feature {
     }
 
     public struct State: FeatureState {
-        public let repoModuleId: RepoModuleID
-        public let playlist: Playlist
-        public var details: Loadable<Playlist.Details>
         public var content: ContentCore.State
+        public var playlist: Playlist { content.playlist }
+        public var details: Loadable<Playlist.Details>
 
         @PresentationState
         public var destination: Destination.State?
@@ -68,20 +67,16 @@ public struct PlaylistDetailsFeature: Feature {
         }
 
         public var resumableState: Resumable {
-            content.didFinish ? (content.value == nil ? .unavailable : .start) : .loading
+            content.groups.didFinish ? (content.groups.value == nil ? .unavailable : .start) : .loading
         }
 
         public init(
-            repoModuleID: RepoModuleID,
-            playlist: Playlist,
+            content: ContentCore.State,
             details: Loadable<Playlist.Details> = .pending,
-            content: ContentCore.State = .pending,
             destination: Destination.State? = nil
         ) {
-            self.repoModuleId = repoModuleID
-            self.playlist = playlist
-            self.details = details
             self.content = content
+            self.details = details
             self.destination = destination
         }
 
@@ -112,28 +107,26 @@ public struct PlaylistDetailsFeature: Feature {
 
     public enum Action: FeatureAction {
         public enum ViewAction: SendableAction, BindableAction {
-            case didAppear
+            case onTask
             case didTappedBackButton
             case didTapToRetryDetails
             case didTapOnReadMore
-            case didTapContentGroup(Playlist.Group.ID)
-            case didTapContentGroupPage(Playlist.Group.ID, Playlist.Group.Variant.ID)
-            case didTapVideoItem(Playlist.Group.ID, Playlist.Group.Variant.ID, Playlist.Item.ID)
             case binding(BindingAction<State>)
         }
 
         public enum DelegateAction: SendableAction {
             case playbackVideoItem(
                 Playlist.ItemsResponse,
-                repoModuleID: RepoModuleID,
+                repoModuleId: RepoModuleID,
                 playlist: Playlist,
                 group: Playlist.Group.ID,
-                paging: Playlist.Group.Variant.ID,
+                variant: Playlist.Group.Variant.ID,
+                paging: PagingID,
                 itemId: Playlist.Item.ID
             )
         }
 
-        public enum InternalAction: SendableAction, ContentAction {
+        public enum InternalAction: SendableAction {
             case playlistDetailsResponse(Loadable<Playlist.Details>)
             case content(ContentCore.Action)
             case destination(PresentationAction<Destination.Action>)

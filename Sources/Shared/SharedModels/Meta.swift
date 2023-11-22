@@ -50,14 +50,14 @@ extension DiscoverListing {
 
 public extension DiscoverListing {
     struct Request: Sendable, Codable {
-        public let listingID: DiscoverListing.ID
+        public let listingId: DiscoverListing.ID
         public let page: PagingID
 
         public init(
-            listingID: DiscoverListing.ID,
+            listingId: DiscoverListing.ID,
             page: PagingID
         ) {
-            self.listingID = listingID
+            self.listingId = listingId
             self.page = page
         }
     }

@@ -47,21 +47,16 @@ public struct DiscoverFeature: Feature {
     public struct Screens: Reducer {
         public enum State: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.State)
-//            case playlistItems
         }
 
         public enum Action: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.Action)
-//            case playlistItems
         }
 
         public var body: some ReducerOf<Self> {
             Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
                 PlaylistDetailsFeature()
             }
-
-//            Scope(state: State.playlistItems, action: /Action.playlistItems) {
-//            }
         }
     }
 
@@ -128,10 +123,11 @@ public struct DiscoverFeature: Feature {
         public enum DelegateAction: SendableAction {
             case playbackVideoItem(
                 Playlist.ItemsResponse,
-                repoModuleID: RepoModuleID,
+                repoModuleId: RepoModuleID,
                 playlist: Playlist,
-                group: Playlist.Group,
-                paging: Playlist.Group.Variant.ID,
+                group: Playlist.Group.ID,
+                variant: Playlist.Group.Variant.ID,
+                paging: PagingID,
                 itemId: Playlist.Item.ID
             )
         }
@@ -177,5 +173,12 @@ public extension DiscoverFeature.State {
 
     mutating func collapseSearch() -> Effect<DiscoverFeature.Action> {
         search.collapse().map { .internal(.search($0)) }
+    }
+
+    mutating func collapseAndClearSearch() -> Effect<DiscoverFeature.Action> {
+        .concatenate(
+            search.collapse().map { .internal(.search($0)) },
+            search.clearQuery().map { .internal(.search($0)) }
+        )
     }
 }

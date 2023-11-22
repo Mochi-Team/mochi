@@ -8,9 +8,16 @@
 import CoreData
 import Foundation
 
+protocol _Request {
+    associatedtype SomeEntity: Entity
+    var fetchLimit: Int? { get set }
+    var predicate: NSPredicate? { get set }
+    var sortDescriptors: [SortDescriptor] { get set }
+}
+
 // MARK: - Request
 
-public struct Request<SomeEntity: Entity> {
+public struct Request<SomeEntity: Entity>: _Request {
     var fetchLimit: Int?
     var predicate: NSPredicate?
     var sortDescriptors: [SortDescriptor] = []

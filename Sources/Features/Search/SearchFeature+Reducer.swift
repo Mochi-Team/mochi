@@ -37,7 +37,7 @@ extension SearchFeature: Reducer {
                     break
                 }
 
-                guard let selected = state.repoModuleID else {
+                guard let selected = state.repoModuleId else {
                     break
                 }
 
@@ -80,13 +80,13 @@ extension SearchFeature: Reducer {
                 return state.clearQuery()
 
             case let .view(.didTapPlaylist(playlist)):
-                if let repoModuleID = state.repoModuleID {
+                if let repoModuleId = state.repoModuleId {
                     state.searchFieldFocused = false
-                    return .send(.delegate(.playlistTapped(repoModuleID, playlist)))
+                    return .send(.delegate(.playlistTapped(repoModuleId, playlist)))
                 }
 
             case .view(.binding(\.$query)):
-                guard let selected = state.repoModuleID else {
+                guard let selected = state.repoModuleId else {
                     state.items = .pending
                     return .cancel(id: Cancellables.fetchingItemsDebounce)
                 }
@@ -168,8 +168,8 @@ public extension SearchFeature.State {
         return .cancel(id: Cancellables.fetchingItemsDebounce)
     }
 
-    mutating func updateModule(with repoModuleID: RepoModuleID?) -> Effect<SearchFeature.Action> {
-        self.repoModuleID = repoModuleID
+    mutating func updateModule(with repoModuleId: RepoModuleID?) -> Effect<SearchFeature.Action> {
+        self.repoModuleId = repoModuleId
         return clearQuery()
     }
 }

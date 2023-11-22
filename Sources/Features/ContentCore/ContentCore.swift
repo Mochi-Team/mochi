@@ -24,17 +24,54 @@ private enum Cancellable: Hashable, CaseIterable {
 
 // MARK: - ContentCore
 
-public struct ContentCore: Reducer {
-    public typealias State = Loadable<[Playlist.Group]>
+public struct ContentCore: Feature {
+    public struct State: FeatureState {
+        public var repoModuleId: RepoModuleID
+        public var playlist: Playlist
+        public var groups: Loadable<[Playlist.Group]>
 
-    public enum Action: Equatable, Sendable {
-        case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
+        public init(
+            repoModuleId: RepoModuleID,
+            playlist: Playlist,
+            groups: Loadable<[Playlist.Group]> = .pending
+        ) {
+            self.repoModuleId = repoModuleId
+            self.playlist = playlist
+            self.groups = groups
+        }
+    }
+
+    public enum Action: FeatureAction {
+        public enum ViewAction: SendableAction {
+            case didTapContent(Playlist.ItemsRequestOptions)
+            case didTapPlaylistItem(
+                Playlist.Group.ID,
+                Playlist.Group.Variant.ID,
+                PagingID,
+                id: Playlist.Item.ID
+            )
+        }
+
+        public enum DelegateAction: SendableAction {
+            case didTapPlaylistItem(
+                Playlist.Group.ID,
+                Playlist.Group.Variant.ID,
+                PagingID,
+                id: Playlist.Item.ID
+            )
+        }
+
+        public enum InternalAction: SendableAction {
+            case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
+        }
+
+        case view(ViewAction)
+        case delegate(DelegateAction)
+        case `internal`(InternalAction)
     }
 
     public enum Error: Swift.Error, Equatable, Sendable {
-        case wrongResponseType(expected: String, got: String)
         case contentNotFound
-        case variantsNotFound(for: Playlist.Group.ID)
     }
 
     public init() {}
@@ -42,42 +79,122 @@ public struct ContentCore: Reducer {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case let .update(option, response):
-                state.update(option, response)
+            case let .view(.didTapContent(option)):
+                return state.fetchContent(option)
+
+            case let .view(.didTapPlaylistItem(groupId, variantId, pageId, itemId)):
+                return .send(.delegate(.didTapPlaylistItem(groupId, variantId, pageId, id: itemId)))
+
+            case let .internal(.update(option, response)):
+                guard case var .loaded(value) = state.groups, let option, var group = value[id: option.groupId] else {
+                    state.groups = response.flatMap { .loaded($0) }
+                    break
+                }
+
+                let variantsResponse = response
+                    .flatMap { .init(expected: $0[id: group.id]) }
+                    .flatMap { .init(expected: $0.variants.value) }
+
+                if case .group = option {
+                    group = .init(
+                        id: group.id,
+                        number: group.number,
+                        altTitle: group.altTitle,
+                        variants: variantsResponse
+                    )
+                } else if let variantId = option.variantId {
+                    let pagingsResponse = variantsResponse
+                        .flatMap { .init(expected: $0[id: variantId]) }
+                        .flatMap { .init(expected: $0.pagings.value) }
+
+                    if let pageId = option.pagingId {
+                        // Update page's items
+                        group = .init(
+                            id: group.id,
+                            number: group.number,
+                            altTitle: group.altTitle,
+                            variants: group.variants.map { variants in
+                                var variants = variants
+
+                                variants[id: variantId] = variants[id: variantId].flatMap { variant in
+                                    .init(
+                                        id: variant.id,
+                                        title: variant.title,
+                                        pagings: variant.pagings.map { pagings in
+                                            var pagings = pagings
+
+                                            pagings[id: pageId] = pagings[id: pageId].flatMap { page in
+                                                .init(
+                                                    id: page.id,
+                                                    previousPage: page.previousPage,
+                                                    nextPage: page.nextPage,
+                                                    title: page.title,
+                                                    items: pagingsResponse
+                                                        .flatMap { .init(expected: $0[id: page.id]) }
+                                                        .flatMap { .init(expected: $0.items.value) }
+                                                )
+                                            }
+
+                                            return pagings
+                                        }
+                                    )
+                                }
+                                return variants
+                            }
+                        )
+                    } else {
+                        group = .init(
+                            id: group.id,
+                            number: group.number,
+                            altTitle: group.altTitle,
+                            variants: group.variants.map { variants in
+                                var variants = variants
+
+                                variants[id: variantId] = variants[id: variantId]
+                                    .flatMap { .init(id: $0.id, title: $0.title, pagings: pagingsResponse) }
+
+                                return variants
+                            }
+                        )
+                    }
+                }
+                value[id: option.groupId] = group
+                state.groups = .loaded(value)
+
+            case .view:
+                break
+
+            case .delegate:
+                break
             }
             return .none
         }
     }
 }
 
-// MARK: - ContentAction
-
-public protocol ContentAction {
-    static func content(_: ContentCore.Action) -> Self
-}
-
 public extension ContentCore.State {
-    mutating func clear<Action: FeatureAction>() -> Effect<Action> where Action.InternalAction: ContentAction {
-        self = .pending
+    mutating func clear<Action: FeatureAction>() -> Effect<Action> {
+        self.groups = .pending
         return .merge(.cancel(id: Cancellable.fetchContent))
     }
 
-    mutating func fetchPlaylistContentIfNecessary<Action: FeatureAction>(
-        _ repoModuleId: RepoModuleID,
-        _ playlistId: Playlist.ID,
+    mutating func fetchContent(
         _ option: Playlist.ItemsRequestOptions? = nil,
         forced: Bool = false
-    ) -> Effect<Action> where Action.InternalAction: ContentAction {
+    ) -> Effect<ContentCore.Action> {
         @Dependency(\.moduleClient)
         var moduleClient
 
         @Dependency(\.logger)
         var logger
 
-        // FIXME: Force should modify the respective group/variant/paging
+        let playlistId = self.playlist.id
+        let repoModuleId = self.repoModuleId
 
-        if forced || !hasInitialized {
-            self = .loading
+        // TODO: Force should modify the respective group/variant/paging
+
+        if forced || !groups.hasInitialized {
+            groups = .loading
         }
 
         return .run { send in
@@ -86,120 +203,57 @@ public extension ContentCore.State {
                     try await module.playlistEpisodes(playlistId, option)
                 }
 
-                await send(.internal(.content(.update(option: option, .loaded(value)))))
+                await send(.internal(.update(option: option, .loaded(value))))
             }
         } catch: { error, send in
             logger.error("\(#function) - \(error)")
-            await send(.internal(.content(.update(option: option, .failed(error)))))
+            await send(.internal(.update(option: option, .failed(error))))
         }
     }
 }
 
-private extension ContentCore.State {
-    init(_ response: Playlist.ItemsResponse) {
-        if case let .groups(array) = response {
-            self = .loaded(array)
-        } else {
-            self = .failed(
-                ContentCore.Error.wrongResponseType(
-                    expected: String(describing: Playlist.ItemsResponse.groups.self),
-                    got: String(describing: response.self)
-                )
-            )
-        }
+// MARK: Public methods for variants
+
+public extension ContentCore.State {
+    func group(id: Playlist.Group.ID) -> Loadable<Playlist.Group> {
+        groups.flatMap { .init(expected: $0[id: id]) }
     }
 
-    mutating func update(
-        _ requested: Playlist.ItemsRequestOptions?,
-        _ response: Loadable<Playlist.ItemsResponse>
-    ) {
-        guard case var .loaded(state) = self, let requested, var group = state[id: requested.groupID] else {
-            self = response.flatMap { .init($0) }
-            return
-        }
+    func variant(
+        groupId: Playlist.Group.ID,
+        variantId: Playlist.Group.Variant.ID
+    ) -> Loadable<Playlist.Group.Variant> {
+        group(id: groupId)
+            .flatMap(\.variants)
+            .flatMap { .init(expected: $0[id: variantId]) }
+    }
 
-        if case .group = requested {
-            // Requested group content updates
-            group = .init(
-                id: group.id,
-                number: group.number,
-                altTitle: group.altTitle,
-                variants: response.map(/Playlist.ItemsResponse.groups)
-                    .flatMap { groups in .init(
-                        value: groups,
-                        error: .wrongResponseType(
-                            expected: "\(Playlist.ItemsRequestOptions.self).groups",
-                            got: String(describing: groups.self))
-                        )
-                    }
-                    .flatMap { .init(value: $0?[id: requested.groupID]) }
-                    .flatMap(\.variants)
-            )
-        } else if let variantID = requested.variantID {
-            // Can only be requested if a variantID is available
-            if var variant = group.variants.flatMap({ .init(value: $0[id: variantID]) }).value {
-                if let pagingID = requested.pagingID {
-                    // Requested paging items update
-                    variant = .init(
-                        id: variant.id,
-                        title: variant.title,
-                        icon: variant.icon,
-                        pagings: variant.pagings.map { pagings in
-                            var pagings = pagings
-                            var page = pagings[id: pagingID]
+    func page(
+        groupId: Playlist.Group.ID,
+        variantId: Playlist.Group.Variant.ID,
+        pageId: PagingID
+    ) -> Loadable<Playlist.Group.Variant.Pagings.Element> {
+        variant(groupId: groupId, variantId: variantId)
+            .flatMap(\.pagings)
+            .flatMap { .init(expected: $0[id: pageId]) }
+    }
 
-                            page = page.flatMap { page in
-                                .init(
-                                    id: page.id,
-                                    previousPage: page.previousPage,
-                                    nextPage: page.nextPage,
-                                    items: response.map(/Playlist.ItemsResponse.pagings)
-                                        .flatMap { pagings in .init(
-                                            value: pagings,
-                                            error: .wrongResponseType(
-                                                expected: "\(Playlist.ItemsRequestOptions.self).pagings",
-                                                got: String(describing: pagings.self))
-                                            )
-                                        }
-                                        .flatMap { .init(value: $0[id: pagingID]) }
-                                        .map(\.items)
-                                )
-                            }
-
-                            pagings[id: pagingID] = page
-                            return pagings
-                        }
-                    )
-                } else {
-                    // Requested variant pagings update
-                    variant = .init(
-                        id: variant.id,
-                        title: variant.title,
-                        icon: variant.icon,
-                        pagings: response.map(/Playlist.ItemsResponse.variants)
-                            .flatMap { variants in .init(
-                                value: variants,
-                                error: .wrongResponseType(
-                                    expected: "\(Playlist.ItemsRequestOptions.self).variants",
-                                    got: String(describing: variants.self))
-                                )
-                            }
-                            .flatMap { .init(value: $0[id: variantID]) }
-                            .flatMap(\.pagings)
-                    )
-                }
-            }
-        } else {
-            print("Ayoo wtf is this")
-        }
-
-        state[id: requested.groupID] = group
-        self = .loaded(state)
+    func item(
+        groupId: Playlist.Group.ID,
+        variantId: Playlist.Group.Variant.ID,
+        pageId: PagingID,
+        itemId: Playlist.Item.ID
+    ) -> Loadable<Playlist.Item> {
+        page(groupId: groupId, variantId: variantId, pageId: pageId)
+            .flatMap(\.items)
+            .flatMap { .init(expected: $0[id: itemId]) }
     }
 }
+
+// MARK: Helpers
 
 private extension Playlist.ItemsRequestOptions {
-    var groupID: Playlist.Group.ID {
+    var groupId: Playlist.Group.ID {
         switch self {
         case let .group(id):
             id
@@ -210,18 +264,18 @@ private extension Playlist.ItemsRequestOptions {
         }
     }
 
-    var variantID: Playlist.Group.Variant.ID? {
+    var variantId: Playlist.Group.Variant.ID? {
         switch self {
+        case .group:
+            nil
         case let .variant(_, id):
             id
         case let .page(_, id, _):
             id
-        default:
-            nil
         }
     }
 
-    var pagingID: PagingID? {
+    var pagingId: PagingID? {
         switch self {
         case let .page(_, _, id):
             id
@@ -231,12 +285,12 @@ private extension Playlist.ItemsRequestOptions {
     }
 }
 
-private extension Loadable {
-    init(value: T?, error: ContentCore.Error = .contentNotFound) {
+extension Loadable {
+    init(expected value: T?) {
         if let value {
             self = .loaded(value)
         } else {
-            self = .failed(error)
+            self = .failed(ContentCore.Error.contentNotFound)
         }
     }
 }

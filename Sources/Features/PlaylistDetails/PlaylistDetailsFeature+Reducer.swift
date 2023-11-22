@@ -36,15 +36,11 @@ extension PlaylistDetailsFeature {
 
         Reduce { state, action in
             switch action {
-            case .view(.didAppear):
+            case .view(.onTask):
                 return state.fetchPlaylistDetails()
 
             case .view(.didTappedBackButton):
-                return .concatenate(
-                    state.content.clear(),
-                    .merge(Cancellables.allCases.map { .cancel(id: $0) }),
-                    .run { await self.dismiss() }
-                )
+                return .run { await self.dismiss() }
 
             case .view(.didTapToRetryDetails):
                 return state.fetchPlaylistDetails(forced: true)
@@ -57,38 +53,6 @@ extension PlaylistDetailsFeature {
                     )
                 )
 
-            case let .view(.didTapVideoItem(groupID, variantID, itemId)):
-                guard state.content.value != nil else {
-                    break
-                }
-
-//                return .send(
-//                    .delegate(
-//                        .playbackVideoItem(
-//                            .init(contents: [], allGroups: []),
-//                            repoModuleID: state.repoModuleId,
-//                            playlist: state.playlist,
-//                            group: group,
-//                            paging: page,
-//                            itemId: itemId
-//                        )
-//                    )
-//                )
-
-            case let .view(.didTapContentGroup(id)):
-                return state.content.fetchPlaylistContentIfNecessary(
-                    state.repoModuleId,
-                    state.playlist.id,
-                    .group(id)
-                )
-
-            case let .view(.didTapContentGroupPage(groupID, variantID)):
-                return state.content.fetchPlaylistContentIfNecessary(
-                    state.repoModuleId,
-                    state.playlist.id,
-                    .variant(groupID, variantID)
-                )
-
             case .view(.binding):
                 break
 
@@ -97,6 +61,30 @@ extension PlaylistDetailsFeature {
 
             case let .internal(.playlistDetailsResponse(loadable)):
                 state.details = loadable
+
+            case let .internal(.content(.delegate(.didTapPlaylistItem(groupId, variantId, pageId, itemId)))):
+                guard state.content.groups.value != nil else {
+                    break
+                }
+
+                switch state.content.playlist.type {
+                case .video:
+                    return .send(
+                        .delegate(
+                            .playbackVideoItem(
+                                .init(),
+                                repoModuleId: state.content.repoModuleId,
+                                playlist: state.content.playlist,
+                                group: groupId,
+                                variant: variantId,
+                                paging: pageId,
+                                itemId: itemId
+                            )
+                        )
+                    )
+                default:
+                    break
+                }
 
             case .internal(.content):
                 break
@@ -126,7 +114,7 @@ extension PlaylistDetailsFeature.State {
         var effects = [Effect<PlaylistDetailsFeature.Action>]()
 
         let playlistId = playlist.id
-        let repoModuleId = repoModuleId
+        let repoModuleId = content.repoModuleId
 
         if forced || !details.hasInitialized {
             details = .loading
@@ -147,7 +135,7 @@ extension PlaylistDetailsFeature.State {
             )
         }
 
-        effects.append(content.fetchPlaylistContentIfNecessary(repoModuleId, playlistId, forced: forced))
+        effects.append(content.fetchContent(forced: forced).map { .internal(.content($0)) })
         return .merge(effects)
     }
 }

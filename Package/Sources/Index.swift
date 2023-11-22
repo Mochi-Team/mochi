@@ -19,6 +19,7 @@ let package = Package {
     Search()
     Settings()
     VideoPlayer()
+    ContentCore()
 
     MochiApp()
 } testTargets: {

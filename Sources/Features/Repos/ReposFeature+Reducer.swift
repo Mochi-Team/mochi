@@ -34,8 +34,12 @@ extension ReposFeature {
 
         Reduce { state, action in
             switch action {
-            case .view(.didAppear):
-                return state.refreshRepos()
+            case .view(.onTask):
+                return .run { send in
+                    for await value in repoClient.repos(.all) {
+                        await send(.internal(.loadRepos(value)))
+                    }
+                }
 
             case .view(.didTapRefreshRepos):
                 break
@@ -44,20 +48,16 @@ extension ReposFeature {
                 state.url = ""
                 state.searchedRepo = .pending
 
-                return .concatenate(
-                    .run { [repoPayload] in
-                        try await repoClient.addRepo(repoPayload)
-                    },
-                    state.refreshRepos()
-                )
+                return .run { try await repoClient.addRepo(repoPayload) }
 
             case let .view(.didTapDeleteRepo(repoId)):
                 return .merge(
                     .run { _ in
                         try await Task.sleep(nanoseconds: 1_000_000 * 500)
-                        try await repoClient.removeRepo(repoId)
+                        try await repoClient.deleteRepo(repoId)
                     },
-                    .cancel(id: Cancellables.fetchRemoteRepoModules(repoId))
+                    .cancel(id: Cancellables.fetchRemoteRepoModules(repoId)),
+                    .run { try await moduleClient.removeCachedModules(repoId) }
                 )
 
             case let .view(.didTapRepo(repoId)):
@@ -77,15 +77,7 @@ extension ReposFeature {
                 return .run { send in
                     try await withTaskCancellation(id: Cancellables.repoURLDebounce, cancelInFlight: true) {
                         try await Task.sleep(nanoseconds: 1_000_000 * 1_250)
-                        try await send(
-                            .internal(
-                                .validateRepoURL(
-                                    .loaded(
-                                        repoClient.validate(url)
-                                    )
-                                )
-                            )
-                        )
+                        try await send(.internal(.validateRepoURL(.loaded(repoClient.validate(url)))))
                     }
                 } catch: { error, send in
                     print(error)
@@ -101,11 +93,8 @@ extension ReposFeature {
             case let .internal(.loadRepos(repos)):
                 state.repos = .init(uniqueElements: repos)
 
-            case let .internal(.path(.element(_, .delegate(delegateAction)))):
-                switch delegateAction {
-                case let .removeModule(repoModuleID):
-                    state.repos[id: repoModuleID.repoId]?.modules[id: repoModuleID.moduleId] = nil
-                }
+            case .internal(.path(.element(_, .delegate))):
+                break
 
             case .internal(.path):
                 break
@@ -117,19 +106,6 @@ extension ReposFeature {
         }
         .forEach(\.path, action: /Action.internal .. Action.InternalAction.path) {
             RepoPackagesFeature()
-        }
-    }
-}
-
-extension ReposFeature.State {
-    func refreshRepos() -> Effect<ReposFeature.Action> {
-        @Dependency(\.repoClient)
-        var repoClient
-
-        return .run { send in
-            try await withTaskCancellation(id: ReposFeature.Cancellables.loadRepos, cancelInFlight: true) {
-                try await send(.internal(.loadRepos(repoClient.repos(.all))))
-            }
         }
     }
 }

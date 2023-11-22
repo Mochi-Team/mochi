@@ -103,9 +103,7 @@ extension PlaylistDetailsFeature.View: View {
             }
             .menuStyle(.materialToolbarImage)
         }
-        .onAppear {
-            store.send(.view(.didAppear))
-        }
+        .task { await store.send(.view(.onTask)).finish() }
         .sheet(
             store: store.scope(
                 state: \.$destination,
@@ -328,217 +326,13 @@ extension PlaylistDetailsFeature.View {
                 }
             }
 
-            switch playlistInfo.type {
-            case .video:
-                EmptyView()
-//                PlaylistVideoContentView(
-//                    store: store.scope(
-//                        state: \.content,
-//                        action: { $0 }
-//                    ),
-//                    playlistInfo: playlistInfo
-//                )
-            case .image:
-                EmptyView()
-            case .text:
-                EmptyView()
-            }
-        }
-    }
-}
-
-@MainActor
-private struct PlaylistVideoContentView: View {
-    let store: Store<ContentCore.State, PlaylistDetailsFeature.Action>
-    let playlistInfo: PlaylistInfo
-
-    @State
-    private var selectedGroupID: Playlist.Group.ID?
-
-    @State
-    private var selectedPage: Playlist.Group.Variant.ID?
-
-    private static let placeholderItems = [
-        Playlist.Item(
-            id: "/1",
-            title: "Placeholder",
-            description: "Placeholder",
-            number: 1,
-            timestamp: "May 12, 2023",
-            tags: []
-        ),
-        Playlist.Item(
-            id: "/2",
-            title: "Placeholder",
-            description: "Placeholder",
-            number: 2,
-            timestamp: "May 12, 2023",
-            tags: []
-        ),
-        Playlist.Item(
-            id: "/3",
-            title: "Placeholder",
-            description: "Placeholder",
-            number: 3,
-            timestamp: "May 12, 2023",
-            tags: []
-        )
-    ]
-
-    @MainActor
-    var body: some View {
-        WithViewStore(store, observe: \.`self`) { viewStore in
-//            let defaultSelectedGroupID = selectedGroupID ?? viewStore.value.flatMap(\.first?.id)
-
-//            let group = viewStore.state.map { groups in
-//                defaultSelectedGroupID.flatMap { groups[id: $0] } ?? groups.first ?? .failed(ContentCore.Error.contentNotFound)
-//            }
-
-//            let defaultSelectedGroup = selectedGroup ?? viewStore.state.value.flatMap(\.keys.first)
-
-//            let group = viewStore.state.flatMap { groups in
-//                defaultSelectedGroup.flatMap { groups[$0] } ?? groups.values.first ?? .loaded([:])
-//            }
-
-//            let defaultSelectedPage = selectedPage ?? group.value.flatMap(\.keys.first)
-//
-//            let page = group.flatMap { pages in
-//                defaultSelectedPage.flatMap { pages[$0] } ?? pages.values.first ?? .loaded(.init(id: ""))
-//            }
-
-//            HeaderWithContent {
-//                HStack {
-//                    if let value = viewStore.state.value, value.keys.count > 1 {
-//                        Menu {
-//                            ForEach(value.keys, id: \.self) { group in
-//                                Button {
-//                                    selectedGroup = group
-//                                    viewStore.send(.didTapContentGroup(group))
-//                                } label: {
-//                                    Text(group.altTitle ?? "Group \(group.id.withoutTrailingZeroes)")
-//                                }
-//                            }
-//                        } label: {
-//                            HStack {
-//                                if let group = defaultSelectedGroup {
-//                                    Text(group.altTitle ?? "Group \(group.id.withoutTrailingZeroes)")
-//                                } else {
-//                                    Text("Episodes")
-//                                }
-//
-//                                if (viewStore.value?.count ?? 0) > 1 {
-//                                    Image(systemName: "chevron.down")
-//                                        .font(.footnote.weight(.bold))
-//                                }
-//                            }
-//                            .foregroundColor(.label)
-//                        }
-//                    } else {
-//                        Text(defaultSelectedGroup?.altTitle ?? "Episodes")
-//                    }
-//
-//                    Spacer()
-//
-//                    if let pages = group.value, pages.keys.count > 1 {
-//                        Menu {
-//                            ForEach(pages.keys, id: \.id) { page in
-//                                Button {
-//                                    selectedPage = page
-//                                    if let defaultSelectedGroup {
-//                                        viewStore.send(.didTapContentGroupPage(defaultSelectedGroup, page))
-//                                    }
-//                                } label: {
-//                                    Text(page.displayName)
-//                                }
-//                            }
-//                        } label: {
-//                            HStack {
-//                                Text(defaultSelectedPage?.displayName ?? "Unknown")
-//                                    .font(.system(size: 14))
-//                                Image(systemName: "chevron.down")
-//                                    .font(.footnote.weight(.semibold))
-//                            }
-//                            .foregroundColor(.label)
-//                            .padding(.horizontal, 6)
-//                            .padding(.vertical, 4)
-//                            .background {
-//                                Capsule()
-//                                    .fill(Color.gray.opacity(0.24))
-//                            }
-//                        }
-//                    }
-//                }
-//            } content: {
-//                ZStack {
-//                    if page.error != nil {
-//                        RoundedRectangle(cornerRadius: 12)
-//                            .fill(Color.red.opacity(0.16))
-//                            .padding(.horizontal)
-//                            .frame(maxWidth: .infinity)
-//                            .frame(height: 125)
-//                            .overlay {
-//                                Text("There was an error loading content.")
-//                                    .font(.callout.weight(.semibold))
-//                            }
-//                    } else if page.didFinish, (page.value?.items.count ?? 0) == 0 {
-//                        RoundedRectangle(cornerRadius: 12)
-//                            .fill(Color.gray.opacity(0.12))
-//                            .padding(.horizontal)
-//                            .frame(maxWidth: .infinity)
-//                            .frame(height: 125)
-//                            .overlay {
-//                                Text("There is no content available.")
-//                                    .font(.callout.weight(.medium))
-//                            }
-//                    } else {
-//                        ScrollView(.horizontal, showsIndicators: false) {
-//                            HStack(alignment: .top, spacing: 12) {
-//                                ForEach(page.value?.items ?? Self.placeholderItems, id: \.id) { item in
-//                                    VStack(alignment: .leading, spacing: 0) {
-//                                        FillAspectImage(url: item.thumbnail ?? playlistInfo.posterImage)
-//                                            .aspectRatio(16 / 9, contentMode: .fit)
-//                                            .cornerRadius(12)
-//
-//                                        Spacer()
-//                                            .frame(height: 8)
-//
-//                                        Text("Episode \(item.number.withoutTrailingZeroes)")
-//                                            .font(.footnote.weight(.semibold))
-//                                            .foregroundColor(.init(white: 0.4))
-//
-//                                        Spacer()
-//                                            .frame(height: 4)
-//
-//                                        Text(item.title ?? "Episode \(item.number.withoutTrailingZeroes)")
-//                                            .font(.body.weight(.semibold))
-//                                    }
-//                                    .frame(width: 228)
-//                                    .contentShape(Rectangle())
-//                                    .onTapGesture {
-//                                        if let group = defaultSelectedGroup, let page = defaultSelectedPage {
-//                                            viewStore.send(.didTapVideoItem(group, page, item.id))
-//                                        }
-//                                    }
-//                                }
-//                                .frame(maxHeight: .infinity, alignment: .top)
-//                            }
-//                            .frame(maxWidth: .infinity)
-//                            .padding(.horizontal)
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                        .shimmering(active: !page.didFinish)
-//                        .disabled(!page.didFinish)
-//                    }
-//                }
-//                .animation(.easeInOut, value: viewStore.state)
-//                .animation(.easeInOut, value: selectedGroup)
-//                .animation(.easeInOut, value: selectedPage)
-//            }
-//            .shimmering(active: !viewStore.didFinish)
-//            .disabled(!viewStore.didFinish)
-//            .onChange(of: selectedGroup) { _ in
-//                selectedPage = nil
-//            }
+            ContentCore.View(
+                store: store.scope(
+                    state: \.content,
+                    action: Action.InternalAction.content
+                ),
+                contentType: playlistInfo.type
+            )
         }
     }
 }
@@ -546,9 +340,9 @@ private struct PlaylistVideoContentView: View {
 // MARK: - HeaderWithContent
 
 @MainActor
-private struct HeaderWithContent<Label: View, Variant: View>: View {
+private struct HeaderWithContent<Label: View, Content: View>: View {
     let label: () -> Label
-    let content: () -> Variant
+    let content: () -> Content
 
     @MainActor
     var body: some View {
@@ -564,7 +358,7 @@ private struct HeaderWithContent<Label: View, Variant: View>: View {
     @MainActor
     init(
         @ViewBuilder label: @escaping () -> Label,
-        @ViewBuilder content: @escaping () -> Variant
+        @ViewBuilder content: @escaping () -> Content
     ) {
         self.label = label
         self.content = content
@@ -573,7 +367,7 @@ private struct HeaderWithContent<Label: View, Variant: View>: View {
     @MainActor
     init(
         title: String = "",
-        @ViewBuilder content: @escaping () -> Variant
+        @ViewBuilder content: @escaping () -> Content
     ) where Label == Text {
         self.init {
             Text(title)
@@ -601,8 +395,10 @@ extension PlaylistDetailsFeature.View {
     PlaylistDetailsFeature.View(
         store: .init(
             initialState: .init(
-                repoModuleID: Module().id(repoID: "/"),
-                playlist: .placeholder(0),
+                content: .init(
+                    repoModuleId: Module().id(repoID: "/"),
+                    playlist: .placeholder(0)
+                ),
                 details: .loaded(
                     .init(
                         genres: ["Action", "Thriller"],
@@ -610,13 +406,7 @@ extension PlaylistDetailsFeature.View {
                         previews: .init()
                     )
                 ),
-                content: .loaded(.init()),
-                destination: .readMore(
-                    .init(
-                        title: "This is a title",
-                        description: "This will not only elaborate on the description but also use as a screen demo."
-                    )
-                )
+                destination: nil
             ),
             reducer: { EmptyReducer() }
         )

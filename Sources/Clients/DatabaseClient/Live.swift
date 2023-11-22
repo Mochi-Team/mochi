@@ -65,6 +65,24 @@ public extension DatabaseClient {
             try await persistence.schedule { context in
                 try context.fetch(entityType, request).compactMap { try entityType.init(id: $0.objectID, context: context) }
             }
+        } observe: { entityType, request in
+            .init { continuation in
+                Task.detached {
+                    let fetchValues = {
+                        try? await persistence.schedule { ctx in
+                            try ctx.fetch(entityType, request).compactMap { try entityType.init(id: $0.objectID, context: ctx) }
+                        }
+                    }
+
+                    await continuation.yield(fetchValues() ?? [])
+
+                    let observe = NotificationCenter.default.notifications(named: NSManagedObjectContext.didSaveObjectsNotification)
+
+                    for await _ in observe {
+                        await continuation.yield(fetchValues() ?? [])
+                    }
+                }
+            }
         }
     }()
 }

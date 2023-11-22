@@ -35,6 +35,9 @@ extension AppFeature: Reducer {
                         } else if state.discover.isSearchExpanded {
                             return state.discover.collapseSearch()
                                 .map { .internal(.discover($0)) }
+                        } else if !state.discover.search.query.isEmpty {
+                            return state.discover.collapseAndClearSearch()
+                                .map { .internal(.discover($0)) }
                         }
                     case .repos:
                         state.repos.path.removeAll()
@@ -48,29 +51,30 @@ extension AppFeature: Reducer {
             case .internal(.appDelegate):
                 break
 
-//            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleID, playlist, group, paging, itemId)))):
-//                break
-//                let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
-//                    repoModuleID: repoModuleID,
-//                    playlist: playlist,
-//                    group: group,
-//                    page: paging,
-//                    episodeId: itemId
-//                )
-//                .map { Action.internal(.videoPlayer(.presented($0))) }
-//
-//                if let effect {
-//                    return effect
-//                } else {
-//                    state.videoPlayer = .init(
-//                        repoModuleID: repoModuleID,
-//                        playlist: playlist,
-//                        contents: .init(),
-//                        group: group,
-//                        page: paging,
-//                        episodeId: itemId
-//                    )
-//                }
+            case let .internal(.discover(.delegate(.playbackVideoItem(contents, repoModuleId, playlist, group, variant, paging, itemId)))):
+                let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
+                    repoModuleId: repoModuleId,
+                    playlist: playlist,
+                    groupId: group,
+                    variantId: variant,
+                    pageId: paging,
+                    episodeId: itemId
+                )
+                .map { Action.internal(.videoPlayer(.presented($0))) }
+
+                if let effect {
+                    return effect
+                } else {
+                    state.videoPlayer = .init(
+                        repoModuleId: repoModuleId,
+                        playlist: playlist,
+//                        contents: .init(contents: .init(groups: .loaded(contents))),
+                        group: group,
+                        variant: variant,
+                        page: paging,
+                        episodeId: itemId
+                    )
+                }
 
             case .internal(.discover):
                 break

@@ -17,14 +17,19 @@ import XCTestDynamicOverlay
 // MARK: - RepoClient
 
 public struct RepoClient: Sendable {
-    public let validate: @Sendable (URL) async throws -> RepoPayload
-    public let addRepo: @Sendable (RepoPayload) async throws -> Void
-    public let removeRepo: @Sendable (Repo.ID) async throws -> Void
-    public let addModule: @Sendable (Repo.ID, Module.Manifest) async -> Void
-    public let removeModule: @Sendable (Repo.ID, Module) async throws -> Void
-    public let downloads: @Sendable () -> AsyncStream<[RepoModuleID: RepoModuleDownloadState]>
-    public let repos: @Sendable (Request<Repo>) async throws -> [Repo]
-    public let fetchRemoteRepoModules: @Sendable (Repo.ID) async throws -> [Module.Manifest]
+    public var validate: @Sendable (URL) async throws -> RepoPayload
+
+    public var addRepo: @Sendable (RepoPayload) async throws -> Void
+    public var updateRepo: @Sendable (Repo) async throws -> Void
+    public var deleteRepo: @Sendable (Repo.ID) async throws -> Void
+
+    public var installModule: @Sendable (Repo.ID, Module.Manifest) -> Void
+    public var removeModule: @Sendable (RepoModuleID) async throws -> Void
+
+    public var repos: @Sendable (Request<Repo>) -> AsyncStream<[Repo]>
+
+    public var downloads: @Sendable () -> AsyncStream<[RepoModuleID: RepoModuleDownloadState]>
+    public var fetchModulesMetadata: @Sendable (Repo.ID) async throws -> [Module.Manifest]
 }
 
 // MARK: TestDependencyKey
@@ -33,12 +38,13 @@ extension RepoClient: TestDependencyKey {
     public static let testValue = Self(
         validate: unimplemented("\(Self.self).validateRepo"),
         addRepo: unimplemented("\(Self.self).addRepo"),
-        removeRepo: unimplemented("\(Self.self).removeRepo"),
-        addModule: unimplemented("\(Self.self).addModule"),
+        updateRepo: unimplemented("\(Self.self).updateRepo"),
+        deleteRepo: unimplemented("\(Self.self).deleteRepo"),
+        installModule: unimplemented("\(Self.self).addModule"),
         removeModule: unimplemented("\(Self.self).removeModule"),
-        downloads: unimplemented("\(Self.self).downloads"),
         repos: unimplemented("\(Self.self).repos"),
-        fetchRemoteRepoModules: unimplemented("\(Self.self).fetchRemoteRepoModules")
+        downloads: unimplemented("\(Self.self).downloads"),
+        fetchModulesMetadata: unimplemented("\(Self.self).fetchRemoteRepoModules")
     )
 }
 

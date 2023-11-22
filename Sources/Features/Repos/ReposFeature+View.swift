@@ -91,8 +91,8 @@ extension ReposFeature.View: View {
                 maxWidth: .infinity,
                 maxHeight: .infinity
             )
-            .onAppear {
-                store.send(.view(.didAppear))
+            .task {
+                store.send(.view(.onTask))
             }
         } destination: { store in
             RepoPackagesFeature.View(store: store)

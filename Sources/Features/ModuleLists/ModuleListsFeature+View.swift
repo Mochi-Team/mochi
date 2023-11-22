@@ -42,8 +42,8 @@ extension ModuleListsFeature.View: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .onAppear {
-                viewStore.send(.didAppear)
+            .task {
+                await viewStore.send(.onTask).finish()
             }
         }
         .frame(maxWidth: .infinity)

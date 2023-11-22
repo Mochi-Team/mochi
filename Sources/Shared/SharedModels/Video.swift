@@ -10,7 +10,7 @@ import Foundation
 import Tagged
 
 public extension Playlist {
-    struct EpisodeSourcesRequest: Sendable, Equatable, Codable {
+    struct EpisodeSourcesRequest: Sendable, Equatable, Encodable {
         public let playlistId: Playlist.ID
         public let episodeId: Playlist.Item.ID
 
@@ -23,7 +23,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeServerRequest: Sendable, Equatable, Codable {
+    struct EpisodeServerRequest: Sendable, Equatable, Encodable {
         public let playlistId: Playlist.ID
         public let episodeId: Playlist.Item.ID
         public let sourceId: EpisodeSource.ID
@@ -42,7 +42,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeSource: Sendable, Equatable, Identifiable, Codable {
+    struct EpisodeSource: Sendable, Equatable, Identifiable, Decodable {
         public let id: Tagged<Self, String>
         public let displayName: String
         public let description: String?
@@ -61,7 +61,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeServer: Sendable, Equatable, Identifiable, Codable {
+    struct EpisodeServer: Sendable, Equatable, Identifiable, Decodable {
         public let id: Tagged<Self, String>
         public let displayName: String
         public let description: String?
@@ -76,7 +76,7 @@ public extension Playlist {
             self.description = description
         }
 
-        public struct Link: Sendable, Equatable, Identifiable, Codable {
+        public struct Link: Sendable, Equatable, Identifiable, Decodable {
             public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let quality: Quality
@@ -92,48 +92,12 @@ public extension Playlist {
                 self.format = format
             }
 
-            public enum Quality: RawRepresentable, Sendable, Equatable, CustomStringConvertible, Codable {
+            public enum Quality: Int, Sendable, Equatable, CustomStringConvertible, Decodable {
                 case auto
-                case q1080
-                case q720
-                case q480
                 case q360
-                case custom(Int)
-
-                public init?(rawValue: Int) {
-                    if rawValue == Self.auto.rawValue {
-                        self = .auto
-                    } else if rawValue == Self.q1080.rawValue {
-                        self = .q1080
-                    } else if rawValue == Self.q720.rawValue {
-                        self = .q720
-                    } else if rawValue == Self.q480.rawValue {
-                        self = .q480
-                    } else if rawValue == Self.q360.rawValue {
-                        self = .q360
-                    } else if rawValue > 0 {
-                        self = .custom(rawValue)
-                    } else {
-                        return nil
-                    }
-                }
-
-                public var rawValue: Int {
-                    switch self {
-                    case .auto:
-                        Int.max
-                    case .q1080:
-                        1_080
-                    case .q720:
-                        720
-                    case .q480:
-                        480
-                    case .q360:
-                        360
-                    case let .custom(res):
-                        res
-                    }
-                }
+                case q480
+                case q720
+                case q1080
 
                 public var description: String {
                     switch self {
@@ -147,19 +111,17 @@ public extension Playlist {
                         "480p"
                     case .q360:
                         "360p"
-                    case let .custom(resolution):
-                        "\(resolution)p"
                     }
                 }
             }
 
-            public enum Format: Int32, Equatable, Sendable, Codable {
+            public enum Format: Int, Equatable, Sendable, Decodable {
                 case hls
                 case dash
             }
         }
 
-        public struct Subtitle: Sendable, Equatable, Identifiable, Codable {
+        public struct Subtitle: Sendable, Equatable, Identifiable, Decodable {
             public var id: Tagged<Self, URL> { .init(url) }
             public let url: URL
             public let name: String
@@ -181,14 +143,14 @@ public extension Playlist {
                 self.autoselect = autoselect
             }
 
-            public enum Format: Int32, Sendable, Equatable, Codable {
+            public enum Format: Int32, Sendable, Equatable, Decodable {
                 case vtt
                 case ass
                 case srt
             }
         }
 
-        public struct SkipTime: Hashable, Sendable, Codable {
+        public struct SkipTime: Hashable, Sendable, Decodable {
             public let startTime: Double
             public let endTime: Double
             public let type: SkipType
@@ -203,7 +165,7 @@ public extension Playlist {
                 self.type = type
             }
 
-            public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible, Codable {
+            public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible, Decodable {
                 case opening
                 case ending
                 case recap
@@ -222,7 +184,7 @@ public extension Playlist {
         }
     }
 
-    struct EpisodeServerResponse: Equatable, Sendable, Codable {
+    struct EpisodeServerResponse: Equatable, Sendable, Decodable {
         public let links: [Playlist.EpisodeServer.Link]
         public let subtitles: [Playlist.EpisodeServer.Subtitle]
         public let headers: [String: String]

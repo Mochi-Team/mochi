@@ -7,8 +7,9 @@
 //
 
 import Foundation
-import Tagged
 import JSValueCoder
+import OrderedCollections
+import Tagged
 
 // MARK: - Playlist
 
@@ -151,8 +152,7 @@ public extension Playlist {
 
 public extension Playlist {
 
-    // TODO: Write a codable that handles all the boilerplate when converting to JSValue
-
+    // TODO: Write a codable that handles all the boilerplate when converting associated enum to JSValue
     enum ItemsRequestOptions: Sendable, Equatable, Encodable {
         case group(Playlist.Group.ID)
         case variant(Playlist.Group.ID, Playlist.Group.Variant.ID)
@@ -171,86 +171,58 @@ public extension Playlist {
 
         enum GroupCodingKeys: JSValueEnumCodingKey {
             case type
-            case groupID
+            case groupId
         }
 
         enum VariantCodingKeys: JSValueEnumCodingKey {
             case type
-            case groupID
-            case variantID
+            case groupId
+            case variantId
         }
 
         enum PageCodingKeys: JSValueEnumCodingKey {
             case type
-            case groupID
-            case variantID
-            case pageID
+            case groupId
+            case variantId
+            case pageId
         }
 
         public func encode(to encoder: Encoder) throws {
             switch self {
-            case let .group(groupID):
+            case let .group(groupId):
                 var container = encoder.container(keyedBy: GroupCodingKeys.self)
                 try container.encode(type, forKey: .type)
-                try container.encode(groupID, forKey: .groupID)
-            case let .variant(groupID, variantID):
+                try container.encode(groupId, forKey: .groupId)
+            case let .variant(groupId, variantId):
                 var container = encoder.container(keyedBy: VariantCodingKeys.self)
                 try container.encode(type, forKey: .type)
-                try container.encode(groupID, forKey: .groupID)
-                try container.encode(variantID, forKey: .variantID)
-            case let .page(groupID, variantID, pageID):
+                try container.encode(groupId, forKey: .groupId)
+                try container.encode(variantId, forKey: .variantId)
+            case let .page(groupId, variantId, pageId):
                 var container = encoder.container(keyedBy: PageCodingKeys.self)
                 try container.encode(type, forKey: .type)
-                try container.encode(groupID, forKey: .groupID)
-                try container.encode(variantID, forKey: .variantID)
-                try container.encode(pageID, forKey: .pageID)
+                try container.encode(groupId, forKey: .groupId)
+                try container.encode(variantId, forKey: .variantId)
+                try container.encode(pageId, forKey: .pageId)
             }
         }
     }
 
-    enum ItemsResponse: Equatable, Sendable, Decodable {
-        case groups([Playlist.Group])
-        case variants([Playlist.Group.Variant])
-        case pagings([Paging<Playlist.Item>])
-
-        enum CodingKeys: CodingKey {
-            case type
-            case items
-        }
-
-        private enum ResponseType: String, Decodable {
-            case groups
-            case variants
-            case pagings
-        }
-
-        public init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-
-            let type = try container.decode(ResponseType.self, forKey: .type)
-
-            switch type {
-            case .groups:
-                self = try .groups(container.decode([Playlist.Group].self, forKey: .items))
-            case .variants:
-                self = try .variants(container.decode([Playlist.Group.Variant].self, forKey: .items))
-            case .pagings:
-                self = try .pagings(container.decode([Paging<Playlist.Item>].self, forKey: .items))
-            }
-        }
-    }
+    typealias ItemsResponse = [Playlist.Group]
 
     struct Group: Sendable, Equatable, Identifiable, Decodable {
         public let id: Tagged<Self, String>
         public let number: Double
         public let altTitle: String?
-        public let variants: Loadable<[Variant]>
+        public let variants: Loadable<Variants>
+
+        public typealias Variants = [Variant]
 
         public init(
             id: Self.ID,
             number: Double,
             altTitle: String? = nil,
-            variants: Loadable<[Variant]> = .pending
+            variants: Loadable<Variants> = .pending
         ) {
             self.id = id
             self.number = number
@@ -258,21 +230,20 @@ public extension Playlist {
             self.variants = variants
         }
 
-        public struct Variant: Equatable, Sendable, Decodable, Identifiable {
+        public struct Variant: Sendable, Equatable, Identifiable, Decodable {
             public let id: Tagged<Self, String>
             public let title: String
-            public let icon: URL?
-            public let pagings: Loadable<[LoadablePaging<Item>]>
+            public let pagings: Loadable<Pagings>
+
+            public typealias Pagings = [LoadablePaging<Playlist.Item>]
 
             public init(
                 id: Self.ID,
                 title: String,
-                icon: URL? = nil,
-                pagings: Loadable<[LoadablePaging<Item>]> = .pending
+                pagings: Loadable<Pagings> = .pending
             ) {
                 self.id = id
                 self.title = title
-                self.icon = icon
                 self.pagings = pagings
             }
         }
@@ -326,3 +297,5 @@ public extension Playlist {
         )
     }
 }
+
+extension OrderedDictionary: @unchecked Sendable where Key: Sendable, Value: Sendable {}

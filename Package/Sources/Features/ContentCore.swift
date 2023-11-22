@@ -16,5 +16,6 @@ struct ContentCore: _Feature {
         LoggerClient()
         Tagged()
         ComposableArchitecture()
+        Styling()
     }
 }

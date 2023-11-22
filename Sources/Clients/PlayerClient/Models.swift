@@ -11,6 +11,7 @@ import Foundation
 // MARK: - PlayerClient.Status
 
 public extension PlayerClient {
+    // TODO: Add metadata in the status
     enum Status: Hashable, Sendable {
         case idle
         case loading

@@ -11,7 +11,6 @@ import Foundation
 struct PlayerClient: _Client {
     var dependencies: any Dependencies {
         Architecture()
-        DatabaseClient()
         ModuleClient()
         SharedModels()
         Styling()

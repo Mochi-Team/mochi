@@ -20,28 +20,35 @@ public struct BasePaging<T> {
     public let id: PagingID
     public let previousPage: PagingID?
     public let nextPage: PagingID?
+    public let title: String?
     public let items: T
 
     public init(
         id: PagingID,
         previousPage: PagingID? = nil,
         nextPage: PagingID? = nil,
+        title: String? = nil,
         items: T
     ) {
         self.id = id
         self.previousPage = previousPage
         self.nextPage = nextPage
+        self.title = title
         self.items = items
     }
 }
 
 // MARK: - Paging
 
-public typealias Paging<Element> = BasePaging<[Element]>
+public typealias Paging<T> = BasePaging<[T]>
 
 // MARK: - LoadablePaging
 
 public typealias LoadablePaging<T> = BasePaging<Loadable<[T]>>
+
+// MARK: - OptionalPaging
+
+public typealias OptionalPaging<T> = BasePaging<[T]?>
 
 // MARK: Identifable
 

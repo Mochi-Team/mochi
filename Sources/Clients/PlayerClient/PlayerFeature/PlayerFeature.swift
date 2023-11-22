@@ -145,57 +145,57 @@ public struct PlayerFeature: Feature {
                     await withTaskCancellation(id: Cancellables.initialize) {
                         await withTaskGroup(of: Void.self) { group in
                             group.addTask {
-                                for await rate in playerClient.player.valueStream(\.rate) {
+                                for await rate in playerClient.player().valueStream(\.rate) {
                                     await send(.internal(.rate(rate)))
                                 }
                             }
 
                             group.addTask {
-                                for await time in playerClient.player.periodicTimeStream() {
+                                for await time in playerClient.player().periodicTimeStream() {
                                     await send(.internal(.progress(time)))
                                 }
                             }
 
                             group.addTask {
-                                for await time in playerClient.player.valueStream(\.currentItem?.duration) {
+                                for await time in playerClient.player().valueStream(\.currentItem?.duration) {
                                     await send(.internal(.duration(time ?? .zero)))
                                 }
                             }
 
                             group.addTask {
-                                for await status in playerClient.player.valueStream(\.status) {
+                                for await status in playerClient.player().valueStream(\.status) {
                                     await send(.internal(.status(status)))
                                 }
                             }
 
                             group.addTask {
-                                for await status in playerClient.player.valueStream(\.timeControlStatus) {
+                                for await status in playerClient.player().valueStream(\.timeControlStatus) {
                                     await send(.internal(.timeControlStatus(status)))
                                 }
                             }
 
                             group.addTask {
-                                for await empty in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferEmpty) {
+                                for await empty in playerClient.player().valueStream(\.currentItem?.isPlaybackBufferEmpty) {
                                     await send(.internal(.playbackBufferEmpty(empty ?? true)))
                                 }
                             }
 
                             group.addTask {
-                                for await full in playerClient.player.valueStream(\.currentItem?.isPlaybackBufferFull) {
+                                for await full in playerClient.player().valueStream(\.currentItem?.isPlaybackBufferFull) {
                                     await send(.internal(.playbackBufferFull(full ?? false)))
                                 }
                             }
 
                             group.addTask {
-                                for await canKeepUp in playerClient.player.valueStream(\.currentItem?.isPlaybackLikelyToKeepUp) {
+                                for await canKeepUp in playerClient.player().valueStream(\.currentItem?.isPlaybackLikelyToKeepUp) {
                                     await send(.internal(.playbackLikelyToKeepUp(canKeepUp ?? false)))
                                 }
                             }
 
                             group.addTask {
-                                for await selection in playerClient.player.valueStream(\.currentItem?.currentMediaSelection) {
+                                for await selection in playerClient.player().valueStream(\.currentItem?.currentMediaSelection) {
                                     if let selection,
-                                       let group = playerClient.player.currentItem?.asset.mediaSelectionGroup(forMediaCharacteristic: .legible),
+                                       let group = playerClient.player().currentItem?.asset.mediaSelectionGroup(forMediaCharacteristic: .legible),
                                        let option = selection.selectedMediaOption(in: group) {
                                         await send(.internal(.selectedSubtitle(option)))
                                     } else {
@@ -205,7 +205,7 @@ public struct PlayerFeature: Feature {
                             }
 
                             group.addTask {
-                                for await asset in playerClient.player.valueStream(\.currentItem?.asset) {
+                                for await asset in playerClient.player().valueStream(\.currentItem?.asset) {
                                     if let asset, let group = asset.mediaSelectionGroup(forMediaCharacteristic: .legible) {
                                         await send(.internal(.subtitles(group)))
                                     } else {
@@ -276,7 +276,7 @@ public struct PlayerFeature: Feature {
 
             case let .view(.didTapSubtitle(group, option)):
                 return .run { _ in
-                    await playerClient.player.currentItem?.select(option, in: group)
+                    await playerClient.player().currentItem?.select(option, in: group)
                 }
 
             case let .view(.didSetPiPActive(active)):
@@ -370,7 +370,7 @@ public struct PlayerFeature: Feature {
         public var body: some SwiftUI.View {
             WithViewStore(store, observe: PlayerViewState.init) { viewStore in
                 PlayerView(
-                    player: player,
+                    player: player(),
                     gravity: viewStore.gravity,
                     enablePIP: viewStore.enablePIP
                 )
