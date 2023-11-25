@@ -104,7 +104,7 @@ extension ReposFeature {
             }
             return .none
         }
-        .forEach(\.path, action: /Action.internal .. Action.InternalAction.path) {
+        .forEach(\.path, action: \.internal.path) {
             RepoPackagesFeature()
         }
     }

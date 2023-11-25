@@ -6,7 +6,6 @@
 //  Copyright © 2023. All rights reserved.
 //
 
-@preconcurrency
 import AVFoundation
 import Dependencies
 import Foundation
@@ -21,10 +20,15 @@ public struct PlayerClient: Sendable {
     public var pause: @Sendable () async -> Void
     public var seek: @Sendable (_ progress: Double) async -> Void
     public var volume: @Sendable (_ amount: Double) async -> Void
+    public var setOption: @Sendable (_ option: MediaSelectionOption?, _ in: MediaSelectionGroup) async -> Void
     public var clear: @Sendable () async -> Void
     public var get: @Sendable () -> Status
     public var observe: @Sendable () -> AsyncStream<Status>
-    var player: @Sendable () -> AVPlayer
+
+    // TODO: Create Custom AVPlayer and AVPlayerItems and each holds
+    //  an item. Internally it should retrieve the contents when possible, rather than
+    //  having an internal model doing it.
+    public var player: @Sendable () -> AVPlayer
 }
 
 // MARK: TestDependencyKey
@@ -37,6 +41,7 @@ extension PlayerClient: TestDependencyKey {
         pause: unimplemented(),
         seek: unimplemented(),
         volume: unimplemented(),
+        setOption: unimplemented(),
         clear: unimplemented(),
         get: unimplemented(),
         observe: unimplemented(),

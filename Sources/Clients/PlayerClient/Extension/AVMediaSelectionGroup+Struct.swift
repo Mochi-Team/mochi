@@ -12,9 +12,21 @@ import Foundation
 
 // MARK: - MediaSelectionGroup
 
-// Not sure if this brings performance improvements, if any
 public struct MediaSelectionGroup: Hashable, Sendable {
-    fileprivate let _ref: AVMediaSelectionGroup
+    public var displayName: String
+    public private(set) var selected: MediaSelectionOption?
+
+    let _ref: AVMediaSelectionGroup
+
+    init(
+        name: String,
+        selected: MediaSelectionOption? = nil,
+        _ ref: AVMediaSelectionGroup
+    ) {
+        self._ref = ref
+        self.displayName = name
+        self.selected = selected
+    }
 
     public var allowsEmptySelection: Bool {
         _ref.allowsEmptySelection
@@ -24,8 +36,8 @@ public struct MediaSelectionGroup: Hashable, Sendable {
         _ref.options.map { .init($0) }
     }
 
-    fileprivate init(_ ref: AVMediaSelectionGroup) {
-        self._ref = ref
+    public var defaultOption: MediaSelectionOption? {
+        _ref.defaultOption.flatMap { .init($0) }
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -40,7 +52,11 @@ public struct MediaSelectionGroup: Hashable, Sendable {
 // MARK: - MediaSelectionOption
 
 public struct MediaSelectionOption: Hashable, Sendable {
-    fileprivate let _ref: AVMediaSelectionOption
+    let _ref: AVMediaSelectionOption
+
+    init(_ ref: AVMediaSelectionOption) {
+        self._ref = ref
+    }
 
     public var mediaType: AVMediaType {
         _ref.mediaType
@@ -52,10 +68,6 @@ public struct MediaSelectionOption: Hashable, Sendable {
 
     public var isPlayable: Bool {
         _ref.isPlayable
-    }
-
-    fileprivate init(_ ref: AVMediaSelectionOption) {
-        self._ref = ref
     }
 
     public func hash(into hasher: inout Hasher) {

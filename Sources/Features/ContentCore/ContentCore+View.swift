@@ -111,6 +111,8 @@ public extension ContentCore {
                                 Text(groupLoadable.value?.altTitle ?? contentType.oneGroupDefaultTitle)
                             }
                         }
+                        .menuStyle(.automatic)
+                        .buttonStyle(.plain)
                         .animation(.easeInOut, value: _selectedGroupId)
 
                         Spacer()
@@ -145,6 +147,8 @@ public extension ContentCore {
                                 textView("Not Selected")
                             }
                         }
+                        .menuStyle(.automatic)
+                        .buttonStyle(.plain)
                         .font(.footnote.weight(.semibold))
                         .shimmering(active: !variantLoadable.didFinish)
                         .animation(.easeInOut, value: _selectedPagingId)

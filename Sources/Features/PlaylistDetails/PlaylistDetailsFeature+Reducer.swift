@@ -30,7 +30,7 @@ extension PlaylistDetailsFeature {
             BindingReducer()
         }
 
-        Scope(state: \.content, action: /Action.InternalAction.content) {
+        Scope(state: \.content, action: \.internal.content) {
             ContentCore()
         }
 
@@ -94,7 +94,7 @@ extension PlaylistDetailsFeature {
             }
             return .none
         }
-        .ifLet(\.$destination, action: /Action.internal .. Action.InternalAction.destination) {
+        .ifLet(\.$destination, action: \.internal.destination) {
             PlaylistDetailsFeature.Destination()
         }
     }

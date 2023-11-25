@@ -14,9 +14,6 @@ import SwiftUIBackports
 
 #if canImport(UIKit)
 import UIKit
-#elseif canImport(AppKit)
-import AppKit
-#endif
 
 public extension View {
     func sheet(
@@ -108,6 +105,7 @@ public extension View {
         }
     }
 }
+#endif
 
 // MARK: - SheetView_Previews
 
@@ -115,7 +113,7 @@ public extension View {
     EmptyView()
 }
 
-private extension Binding {
+extension Binding {
     func isPresent<Wrapped>() -> Binding<Bool> where Value == Wrapped? {
         .init(
             get: { self.wrappedValue != nil },

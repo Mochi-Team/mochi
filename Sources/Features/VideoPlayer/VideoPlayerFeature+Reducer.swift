@@ -26,20 +26,22 @@ private enum Cancellables: Hashable, CaseIterable {
 
 extension VideoPlayerFeature: Reducer {
     public var body: some ReducerOf<Self> {
-        Scope(state: \.player, action: /Action.internal .. Action.InternalAction.player) {
-            PlayerFeature()
-        }
-
-        Scope(state: \.content, action: /Action.InternalAction.content) {
+        Scope(state: \.content, action: \.internal.content) {
             ContentCore()
         }
 
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                return state.content
-                    .fetchContent(.page(state.selected.groupId, state.selected.variantId, state.selected.pageId))
-                    .map { .internal(.content($0)) }
+                return .merge(
+                    state.content.fetchContent(.page(state.selected.groupId, state.selected.variantId, state.selected.pageId))
+                        .map { .internal(.content($0)) },
+                    .run { send in
+                        for await status in playerClient.observe() {
+                            await send(.internal(.playerStatusUpdate(status)))
+                        }
+                    }
+                )
 
             case .view(.didTapBackButton):
                 return state.dismiss()
@@ -70,9 +72,56 @@ extension VideoPlayerFeature: Reducer {
                 return state.clearForChangedLinkIfNeeded(linkId)
 
             case let .view(.didSkipTo(time)):
-                let fraction = max(state.player.duration.seconds, 1)
                 return .run { _ in
-                    await playerClient.seek(time / fraction)
+                    await playerClient.seek(time)
+                }
+
+            case .view(.didTogglePlayback):
+                let isPlaying = state.player.playback?.state == .playing
+                return .merge(
+                    state.delayDismissOverlayIfNeeded(),
+                    .run { _ in
+                        if isPlaying {
+                            await playerClient.pause()
+                        } else {
+                            await playerClient.play()
+                        }
+                    }
+                )
+
+            case let .view(.didChangePlaybackRate(rate)):
+                state.playerSettings.speed = rate
+                return .run { _ in
+                    await playerClient.setRate(.init(rate))
+                }
+
+            case .view(.didSkipFowards):
+                let skipTime = state.playerSettings.skipTime // In seconds
+                let currentProgress = state.player.playback?.progress ?? .zero
+                let totalDuration = state.player.playback?.totalDuration ?? 1
+                let newProgress = min(1.0, max(0, currentProgress + (skipTime / totalDuration)))
+                return .merge(
+                    state.delayDismissOverlayIfNeeded(),
+                    .run { _ in
+                        await playerClient.seek(newProgress)
+                    }
+                )
+
+            case .view(.didSkipBackwards):
+                let skipTime = state.playerSettings.skipTime // In seconds
+                let currentProgress = state.player.playback?.progress ?? .zero
+                let totalDuration = state.player.playback?.totalDuration ?? 1
+                let newProgress = min(1.0, max(0, currentProgress - (skipTime / totalDuration)))
+                return .merge(
+                    state.delayDismissOverlayIfNeeded(),
+                    .run { _ in
+                        await playerClient.seek(newProgress)
+                    }
+                )
+
+            case let .view(.didTapGroupOption(option, group)):
+                return .run { _ in
+                    await playerClient.setOption(option, group)
                 }
 
             case .internal(.hideToolsOverlay):
@@ -87,6 +136,7 @@ extension VideoPlayerFeature: Reducer {
             case .internal(.content(.internal(.update(_, .loaded)))):
                 // TODO: Decide if it should fetch sources or not
                 return state.fetchSourcesIfNecessary()
+            // swiftlint:enable tca_feature_reducer_actions
 
             case let .internal(.sourcesResponse(episodeId, .loaded(response))):
                 state.loadables.update(with: episodeId, response: .loaded(response))
@@ -115,21 +165,8 @@ extension VideoPlayerFeature: Reducer {
                     logger.warning("There was an error retrieving video server response: \(error.localizedDescription)")
                 }
 
-            case .internal(.player(.delegate(.didStartedSeeking))):
-                return .cancel(id: Cancellables.delayCloseTab)
-
-            case .internal(.player(.delegate(.didTapGoForwards))),
-                 .internal(.player(.delegate(.didTapGoBackwards))),
-                 .internal(.player(.delegate(.didTogglePlayButton))),
-                 .internal(.player(.delegate(.didFinishedSeekingTo))):
-                return state.delayDismissOverlayIfNeeded()
-
-            case .internal(.player(.delegate(.didTapClosePiP))):
-//                return state.dismiss()
-                break
-
-            case .internal(.player):
-                break
+            case let .internal(.playerStatusUpdate(status)):
+                state.player = status
 
             case .internal(.content):
                 break
@@ -167,10 +204,7 @@ public extension VideoPlayerFeature.State {
 
         return .merge(
             .merge(Cancellables.allCases.map { .cancel(id: $0) }),
-            .run { _ in
-                await playerClient.clear()
-                await dismiss()
-            }
+            .run { _ in await dismiss() }
         )
     }
 
@@ -379,10 +413,10 @@ public extension VideoPlayerFeature.State {
                         )
                     }
 
-                    await send(.internal(.sourcesResponse(episodeId: episodeId, .loaded(value))))
+                    await send(.internal(.sourcesResponse(episodeId, .loaded(value))))
                 }
             } catch: { error, send in
-                await send(.internal(.sourcesResponse(episodeId: episodeId, .failed(error))))
+                await send(.internal(.sourcesResponse(episodeId, .failed(error))))
             }
         }
 
@@ -422,10 +456,10 @@ public extension VideoPlayerFeature.State {
                         )
                     }
 
-                    await send(.internal(.serverResponse(serverId: serverId, .loaded(value))))
+                    await send(.internal(.serverResponse(serverId, .loaded(value))))
                 }
             } catch: { error, send in
-                await send(.internal(.serverResponse(serverId: serverId, .failed(error))))
+                await send(.internal(.serverResponse(serverId, .failed(error))))
             }
         }
 

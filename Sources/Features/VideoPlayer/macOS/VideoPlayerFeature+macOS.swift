@@ -1,12 +1,12 @@
 //
-//  VideoPlayerFeature+iOS.swift
+//  VideoPlayerFeature+macOS.swift
 //
 //
 //  Created by ErrorErrorError on 11/23/23.
-//
+//  
 //
 
-#if os(iOS)
+#if os(macOS)
 import Architecture
 import ComposableArchitecture
 import Foundation

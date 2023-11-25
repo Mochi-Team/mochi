@@ -26,61 +26,6 @@ public extension Store where Action: FeatureAction {
     }
 }
 
-public extension Scope where ParentAction: FeatureAction {
-    init<ChildState, ChildAction>(
-        state toChildState: AnyCasePath<ParentState, ChildState>,
-        action toChildAction: AnyCasePath<ParentAction.InternalAction, ChildAction>,
-        @ReducerBuilder<ChildState, ChildAction> child: () -> Child
-    ) where ChildState == Child.State, ChildAction == Child.Action {
-        self.init(
-            state: toChildState,
-            action: /ParentAction.internal .. toChildAction,
-            child: child
-        )
-    }
-}
-
-public extension Scope where ParentAction: FeatureAction {
-    init<ChildState, ChildAction>(
-        state toChildState: WritableKeyPath<ParentState, ChildState>,
-        action toChildAction: AnyCasePath<ParentAction.InternalAction, ChildAction>,
-        @ReducerBuilder<ChildState, ChildAction> child: () -> Child
-    ) where ChildState == Child.State, ChildAction == Child.Action {
-        self.init(
-            state: toChildState,
-            action: /ParentAction.internal .. toChildAction,
-            child: child
-        )
-    }
-}
-
-// swiftformat:disable redundantSelf
-public extension Reducer where Action: FeatureAction {
-    func ifLet<DestinationState, DestinationAction, Destination: Reducer>(
-        _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
-        action toPresentationAction: AnyCasePath<Action.InternalAction, PresentationAction<DestinationAction>>,
-        @ReducerBuilder<DestinationState, DestinationAction> destination: () -> Destination
-    ) -> _PresentationReducer<Self, Destination> where Destination.State == DestinationState, Destination.Action == DestinationAction {
-        self.ifLet(
-            toPresentationState,
-            action: /Action.internal .. toPresentationAction,
-            destination: destination
-        )
-    }
-
-    func ifLet<WrappedState, WrappedAction, Wrapped: Reducer>(
-        _ toWrappedState: WritableKeyPath<State, WrappedState?>,
-        action toWrappedAction: AnyCasePath<Action.InternalAction, WrappedAction>,
-        @ReducerBuilder<WrappedState, WrappedAction> then wrapped: () -> Wrapped
-    ) -> _IfLetReducer<Self, Wrapped> where WrappedState == Wrapped.State, WrappedAction == Wrapped.Action {
-        self.ifLet(
-            toWrappedState,
-            action: /Action.internal .. toWrappedAction,
-            then: wrapped
-        )
-    }
-}
-
 public extension Effect {
     static func run(
         animation: Animation? = nil,

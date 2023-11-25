@@ -45,38 +45,38 @@ public enum PiPStatus: Equatable, Sendable {
 
 // MARK: - PlayerView
 
-struct PlayerView: PlatformAgnosticViewRepresentable {
+public struct PlayerView: PlatformAgnosticViewRepresentable {
     private let player: AVPlayer
 
     private let gravity: AVLayerVideoGravity
-    private let enablePIP: Bool
+    private let enablePIP: Binding<Bool>
 
-    private var pipIsSupportedCallback: (@Sendable (Bool) -> Void)?
-    private var pipIsActiveCallback: (@Sendable (Bool) -> Void)?
-    private var pipIsPossibleCallback: (@Sendable (Bool) -> Void)?
-    private var pipStatusCallback: (@Sendable (PiPStatus) -> Void)?
+    private var pipIsSupportedCallback: ((Bool) -> Void)?
+    private var pipIsActiveCallback: ((Bool) -> Void)?
+    private var pipIsPossibleCallback: ((Bool) -> Void)?
+    private var pipStatusCallback: ((PiPStatus) -> Void)?
 
-    init(
+    public init(
         player: AVPlayer,
         gravity: AVLayerVideoGravity = .resizeAspect,
-        enablePIP: Bool
+        enablePIP: Binding<Bool>
     ) {
         self.player = player
         self.gravity = gravity
         self.enablePIP = enablePIP
     }
 
-    func makeCoordinator() -> Coordinator {
+    public func makeCoordinator() -> Coordinator {
         .init(self)
     }
 
-    func makePlatformView(context: Context) -> AVPlayerView {
+    public func makePlatformView(context: Context) -> AVPlayerView {
         let view = AVPlayerView(player: player)
         context.coordinator.initialize(view)
         return view
     }
 
-    func updatePlatformView(
+    public func updatePlatformView(
         _ platformView: AVPlayerView,
         context: Context
     ) {
@@ -88,7 +88,7 @@ struct PlayerView: PlatformAgnosticViewRepresentable {
             return
         }
 
-        if enablePIP {
+        if enablePIP.wrappedValue {
             if !pipController.isPictureInPictureActive, pipController.isPictureInPicturePossible {
                 pipController.startPictureInPicture()
             }
@@ -100,26 +100,26 @@ struct PlayerView: PlatformAgnosticViewRepresentable {
     }
 }
 
-extension PlayerView {
-    func pictureInPictureIsActive(_ callback: @escaping @Sendable (Bool) -> Void) -> Self {
+public extension PlayerView {
+    func pictureInPictureIsActive(_ callback: @escaping (Bool) -> Void) -> Self {
         var view = self
         view.pipIsActiveCallback = callback
         return view
     }
 
-    func pictureInPictureIsPossible(_ callback: @escaping @Sendable (Bool) -> Void) -> Self {
+    func pictureInPictureIsPossible(_ callback: @escaping (Bool) -> Void) -> Self {
         var view = self
         view.pipIsPossibleCallback = callback
         return view
     }
 
-    func pictureInPictureIsSupported(_ callback: @escaping @Sendable (Bool) -> Void) -> Self {
+    func pictureInPictureIsSupported(_ callback: @escaping (Bool) -> Void) -> Self {
         var view = self
         view.pipIsSupportedCallback = callback
         return view
     }
 
-    func pictureInPictureStatus(_ callback: @escaping @Sendable (PiPStatus) -> Void) -> Self {
+    func pictureInPictureStatus(_ callback: @escaping (PiPStatus) -> Void) -> Self {
         var view = self
         view.pipStatusCallback = callback
         return view
@@ -128,7 +128,7 @@ extension PlayerView {
 
 // MARK: PlayerView.Coordinator
 
-extension PlayerView {
+public extension PlayerView {
     final class Coordinator: NSObject {
         let videoPlayer: PlayerView
         var controller: AVPictureInPictureController?
@@ -148,7 +148,9 @@ extension PlayerView {
             self.controller = controller
 
             controller.delegate = self
+            #if os(iOS)
             controller.canStartPictureInPictureAutomaticallyFromInline = true
+            #endif
 
             DispatchQueue.main.async { [weak self] in
                 self?.videoPlayer.pipIsSupportedCallback?(true)
@@ -194,6 +196,7 @@ extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
 
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
         DispatchQueue.main.async { [weak self] in
+            self?.videoPlayer.enablePIP.wrappedValue = false
             self?.videoPlayer.pipStatusCallback?(.didStop)
         }
     }
@@ -203,6 +206,7 @@ extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
         restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
     ) {
         DispatchQueue.main.async { [weak self] in
+            self?.videoPlayer.enablePIP.wrappedValue = false
             self?.videoPlayer.pipStatusCallback?(.restoreUI)
         }
         completionHandler(true)
@@ -213,6 +217,7 @@ extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
         failedToStartPictureInPictureWithError error: Error
     ) {
         DispatchQueue.main.async { [weak self] in
+            self?.videoPlayer.enablePIP.wrappedValue = false
             self?.videoPlayer.pipStatusCallback?(.failed(error))
         }
     }
@@ -220,7 +225,7 @@ extension PlayerView.Coordinator: AVPictureInPictureControllerDelegate {
 
 // MARK: - AVPlayerView
 
-final class AVPlayerView: PlatformView {
+public final class AVPlayerView: PlatformView {
     var playerLayer: AVPlayerLayer { (layer as? AVPlayerLayer).unsafelyUnwrapped }
 
     var player: AVPlayer? {
@@ -229,9 +234,9 @@ final class AVPlayerView: PlatformView {
     }
 
     #if os(iOS)
-    override class var layerClass: AnyClass { AVPlayerLayer.self }
+    override public class var layerClass: AnyClass { AVPlayerLayer.self }
     #elseif os(macOS)
-    override func makeBackingLayer() -> CALayer { AVPlayerLayer() }
+    override public func makeBackingLayer() -> CALayer { AVPlayerLayer() }
     #endif
 
     var videoGravity: AVLayerVideoGravity {

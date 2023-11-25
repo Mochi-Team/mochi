@@ -13,6 +13,7 @@ import SwiftUI
 
 // MARK: - Feature
 
+@Reducer
 public protocol Feature: Reducer where State: FeatureState, Action: FeatureAction {
     associatedtype View: FeatureView
 }

@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import AVFoundation
 import ComposableArchitecture
 import ContentCore
 import LoggerClient
@@ -24,11 +25,15 @@ public struct VideoPlayerFeature: Feature {
     }
 
     public struct State: FeatureState {
+        @CasePathable
+        @dynamicMemberLookup
         public enum Overlay: Sendable, Equatable {
             case tools
             case more(MoreTab)
 
-            public enum MoreTab: String, Sendable, Equatable, CaseIterable {
+            @CasePathable
+            @dynamicMemberLookup
+            public enum MoreTab: String, Sendable, Equatable, CaseIterable, Localizable {
                 case episodes = "Episodes"
                 case sourcesAndServers = "Sources & Servers"
                 case qualityAndSubtitles = "Quality & Subtitles"
@@ -61,7 +66,8 @@ public struct VideoPlayerFeature: Feature {
         public var loadables: Loadables
         public var selected: SelectedContent
         public var overlay: Overlay?
-        public var player: PlayerFeature.State
+        public var player: PlayerClient.Status
+        public var playerSettings: PlayerSettings
 
         public init(
             repoModuleId: RepoModuleID,
@@ -72,7 +78,36 @@ public struct VideoPlayerFeature: Feature {
             page: PagingID,
             episodeId: Playlist.Item.ID,
             overlay: Overlay? = .tools,
-            player: PlayerFeature.State = .init()
+            playerSettings: PlayerSettings = .init()
+        ) {
+            @Dependency(\.playerClient.get)
+            var status
+
+            self.init(
+                repoModuleId: repoModuleId,
+                playlist: playlist,
+                loadables: loadables,
+                group: group,
+                variant: variant,
+                page: page,
+                episodeId: episodeId,
+                overlay: overlay,
+                player: status(),
+                playerSettings: playerSettings
+            )
+        }
+
+        public init(
+            repoModuleId: RepoModuleID,
+            playlist: Playlist,
+            loadables: Loadables = .init(),
+            group: Playlist.Group.ID,
+            variant: Playlist.Group.Variant.ID,
+            page: PagingID,
+            episodeId: Playlist.Item.ID,
+            overlay: Overlay? = .tools,
+            player: PlayerClient.Status,
+            playerSettings: PlayerSettings = .init()
         ) {
             self.content = .init(
                 repoModuleId: repoModuleId,
@@ -81,16 +116,19 @@ public struct VideoPlayerFeature: Feature {
             self.loadables = loadables
             self.selected = .init(
                 groupId: group,
-                variantId: variant, 
+                variantId: variant,
                 pageId: page,
                 itemId: episodeId
             )
             self.overlay = overlay
             self.player = player
+            self.playerSettings = playerSettings
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction {
             case didAppear
             case didTapBackButton
@@ -98,19 +136,26 @@ public struct VideoPlayerFeature: Feature {
             case didTapPlayer
             case didSelectMoreTab(State.Overlay.MoreTab)
             case didTapCloseMoreOverlay
+            case didTogglePlayback
+            case didSkipFowards
+            case didSkipBackwards
+            case didChangePlaybackRate(Double)
             case didSkipTo(time: CGFloat)
+            case didTapGroupOption(MediaSelectionOption?, for: MediaSelectionGroup)
             case didTapSource(Playlist.EpisodeSource.ID)
             case didTapServer(Playlist.EpisodeServer.ID)
             case didTapLink(Playlist.EpisodeServer.Link.ID)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {}
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case hideToolsOverlay
-            case sourcesResponse(episodeId: Playlist.Item.ID, _ response: Loadable<[Playlist.EpisodeSource]>)
-            case serverResponse(serverId: Playlist.EpisodeServer.ID, _ response: Loadable<Playlist.EpisodeServerResponse>)
-            case player(PlayerFeature.Action)
+            case sourcesResponse(Playlist.Item.ID, Loadable<[Playlist.EpisodeSource]>)
+            case serverResponse(Playlist.EpisodeServer.ID, Loadable<Playlist.EpisodeServerResponse>)
+            case playerStatusUpdate(PlayerClient.Status)
             case content(ContentCore.Action)
         }
 
@@ -122,6 +167,24 @@ public struct VideoPlayerFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: StoreOf<VideoPlayerFeature>
+
+        @Dependency(\.playerClient.player)
+        var player
+
+        @SwiftUI.State
+        var enablePiP = false
+
+        @SwiftUI.State
+        var gravity = AVLayerVideoGravity.resizeAspect
+
+        @SwiftUI.State
+        var pipSupported = true
+
+        @SwiftUI.State
+        var pipPossible = true
+
+        @SwiftUI.State
+        var pipStatus = PiPStatus.restoreUI
 
         public nonisolated init(store: StoreOf<VideoPlayerFeature>) {
             self.store = store
@@ -328,32 +391,54 @@ extension VideoPlayerFeature.View {
         }
 
         var actions: [Action]
-        var canShowActions: Bool
+        var playbackIsInProgress: Bool
 
         var visible: Bool {
-            canShowActions && !actions.isEmpty
+            playbackIsInProgress && !actions.isEmpty
         }
 
         init(_ state: VideoPlayerFeature.State) {
-            self.canShowActions = state.player.duration.isValid && state.player.duration > .zero
+            guard let playback = state.player.playback else {
+                self.actions = []
+                self.playbackIsInProgress = false
+                return
+            }
+
+            self.playbackIsInProgress = playback.totalDuration != .zero
             self.actions = state.selectedServerResponse.value?.skipTimes
-                .filter { $0.startTime <= state.player.progress.seconds && state.player.progress.seconds <= $0.endTime }
+                .filter { $0.startTime <= playback.duration && playback.duration <= $0.endTime }
                 .sorted(by: \.startTime)
                 .compactMap { .times($0) } ?? []
 
-//            if let currentEpisode = state.selectedItem.value,
-//               let episodes = state.selectedPage.value?.items.value,
-//               let index = episodes.firstIndex(where: { $0.id == currentEpisode.id }), (index + 1) < episodes.endIndex {
-//                let nextEpisode = episodes[index + 1]
-//
-//                if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {
-//                    if state.player.progress.seconds >= type.startTime {
-//                        actions.append(.next(nextEpisode.number, state.selected.groupId, state.selected.variantId, state.selected.pageId, nextEpisode.id))
-//                    }
-//                } else if state.player.progress.seconds >= (0.92 * state.player.duration.seconds) {
-//                    actions.append(.next(nextEpisode.number, state.selected.groupId, state.selected.variantId, state.selected.pageId, nextEpisode.id))
-//                }
-//            }
+            if let currentEpisode = state.selectedItem.value,
+               let episodes = state.selectedPage.value?.items.value,
+               let index = episodes.firstIndex(where: { $0.id == currentEpisode.id }), (index + 1) < episodes.endIndex {
+                let nextEpisode = episodes[index + 1]
+
+                if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {
+                    if playback.duration >= type.startTime {
+                        actions.append(
+                            .next(
+                                nextEpisode.number,
+                                state.selected.groupId,
+                                state.selected.variantId,
+                                state.selected.pageId,
+                                nextEpisode.id
+                            )
+                        )
+                    }
+                } else if playback.duration >= (0.92 * playback.totalDuration) {
+                    actions.append(
+                        .next(
+                            nextEpisode.number,
+                            state.selected.groupId,
+                            state.selected.variantId,
+                            state.selected.pageId,
+                            nextEpisode.id
+                        )
+                    )
+                }
+            }
         }
     }
 }

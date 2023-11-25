@@ -13,7 +13,7 @@ import UserSettingsClient
 public extension SettingsFeature {
     @ReducerBuilder<State, Action>
     var body: some ReducerOf<Self> {
-        Scope(state: /State.self, action: /Action.view) {
+        Scope(state: \.self, action: \.view) {
             BindingReducer()
                 .onChange(of: \.userSettings) { _, userSettings in
                     Reduce { _, _ in

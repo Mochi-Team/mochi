@@ -36,13 +36,18 @@ public struct SettingsFeature: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case binding(BindingAction<State>)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {}
+
+        @CasePathable
         public enum InternalAction: SendableAction {}
 
         case view(ViewAction)

@@ -9,36 +9,6 @@
 import AVKit
 import Foundation
 
-extension AVPlayer {
-    func valueStream<Value>(_ keyPath: KeyPath<AVPlayer, Value>) -> AsyncStream<Value> {
-        .init(Value.self) { continuation in
-            let observation = self.observe(keyPath, options: [.initial, .new]) { _, _ in
-                continuation.yield(self[keyPath: keyPath])
-            }
-
-            continuation.onTermination = { _ in
-                observation.invalidate()
-            }
-        }
-    }
-
-    func periodicTimeStream(
-        interval: CMTime = .init(
-            seconds: 0.5,
-            preferredTimescale: CMTimeScale(NSEC_PER_SEC)
-        )
-    ) -> AsyncStream<CMTime> {
-        .init { continuation in
-            let observer = self.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
-                continuation.yield(time)
-            }
-            continuation.onTermination = { [weak self] _ in
-                self?.removeTimeObserver(observer)
-            }
-        }
-    }
-}
-
 extension AVPlayerItem {
     var bufferProgress: Double {
         totalDuration > .zero ? currentBufferDuration / totalDuration : .zero
@@ -53,7 +23,7 @@ extension AVPlayerItem {
     }
 
     var playProgress: Double {
-        totalDuration > .zero ? currentDuration / totalDuration : .zero
+        totalDuration != .zero ? currentDuration / totalDuration : .zero
     }
 
     var totalDuration: Double {
@@ -86,6 +56,18 @@ extension AVPlayer {
 
     convenience init(asset: AVURLAsset) {
         self.init(playerItem: AVPlayerItem(asset: asset))
+    }
+}
+
+extension AVPlayerItem {
+    func mediaSelectionGroup(for characteristic: AVMediaCharacteristic, name: String) -> MediaSelectionGroup? {
+        asset.mediaSelectionGroup(forMediaCharacteristic: characteristic).flatMap { group in
+            .init(
+                name: name,
+                selected: currentMediaSelection.selectedMediaOption(in: group).flatMap { .init($0) },
+                group
+            )
+        }
     }
 }
 

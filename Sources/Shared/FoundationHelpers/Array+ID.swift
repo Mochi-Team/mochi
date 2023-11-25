@@ -11,7 +11,7 @@ import Foundation
 public extension Array where Element: Identifiable {
     subscript(id id: Element.ID) -> Element? {
         get { first(where: \.id == id) }
-        set {
+        mutating set {
             if let index = firstIndex(where: \.id == id) {
                 if let newValue {
                     self[index] = newValue
@@ -26,7 +26,7 @@ public extension Array where Element: Identifiable {
 public extension Set where Element: Identifiable {
     subscript(id id: Element.ID) -> Element? {
         get { first(where: \.id == id) }
-        set {
+        mutating set {
             if let index = firstIndex(where: \.id == id) {
                 remove(at: index)
                 if let newValue {

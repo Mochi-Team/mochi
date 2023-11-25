@@ -113,13 +113,16 @@ public struct DiscoverFeature: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction {
             case didAppear
             case didTapOpenModules
             case didTapPlaylist(Playlist)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {
             case playbackVideoItem(
                 Playlist.ItemsResponse,
@@ -132,6 +135,7 @@ public struct DiscoverFeature: Feature {
             )
         }
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)
             case loadedListings(RepoModuleID, Loadable<[DiscoverListing]>)

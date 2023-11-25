@@ -130,7 +130,11 @@ extension JSContext {
                             let ctx = JSContext.current()
                             let value = dataToText.withCString(JSStringCreateWithUTF8CString)
                             defer { JSStringRelease(value) }
-                            return JSValue(jsValueRef: JSValueMakeFromJSONString(ctx?.jsGlobalContextRef, value), in: ctx)
+                            return JSValue(
+                                jsValueRef: JSValueMakeFromJSONString(ctx?.jsGlobalContextRef, value) ?? 
+                                    JSValueMakeUndefined(ctx?.jsGlobalContextRef) ,
+                                in: ctx
+                            )
                         } as @convention(block) () -> JSValue
 
                         let textFunction = {

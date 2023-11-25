@@ -11,10 +11,10 @@ import SwiftUI
 
 #if canImport(UIKit)
 import UIKit
-typealias PlatformColor = UIColor
+public typealias PlatformColor = UIColor
 #elseif canImport(AppKit)
 import AppKit
-typealias PlatformColor = NSColor
+public typealias PlatformColor = NSColor
 #endif
 
 extension PlatformColor {

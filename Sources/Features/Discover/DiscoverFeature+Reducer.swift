@@ -93,14 +93,14 @@ extension DiscoverFeature {
             }
             return .none
         }
-        .ifLet(\.$moduleLists, action: /Action.internal .. Action.InternalAction.moduleLists) {
+        .ifLet(\.$moduleLists, action: \.internal.moduleLists) {
             ModuleListsFeature()
         }
-        .forEach(\.screens, action: /Action.internal .. Action.InternalAction.screens) {
+        .forEach(\.screens, action: \.internal.screens) {
             DiscoverFeature.Screens()
         }
 
-        Scope(state: \.search, action: /Action.InternalAction.search) {
+        Scope(state: \.search, action: \.internal.search) {
             SearchFeature()
         }
     }

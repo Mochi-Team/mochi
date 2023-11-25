@@ -44,6 +44,7 @@ extension DiscoverFeature.View: View {
                         }
                     }
                     .animation(.easeInOut(duration: 0.25), value: viewStore.state)
+                    #if os(iOS)
                     .safeAreaInset(edge: .top) {
                         TopBarView(
                             backgroundStyle: .gradient(),
@@ -82,6 +83,57 @@ extension DiscoverFeature.View: View {
                         )
                         .frame(maxWidth: .infinity)
                     }
+                    #elseif os(macOS)
+                    .navigationTitle("")
+                    .toolbar {
+                        ToolbarItem(placement: .navigation) {
+                            Button {
+                                viewStore.send(.didTapOpenModules)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    if let url = viewStore.icon {
+                                        LazyImage(url: url) { state in
+                                            if let image = state.image {
+                                                image
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 22, height: 22)
+                                            } else {
+                                                EmptyView()
+                                            }
+                                        }
+                                        .transition(.opacity)
+                                    }
+
+                                    Text(viewStore.title)
+                                        .font(.title3.bold())
+
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 1).weight(.semibold))
+                                }
+                                .contentShape(Rectangle())
+                                .scaleEffect(1.0)
+                                .transition(.opacity)
+                                .animation(.easeInOut, value: viewStore.icon)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
+                        ToolbarItem(placement: .automatic) {
+                            WithViewStore(
+                                store.scope(
+                                    state: \.search,
+                                    action: Action.InternalAction.search
+                                ),
+                                observe: \.`self`
+                            ) { viewStore in
+                                TextField("Search for Content", text: viewStore.$query)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(minWidth: 200)
+                            }
+                        }
+                    }
+                    #endif
                     .safeAreaInset(edge: .bottom) {
                         Spacer()
                             .frame(height: searchBarSize.height)
@@ -111,6 +163,7 @@ extension DiscoverFeature.View: View {
                     action: { .internal(.moduleLists($0)) }
                 )
             )
+            .safeInset(from: \.bottomNavigation, edge: .bottom)
         } destination: { store in
             SwitchStore(store) { state in
                 switch state {
@@ -122,6 +175,7 @@ extension DiscoverFeature.View: View {
                     )
                 }
             }
+            .safeInset(from: \.bottomNavigation, edge: .bottom, alignment: .center)
         }
     }
 }

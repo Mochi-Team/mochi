@@ -11,6 +11,6 @@ import Foundation
 public extension Equatable {
     var `self`: Self {
         get { self }
-        set { self = newValue }
+        mutating set { self = newValue }
     }
 }

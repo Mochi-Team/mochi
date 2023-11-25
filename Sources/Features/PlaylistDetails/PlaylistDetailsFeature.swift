@@ -105,7 +105,9 @@ public struct PlaylistDetailsFeature: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction, BindableAction {
             case onTask
             case didTappedBackButton
@@ -114,6 +116,7 @@ public struct PlaylistDetailsFeature: Feature {
             case binding(BindingAction<State>)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {
             case playbackVideoItem(
                 Playlist.ItemsResponse,
@@ -126,6 +129,7 @@ public struct PlaylistDetailsFeature: Feature {
             )
         }
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case playlistDetailsResponse(Loadable<Playlist.Details>)
             case content(ContentCore.Action)

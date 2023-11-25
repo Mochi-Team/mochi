@@ -47,18 +47,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 #else
 import AppKit
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate {
     let store = Store(
         initialState: .init(),
         reducer: { AppFeature() }
     )
 
-    func application(
-        _: UIApplication,
-        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
+    func applicationDidFinishLaunching(_ notification: Notification) {
         store.send(.internal(.appDelegate(.didFinishLaunching)))
-        return true
     }
 
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {

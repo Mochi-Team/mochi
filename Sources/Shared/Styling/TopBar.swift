@@ -22,6 +22,7 @@ public enum TopBarBackgroundStyle: Equatable {
 
 // MARK: - TopBarView
 
+#if os(iOS)
 @MainActor
 public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, BottomAccessory: View>: View {
     let backCallback: (() -> Void)?
@@ -32,7 +33,6 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
 
     @Environment(\.theme)
     var theme
-//    @EnvironmentObject var theme: ThemeManager
 
     public init(
         backgroundStyle: TopBarBackgroundStyle = .system,
@@ -320,3 +320,5 @@ public struct MaterialToolbarButtonMenuStyle: MenuStyle {
             .contentShape(Rectangle())
     }
 }
+
+#endif

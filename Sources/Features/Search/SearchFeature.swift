@@ -49,7 +49,9 @@ public struct SearchFeature: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case didTapClearQuery
@@ -59,10 +61,12 @@ public struct SearchFeature: Feature {
             case binding(BindingAction<State>)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {
             case playlistTapped(RepoModuleID, Playlist)
         }
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case loadedSearchFilters(TaskResult<[SearchFilter]>)
             case loadedItems(Loadable<Paging<Playlist>>)

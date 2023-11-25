@@ -9,6 +9,7 @@
 import ComposableArchitecture
 import Foundation
 import SwiftUI
+import ViewComponents
 
 // MARK: - PopupView
 
@@ -38,7 +39,7 @@ public struct PopupView<C: View>: View {
             if isPresenting {
                 content()
                     .background(
-                        Color(uiColor: .secondarySystemBackground)
+                        Color.secondarySystemBackground
                             .gesture(
                                 DragGesture(coordinateSpace: .global)
                                     .updating($gestureTranslation) { value, state, _ in

@@ -77,6 +77,7 @@ extension ReposFeature.View: View {
                     }
                 }
             }
+            #if os(iOS)
             .topBar(title: "Repos") {
                 Button {
                     store.send(.view(.didTapRefreshRepos(nil)))
@@ -87,6 +88,18 @@ extension ReposFeature.View: View {
             } bottomAccessory: {
                 EmptyView()
             }
+            #elseif os(macOS)
+            .navigationTitle("Repos")
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        store.send(.view(.didTapRefreshRepos(nil)))
+                    } label: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+                }
+            }
+            #endif
             .frame(
                 maxWidth: .infinity,
                 maxHeight: .infinity
@@ -162,7 +175,9 @@ extension ReposFeature.View {
                     )
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled(true)
+                    #if os(iOS)
                     .textInputAutocapitalization(.never)
+                    #endif
                     .font(.system(size: 16, weight: .regular))
                     .frame(maxWidth: .infinity)
                 }

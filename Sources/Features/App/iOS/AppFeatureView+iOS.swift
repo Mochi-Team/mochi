@@ -1,9 +1,9 @@
 //
-//  AppFeature+View.swift
+//  AppFeature+iOS.swift
 //
 //
-//  Created by ErrorErrorError on 4/6/23.
-//
+//  Created by ErrorErrorError on 11/23/23.
+//  
 //
 
 import Architecture
@@ -19,8 +19,7 @@ import SwiftUI
 import VideoPlayer
 import ViewComponents
 
-// MARK: - AppFeature.View + View
-
+#if os(iOS)
 extension AppFeature.View: View {
     @MainActor
     public var body: some View {
@@ -50,7 +49,7 @@ extension AppFeature.View: View {
                     )
                 }
             }
-            .safeAreaInset(edge: .bottom) {
+            .inset(for: \.bottomNavigation, alignment: .bottom) {
                 navbar(viewStore.state)
             }
             .ignoresSafeArea(.keyboard, edges: .all)
@@ -74,23 +73,16 @@ extension AppFeature.View: View {
         }
         .themeable()
     }
-}
 
-// MARK: - CustomTabItemStyle
-
-private struct CustomTabItemStyle: View {
-    let tab: AppFeature.State.Tab
-
-    var body: some View {
-        Label(tab.rawValue, systemImage: tab.image)
-    }
-}
-
-extension AppFeature.View {
     @MainActor
     func navbar(_ selected: Self.State.Tab) -> some View {
         HStack(alignment: .top, spacing: 0) {
-            ForEach(State.Tab.allCases, id: \.rawValue) { tab in
+            #if !os(macOS)
+            let allTabs = State.Tab.allCases
+            #else
+            let allTabs = State.Tab.allCases.filter { $0 != .settings }
+            #endif
+            ForEach(allTabs, id: \.rawValue) { tab in
                 Button {
                     store.send(.view(.didSelectTab(tab)))
                 } label: {
@@ -152,3 +144,4 @@ extension AppFeature.View {
         )
     )
 }
+#endif

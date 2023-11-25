@@ -17,7 +17,7 @@ import VideoPlayer
 
 extension AppFeature: Reducer {
     public var body: some ReducerOf<Self> {
-        Scope(state: \.appDelegate, action: /Action.InternalAction.appDelegate) {
+        Scope(state: \.appDelegate, action: \.internal.appDelegate) {
             AppDelegateFeature()
         }
 
@@ -85,24 +85,27 @@ extension AppFeature: Reducer {
             case .internal(.settings):
                 break
 
+            case .internal(.videoPlayer(.dismiss)):
+                return .run { _ in await playerClient.clear()  }
+
             case .internal(.videoPlayer):
                 break
             }
             return .none
         }
-        .ifLet(\.$videoPlayer, action: /Action.InternalAction.videoPlayer) {
+        .ifLet(\.$videoPlayer, action: \.internal.videoPlayer) {
             VideoPlayerFeature()
         }
 
-        Scope(state: \.discover, action: /Action.InternalAction.discover) {
+        Scope(state: \.discover, action: \.internal.discover) {
             DiscoverFeature()
         }
 
-        Scope(state: \.repos, action: /Action.InternalAction.repos) {
+        Scope(state: \.repos, action: \.internal.repos) {
             ReposFeature()
         }
 
-        Scope(state: \.settings, action: /Action.InternalAction.settings) {
+        Scope(state: \.settings, action: \.internal.settings) {
             SettingsFeature()
         }
     }

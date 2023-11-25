@@ -40,16 +40,20 @@ public struct ModuleListsFeature: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction {
             case onTask
             case didSelectModule(Repo.ID, Module.ID)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)
         }
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case fetchRepos(TaskResult<[Repo]>)
         }

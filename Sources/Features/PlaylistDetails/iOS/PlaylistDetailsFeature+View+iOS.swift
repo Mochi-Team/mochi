@@ -6,7 +6,7 @@
 //  Copyright © 2023. All rights reserved.
 //
 
-#if os(iOS)
+// #if os(iOS)
 import Architecture
 import ComposableArchitecture
 import ContentCore
@@ -80,6 +80,7 @@ extension PlaylistDetailsFeature.View: View {
         )
         .edgesIgnoringSafeArea(.top)
         .ignoresSafeArea(.container, edges: .top)
+        #if os(iOS)
         .topBar(backgroundStyle: .clear) {
             store.send(.view(.didTappedBackButton))
         } trailingAccessory: {
@@ -103,6 +104,30 @@ extension PlaylistDetailsFeature.View: View {
             }
             .menuStyle(.materialToolbarImage)
         }
+        #elseif os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {} label: {
+                    Image(systemName: "plus")
+                }
+            }
+
+            ToolbarItem(placement: .automatic) {
+                Menu {
+                    WithViewStore(store, observe: \.playlist.url) { viewStore in
+                        Button {
+                            openURL(viewStore.state)
+                        } label: {
+                            Image(systemName: "arrow.up.right.square.fill")
+                            Text("Open Playlist URL")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+            }
+        }
+        #endif
         .task { await store.send(.view(.onTask)).finish() }
         .sheet(
             store: store.scope(
@@ -412,4 +437,4 @@ extension PlaylistDetailsFeature.View {
         )
     )
 }
-#endif
+// #endif

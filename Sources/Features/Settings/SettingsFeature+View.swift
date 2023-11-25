@@ -51,7 +51,11 @@ extension SettingsFeature.View: View {
                 }
             }
         }
+        #if os(iOS)
         .topBar(title: "Settings")
+        #else
+        .navigationTitle("Settings")
+        #endif
         .frame(
             maxWidth: .infinity,
             maxHeight: .infinity

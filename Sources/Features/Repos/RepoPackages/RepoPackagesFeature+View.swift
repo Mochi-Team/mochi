@@ -92,6 +92,7 @@ extension RepoPackagesFeature.View: View {
             maxWidth: .infinity,
             maxHeight: .infinity
         )
+        #if os(iOS)
         .topBar {
             store.send(.view(.didTapClose))
         } trailingAccessory: {
@@ -102,6 +103,17 @@ extension RepoPackagesFeature.View: View {
             }
             .buttonStyle(.materialToolbarImage)
         }
+        #elseif os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    store.send(.view(.didTapToRefreshRepo))
+                } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                }
+            }
+        }
+        #endif
         .task {
             await store.send(.view(.onTask)).finish()
         }

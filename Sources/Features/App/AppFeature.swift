@@ -83,14 +83,19 @@ public struct AppFeature: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
+        @dynamicMemberLookup
         public enum ViewAction: SendableAction {
             case didAppear
             case didSelectTab(State.Tab)
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {}
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case appDelegate(AppDelegateFeature.Action)
             case discover(DiscoverFeature.Action)
@@ -118,6 +123,9 @@ public struct AppFeature: Feature {
 
     @Dependency(\.databaseClient)
     var databaseClient
+
+    @Dependency(\.playerClient)
+    var playerClient
 
     public init() {}
 }

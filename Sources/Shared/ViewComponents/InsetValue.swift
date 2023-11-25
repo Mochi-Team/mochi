@@ -79,4 +79,17 @@ public extension View {
     ) -> some View {
         inset(for: key, alignment: .bottom, content())
     }
+
+    func safeInset(
+        from key: WritableKeyPath<InsetableValues, CGSize>,
+        edge: SwiftUI.VerticalEdge = .bottom,
+        alignment: SwiftUI.HorizontalAlignment = .center
+    ) -> some View {
+        @InsetValue(key)
+        var value
+        return safeAreaInset(edge: edge, alignment: alignment) {
+            Spacer()
+                .frame(width: value.width, height: value.height)
+        }
+    }
 }

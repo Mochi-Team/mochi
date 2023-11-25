@@ -11,16 +11,29 @@ import Foundation
 
 // MARK: - DateComponentsFormatterKey
 
-public struct DateComponentsFormatterKey: DependencyKey {
-    public static let liveValue: DateComponentsFormatter = {
-        let locked = LockIsolated(DateComponentsFormatter())
-        return locked.value
+public struct DateComponentsFormatterClient {
+    let formatter: @Sendable () -> DateComponentsFormatter
+}
+
+public extension DateComponentsFormatterClient {
+    private static let lock = NSRecursiveLock()
+    func withFormatter<V>(_ callback: @Sendable (DateComponentsFormatter) -> V) -> V {
+        Self.lock.lock()
+        defer { Self.lock.unlock() }
+        return callback(formatter())
+    }
+}
+
+extension DateComponentsFormatterClient: DependencyKey {
+    public static let liveValue: DateComponentsFormatterClient = {
+        let formatter = DateComponentsFormatter()
+        return .init { formatter }
     }()
 }
 
 public extension DependencyValues {
-    var dateComponentsFormatter: DateComponentsFormatter {
-        get { self[DateComponentsFormatterKey.self] }
-        set { self[DateComponentsFormatterKey.self] = newValue }
+    var dateComponentsFormatter: DateComponentsFormatterClient {
+        get { self[DateComponentsFormatterClient.self] }
+        set { self[DateComponentsFormatterClient.self] = newValue }
     }
 }

@@ -41,7 +41,9 @@ public struct ContentCore: Feature {
         }
     }
 
+    @CasePathable
     public enum Action: FeatureAction {
+        @CasePathable
         public enum ViewAction: SendableAction {
             case didTapContent(Playlist.ItemsRequestOptions)
             case didTapPlaylistItem(
@@ -52,6 +54,7 @@ public struct ContentCore: Feature {
             )
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {
             case didTapPlaylistItem(
                 Playlist.Group.ID,
@@ -61,6 +64,7 @@ public struct ContentCore: Feature {
             )
         }
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
         }

@@ -22,16 +22,17 @@ extension PlayerClient: DependencyKey {
         let impl = InternalPlayer()
 
         return Self(
-            load: { @MainActor composition in try await impl.load(composition) },
-            setRate: { @MainActor rate in impl.setRate(rate) },
-            play: { @MainActor in await impl.play() },
-            pause: { @MainActor in await impl.pause() },
-            seek: { @MainActor progress in await impl.seek(to: progress) },
-            volume: { @MainActor volume in await impl.volume(to: volume) },
-            clear: { @MainActor in await impl.clear() },
+            load: { composition in try await impl.load(composition) },
+            setRate: { rate in await impl.setRate(rate) },
+            play: { await impl.play() },
+            pause: { await impl.pause() },
+            seek: { progress in await impl.seek(to: progress) },
+            volume: { volume in await impl.volume(to: volume) },
+            setOption: { option, group in await impl.setOption(option, in: group) },
+            clear: { await impl.clear() },
             get: { impl.status() },
             observe: { impl.observe() },
-            player:  { impl.player }
+            player: { impl.player }
         )
     }()
 }
@@ -40,16 +41,19 @@ extension PlayerClient: DependencyKey {
 
 private class InternalPlayer {
     let player: AVQueuePlayer
+    let subject = CurrentValueSubject<PlayerClient.Status, Never>(.idle)
 
     #if os(iOS)
     private let session: AVAudioSession
     #endif
 
     private let nowPlaying: NowPlaying
+    private var timerObserver: Any?
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
         self.player = .init()
-        self.nowPlaying = .init(player: player)
+        self.nowPlaying = .init(statusPublisher: subject)
 
         #if os(iOS)
         self.session = AVAudioSession.sharedInstance()
@@ -67,15 +71,22 @@ private class InternalPlayer {
         player.appliesMediaSelectionCriteriaAutomatically = true
 
         initCommandCenter()
+        initObservers()
+    }
+
+    deinit {
+        if let timerObserver {
+            player.removeTimeObserver(timerObserver)
+        }
     }
 
     @MainActor
-    func load(_ item: PlayerClient.VideoCompositionItem) async throws {
+    func load(_ item: PlayerClient.VideoCompositionItem) throws {
         let playerItem = PlayerItem(item)
         player.replaceCurrentItem(with: playerItem)
 
         #if os(iOS)
-        try? session.setActive(true)
+        try session.setActive(true)
         #endif
 
         nowPlaying.update(with: item.metadata)
@@ -84,6 +95,11 @@ private class InternalPlayer {
     @MainActor
     func setRate(_ rate: Float) {
         player.rate = rate
+    }
+
+    @MainActor
+    func setOption(_ option: MediaSelectionOption?, in group: MediaSelectionGroup) {
+        player.currentItem?.select(option?._ref, in: group._ref)
     }
 
     @MainActor
@@ -126,11 +142,11 @@ private class InternalPlayer {
     }
 
     func status() -> PlayerClient.Status {
-        .idle
+        subject.value
     }
 
     func observe() -> AsyncStream<PlayerClient.Status> {
-        .finished
+        subject.values.eraseToStream()
     }
 }
 
@@ -138,7 +154,11 @@ extension InternalPlayer {
     private func initCommandCenter() {
         let commandCenter = MPRemoteCommandCenter.shared()
 
-        commandCenter.playCommand.addTarget { [unowned self] _ in
+        commandCenter.playCommand.addTarget { [weak self] _ in
+            guard let `self` = self else {
+                return .commandFailed
+            }
+
             if player.rate == 0.0 {
                 player.play()
                 return .success
@@ -147,7 +167,10 @@ extension InternalPlayer {
             return .commandFailed
         }
 
-        commandCenter.pauseCommand.addTarget { [unowned self] _ in
+        commandCenter.pauseCommand.addTarget { [weak self] _ in
+            guard let `self` = self else {
+                return .commandFailed
+            }
             if player.rate != 0 {
                 player.pause()
                 return .success
@@ -156,29 +179,18 @@ extension InternalPlayer {
             return .commandFailed
         }
 
-        commandCenter.changePlaybackPositionCommand.addTarget { [unowned self] event in
+        commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
+            guard let `self` = self else {
+                return .commandFailed
+            }
             guard let event = event as? MPChangePlaybackPositionCommandEvent else {
                 return .commandFailed
             }
 
             if player.totalDuration > 0.0 {
-                let time = CMTime(seconds: event.positionTime, preferredTimescale: 1)
-                player.seek(to: time)
-                return .success
-            }
-
-            return .commandFailed
-        }
-
-        commandCenter.skipForwardCommand.addTarget { [unowned self] event in
-            guard let event = event as? MPSkipIntervalCommandEvent else {
-                return .commandFailed
-            }
-
-            if player.totalDuration > 0.0 {
                 let time = CMTime(
-                    seconds: min(player.currentDuration + event.interval, player.totalDuration),
-                    preferredTimescale: 1
+                    seconds: event.positionTime,
+                    preferredTimescale: CMTimeScale(NSEC_PER_SEC)
                 )
                 player.seek(to: time)
                 return .success
@@ -187,7 +199,30 @@ extension InternalPlayer {
             return .commandFailed
         }
 
-        commandCenter.skipBackwardCommand.addTarget { [unowned self] event in
+        commandCenter.skipForwardCommand.addTarget { [weak self] event in
+            guard let `self` = self else {
+                return .commandFailed
+            }
+            guard let event = event as? MPSkipIntervalCommandEvent else {
+                return .commandFailed
+            }
+
+            if player.totalDuration > 0.0 {
+                let time = CMTime(
+                    seconds: min(player.currentDuration + event.interval, player.totalDuration),
+                    preferredTimescale: CMTimeScale(NSEC_PER_SEC)
+                )
+                player.seek(to: time)
+                return .success
+            }
+
+            return .commandFailed
+        }
+
+        commandCenter.skipBackwardCommand.addTarget { [weak self] event in
+            guard let `self` = self else {
+                return .commandFailed
+            }
             guard let event = event as? MPSkipIntervalCommandEvent else {
                 return .commandFailed
             }
@@ -195,7 +230,7 @@ extension InternalPlayer {
             if player.totalDuration > 0.0 {
                 let time = CMTime(
                     seconds: max(player.currentDuration - event.interval, 0.0),
-                    preferredTimescale: 1
+                    preferredTimescale: CMTimeScale(NSEC_PER_SEC)
                 )
                 player.seek(to: time)
                 return .success
@@ -206,55 +241,165 @@ extension InternalPlayer {
     }
 }
 
+extension InternalPlayer {
+    private func initObservers() {
+        timerObserver = player.addPeriodicTimeObserver(
+            forInterval: .init(
+                seconds: 1.0,
+                preferredTimescale: CMTimeScale(NSEC_PER_SEC)
+            ),
+            queue: .main
+        ) { [weak self] _ in
+            self?.updatePlayback()
+        }
+
+        player.publisher(for: \.rate)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.currentItem?.duration)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.status)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.timeControlStatus)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.currentItem?.isPlaybackBufferEmpty)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.currentItem?.isPlaybackBufferFull)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.currentItem?.isPlaybackLikelyToKeepUp)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.currentItem?.currentMediaSelection)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+
+        player.publisher(for: \.currentItem?.asset)
+            .sink { [weak self] _ in
+                self?.updatePlayback()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updatePlayback() {
+        let updatedStatus: PlayerClient.Status
+
+        if player.status == .failed || player.status == .unknown {
+            updatedStatus = .error
+        } else {
+            if let item = player.currentItem, item.totalDuration != .zero {
+                let isBufferEmpty = item.isPlaybackBufferEmpty
+                let isBufferFull = item.isPlaybackBufferFull
+                let canPlaybackKeepUp = item.isPlaybackLikelyToKeepUp
+                let isBuffering = isBufferFull ? false : (isBufferEmpty || !canPlaybackKeepUp)
+                updatedStatus = .playback(
+                    .init(
+                        state: isBuffering ? .buffering : player.rate == .zero ? .paused : .playing,
+                        duration: item.currentDuration,
+                        buffered: item.bufferProgress,
+                        totalDuration: item.totalDuration,
+                        selections: [
+                            item.mediaSelectionGroup(for: .legible, name: "Subtitle"),
+                            item.mediaSelectionGroup(for: .audible, name: "Audio"),
+                            item.mediaSelectionGroup(for: .visual, name: "Servers")
+                        ]
+                        .compactMap { $0 }
+                    )
+                )
+            } else if player.currentItem != nil {
+                updatedStatus = .loading
+            } else {
+                updatedStatus = .idle
+            }
+        }
+
+        if updatedStatus != subject.value {
+            subject.send(updatedStatus)
+        }
+    }
+}
+
 // MARK: - NowPlaying
 
 private class NowPlaying {
-    let player: AVPlayer
+    let statusPublisher: any Publisher<PlayerClient.Status, Never>
+    let nowPlaying = LockIsolated<PlayerClient.SourceMetadata?>(nil)
 
     private let infoCenter: MPNowPlayingInfoCenter
     private var cancellables = Set<AnyCancellable>()
     private var timeObserver: Any?
 
-    init(player: AVPlayer) {
-        self.player = player
+    init(statusPublisher: any Publisher<PlayerClient.Status, Never>) {
+        self.statusPublisher = statusPublisher
         self.infoCenter = .default()
         initPlayerObservables()
     }
 
     private func initPlayerObservables() {
-        timeObserver = player.addPeriodicTimeObserver(
-            forInterval: .init(
-                seconds: 1.0,
-                preferredTimescale: 1
-            ),
-            queue: .main
-        ) { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.updatePlayerStatsIfPresent()
-            }
-        }
-
-        player.publisher(for: \.currentItem)
-            .sink { [weak self] item in
-                if item == nil {
-                    DispatchQueue.main.async {
-                        self?.clear()
-                    }
-                }
+        statusPublisher
+            .sink { [weak self] value in
+                self?.updatePlayerStatus(value)
             }
             .store(in: &cancellables)
     }
 
-    private func updatePlayerStatsIfPresent() {
+    private func updatePlayerStatus(_ status: PlayerClient.Status) {
         var info = infoCenter.nowPlayingInfo
-        info?[MPMediaItemPropertyPlaybackDuration] = player.currentItem?.totalDuration ?? player.totalDuration
-        info?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentItem?.currentDuration ?? player.currentDuration
-        info?[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
+        info?[MPMediaItemPropertyPlaybackDuration] = status.playback?.totalDuration
+        info?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = status.playback?.duration
+        info?[MPNowPlayingInfoPropertyPlaybackRate] = status.playback?.state == .playing ? 1.0 : 0.0
         infoCenter.nowPlayingInfo = info
+
+        #if os(macOS)
+        switch status {
+        case .idle:
+            infoCenter.playbackState = .stopped
+        case .loading:
+            infoCenter.playbackState = .stopped
+        case let .playback(playback):
+            switch playback.state {
+            case .buffering, .paused:
+                infoCenter.playbackState = .paused
+            case .playing:
+                infoCenter.playbackState = .playing
+            }
+        case .error:
+            infoCenter.playbackState = .unknown
+        }
+        #endif
+
     }
 
     @MainActor
     func update(with metadata: PlayerClient.SourceMetadata) {
+        nowPlaying.setValue(metadata)
         var info = infoCenter.nowPlayingInfo ?? [:]
 
         info[MPMediaItemPropertyTitle] = metadata.title
@@ -262,6 +407,7 @@ private class NowPlaying {
         info[MPMediaItemPropertyArtist] = metadata.author
 
         if let imageURL = metadata.artworkImage {
+            // TODO: Download url image if not in cache
             if let image = ImagePipeline.shared.cache.cachedImage(for: .init(url: imageURL))?.image {
                 let artwork = MPMediaItemArtwork(boundsSize: image.size) { size in
                     #if os(macOS)
@@ -279,15 +425,11 @@ private class NowPlaying {
         }
 
         infoCenter.nowPlayingInfo = info
-
-        updatePlayerStatsIfPresent()
-
-        #if os(macOS)
-        #endif
     }
 
     @MainActor
     func clear() {
+        nowPlaying.setValue(nil)
         infoCenter.nowPlayingInfo = nil
         #if os(macOS)
         infoCenter.playbackState = .unknown

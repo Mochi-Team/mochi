@@ -23,7 +23,7 @@ private enum Cancellables: Hashable {
 
 extension SearchFeature: Reducer {
     public var body: some ReducerOf<Self> {
-        Scope(state: /State.self, action: /Action.view) {
+        Scope(state: \.self, action: \.view) {
             BindingReducer()
         }
 

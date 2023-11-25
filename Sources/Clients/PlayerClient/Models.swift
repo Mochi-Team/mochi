@@ -6,26 +6,48 @@
 //
 //
 
+import CasePaths
 import Foundation
 
 // MARK: - PlayerClient.Status
 
-public extension PlayerClient {
+extension PlayerClient {
     // TODO: Add metadata in the status
-    enum Status: Hashable, Sendable {
+    @CasePathable
+    @dynamicMemberLookup
+    public enum Status: Hashable, Sendable {
         case idle
         case loading
         case playback(Playback)
         case error
 
         public struct Playback: Hashable, Sendable {
-            public let progress: Double
-            public let status: State
+            public let state: State
+            public let duration: Double
+            public let buffered: Double
+            public let totalDuration: Double
 
+            public let selections: [MediaSelectionGroup]
+
+            public var reachedEnd: Bool {
+                progress >= 1.0
+            }
+
+            public var progress: Double {
+                totalDuration != .zero ? (duration / totalDuration) : .zero
+            }
+
+            public var bufferedProgress: Double {
+                totalDuration != .zero ? (buffered / totalDuration) : .zero
+            }
+
+            // TODO: List out option types, quality, subtitles, ect.
+
+            @CasePathable
             public enum State: Hashable, Sendable {
+                case buffering
                 case playing
                 case paused
-                case buffering
             }
         }
     }

@@ -14,9 +14,11 @@ import ModuleClient
 import SharedModels
 import SwiftUI
 
+@Reducer
 public struct AppDelegateFeature: Reducer {
     public struct State: FeatureState {}
 
+    @CasePathable
     public enum Action: SendableAction {
         case didFinishLaunching
     }
@@ -29,7 +31,7 @@ public struct AppDelegateFeature: Reducer {
 
     public init() {}
 
-    public var body: some ComposableArchitecture.Reducer<State, Action> {
+    public var body: some ReducerOf<Self> {
         Reduce { _, action in
             switch action {
             case .didFinishLaunching:

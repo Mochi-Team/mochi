@@ -24,7 +24,7 @@ extension SearchFeature.View: View {
         WithViewStore(store, observe: \.`self`) { viewStore in
             SheetDetent(
                 isExpanded: viewStore.$expandView,
-                initialHeight: searchBarSize - 8
+                initialHeight: searchBarSize
             ) {
                 ZStack {
                     LoadableView(loadable: viewStore.items) { pagings in

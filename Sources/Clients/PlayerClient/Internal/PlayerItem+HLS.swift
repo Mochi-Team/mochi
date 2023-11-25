@@ -5,7 +5,7 @@
 //  Created by ErrorErrorError on 6/18/23.
 //
 //
-//  Inspired by (https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift)
+//  Source: https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift
 
 import AVFoundation
 import AVKit

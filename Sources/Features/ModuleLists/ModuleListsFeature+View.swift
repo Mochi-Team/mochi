@@ -150,11 +150,18 @@ public extension View {
     func moduleListsSheet(
         _ store: Store<PresentationState<ModuleListsFeature.State>, PresentationAction<ModuleListsFeature.Action>>
     ) -> some View {
+        #if os(iOS)
         sheet(
             store: store,
             detents: [.medium(), .large()],
             content: ModuleListsFeature.View.init
         )
+        #else
+        sheet(
+            store: store,
+            content: ModuleListsFeature.View.init
+        )
+        #endif
     }
 }
 

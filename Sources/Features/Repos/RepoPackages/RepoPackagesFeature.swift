@@ -66,6 +66,7 @@ public extension RepoPackagesFeature {
         case `internal`(InternalAction)
         case delegate(DelegateAction)
 
+        @CasePathable
         public enum ViewAction: SendableAction {
             case onTask
             case didTapClose
@@ -74,6 +75,7 @@ public extension RepoPackagesFeature {
             case didTapRemoveModule(Module.ID)
         }
 
+        @CasePathable
         public enum InternalAction: SendableAction {
             case delayDeletingModule(id: Module.ID)
             case updateRepo(Repo?)
@@ -81,6 +83,7 @@ public extension RepoPackagesFeature {
             case downloadStates([Module.ID: RepoClient.RepoModuleDownloadState])
         }
 
+        @CasePathable
         public enum DelegateAction: SendableAction {}
     }
 }

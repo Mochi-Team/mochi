@@ -12,13 +12,14 @@ import SwiftUI
 // MARK: - SwipeableModifier
 
 private struct SwipeableModifier: ViewModifier {
+    let showForced: Bool
     let animation: Animation?
 
     @State
     private var dismissed = false
 
     func body(content: Content) -> some View {
-        if !dismissed {
+        if !dismissed || showForced {
             content
                 .highPriorityGesture(
                     DragGesture()
@@ -33,7 +34,7 @@ private struct SwipeableModifier: ViewModifier {
 }
 
 public extension View {
-    func swipeable(_ animation: Animation? = nil) -> some View {
-        modifier(SwipeableModifier(animation: animation))
+    func swipeable(_ showForced: Bool = false, _ animation: Animation? = nil) -> some View {
+        modifier(SwipeableModifier(showForced: showForced, animation: animation))
     }
 }
