@@ -17,58 +17,109 @@ import ViewComponents
 extension SettingsFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store, observe: \.`self`) { viewStore in
-            ScrollView(.vertical) {
-                VStack(spacing: 16) {
-                    SettingsGroup(title: "General") {
-                        // TODO: Actually allow users to set which discover page to show on startup
-                        SettingRow(title: "Discover Page", accessory: {
-                            Toggle("", isOn: .constant(true))
-                                .labelsHidden()
-                        })
-                    }
+        NavStack(store.scope(state: \.path, action: Action.InternalAction.path)) {
+            listSections
+                .animation(.easeInOut, value: viewStore.userSettings.developerModeEnabled)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .topBar(title: "Settings")
+                .task { viewStore.send(.onTask) }
+        } destination: { store in
+            SwitchStore(store) { state in }
+        }
+    }
+}
 
-                    SettingsGroup(title: "Apearance") {
-                        SettingRow(title: "Theme") {
-                            Text(viewStore.userSettings.theme.name)
-                                .font(.callout.weight(.medium))
-                                .foregroundColor(theme.textColor.opacity(0.5))
-                        } content: {
-                            ThemePicker(theme: viewStore.$userSettings.theme)
-                        }
+@MainActor
+struct GeneralView: View {
+    var showTitle = true
 
-                        SettingRow(title: "App Icon", accessory: EmptyView.init) {}
-                    }
+    @Environment(\.theme)
+    var theme
 
-                    VStack {
-                        Text("Made with ❤️")
-                        Text("Version: \(viewStore.buildVersion.description) (\(viewStore.buildNumber))")
+    @ObservedObject
+    var viewStore: FeatureViewStore<SettingsFeature>
+
+    var body: some View {
+        SettingsGroup(title: showTitle ? SettingsFeature.Section.general.localized() : "") {
+            // TODO: Actually allow users to set which discover page to show on startup
+            SettingRow(title: "Discover Page", accessory: {
+                Toggle("", isOn: .constant(true))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+            })
+        }
+    }
+}
+
+@MainActor
+struct AppearanceView: View {
+    var showTitle = true
+
+    @Environment(\.theme)
+    var theme
+
+    @ObservedObject
+    var viewStore: FeatureViewStore<SettingsFeature>
+
+    var body: some View {
+        SettingsGroup(title: showTitle ? SettingsFeature.Section.appearance.localized() : "") {
+            SettingRow(title: "Theme") {
+                Text(viewStore.userSettings.theme.name)
+                    .font(.callout)
+                    .foregroundColor(theme.textColor.opacity(0.65))
+            } content: {
+                ThemePicker(theme: viewStore.$userSettings.theme)
+            }
+
+            // TODO: Add option to change app icon
+            SettingRow(title: "App Icon", accessory: EmptyView.init) {}
+        }
+    }
+}
+
+@MainActor
+struct DeveloperView: View {
+    var showTitle = true
+
+    @Environment(\.theme)
+    var theme
+
+    @ObservedObject
+    var viewStore: FeatureViewStore<SettingsFeature>
+
+    var body: some View {
+        SettingsGroup(title: showTitle ? SettingsFeature.Section.developer.localized() : "") {
+            SettingRow(title: "Developer Mode", accessory: {
+                Toggle("", isOn: viewStore.$userSettings.developerModeEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+            })
+
+            if viewStore.userSettings.developerModeEnabled {
+                SettingRow(title: "Debug Modules", accessory: {
+                    Button {
+                        // Go to next screen to view logs
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.footnote)
                     }
-                    .font(.footnote.weight(.medium))
-                    .foregroundColor(.gray)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical)
-                }
+                    .buttonStyle(.plain)
+                })
             }
         }
-        #if os(iOS)
-        .topBar(title: "Settings")
-        #else
-        .navigationTitle("Settings")
-        #endif
-        .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity
-        )
     }
 }
 
 // MARK: - ThemePicker
 
+@MainActor
 struct ThemePicker: View {
     @Binding
     var theme: Theme
 
+    @MainActor
     var body: some View {
         ScrollView(.horizontal) {
             HStack(alignment: .center, spacing: 12) {
@@ -137,11 +188,15 @@ struct ThemePicker: View {
     SettingsFeature.View(
         store: .init(
             initialState: .init(),
-            reducer: {
-                SettingsFeature()
-                    .transformDependency(\.userSettings) { dependency in
-                        dependency.get = { .init(theme: .dark, appIcon: .default) }
-                    }
+            reducer: { SettingsFeature() },
+            withDependencies: { deps in
+                deps.userSettings.get = {
+                    .init(
+                        theme: .dark,
+                        appIcon: .default,
+                        developerModeEnabled: true
+                    )
+                }
             }
         )
     )

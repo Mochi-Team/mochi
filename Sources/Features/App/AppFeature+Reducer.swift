@@ -30,14 +30,10 @@ extension AppFeature: Reducer {
                 if state.selected == tab {
                     switch tab {
                     case .discover:
-                        if !state.discover.screens.isEmpty {
-                            state.discover.screens.removeAll()
-                        } else if state.discover.isSearchExpanded {
-                            return state.discover.collapseSearch()
-                                .map { .internal(.discover($0)) }
-                        } else if !state.discover.search.query.isEmpty {
-                            return state.discover.collapseAndClearSearch()
-                                .map { .internal(.discover($0)) }
+                        if !state.discover.path.isEmpty {
+                            state.discover.path.removeAll()
+                        } else if state.discover.search != nil {
+                            state.discover.search = nil
                         }
                     case .repos:
                         state.repos.path.removeAll()

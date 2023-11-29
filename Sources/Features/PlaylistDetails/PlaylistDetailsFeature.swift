@@ -148,16 +148,14 @@ public struct PlaylistDetailsFeature: Feature {
         @Environment(\.openURL)
         var openURL
 
-        @InsetValue(\.bottomNavigation)
-        var bottomNavigationSize
-
         @SwiftUI.State
         var imageDominatColor: Color?
 
         @Environment(\.theme)
         var theme
 
-        public nonisolated init(store: StoreOf<PlaylistDetailsFeature>) {
+        @MainActor
+        public init(store: StoreOf<PlaylistDetailsFeature>) {
             self.store = store
         }
     }
@@ -170,9 +168,6 @@ public struct PlaylistDetailsFeature: Feature {
 
     @Dependency(\.repoClient)
     var repoClient
-
-    @Dependency(\.logger)
-    var logger
 
     @Dependency(\.dismiss)
     var dismiss

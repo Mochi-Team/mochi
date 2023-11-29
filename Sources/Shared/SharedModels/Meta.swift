@@ -65,12 +65,12 @@ public extension DiscoverListing {
 
 // MARK: - SearchFilter
 
-public struct SearchFilter: Identifiable, Equatable, Sendable, Codable {
+public struct SearchFilter: Identifiable, Hashable, Sendable, Codable {
     public let id: Tagged<Self, String>
     public let displayName: String
     public let multiselect: Bool
     public let required: Bool
-    public let options: [Option]
+    public var options: [Option]
 
     public init(
         id: ID,
@@ -86,7 +86,7 @@ public struct SearchFilter: Identifiable, Equatable, Sendable, Codable {
         self.options = options
     }
 
-    public struct Option: Identifiable, Equatable, Sendable, Codable {
+    public struct Option: Identifiable, Hashable, Sendable, Codable {
         public let id: Tagged<Self, String>
         public let displayName: String
 
@@ -104,13 +104,13 @@ public struct SearchFilter: Identifiable, Equatable, Sendable, Codable {
 
 public struct SearchQuery: Equatable, Sendable, Codable {
     public var query: String
-    public var page: PagingID?
     public var filters: [Filter]
+    public var page: PagingID?
 
     public init(
         query: String,
-        page: PagingID? = nil,
-        filters: [Self.Filter] = []
+        filters: [Self.Filter] = [],
+        page: PagingID? = nil
     ) {
         self.query = query
         self.page = page
@@ -119,14 +119,14 @@ public struct SearchQuery: Equatable, Sendable, Codable {
 
     public struct Filter: Identifiable, Equatable, Sendable, Codable {
         public let id: SearchFilter.ID
-        public let optionIDs: [SearchFilter.Option.ID]
+        public let optionIds: [SearchFilter.Option.ID]
 
         public init(
             id: ID,
             optionId: [SearchFilter.Option.ID] = []
         ) {
             self.id = id
-            self.optionIDs = optionId
+            self.optionIds = optionId
         }
     }
 }

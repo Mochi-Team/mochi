@@ -30,24 +30,28 @@ extension AppFeature.View: View {
                                 send: .view(.didSelectTab(tab))
                             )
                         ) {
-                            switch tab {
-                            case .discover:
-                                DiscoverFeature.View(
-                                    store: store.scope(
-                                        state: \.discover,
-                                        action: Action.InternalAction.discover
+                            Group {
+                                switch tab {
+                                case .discover:
+                                    DiscoverFeature.View(
+                                        store: store.scope(
+                                            state: \.discover,
+                                            action: Action.InternalAction.discover
+                                        )
                                     )
-                                )
-                            case .repos:
-                                ReposFeature.View(
-                                    store: store.scope(
-                                        state: \.repos,
-                                        action: Action.InternalAction.repos
+                                case .repos:
+                                    ReposFeature.View(
+                                        store: store.scope(
+                                            state: \.repos,
+                                            action: Action.InternalAction.repos
+                                        )
                                     )
-                                )
-                            case .settings:
-                                EmptyView()
+                                case .settings:
+                                    EmptyView()
+                                }
                             }
+                            // FIXME: Set max width for inside scroll view to show scrollbar to the edge
+                            .frame(maxWidth: 1_280)
                         } label: {
                             Label(tab.rawValue, systemImage: tab.image)
                         }

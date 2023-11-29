@@ -6,13 +6,13 @@
 //
 //
 
-#if os(iOS)
+#if canImport(UIKit)
 import Foundation
 import SwiftUI
 import UIKit
 import ViewComponents
 
-final class HostingController<Variant: View>: UIHostingController<Variant>, OpaqueController {
+final class PreferenceHostingController<Root: View>: UIHostingController<BoxedView<Root>>, OpaquePreferenceHostingController {
     override var prefersHomeIndicatorAutoHidden: Bool { _homeIndicatorAutoHidden }
 
     var _homeIndicatorAutoHidden = false {
@@ -23,7 +23,7 @@ final class HostingController<Variant: View>: UIHostingController<Variant>, Opaq
 
     private let box: Box
 
-    init<InnerView: View>(rootView: InnerView) where Variant == BoxedView<InnerView> {
+    init(rootView: @escaping () -> Root) {
         self.box = .init()
         super.init(rootView: .init(box: box, content: rootView))
         box.object = self
@@ -35,15 +35,15 @@ final class HostingController<Variant: View>: UIHostingController<Variant>, Opaq
     }
 }
 
-struct BoxedView<Variant: View>: View {
+struct BoxedView<Content: View>: View {
     let box: Box
 
-    init(box: Box, content: @autoclosure @escaping () -> Variant) {
+    init(box: Box, content: @escaping () -> Content) {
         self.content = content
         self.box = box
     }
 
-    let content: () -> Variant
+    let content: () -> Content
 
     var body: some View {
         content()
@@ -54,11 +54,11 @@ struct BoxedView<Variant: View>: View {
 }
 
 final class Box {
-    weak var object: OpaqueController?
+    weak var object: OpaquePreferenceHostingController?
 }
 
 @MainActor
-protocol OpaqueController: AnyObject {
+protocol OpaquePreferenceHostingController: UIViewController {
     var _homeIndicatorAutoHidden: Bool { get set }
 }
 #endif

@@ -11,11 +11,10 @@ import FileClient
 import Foundation
 import JavaScriptCore
 import JSValueCoder
-import os
 import SharedModels
 
 extension JSContext {
-    convenience init(_ module: Module, _ logger: @escaping (MessageLog, String) -> Void) throws {
+    convenience init(_ module: Module, _ logger: @escaping (JSMessageLog, String) -> Void) throws {
         self.init()
 
         setConsoleBinding(logger)
@@ -46,34 +45,26 @@ extension JSContext: JSRuntime {
 
     func invokeInstanceMethod(functionName: String, args: [Encodable]) throws {
         let function = try getFunctionInstance(functionName)
-
         let encoder = JSValueEncoder()
-
         try function.call(withArguments: args.map { try encoder.encode($0, into: self) })
     }
 
     func invokeInstanceMethodWithPromise(functionName: String, args: [Encodable]) async throws {
         let function = try getFunctionInstance(functionName)
-
         let encoder = JSValueEncoder()
-
         guard let promise = try function.call(withArguments: args.map { try encoder.encode($0, into: self) }) else {
             throw ModuleClient.Error.jsRuntime(.promiseValueError)
         }
-
         try await promise.value(functionName)
     }
 
     func invokeInstanceMethodWithPromise<T: Decodable>(functionName: String, args: [Encodable]) async throws -> T {
         let function = try getFunctionInstance(functionName)
-
         let encoder = JSValueEncoder()
         let decoder = JSValueDecoder()
-
         guard let promise = try function.call(withArguments: args.map { try encoder.encode($0, into: self) }) else {
             throw ModuleClient.Error.jsRuntime(.instanceCall(function: "Instance.\(functionName)", msg: "Failed to retrieve value from function"))
         }
-
         return try await decoder.decode(T.self, from: promise.value(functionName))
     }
 
@@ -86,12 +77,10 @@ extension JSContext: JSRuntime {
 
     private func getFunctionInstance(_ functionName: String) throws -> JSValue {
         let instance = try getInstance()
-
         // Function is a form of an object
         guard let function = instance[functionName], function.isObject else {
             throw ModuleClient.Error.jsRuntime(.instanceCall(function: functionName, msg: "this function does not exist"))
         }
-
         return function
     }
 }

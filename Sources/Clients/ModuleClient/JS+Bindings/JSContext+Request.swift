@@ -132,7 +132,7 @@ extension JSContext {
                             defer { JSStringRelease(value) }
                             return JSValue(
                                 jsValueRef: JSValueMakeFromJSONString(ctx?.jsGlobalContextRef, value) ?? 
-                                    JSValueMakeUndefined(ctx?.jsGlobalContextRef) ,
+                                    JSValueMakeUndefined(ctx?.jsGlobalContextRef),
                                 in: ctx
                             )
                         } as @convention(block) () -> JSValue

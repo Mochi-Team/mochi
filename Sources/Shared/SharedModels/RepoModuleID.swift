@@ -16,6 +16,25 @@ public struct RepoModuleID: Hashable, Sendable {
     public let moduleId: Module.ID
 }
 
+public extension Repo.ID {
+    // Follow reverse domain name notation
+    var displayIdentifier: String {
+        if rawValue.hasDirectoryPath {
+            // Assuming this repository is locally stored
+            "dev.errorerrorerror.mochi.repo.local"
+        } else {
+            // Assumes it's a remote url
+            rawValue.host?.split(separator: ".").reversed().joined(separator: ".") ?? "unknown"
+        }
+    }
+}
+
+extension RepoModuleID: CustomStringConvertible {
+    public var description: String {
+        "\(repoId.displayIdentifier).\(moduleId)"
+    }
+}
+
 public extension RepoModuleID {
     static func create(_ repo: Repo, _ module: Module) -> RepoModuleID {
         .init(repoId: repo.id, moduleId: module.id)

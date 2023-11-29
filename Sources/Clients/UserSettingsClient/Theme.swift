@@ -11,6 +11,7 @@ import SwiftUI
 import Tagged
 import ViewComponents
 
+// Should be a struct instead?
 public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
     public var id: Tagged<Self, Int> { .init(hashValue) }
 
@@ -57,11 +58,19 @@ public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
                 blue: 0xF7 / 0xFF
             )
         case .dark:
+            #if os(macOS)
+            .init(
+                red: 0x1A / 0xFF,
+                green: 0x1A / 0xFF,
+                blue: 0x1A / 0xFF
+            )
+            #else
             .init(
                 red: 0x0A / 0xFF,
                 green: 0x0A / 0xFF,
                 blue: 0x0A / 0xFF
             )
+            #endif
         }
     }
 
@@ -89,4 +98,10 @@ public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
             .dark
         }
     }
+}
+
+public extension Theme {
+    static let pastelGreen = Color(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
+    static let pastelBlue = Color(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
+    static let pastelOrange = Color(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
 }

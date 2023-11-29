@@ -16,7 +16,7 @@ import XCTestDynamicOverlay
 
 public struct ModuleClient: Sendable {
     public var initialize: @Sendable () async throws -> Void
-    public var getModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Self.Instance
+    var getModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Self.Instance
     public var removeCachedModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Void
     public var removeCachedModules: @Sendable (_ repoID: Repo.ID) async throws -> Void
 }

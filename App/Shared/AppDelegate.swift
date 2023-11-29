@@ -10,16 +10,15 @@ import App
 import Architecture
 import Foundation
 
-#if os(iOS)
+#if canImport(UIKit)
 import UIKit
 
-let store = Store(
-    initialState: .init(),
-    reducer: { AppFeature() }
-)
-
-@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    let store = Store(
+        initialState: .init(),
+        reducer: { AppFeature() }
+    )
+
     func application(
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -27,24 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         store.send(.internal(.appDelegate(.didFinishLaunching)))
         return true
     }
-
-    func application(
-        _: UIApplication,
-        configurationForConnecting connectingSceneSession: UISceneSession,
-        options _: UIScene.ConnectionOptions
-    ) -> UISceneConfiguration {
-        let configuration = UISceneConfiguration(
-            name: connectingSceneSession.configuration.name,
-            sessionRole: connectingSceneSession.role
-        )
-
-        configuration.delegateClass = SceneDelegate.self
-
-        return configuration
-    }
 }
-
-#else
+#elseif canImport(AppKit)
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate {

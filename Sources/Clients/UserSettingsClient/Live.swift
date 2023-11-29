@@ -21,6 +21,7 @@ extension UserSettingsClient: DependencyKey {
             userSettings.withValue { state in
                 state = newValue
                 subject.send(newValue)
+                print("Save settings")
             }
         } save: {
             // TODO: Save UserSettingsClient

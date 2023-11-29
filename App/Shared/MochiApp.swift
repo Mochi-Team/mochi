@@ -12,25 +12,42 @@ import Settings
 import SwiftUI
 import VideoPlayer
 
-#if os(macOS)
 @main
 struct MochiApp: App {
+    #if canImport(UIKit)
+    @UIApplicationDelegateAdaptor(AppDelegate.self)
+    #elseif canImport(AppKit)
     @NSApplicationDelegateAdaptor(AppDelegate.self)
+    #endif
     var appDelegate
 
     var body: some Scene {
         WindowGroup {
+            #if os(iOS)
+            PreferenceHostingView {
+                AppFeature.View(
+                    store: appDelegate.store
+                )
+            }
+            // Ignoring safe area is required for
+            // PreferenceHostingView to render outside
+            // bounds
+            .ignoresSafeArea()
+            .themeable()
+            #elseif os(macOS)
             AppFeature.View(
                 store: appDelegate.store
             )
-            .themeable()
             .frame(
                 minWidth: 800,
                 maxWidth: .infinity,
                 minHeight: 625,
                 maxHeight: .infinity
             )
+            .themeable()
+            #endif
         }
+        #if os(macOS)
         .windowStyle(.titleBar)
         .commands {
             SidebarCommands()
@@ -38,7 +55,9 @@ struct MochiApp: App {
 
             CommandGroup(replacing: .newItem) {}
         }
+        #endif
 
+        #if os(macOS)
         Settings {
             SettingsFeature.View(
                 store: appDelegate.store.scope(
@@ -47,7 +66,8 @@ struct MochiApp: App {
                 )
             )
             .themeable()
+            .frame(width: 412)
         }
+        #endif
     }
 }
-#endif

@@ -8,22 +8,24 @@
 
 import Foundation
 import JavaScriptCore
-import os
+import Logging
 import SharedModels
 
 public extension ModuleClient {
     struct Instance {
+        private let id: RepoModuleID
         private let module: Module
         private let runtime: any JSRuntime
         private let logger: Logger
 
-        init(module: Module) throws {
+        init(id: RepoModuleID, module: Module) throws {
+            self.id = id
             self.module = module
-            self.logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.errorerrorerror.mochi", category: "module-\(module.id.rawValue)")
+            self.logger = Logger(label: id.description)
             self.runtime = try JSContext(module) { [logger] type, msg in
                 switch type {
                 case .log:
-                    logger.log("\(msg)")
+                    logger.log(level: .info, "\(msg)")
                 case .debug:
                     logger.debug("\(msg)")
                 case .error:
@@ -34,17 +36,6 @@ public extension ModuleClient {
                     logger.warning("\(msg)")
                 }
             }
-        }
-    }
-}
-
-extension ModuleClient.Instance {
-    private func reportError<R>(_ callback: @autoclosure @escaping () async throws -> R) async rethrows -> R {
-        do {
-            return try await callback()
-        } catch {
-            self.logger.error("\(error)")
-            throw error
         }
     }
 }
@@ -80,5 +71,16 @@ public extension ModuleClient.Instance {
 
     func playlistEpisodeServer(_ request: Playlist.EpisodeServerRequest) async throws -> Playlist.EpisodeServerResponse {
         try await reportError(await runtime.playlistEpisodeServer(request))
+    }
+}
+
+extension ModuleClient.Instance {
+    private func reportError<R>(_ callback: @autoclosure () async throws -> R) async rethrows -> R {
+        do {
+            return try await callback()
+        } catch {
+            self.logger.error("\(error)")
+            throw error
+        }
     }
 }

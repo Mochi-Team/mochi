@@ -108,9 +108,6 @@ extension PlaylistDetailsFeature.State {
         @Dependency(\.moduleClient)
         var moduleClient
 
-        @Dependency(\.logger)
-        var logger
-
         var effects = [Effect<PlaylistDetailsFeature.Action>]()
 
         let playlistId = playlist.id

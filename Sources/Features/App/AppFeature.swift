@@ -73,11 +73,11 @@ public struct AppFeature: Feature {
             var colorAccent: Color {
                 switch self {
                 case .discover:
-                    .init(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
+                    Theme.pastelGreen
                 case .repos:
-                    .init(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
+                    Theme.pastelBlue
                 case .settings:
-                    .init(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
+                    Theme.pastelOrange
                 }
             }
         }
@@ -116,7 +116,8 @@ public struct AppFeature: Feature {
         @Environment(\.theme)
         var theme
 
-        public nonisolated init(store: StoreOf<AppFeature>) {
+        @MainActor
+        public init(store: StoreOf<AppFeature>) {
             self.store = store
         }
     }

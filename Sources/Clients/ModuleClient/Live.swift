@@ -64,7 +64,7 @@ private actor ModulesCache {
             throw ModuleClient.Error.client(.moduleNotFound)
         }
 
-        let instance = try ModuleClient.Instance(module: module)
+        let instance = try ModuleClient.Instance(id: id, module: module)
         cached[id] = instance
 
         return instance

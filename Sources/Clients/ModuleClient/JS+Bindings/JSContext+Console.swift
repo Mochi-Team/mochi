@@ -9,8 +9,16 @@
 import Foundation
 import JavaScriptCore
 
+enum JSMessageLog: String, CaseIterable {
+    case log
+    case debug
+    case error
+    case info
+    case warn
+}
+
 extension JSContext {
-    func setConsoleBinding(_ logger: @escaping (MessageLog, String) -> Void) {
+    func setConsoleBinding(_ logger: @escaping (JSMessageLog, String) -> Void) {
         exceptionHandler = { _, exception in
             guard let exception else {
                 return
@@ -21,7 +29,7 @@ extension JSContext {
 
         let console = JSValue(newObjectIn: self)
 
-        let logger = { (type: MessageLog) in {
+        let logger = { (type: JSMessageLog) in {
             guard let arguments = JSContext.currentArguments()?.compactMap({ $0 as? JSValue }) else {
                 return
             }
@@ -32,7 +40,7 @@ extension JSContext {
             logger(type, msg)
         } as @convention(block) () -> Void }
 
-        MessageLog.allCases.forEach { console?.setObject(logger($0), forKeyedSubscript: $0.rawValue) }
+        JSMessageLog.allCases.forEach { console?.setObject(logger($0), forKeyedSubscript: $0.rawValue) }
 
         setObject(console, forKeyedSubscript: "console" as NSString)
     }

@@ -69,7 +69,16 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
 
             bottomAccessory()
         }
-        .padding(.horizontal)
+        .safeAreaInset(edge: .leading) {
+            Spacer()
+                .frame(width: 0, height: 0)
+                .padding(.leading)
+        }
+        .safeAreaInset(edge: .trailing) {
+            Spacer()
+                .frame(width: 0, height: 0)
+                .padding(.trailing)
+        }
         .padding(.top, 12)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -321,4 +330,12 @@ public struct MaterialToolbarButtonMenuStyle: MenuStyle {
     }
 }
 
+#endif
+
+#if canImport(AppKit)
+public extension View {
+    func topBar(title: String) -> some View {
+        self.navigationTitle(title)
+    }
+}
 #endif

@@ -28,14 +28,13 @@ public struct SettingsGroup<Content: View>: View {
     public var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.body.weight(.semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundColor(theme.textColor.opacity(0.85))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             _VariadicView.Tree(Layout()) {
                 content()
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
             .background {
                 RoundedRectangle(cornerRadius: 12)
                     .style(
@@ -44,12 +43,13 @@ public struct SettingsGroup<Content: View>: View {
                         fill: theme.overBackgroundColor
                     )
             }
+            .clipped()
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal)
     }
 
-    /// From: https://movingparts.io/variadic-views-in-swiftui
+    /// Source: https://movingparts.io/variadic-views-in-swiftui
     struct Layout: _VariadicView_UnaryViewRoot {
         @ViewBuilder
         func body(children: _VariadicView.Children) -> some View {
@@ -62,7 +62,6 @@ public struct SettingsGroup<Content: View>: View {
                             .fill(Color.gray.opacity(0.2))
                             .frame(maxWidth: .infinity)
                             .frame(height: 1)
-//                            .padding(.horizontal, 12)
                     }
                 }
             }

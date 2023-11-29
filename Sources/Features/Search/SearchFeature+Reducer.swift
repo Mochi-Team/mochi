@@ -17,6 +17,7 @@ import SharedModels
 
 private enum Cancellables: Hashable {
     case fetchingItemsDebounce
+    case fetchingSearchFilters
 }
 
 // MARK: - SearchFeature + Reducer
@@ -30,7 +31,7 @@ extension SearchFeature: Reducer {
         Reduce { state, action in
             switch action {
             case .view(.didAppear):
-                break
+                return state.fetchFilters()
 
             case let .view(.didShowNextPageIndicator(pagingId)):
                 guard var value = state.items.value, value[pagingId] == nil else {
@@ -42,6 +43,7 @@ extension SearchFeature: Reducer {
                 }
 
                 let searchQuery = state.query
+                let searchFilters = state.selectedFilters
 
                 value[pagingId] = .loading
                 state.items = .loaded(value)
@@ -59,6 +61,7 @@ extension SearchFeature: Reducer {
                                             try await module.search(
                                                 .init(
                                                     query: searchQuery,
+                                                    filters: searchFilters.map(\.searchQueryFilter),
                                                     page: pagingId
                                                 )
                                             )
@@ -72,12 +75,42 @@ extension SearchFeature: Reducer {
                     logger.error("There was an error fetching page w/ id: \(pagingId.rawValue) - \(error.localizedDescription)")
                 }
 
-            case .view(.didTapFilterOptions):
-//                return .send(.delegate(.tappedFilterOptions))
-                break
-
             case .view(.didTapClearQuery):
                 return state.clearQuery()
+
+            case .view(.didTapClearFilters):
+                state.selectedFilters.removeAll()
+                return state.fetchQuery()
+
+            case .view(.didTapBackButton):
+                return .run { await dismiss() }
+
+            case let .view(.didTapFilter(filter, option)):
+                if var storedFilter = state.selectedFilters[id: filter.id] {
+                    if storedFilter.options[id: option.id] == nil {
+                        storedFilter.options.append(option)
+                    } else {
+                        storedFilter.options.removeAll(where: \.id == option.id)
+                    }
+
+                    if storedFilter.options.isEmpty {
+                        state.selectedFilters[id: filter.id] = nil
+                    } else {
+                        state.selectedFilters[id: filter.id] = storedFilter
+                    }
+                } else {
+                    state.selectedFilters.append(
+                        .init(
+                            id: filter.id,
+                            displayName: filter.displayName,
+                            multiselect: filter.multiselect,
+                            required: filter.required,
+                            options: [option]
+                        )
+                    )
+                }
+
+                return state.fetchQuery()
 
             case let .view(.didTapPlaylist(playlist)):
                 if let repoModuleId = state.repoModuleId {
@@ -86,58 +119,19 @@ extension SearchFeature: Reducer {
                 }
 
             case .view(.binding(\.$query)):
-                guard let selected = state.repoModuleId else {
-                    state.items = .pending
-                    return .cancel(id: Cancellables.fetchingItemsDebounce)
-                }
-
-                let searchQuery = state.query
-
-                guard !searchQuery.isEmpty else {
-                    state.items = .pending
-                    return .cancel(id: Cancellables.fetchingItemsDebounce)
-                }
-
-                state.items = .loading
-
-                return .run { send in
-                    try await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
-                        try await Task.sleep(nanoseconds: 1_000_000 * 600)
-
-                        await send(
-                            .internal(
-                                .loadedItems(
-                                    .init {
-                                        try await moduleClient.withModule(id: selected) { module in
-                                            try await module.search(.init(query: searchQuery))
-                                        }
-                                    }
-                                )
-                            )
-                        )
-                    }
-                } catch: { error, _ in
-                    logger.error("There was an error fetching page \(error.localizedDescription)")
-                }
+                return state.fetchQuery()
 
             case .view(.binding(\.$searchFieldFocused)):
-                if state.searchFieldFocused {
-                    state.expandView = true
-                }
-
-            case .view(.binding(\.$expandView)):
-                if state.searchFieldFocused {
-                    state.searchFieldFocused = false
-                }
+                break
 
             case .view(.binding):
                 break
 
             case let .internal(.loadedSearchFilters(.success(filters))):
-                state.filters = filters
+                state.allFilters = filters
 
             case .internal(.loadedSearchFilters(.failure)):
-                state.filters = []
+                state.allFilters = []
 
             case let .internal(.loadedItems(loadable)):
                 state.items = loadable.map { [$0.id: .loaded($0)] }
@@ -156,12 +150,81 @@ extension SearchFeature: Reducer {
     }
 }
 
-public extension SearchFeature.State {
-    mutating func collapse() -> Effect<SearchFeature.Action> {
-        expandView = false
-        return .none
+extension SearchFeature.State {
+    mutating func fetchFilters() -> Effect<SearchFeature.Action> {
+        guard let selected = repoModuleId else {
+            allFilters = []
+            return .none
+        }
+
+        @Dependency(\.moduleClient)
+        var moduleClient
+
+        return .run { send in
+            await withTaskCancellation(id: Cancellables.fetchingSearchFilters) {
+                await send(
+                    .internal(
+                        .loadedSearchFilters(
+                            .init {
+                                try await moduleClient.withModule(id: selected) { instance in
+                                    try await instance.searchFilters()
+                                }
+                            }
+                        )
+                    )
+                )
+            }
+        }
     }
 
+    mutating func fetchQuery() -> Effect<SearchFeature.Action> {
+        guard let selected = repoModuleId else {
+            items = .pending
+            return .cancel(id: Cancellables.fetchingItemsDebounce)
+        }
+
+        let searchQuery = query
+
+        guard !searchQuery.isEmpty else {
+            items = .pending
+            return .cancel(id: Cancellables.fetchingItemsDebounce)
+        }
+
+        @Dependency(\.moduleClient)
+        var moduleClient
+
+        items = .loading
+
+        let filters = selectedFilters
+
+        return .run { send in
+            try await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
+                try await Task.sleep(nanoseconds: 1_000_000 * 600)
+
+                await send(
+                    .internal(
+                        .loadedItems(
+                            .init {
+                                try await moduleClient.withModule(id: selected) { module in
+                                    try await module.search(
+                                        .init(
+                                            query: searchQuery,
+                                            filters: filters.map(\.searchQueryFilter)
+                                        )
+                                    )
+                                }
+                            }
+                        )
+                    )
+                )
+            }
+        } catch: { error, _ in
+            logger.error("There was an error fetching page \(error.localizedDescription)")
+        }
+    }
+}
+
+public extension SearchFeature.State {
     mutating func clearQuery() -> Effect<SearchFeature.Action> {
         query = ""
         items = .pending
@@ -170,6 +233,14 @@ public extension SearchFeature.State {
 
     mutating func updateModule(with repoModuleId: RepoModuleID?) -> Effect<SearchFeature.Action> {
         self.repoModuleId = repoModuleId
-        return clearQuery()
+        self.selectedFilters = .init()
+        self.allFilters = .init()
+        return clearQuery().concatenate(with: self.fetchFilters())
+    }
+}
+
+private extension SearchFilter {
+    var searchQueryFilter: SearchQuery.Filter {
+        .init(id: id, optionId: options.map(\.id))
     }
 }

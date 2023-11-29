@@ -44,7 +44,7 @@ public struct DiscoverFeature: Feature {
         }
     }
 
-    public struct Screens: Reducer {
+    public struct Path: Reducer {
         public enum State: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.State)
         }
@@ -60,6 +60,8 @@ public struct DiscoverFeature: Feature {
         }
     }
 
+    @CasePathable
+    @dynamicMemberLookup
     public enum Section: Equatable, Sendable {
         case home(HomeState = .init())
         case module(ModuleListingState)
@@ -93,21 +95,23 @@ public struct DiscoverFeature: Feature {
     }
 
     public struct State: FeatureState {
-        public var selected: Section
-        public var screens: StackState<Screens.State>
-        public var search: SearchFeature.State
+        public var section: Section
+        public var path: StackState<Path.State>
+
+        @PresentationState
+        public var search: SearchFeature.State?
 
         @PresentationState
         public var moduleLists: ModuleListsFeature.State?
 
         public init(
-            selected: DiscoverFeature.Section = .home(),
-            screens: StackState<Screens.State> = .init(),
-            search: SearchFeature.State = .init(),
+            section: DiscoverFeature.Section = .home(),
+            screens: StackState<Path.State> = .init(),
+            search: SearchFeature.State? = nil,
             moduleLists: ModuleListsFeature.State? = nil
         ) {
-            self.selected = selected
-            self.screens = screens
+            self.section = section
+            self.path = screens
             self.search = search
             self.moduleLists = moduleLists
         }
@@ -120,6 +124,7 @@ public struct DiscoverFeature: Feature {
             case didAppear
             case didTapOpenModules
             case didTapPlaylist(Playlist)
+            case didTapSearchButton
         }
 
         @CasePathable
@@ -139,9 +144,9 @@ public struct DiscoverFeature: Feature {
         public enum InternalAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)
             case loadedListings(RepoModuleID, Loadable<[DiscoverListing]>)
-            case screens(StackAction<Screens.State, Screens.Action>)
+            case screens(StackAction<Path.State, Path.Action>)
             case moduleLists(PresentationAction<ModuleListsFeature.Action>)
-            case search(SearchFeature.Action)
+            case search(PresentationAction<SearchFeature.Action>)
         }
 
         case view(ViewAction)
@@ -153,10 +158,11 @@ public struct DiscoverFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<DiscoverFeature>
 
-        @SwiftUI.State
-        var searchBarSize = CGSize.zero
+        @Namespace
+        public var searchAnimation
 
-        public nonisolated init(store: StoreOf<DiscoverFeature>) {
+        @MainActor
+        public init(store: StoreOf<DiscoverFeature>) {
             self.store = store
         }
     }
@@ -171,18 +177,8 @@ public struct DiscoverFeature: Feature {
 }
 
 public extension DiscoverFeature.State {
-    var isSearchExpanded: Bool {
-        search.expandView
-    }
-
-    mutating func collapseSearch() -> Effect<DiscoverFeature.Action> {
-        search.collapse().map { .internal(.search($0)) }
-    }
-
-    mutating func collapseAndClearSearch() -> Effect<DiscoverFeature.Action> {
-        .concatenate(
-            search.collapse().map { .internal(.search($0)) },
-            search.clearQuery().map { .internal(.search($0)) }
-        )
+    mutating func clearQuery() -> Effect<DiscoverFeature.Action> {
+        self.search?.clearQuery()
+            .map { .internal(.search(.presented($0))) } ?? .none
     }
 }

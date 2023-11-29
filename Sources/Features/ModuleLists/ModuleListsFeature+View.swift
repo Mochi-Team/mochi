@@ -73,7 +73,15 @@ extension ModuleListsFeature.View {
 
                     Text(repo.author)
                         .font(.subheadline.bold())
-                        .foregroundColor(.gray)
+                        .opacity(0.8)
+
+                    Spacer()
+                        .frame(height: 4)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(repo.id.displayIdentifier)
+                        .font(.footnote)
+                        .foregroundColor(.gray.opacity(0.8))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -134,6 +142,10 @@ extension ModuleListsFeature.View {
                 Text(module.name)
                     .font(.body.weight(.medium))
 
+//                Text(module.id.rawValue)
+//                    .font(.footnote.weight(.medium))
+//                    .foregroundColor(.gray)
+//
                 Text("v\(module.version.description)")
                     .font(.footnote.weight(.medium))
                     .foregroundColor(.gray)
@@ -147,6 +159,7 @@ extension ModuleListsFeature.View {
 }
 
 public extension View {
+    @MainActor
     func moduleListsSheet(
         _ store: Store<PresentationState<ModuleListsFeature.State>, PresentationAction<ModuleListsFeature.Action>>
     ) -> some View {

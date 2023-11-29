@@ -262,7 +262,7 @@ extension ReposFeature.View {
                     .font(.callout.weight(.medium))
 
                 HStack(spacing: 0) {
-                    Text(repo.remoteURL.host ?? repo.author)
+                    Text(repo.id.displayIdentifier)
                         .font(.footnote)
                 }
                 .lineLimit(1)

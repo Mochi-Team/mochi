@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		132862252A17D06300F67EAC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132862242A17D06300F67EAC /* AppDelegate.swift */; };
-		1396B9E42A4B71BA00B7928A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1396B9E32A4B71BA00B7928A /* SceneDelegate.swift */; };
-		1396B9E62A4B72A800B7928A /* HostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1396B9E52A4B72A800B7928A /* HostingController.swift */; };
+		1396B9E62A4B72A800B7928A /* PreferenceHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1396B9E52A4B72A800B7928A /* PreferenceHostingController.swift */; };
 		1396FE0529DF561C00B22132 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1396FE0029DF561C00B22132 /* Assets.xcassets */; };
 		1396FE0629DF561C00B22132 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1396FE0229DF561C00B22132 /* Preview Assets.xcassets */; };
 		1396FE0729DF561C00B22132 /* MochiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1396FE0329DF561C00B22132 /* MochiApp.swift */; };
+		13EDE7392B166E4500E14998 /* PreferenceHostingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EDE7382B166E4500E14998 /* PreferenceHostingView.swift */; };
 		13F11CC02B11617D006FFF63 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 13F11CBF2B11617D006FFF63 /* App */; };
 /* End PBXBuildFile section */
 
@@ -20,13 +20,13 @@
 		132862242A17D06300F67EAC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		134516B629DF44D200E4C3B8 /* mochi */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = mochi; path = ..; sourceTree = "<group>"; };
 		138DA7D52A0AB5E800FDAC13 /* mochi-info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mochi-info.plist"; sourceTree = "<group>"; };
-		1396B9E32A4B71BA00B7928A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		1396B9E52A4B72A800B7928A /* HostingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingController.swift; sourceTree = "<group>"; };
+		1396B9E52A4B72A800B7928A /* PreferenceHostingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceHostingController.swift; sourceTree = "<group>"; };
 		1396FDFF29DF561C00B22132 /* mochi.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = mochi.entitlements; sourceTree = "<group>"; };
 		1396FE0029DF561C00B22132 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1396FE0229DF561C00B22132 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1396FE0329DF561C00B22132 /* MochiApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MochiApp.swift; sourceTree = "<group>"; };
 		13C18B9129CE6CC200C14F26 /* Mochi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mochi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13EDE7382B166E4500E14998 /* PreferenceHostingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceHostingView.swift; sourceTree = "<group>"; };
 		13F11CC12B116431006FFF63 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk/System/Library/Frameworks/Accelerate.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
@@ -81,8 +81,8 @@
 		1396FE0429DF561C00B22132 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				1396B9E32A4B71BA00B7928A /* SceneDelegate.swift */,
-				1396B9E52A4B72A800B7928A /* HostingController.swift */,
+				1396B9E52A4B72A800B7928A /* PreferenceHostingController.swift */,
+				13EDE7382B166E4500E14998 /* PreferenceHostingView.swift */,
 			);
 			path = iOS;
 			sourceTree = "<group>";
@@ -233,8 +233,8 @@
 			files = (
 				132862252A17D06300F67EAC /* AppDelegate.swift in Sources */,
 				1396FE0729DF561C00B22132 /* MochiApp.swift in Sources */,
-				1396B9E62A4B72A800B7928A /* HostingController.swift in Sources */,
-				1396B9E42A4B71BA00B7928A /* SceneDelegate.swift in Sources */,
+				1396B9E62A4B72A800B7928A /* PreferenceHostingController.swift in Sources */,
+				13EDE7392B166E4500E14998 /* PreferenceHostingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,7 +385,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.errorerrorerror.mochi;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.errorerrorerror.mochi;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -424,7 +424,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.errorerrorerror.mochi;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.errorerrorerror.mochi;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;

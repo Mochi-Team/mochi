@@ -84,11 +84,12 @@ extension PlatformColor {
     }
 }
 
+// Source: https://www.jessesquires.com/blog/2023/07/11/creating-dynamic-colors-in-swiftui/
 public extension Color {
     init(light: Color, dark: Color) {
         #if canImport(UIKit)
         self.init(light: UIColor(light), dark: UIColor(dark))
-        #else
+        #elseif canImport(AppKit)
         self.init(light: NSColor(light), dark: NSColor(dark))
         #endif
     }
@@ -113,9 +114,7 @@ public extension Color {
         }))
         #endif
     }
-    #endif
-
-    #if canImport(AppKit)
+    #elseif canImport(AppKit)
     init(light: NSColor, dark: NSColor) {
         self.init(nsColor: NSColor(name: nil, dynamicProvider: { colorScheme in
             switch colorScheme.name {

@@ -22,29 +22,29 @@ import ViewComponents
 public struct SearchFeature: Feature {
     public struct State: FeatureState {
         @BindingState
-        public var expandView: Bool
-        @BindingState
         public var searchFieldFocused: Bool
         @BindingState
         public var query: String
+        @BindingState
+        public var selectedFilters: [SearchFilter]
 
         public var repoModuleId: RepoModuleID?
-        public var filters: [SearchFilter]
+        public var allFilters: [SearchFilter]
         public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
 
         public init(
-            expandView: Bool = false,
             searchFieldFocused: Bool = false,
             repoModuleId: RepoModuleID? = nil,
             query: String = "",
-            filters: [SearchFilter] = [],
+            selectedFilters: [SearchFilter] = [],
+            allFilters: [SearchFilter] = [],
             items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
         ) {
             self.repoModuleId = repoModuleId
-            self.expandView = expandView
             self.searchFieldFocused = searchFieldFocused
             self.query = query
-            self.filters = filters
+            self.selectedFilters = selectedFilters
+            self.allFilters = allFilters
             self.items = items
         }
     }
@@ -55,7 +55,9 @@ public struct SearchFeature: Feature {
         public enum ViewAction: SendableAction, BindableAction {
             case didAppear
             case didTapClearQuery
-            case didTapFilterOptions
+            case didTapClearFilters
+            case didTapBackButton
+            case didTapFilter(SearchFilter, SearchFilter.Option)
             case didTapPlaylist(Playlist)
             case didShowNextPageIndicator(PagingID)
             case binding(BindingAction<State>)
@@ -82,27 +84,26 @@ public struct SearchFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<SearchFeature>
 
-        var onSearchBarSizeChanged: (CGSize) -> Void = { _ in }
-
-        @SwiftUI.State
-        var searchBarSize = 0.0
+        public var searchAnimation: Namespace.ID
 
         @FocusState
         var searchFieldFocused: Bool
 
-        public nonisolated init(store: StoreOf<SearchFeature>) {
+        @MainActor
+        public init(store: StoreOf<SearchFeature>, namespace: Namespace.ID) {
             self.store = store
+            self.searchAnimation = namespace
         }
     }
+
+    @Dependency(\.dismiss)
+    var dismiss
 
     @Dependency(\.moduleClient)
     var moduleClient
 
     @Dependency(\.repoClient)
     var repoClient
-
-    @Dependency(\.logger)
-    var logger
 
     public init() {}
 }

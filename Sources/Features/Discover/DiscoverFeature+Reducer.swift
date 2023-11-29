@@ -34,41 +34,37 @@ extension DiscoverFeature {
                 state.moduleLists = .init()
 
             case let .view(.didTapPlaylist(playlist)):
-                guard case let .module(moduleState) = state.selected else {
+                guard let id = state.section.module?.module.id else {
                     break
                 }
-                let repoModuleId = moduleState.module.id
-                state.screens.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
+                state.path.append(.playlistDetails(.init(content: .init(repoModuleId: id, playlist: playlist))))
+
+            case .view(.didTapSearchButton):
+                state.search = SearchFeature.State(
+                    searchFieldFocused: true,
+                    repoModuleId: state.section.module?.module.id
+                )
 
             case let .internal(.selectedModule(selection)):
                 if let selection {
-                    state.selected = .module(.init(module: selection, listings: .pending))
+                    state.section = .module(.init(module: selection, listings: .pending))
                 } else {
-                    state.selected = .home()
+                    state.section = .home()
                 }
-                return .merge(
-                    state.search.updateModule(with: selection?.id).map { .internal(.search($0)) },
-                    state.fetchLatestListings(selection)
-                )
+                return state.fetchLatestListings(selection)
 
             case let .internal(.loadedListings(id, loadable)):
-                if case var .module(moduleState) = state.selected, moduleState.module.repoId == id.repoId, moduleState.module.module.id == id.moduleId {
+                if var moduleState = state.section.module, moduleState.module.repoId == id.repoId, moduleState.module.module.id == id.moduleId {
                     moduleState.listings = loadable
-                    state.selected = .module(moduleState)
+                    state.section = .module(moduleState)
                 }
 
             case let .internal(.moduleLists(.presented(.delegate(.selectedModule(repoModule))))):
                 state.moduleLists = nil
                 return .send(.internal(.selectedModule(repoModule)))
 
-            case let .internal(.search(.delegate(.playlistTapped(repoModuleId, playlist)))):
-                state.screens.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
-
-            case .internal(.search):
-                break
-
-            case .internal(.moduleLists):
-                break
+            case let .internal(.search(.presented(.delegate(.playlistTapped(repoModuleId, playlist))))):
+                state.path.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
 
             case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, variant, paging, itemId)))))):
                 return .send(
@@ -85,6 +81,12 @@ extension DiscoverFeature {
                     )
                 )
 
+            case .internal(.moduleLists):
+                break
+
+            case .internal(.search):
+                break
+
             case .internal(.screens):
                 break
 
@@ -96,12 +98,11 @@ extension DiscoverFeature {
         .ifLet(\.$moduleLists, action: \.internal.moduleLists) {
             ModuleListsFeature()
         }
-        .forEach(\.screens, action: \.internal.screens) {
-            DiscoverFeature.Screens()
-        }
-
-        Scope(state: \.search, action: \.internal.search) {
+        .ifLet(\.$search, action: \.internal.search) {
             SearchFeature()
+        }
+        .forEach(\.path, action: \.internal.screens) {
+            DiscoverFeature.Path()
         }
     }
 }
@@ -112,11 +113,12 @@ extension DiscoverFeature.State {
         var moduleClient
 
         guard let selectedModule else {
-            selected = .home(.init())
+            section = .home(.init())
             return .none
         }
 
-        selected = .module(.init(module: selectedModule, listings: .loading))
+        section = .module(.init(module: selectedModule, listings: .loading))
+
         let id = selectedModule.id
 
         return .run { send in

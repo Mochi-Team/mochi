@@ -11,6 +11,7 @@ import SwiftUI
 
 // MARK: - SnapScroll
 
+@MainActor
 public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T.Index == Int {
     @State
     var position: T.Index
@@ -26,6 +27,7 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
     @GestureState
     private var translation: CGFloat = 0
 
+    @MainActor
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat = 0,
@@ -41,6 +43,7 @@ public struct SnapScroll<T: RandomAccessCollection, Content: View>: View where T
         self.content = content
     }
 
+    @MainActor
     public var body: some View {
         GeometryReader { proxy in
             let maxWidth = proxy.size.width
@@ -118,7 +121,7 @@ extension SnapScroll.EdgeInsets {
 #Preview {
     VStack {
         SnapScroll(
-            spacing: 20,
+            spacing: 0,
             edgeInsets: .init(
                 leading: 20,
                 trailing: 40

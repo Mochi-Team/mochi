@@ -189,9 +189,6 @@ public extension ContentCore.State {
         @Dependency(\.moduleClient)
         var moduleClient
 
-        @Dependency(\.logger)
-        var logger
-
         let playlistId = self.playlist.id
         let repoModuleId = self.repoModuleId
 

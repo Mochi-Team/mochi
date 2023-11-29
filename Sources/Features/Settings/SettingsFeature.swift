@@ -9,27 +9,52 @@
 import Architecture
 import BuildClient
 import ComposableArchitecture
-@preconcurrency import Semver
 import SharedModels
 import Styling
 import SwiftUI
 import UserSettingsClient
 
 public struct SettingsFeature: Feature {
+    public enum Section: String, Sendable, Hashable, Localizable, CaseIterable {
+        case general = "General"
+        case appearance = "Appearance"
+        case developer = "Developer"
+
+        var systemImage: String {
+            switch self {
+            case .general:
+                "gearshape.fill"
+            case .appearance:
+                "paintbrush.fill"
+            case .developer:
+                "wrench.and.screwdriver.fill"
+            }
+        }
+    }
+
+    public struct Path: Reducer {
+        @CasePathable
+        @dynamicMemberLookup
+        public enum State: Equatable, Sendable {}
+
+        @CasePathable
+        public enum Action: Equatable, Sendable {}
+
+        public var body: some ReducerOf<Self> {
+            EmptyReducer()
+        }
+    }
+
     public struct State: FeatureState {
-        public var buildVersion: Semver
-        public var buildNumber: Int
+        public var path: StackState<Path.State>
 
         @BindingState
         public var userSettings: UserSettings
 
         public init(
-            buildVersion: Semver = .init(0, 0, 1),
-            buildNumber: Int = 0
+            path: StackState<Path.State> = .init()
         ) {
-            self.buildVersion = buildVersion
-            self.buildNumber = buildNumber
-
+            self.path = path
             @Dependency(\.userSettings)
             var userSettings
             self.userSettings = userSettings.get()
@@ -40,7 +65,7 @@ public struct SettingsFeature: Feature {
     public enum Action: FeatureAction {
         @CasePathable
         public enum ViewAction: SendableAction, BindableAction {
-            case didAppear
+            case onTask
             case binding(BindingAction<State>)
         }
 
@@ -48,7 +73,9 @@ public struct SettingsFeature: Feature {
         public enum DelegateAction: SendableAction {}
 
         @CasePathable
-        public enum InternalAction: SendableAction {}
+        public enum InternalAction: SendableAction {
+            case path(StackAction<Path.State, Path.Action>)
+        }
 
         case view(ViewAction)
         case delegate(DelegateAction)
@@ -58,17 +85,22 @@ public struct SettingsFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: StoreOf<SettingsFeature>
+        @ObservedObject
+        public var viewStore: FeatureViewStore<SettingsFeature>
 
         @Environment(\.theme)
         var theme
 
-        public nonisolated init(store: StoreOf<SettingsFeature>) {
+        @MainActor
+        public init(store: StoreOf<SettingsFeature>) {
             self.store = store
+            self.viewStore = .init(store, observe: \.`self`)
         }
     }
 
     @Dependency(\.mainQueue)
     var mainQueue
+
     @Dependency(\.userSettings)
     var userSettingsClient
 

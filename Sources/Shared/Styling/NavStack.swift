@@ -35,10 +35,17 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
 
     public var body: some View {
         if #available(iOS 16, macOS 13, *) {
-            NavigationStackStore(store, root: root) { store in
+            NavigationStackStore(store) {
+                root()
+                #if os(iOS)
+                    .themeable()
+                    .safeInset(from: \.bottomNavigation, edge: .bottom)
+                #endif
+            } destination: { store in
                 #if os(iOS)
                 destination(store)
                     .navigationBarHidden(true)
+                    .safeInset(from: \.bottomNavigation, edge: .bottom)
                 #else
                 destination(store)
                 #endif
@@ -48,6 +55,8 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
             NavigationView {
                 ZStack {
                     root()
+                        .themeable()
+                        .safeInset(from: \.bottomNavigation, edge: .bottom)
 
                     Group {
                         WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
@@ -72,6 +81,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                                     ) { store in
                                         destination(store)
                                             .navigationBarHidden(true)
+                                            .safeInset(from: \.bottomNavigation, edge: .bottom)
                                     }
                                 } label: {
                                     EmptyView()
@@ -87,36 +97,27 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
             #elseif os(macOS)
             // There is no support for stack-based views under macOS 13, so we create our own stack based
             // view, and to avoid toolbars from overlapping, we need to only allow one view at a time
-            ZStack {
-                WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
-                    if let id = viewStore.last {
-                        ZStack {
-                            IfLetStore(
-                                store.scope(
-                                    state: returningLastNonNilValue { $0[id: id] },
-                                    action: { .element(id: id, action: $0 as Action) }
-                                ),
-                                then: destination
-                            )
-                        }
-                    } else {
-                        root()
-                    }
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigation) {
-                    WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
-                        Button {
-                            if let last = viewStore.last {
-                                viewStore.send(.popFrom(id: last))
+            WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
+                if let id = viewStore.last {
+                    IfLetStore(
+                        store.scope(
+                            state: returningLastNonNilValue { $0[id: id] },
+                            action: { .element(id: id, action: $0 as Action) }
+                        ),
+                        then: destination
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .navigation) {
+                            Button {
+                                viewStore.send(.popFrom(id: id))
+                            } label: {
+                                Image(systemName: "chevron.left")
                             }
-                        } label: {
-                            Image(systemName: "chevron.left")
+                            .keyboardShortcut("[", modifiers: .command)
                         }
-                        .disabled(viewStore.last == nil)
-                        .keyboardShortcut("[", modifiers: .command)
                     }
+                } else {
+                    root()
                 }
             }
             #endif
@@ -159,6 +160,7 @@ private func returningLastNonNilValue<A, B>(_ f: @escaping (A) -> B?) -> (A) -> 
 // MARK: - UINavigationController + UIGestureRecognizerDelegate
 
 #if os(iOS)
+// FIXME: This causes crashes on iOS 17
 /// Hacky way to allow swipe back navigation when status bar is hidden
 extension UINavigationController: UIGestureRecognizerDelegate {
     override open func viewDidLoad() {

@@ -186,7 +186,8 @@ public struct VideoPlayerFeature: Feature {
         @SwiftUI.State
         var pipStatus = PiPStatus.restoreUI
 
-        public nonisolated init(store: StoreOf<VideoPlayerFeature>) {
+        @MainActor
+        public init(store: StoreOf<VideoPlayerFeature>) {
             self.store = store
         }
     }
@@ -196,9 +197,6 @@ public struct VideoPlayerFeature: Feature {
 
     @Dependency(\.moduleClient)
     var moduleClient
-
-    @Dependency(\.logger)
-    var logger
 
     @Dependency(\.playerClient)
     var playerClient

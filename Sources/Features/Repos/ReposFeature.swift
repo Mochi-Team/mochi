@@ -83,7 +83,8 @@ public struct ReposFeature: Feature {
         @Dependency(\.dateFormatter)
         var dateFormatter
 
-        public nonisolated init(store: StoreOf<ReposFeature>) {
+        @MainActor
+        public init(store: StoreOf<ReposFeature>) {
             self.store = store
         }
     }

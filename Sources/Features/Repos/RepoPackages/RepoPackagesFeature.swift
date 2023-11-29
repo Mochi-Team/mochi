@@ -98,7 +98,8 @@ public extension RepoPackagesFeature {
         @Environment(\.theme)
         var theme
 
-        public nonisolated init(store: StoreOf<RepoPackagesFeature>) {
+        @MainActor
+        public init(store: StoreOf<RepoPackagesFeature>) {
             self.store = store
         }
     }

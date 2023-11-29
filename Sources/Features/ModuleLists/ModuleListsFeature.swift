@@ -67,7 +67,8 @@ public struct ModuleListsFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<ModuleListsFeature>
 
-        public nonisolated init(store: StoreOf<ModuleListsFeature>) {
+        @MainActor
+        public init(store: StoreOf<ModuleListsFeature>) {
             self.store = store
         }
     }

@@ -17,13 +17,7 @@ public extension SettingsFeature {
             BindingReducer()
                 .onChange(of: \.userSettings) { _, userSettings in
                     Reduce { _, _ in
-                        enum CancelID { case saveDebounce }
-                        return .run { _ in
-                            await userSettingsClient.set(userSettings)
-                            try await withTaskCancellation(id: CancelID.saveDebounce) {
-                                try await Task.sleep(nanoseconds: 500_000_000)
-                            }
-                        }
+                        .run { await userSettingsClient.set(userSettings) }
                     }
                 }
         }
@@ -32,13 +26,18 @@ public extension SettingsFeature {
             switch action {
             case let .view(viewAction):
                 switch viewAction {
-                case .didAppear:
+                case .onTask:
                     break
                 case .binding:
                     break
                 }
+            case .internal:
+                break
             }
             return .none
+        }
+        .forEach(\.path, action: \.internal.path) {
+            Path()
         }
     }
 }

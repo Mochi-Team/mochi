@@ -7,6 +7,8 @@
 //
 
 import Architecture
+@_spi(Presentation)
+import ComposableArchitecture
 import ModuleLists
 import Nuke
 import NukeUI
@@ -24,134 +26,119 @@ extension DiscoverFeature.View: View {
     public var body: some View {
         NavStack(
             store.scope(
-                state: \.screens,
+                state: \.path,
                 action: Action.InternalAction.screens
             )
         ) {
-            ZStack(alignment: .bottom) {
-                WithViewStore(store, observe: \.selected) { viewStore in
-                    ZStack {
-                        switch viewStore.state {
-                        case .home:
-                            // TODO: Create home listing
-                            VStack {
-                                Spacer()
-                                Text("Coming soon!")
-                                Spacer()
-                            }
-                        case let .module(moduleState):
-                            buildModuleView(moduleState: moduleState)
+            WithViewStore(store, observe: \.section) { viewStore in
+                ZStack {
+                    switch viewStore.state {
+                    case .home:
+                        // TODO: Create home listing
+                        VStack {
+                            Spacer()
+                            Text("Coming soon!")
+                            Spacer()
                         }
+                    case let .module(moduleState):
+                        buildModuleView(moduleState: moduleState)
                     }
-                    .animation(.easeInOut(duration: 0.25), value: viewStore.state)
-                    #if os(iOS)
-                    .safeAreaInset(edge: .top) {
-                        TopBarView(
-                            backgroundStyle: .gradient(),
-                            leadingAccessory: {
-                                Button {
-                                    viewStore.send(.didTapOpenModules)
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        if let url = viewStore.icon {
-                                            LazyImage(url: url) { state in
-                                                if let image = state.image {
-                                                    image
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 22, height: 22)
-                                                } else {
-                                                    EmptyView()
-                                                }
-                                            }
-                                            .transition(.opacity)
-                                        }
-
-                                        Text(viewStore.title)
-                                        Image(systemName: "chevron.down")
-                                            .font(.body.weight(.bold))
-                                        Spacer()
-                                    }
-                                    .font(.title.bold())
-                                    .contentShape(Rectangle())
-                                    .scaleEffect(1.0)
-                                    .transition(.opacity)
-                                    .animation(.easeInOut, value: viewStore.icon)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        )
-                        .frame(maxWidth: .infinity)
-                    }
-                    #elseif os(macOS)
-                    .navigationTitle("")
-                    .toolbar {
-                        ToolbarItem(placement: .navigation) {
-                            Button {
-                                viewStore.send(.didTapOpenModules)
-                            } label: {
-                                HStack(spacing: 8) {
-                                    if let url = viewStore.icon {
-                                        LazyImage(url: url) { state in
-                                            if let image = state.image {
-                                                image
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 22, height: 22)
-                                            } else {
+                }
+                .animation(.easeInOut(duration: 0.25), value: viewStore.state)
+                #if os(iOS)
+                .topBar(
+                    backgroundStyle: .gradient(),
+                    leadingAccessory: {
+                        Button {
+                            viewStore.send(.didTapOpenModules)
+                        } label: {
+                            HStack(spacing: 8) {
+                                if let url = viewStore.icon {
+                                    LazyImage(url: url) { state in
+                                        if let image = state.image {
+                                            image
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 22, height: 22)
+                                        } else {
                                                 EmptyView()
-                                            }
                                         }
-                                        .transition(.opacity)
                                     }
-
-                                    Text(viewStore.title)
-                                        .font(.title3.bold())
-
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 1).weight(.semibold))
+                                    .transition(.opacity)
                                 }
-                                .contentShape(Rectangle())
-                                .scaleEffect(1.0)
-                                .transition(.opacity)
-                                .animation(.easeInOut, value: viewStore.icon)
-                            }
-                            .buttonStyle(.bordered)
-                        }
 
-                        ToolbarItem(placement: .automatic) {
-                            WithViewStore(
-                                store.scope(
-                                    state: \.search,
-                                    action: Action.InternalAction.search
-                                ),
-                                observe: \.`self`
-                            ) { viewStore in
-                                TextField("Search for Content", text: viewStore.$query)
-                                    .textFieldStyle(.roundedBorder)
-                                    .frame(minWidth: 200)
+                                Text(viewStore.title)
+                                Image(systemName: "chevron.down")
+                                    .font(.body.weight(.bold))
+                                Spacer()
                             }
+                            .font(.title.bold())
+                            .contentShape(Rectangle())
+                            .scaleEffect(1.0)
+                            .transition(.opacity)
+                            .animation(.easeInOut, value: viewStore.icon)
                         }
-                    }
-                    #endif
-                    .safeAreaInset(edge: .bottom) {
-                        Spacer()
-                            .frame(height: searchBarSize.height)
-                    }
-                }
-                .zIndex(1)
-
-                SearchFeature.View(
-                    store: store.scope(
-                        state: \.search,
-                        action: Action.InternalAction.search
-                    )
+                        .buttonStyle(.plain)
+                    },
+                    trailingAccessory: {
+                        Button {
+                            viewStore.send(.didTapSearchButton)
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                        .buttonStyle(.materialToolbarImage)
+                        .transition(.slide)
+                        .matchedGeometryEffect(id: "Search", in: searchAnimation)
+                    },
+                    bottomAccessory: EmptyView.init
                 )
-                .onSearchBarSizeChanged { size in
-                    searchBarSize = size
+                #elseif os(macOS)
+                .navigationTitle("")
+                .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            viewStore.send(.didTapOpenModules)
+                        } label: {
+                            HStack(spacing: 8) {
+                                if let url = viewStore.icon {
+                                    LazyImage(url: url) { state in
+                                        if let image = state.image {
+                                            image
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 22, height: 22)
+                                        } else {
+                                            EmptyView()
+                                        }
+                                    }
+                                    .transition(.opacity)
+                                }
+
+                                Text(viewStore.title)
+                                    .font(.title3.bold())
+
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 1).weight(.semibold))
+                            }
+                            .contentShape(Rectangle())
+                            .scaleEffect(1.0)
+                            .transition(.opacity)
+                            .animation(.easeInOut, value: viewStore.icon)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    ToolbarItem(placement: .automatic) {
+                        Button {
+                            viewStore.send(.didTapSearchButton)
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                    }
                 }
-                .zIndex(2)
+                #endif
             }
+            .ignoresSafeArea(.keyboard)
             .frame(
                 maxWidth: .infinity,
                 maxHeight: .infinity
@@ -163,19 +150,32 @@ extension DiscoverFeature.View: View {
                     action: { .internal(.moduleLists($0)) }
                 )
             )
-            .safeInset(from: \.bottomNavigation, edge: .bottom)
+            .presentation(
+                store: store.scope(
+                    state: \.$search,
+                    action: Action.InternalAction.search
+                )
+            ) { (content, binding: Binding<Bool>, destination) in
+                ZStack {
+                    if binding.wrappedValue {
+                        destination({ SearchFeature.View(store: $0, namespace: searchAnimation) })
+                    } else {
+                        content
+                    }
+                }
+                .animation(.interactiveSpring(), value: binding.wrappedValue)
+            }
         } destination: { store in
             SwitchStore(store) { state in
                 switch state {
                 case .playlistDetails:
                     CaseLet(
-                        /DiscoverFeature.Screens.State.playlistDetails,
-                        action: DiscoverFeature.Screens.Action.playlistDetails,
-                        then: PlaylistDetailsFeature.View.init
+                        /DiscoverFeature.Path.State.playlistDetails,
+                        action: DiscoverFeature.Path.Action.playlistDetails,
+                        then: { store in PlaylistDetailsFeature.View(store: store) }
                     )
                 }
             }
-            .safeInset(from: \.bottomNavigation, edge: .bottom, alignment: .center)
         }
     }
 }
@@ -402,7 +402,7 @@ extension DiscoverFeature.View {
                     alignment: .top,
                     spacing: 20,
                     edgeInsets: .init(trailing: 40),
-                    items: Array(0...sections)
+                    items: Array(0 ... sections)
                 ) { col in
                     let start = col * rowCount
                     let end = start + min(rowCount, listing.items.count - start)
@@ -464,13 +464,15 @@ extension DiscoverFeature.View {
     func featuredListing(_ listing: DiscoverListing) -> some View {
         VStack {
             HStack {
-                Text(listing.title)
+                Text(listing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No Title" : listing.title)
                     .font(.title3.weight(.semibold))
 
                 Spacer()
 
                 if listing.paging.nextPage != nil {
-                    Button {} label: {
+                    Button {
+                        // TODO: open new view to show all pagings
+                    } label: {
                         Text("Show All")
                             .font(.footnote.weight(.bold))
                             .foregroundColor(.gray)
@@ -482,42 +484,51 @@ extension DiscoverFeature.View {
             .padding(.horizontal)
 
             // TODO: Make size based on listing's size type
-            SnapScroll(
-                alignment: .center,
-                spacing: 8,
-                edgeInsets: .init(leading: 8, trailing: 8),
-                items: listing.items
-            ) { playlist in
-                ZStack(alignment: .bottom) {
-                    FillAspectImage(url: playlist.bannerImage ?? playlist.posterImage)
-                        .overlay {
-                            LinearGradient(
-                                gradient: .init(
-                                    colors: [
-                                        .black.opacity(0),
-                                        .black.opacity(0.4)
-                                    ],
-                                    easing: .easeIn
-                                ),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        }
+            // TODO: Make it snap for devices lower than iOS 17 (other platforms too)
+            // TODO: Show indicators for macOS
+            GeometryReader { proxy in
+                let maxWidthPerItem = proxy.size.width * 0.8
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack {
+                        ForEach(listing.items) { playlist in
+                            ZStack(alignment: .bottom) {
+                                FillAspectImage(url: playlist.posterImage ?? playlist.bannerImage)
+                                    // TODO: Make gradient with blur
+                                    .overlay {
+                                        LinearGradient(
+                                            gradient: .init(
+                                                colors: [
+                                                    .black.opacity(0),
+                                                    .black.opacity(0.4)
+                                                ],
+                                                easing: .easeIn
+                                            ),
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    }
 
-                    Text(playlist.title ?? "No Title")
-                        .font(.title2.weight(.medium))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                        .padding(.bottom)
+                                Text(playlist.title ?? "No Title")
+                                    .font(.title2.weight(.medium))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
+                                    .padding(.bottom)
+                            }
+                            .cornerRadius(12)
+                            .onTapGesture {
+                                store.send(.view(.didTapPlaylist(playlist)))
+                            }
+                            .frame(width: maxWidthPerItem)
+                            .frame(maxHeight: .infinity)
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .cornerRadius(12)
-                .onTapGesture {
-                    store.send(.view(.didTapPlaylist(playlist)))
-                }
+                .frame(maxWidth: .infinity)
             }
-            .aspectRatio(6 / 7, contentMode: .fill)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .aspectRatio(listing.orientation == .portrait ? 6 / 7 : 16 / 10, contentMode: .fit)
         }
     }
 }
@@ -527,8 +538,8 @@ extension DiscoverFeature.View {
 #Preview {
     DiscoverFeature.View(
         store: .init(
-            initialState: .init(selected: .home()),
-            reducer: { EmptyReducer() }
+            initialState: .init(section: .home()),
+            reducer: { DiscoverFeature() }
         )
     )
 }

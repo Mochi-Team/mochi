@@ -36,11 +36,21 @@ public struct ChipView<Accessory: View, Background: ShapeStyle>: View {
 }
 
 public extension ChipView {
-    init(text: String) where Accessory == Text, Background == Material {
+    init(text: String, material: Material = .ultraThinMaterial) where Accessory == Text, Background == Material {
         self.init {
             Text(text)
         } background: {
-            .ultraThinMaterial
+            material
+        }
+    }
+}
+
+public extension ChipView {
+    init(systemName: String, material: Material = .ultraThinMaterial) where Accessory == Image, Background == Material {
+        self.init {
+            Image(systemName: systemName)
+        } background: {
+            material
         }
     }
 }

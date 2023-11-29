@@ -113,7 +113,7 @@ public extension View {
     EmptyView()
 }
 
-extension Binding {
+public extension Binding {
     func isPresent<Wrapped>() -> Binding<Bool> where Value == Wrapped? {
         .init(
             get: { self.wrappedValue != nil },

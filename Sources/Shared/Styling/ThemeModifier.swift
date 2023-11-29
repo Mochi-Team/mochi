@@ -22,15 +22,15 @@ private struct ThemeModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .environment(\.theme, currentTheme)
+            .preferredColorScheme(currentTheme.colorScheme)
+            .background(currentTheme.backgroundColor.ignoresSafeArea(.all, edges: .all))
+            .animation(.easeInOut, value: currentTheme)
             .task {
                 for await theme in userSettingsClient.theme {
                     currentTheme = theme
                 }
             }
-            .environment(\.theme, currentTheme)
-            .preferredColorScheme(currentTheme.colorScheme)
-            .background(currentTheme.backgroundColor.ignoresSafeArea(.all, edges: .all))
-            .animation(.easeInOut, value: currentTheme)
     }
 }
 

@@ -74,6 +74,8 @@ public struct Case<ParentState, ParentAction, Child: Reducer>: Reducer where Chi
     }
 }
 
+// MARK: - WithViewStore + FeatureAction
+
 public extension WithViewStore where ViewState: Equatable, Content: View {
     init<State, Action: FeatureAction>(
         _ store: Store<State, Action>,
@@ -102,6 +104,10 @@ public extension WithViewStore where ViewState: Equatable, Content: View {
         )
     }
 }
+
+// MARK: - ViewStore + FeatureAction
+
+public typealias FeatureViewStore<F: Feature> = ViewStore<F.State, F.Action.ViewAction>
 
 public extension ViewStore where ViewState: Equatable {
     convenience init<State, Action: FeatureAction>(
