@@ -22,41 +22,47 @@ extension VideoPlayerFeature.View: View {
     @MainActor
     public var body: some View {
         ZStack {
-            PlayerView(
-                player: player(),
-                gravity: gravity,
-                enablePIP: $enablePiP
-            )
-            // Reducer should not handle these properties, they should be binded to the view instead.
-            .pictureInPictureIsPossible { possible in
-                pipPossible = possible
-            }
-            .pictureInPictureIsSupported { supported in
-                pipSupported = supported
-            }
-            .pictureInPictureStatus { status in
-                pipStatus = status
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .edgesIgnoringSafeArea(.all)
-            .ignoresSafeArea(.all, edges: .all)
-            .contentShape(Rectangle())
-            .gesture(
-                MagnificationGesture()
-                    .onEnded { _ in
-                        if gravity == .resizeAspect {
-                            gravity = .resizeAspectFill
-                        } else {
-                            gravity = .resizeAspect
+            WithViewStore(store, observe: \.overlay == nil) { viewStore in
+                PlayerView(
+                    player: player(),
+                    gravity: gravity,
+                    enablePIP: $enablePiP
+                )
+                // Reducer should not handle these properties, they should be binded to the view instead.
+                .pictureInPictureIsPossible { possible in
+                    pipPossible = possible
+                }
+                .pictureInPictureIsSupported { supported in
+                    pipSupported = supported
+                }
+                .pictureInPictureStatus { status in
+                    pipStatus = status
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea(.all, edges: .all)
+                .contentShape(Rectangle())
+                .gesture(
+                    MagnificationGesture()
+                        .onEnded { _ in
+                            if gravity == .resizeAspect {
+                                gravity = .resizeAspectFill
+                            } else {
+                                gravity = .resizeAspect
+                            }
                         }
-                    }
-            )
-            .gesture(
-                TapGesture()
-                    .onEnded {
-                        store.send(.view(.didTapPlayer))
-                    }
-            )
+                )
+                .gesture(
+                    TapGesture()
+                        .onEnded {
+                            store.send(.view(.didTapPlayer))
+                        }
+                )
+                #if os(iOS)
+                .statusBarHidden(viewStore.state)
+                .animation(.easeInOut, value: viewStore.state)
+                #endif
+            }
         }
         .overlay {
             ZStack {
@@ -246,7 +252,7 @@ extension VideoPlayerFeature.View {
                 .fixedSize()
 
             Menu {
-                ForEach(VideoPlayerFeature.State.Overlay.MoreTab.allCases, id: \.self) { tab in
+                ForEach(State.Overlay.MoreTab.allCases, id: \.self) { tab in
                     if tab == .speed {
                         WithViewStore(store, observe: \.playerSettings.speed) { viewStore in
                             Menu {
@@ -479,60 +485,61 @@ extension VideoPlayerFeature.View {
     @MainActor
     var moreOverlay: some View {
         WithViewStore(store, observe: \.overlay?.more) { viewStore in
-            if let selected = viewStore.state {
-                GeometryReader { proxy in
-                    DynamicStack(stackType: proxy.size.width < proxy.size.height ? .vstack() : .hstack()) {
-                        VStack(alignment: .trailing) {
-                            Button {
-                                store.send(.view(.didTapCloseMoreOverlay))
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.title3.weight(.semibold))
-                                    .padding([.top, .trailing], 20)
-                                    .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .padding(.horizontal)
-
-                            Spacer()
-
-                            Group {
-                                switch selected {
-                                case .episodes:
-                                    episodes
-                                case .sourcesAndServers:
-                                    sourcesAndServers
-                                case .speed:
-                                    EmptyView()
-                                case .qualityAndSubtitles:
-                                    qualityAndSubtitles
-                                case .settings:
-                                    settings
+            ZStack {
+                if let selected = viewStore.state {
+                    GeometryReader { proxy in
+                        DynamicStack(stackType: proxy.size.width < proxy.size.height ? .vstack() : .hstack()) {
+                            VStack(alignment: .trailing) {
+                                Button {
+                                    store.send(.view(.didTapCloseMoreOverlay))
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.title3.weight(.semibold))
+                                        .padding([.top, .trailing], 20)
+                                        .contentShape(Rectangle())
                                 }
+                                .buttonStyle(.plain)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                .padding(.horizontal)
+
+                                Spacer()
+
+                                Group {
+                                    switch selected {
+                                    case .episodes:
+                                        episodes
+                                    case .sourcesAndServers:
+                                        sourcesAndServers
+                                    case .speed:
+                                        EmptyView()
+                                    case .qualityAndSubtitles:
+                                        qualityAndSubtitles
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background {
-                    Group {
-                        if selected == .episodes {
-                            Rectangle()
-                                .fill(.thinMaterial)
-                                .preferredColorScheme(.dark)
-                        } else {
-                            Rectangle()
-                                .fill(Color.black.opacity(0.35))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background {
+                        Group {
+                            if selected == .episodes {
+                                Rectangle()
+                                    .fill(.thinMaterial)
+                                    .preferredColorScheme(.dark)
+                            } else {
+                                Rectangle()
+                                    .fill(Color.black.opacity(0.35))
+                            }
                         }
+                        .edgesIgnoringSafeArea(.all)
+                        .ignoresSafeArea(.all, edges: .all)
                     }
-                    .edgesIgnoringSafeArea(.all)
-                    .ignoresSafeArea(.all, edges: .all)
+                    .foregroundColor(.white)
                 }
-                .foregroundColor(.white)
             }
+            .animation(.easeInOut, value: viewStore.state != nil)
         }
     }
 
@@ -672,11 +679,6 @@ extension VideoPlayerFeature.View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    @MainActor
-    var settings: some View {
-        EmptyView()
     }
 
     @MainActor

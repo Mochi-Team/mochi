@@ -25,7 +25,7 @@ extension SettingsFeature.View {
                     }
                     Spacer()
                 }
-                .tabItem { Label(section.localized(), systemImage: section.systemImage) }
+                .tabItem { Label(section.localized, systemImage: section.systemImage) }
                 .tag(section)
             }
         }

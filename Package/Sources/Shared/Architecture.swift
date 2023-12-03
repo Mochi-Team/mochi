@@ -10,5 +10,6 @@ struct Architecture: _Shared {
     var dependencies: any Dependencies {
         FoundationHelpers()
         ComposableArchitecture()
+        LocalizableClient()
     }
 }

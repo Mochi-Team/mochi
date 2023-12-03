@@ -6,10 +6,13 @@
 //
 //
 
+import ComposableArchitecture
 import Foundation
 
 // MARK: - Loadable
 
+// TODO: Allow setting error for better debugging
+@CasePathable
 public enum Loadable<T> {
     case pending
     case loading

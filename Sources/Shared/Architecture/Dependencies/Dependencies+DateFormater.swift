@@ -15,24 +15,30 @@ import Foundation
 public struct SingleInstanceDateFormatter {
     let dateFormatter: LockIsolated<DateFormatter>
 
-    subscript<Value>(dynamicMember dynamicMember: KeyPath<DateFormatter, Value>) -> Value {
+    public subscript<Value>(dynamicMember dynamicMember: KeyPath<DateFormatter, Value>) -> Value {
         dateFormatter.value[keyPath: dynamicMember]
+    }
+
+    public func withFormatter<T>(_ work: (DateFormatter) -> T) -> T {
+        dateFormatter.withValue { dateFormatter in
+            work(dateFormatter)
+        }
     }
 }
 
 // MARK: - DateFormatterKey
 
-public struct DateFormatterKey: DependencyKey {
-    public static let liveValue: DateFormatter = {
+extension SingleInstanceDateFormatter: DependencyKey {
+    public static let liveValue: SingleInstanceDateFormatter = {
         let locked = LockIsolated(DateFormatter())
-        return locked.value
+        return .init(dateFormatter: locked)
     }()
 }
 
 public extension DependencyValues {
-    var dateFormatter: DateFormatter {
-        get { self[DateFormatterKey.self] }
-        set { self[DateFormatterKey.self] = newValue }
+    var dateFormatter: SingleInstanceDateFormatter {
+        get { self[SingleInstanceDateFormatter.self] }
+        set { self[SingleInstanceDateFormatter.self] = newValue }
     }
 }
 

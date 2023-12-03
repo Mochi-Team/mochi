@@ -24,7 +24,16 @@ extension SettingsFeature.View: View {
                 .topBar(title: "Settings")
                 .task { viewStore.send(.onTask) }
         } destination: { store in
-            SwitchStore(store) { state in }
+            SwitchStore(store) { state in
+                switch state {
+                case .logs:
+                    CaseLet(
+                        /SettingsFeature.Path.State.logs,
+                        action: SettingsFeature.Path.Action.logs,
+                        then: { store in Logs.View(store: store) }
+                    )
+                }
+            }
         }
     }
 }
@@ -40,7 +49,7 @@ struct GeneralView: View {
     var viewStore: FeatureViewStore<SettingsFeature>
 
     var body: some View {
-        SettingsGroup(title: showTitle ? SettingsFeature.Section.general.localized() : "") {
+        SettingsGroup(title: showTitle ? SettingsFeature.Section.general.localized : "") {
             // TODO: Actually allow users to set which discover page to show on startup
             SettingRow(title: "Discover Page", accessory: {
                 Toggle("", isOn: .constant(true))
@@ -63,7 +72,7 @@ struct AppearanceView: View {
     var viewStore: FeatureViewStore<SettingsFeature>
 
     var body: some View {
-        SettingsGroup(title: showTitle ? SettingsFeature.Section.appearance.localized() : "") {
+        SettingsGroup(title: showTitle ? SettingsFeature.Section.appearance.localized : "") {
             SettingRow(title: "Theme") {
                 Text(viewStore.userSettings.theme.name)
                     .font(.callout)
@@ -89,8 +98,8 @@ struct DeveloperView: View {
     var viewStore: FeatureViewStore<SettingsFeature>
 
     var body: some View {
-        SettingsGroup(title: showTitle ? SettingsFeature.Section.developer.localized() : "") {
-            SettingRow(title: "Developer Mode", accessory: {
+        SettingsGroup(title: showTitle ? SettingsFeature.Section.developer.localized : "") {
+            SettingRow(title: String(localized: "Developer Mode"), accessory: {
                 Toggle("", isOn: viewStore.$userSettings.developerModeEnabled)
                     .labelsHidden()
                     .toggleStyle(.switch)
@@ -98,15 +107,14 @@ struct DeveloperView: View {
             })
 
             if viewStore.userSettings.developerModeEnabled {
-                SettingRow(title: "Debug Modules", accessory: {
-                    Button {
-                        // Go to next screen to view logs
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.footnote)
-                    }
-                    .buttonStyle(.plain)
+                SettingRow(title: String(localized: "View Logs"), accessory: {
+                    Image(systemName: "chevron.right")
+                        .font(.footnote)
                 })
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    viewStore.send(.didTapViewLogs)
+                }
             }
         }
     }

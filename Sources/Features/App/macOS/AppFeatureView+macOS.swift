@@ -22,7 +22,7 @@ extension AppFeature.View: View {
         NavigationView {
             WithViewStore(store, observe: \.selected) { viewStore in
                 List {
-                    ForEach(AppFeature.State.Tab.allCases.filter(\.self != .settings), id: \.rawValue) { tab in
+                    ForEach(State.Tab.allCases.filter(\.self != .settings), id: \.rawValue) { tab in
                         NavigationLink(
                             tag: tab,
                             selection: viewStore.binding(
@@ -53,14 +53,14 @@ extension AppFeature.View: View {
                             // FIXME: Set max width for inside scroll view to show scrollbar to the edge
                             .frame(maxWidth: 1_280)
                         } label: {
-                            Label(tab.rawValue, systemImage: tab.image)
+                            Label(tab.localized, systemImage: tab.image)
                         }
                     }
                 }
                 .listStyle(.sidebar)
             }
 
-            Text("haha this is not supposed to occur")
+            Text("")
         }
         .window(
             store: store.scope(

@@ -22,15 +22,15 @@ public extension SettingsFeature {
                 }
         }
 
-        Reduce { _, action in
+        Reduce { state, action in
             switch action {
-            case let .view(viewAction):
-                switch viewAction {
-                case .onTask:
-                    break
-                case .binding:
-                    break
-                }
+            case .view(.didTapViewLogs):
+                state.path.append(.logs(.init()))
+
+            case .view(.onTask):
+                break
+            case .view(.binding):
+                break
             case .internal:
                 break
             }

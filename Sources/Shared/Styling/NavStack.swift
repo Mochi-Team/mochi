@@ -45,6 +45,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                 #if os(iOS)
                 destination(store)
                     .navigationBarHidden(true)
+                    .themeable()
                     .safeInset(from: \.bottomNavigation, edge: .bottom)
                 #else
                 destination(store)
@@ -81,12 +82,12 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                                     ) { store in
                                         destination(store)
                                             .navigationBarHidden(true)
+                                            .themeable()
                                             .safeInset(from: \.bottomNavigation, edge: .bottom)
                                     }
                                 } label: {
                                     EmptyView()
                                 }
-                                .isDetailLink(false)
                             }
                         }
                     }

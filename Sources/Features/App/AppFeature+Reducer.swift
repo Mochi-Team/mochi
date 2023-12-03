@@ -38,7 +38,7 @@ extension AppFeature: Reducer {
                     case .repos:
                         state.repos.path.removeAll()
                     case .settings:
-                        break
+                        state.settings.path.removeAll()
                     }
                 } else {
                     state.selected = tab
@@ -47,7 +47,7 @@ extension AppFeature: Reducer {
             case .internal(.appDelegate):
                 break
 
-            case let .internal(.discover(.delegate(.playbackVideoItem(contents, repoModuleId, playlist, group, variant, paging, itemId)))):
+            case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleId, playlist, group, variant, paging, itemId)))):
                 let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
                     repoModuleId: repoModuleId,
                     playlist: playlist,
@@ -64,7 +64,6 @@ extension AppFeature: Reducer {
                     state.videoPlayer = .init(
                         repoModuleId: repoModuleId,
                         playlist: playlist,
-//                        contents: .init(contents: .init(groups: .loaded(contents))),
                         group: group,
                         variant: variant,
                         page: paging,

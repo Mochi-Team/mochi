@@ -14,7 +14,7 @@ import JSValueCoder
 import SharedModels
 
 extension JSContext {
-    convenience init(_ module: Module, _ logger: @escaping (JSMessageLog, String) -> Void) throws {
+    convenience init(_ module: Module, _ logger: @escaping (ModuleLoggerLevel, String) -> Void) throws {
         self.init()
 
         setConsoleBinding(logger)
@@ -32,14 +32,11 @@ extension JSContext {
 extension JSContext: JSRuntime {
     func invokeInstanceMethod<T: Decodable>(functionName: String, args: [Encodable]) throws -> T {
         let function = try getFunctionInstance(functionName)
-
         let encoder = JSValueEncoder()
         let decoder = JSValueDecoder()
-
         guard let value = try function.call(withArguments: args.map { try encoder.encode($0, into: self) }) else {
             throw ModuleClient.Error.jsRuntime(.instanceCall(function: "Instance.\(functionName)", msg: "Failed to retrieve value from function"))
         }
-
         return try decoder.decode(T.self, from: value)
     }
 
@@ -63,7 +60,7 @@ extension JSContext: JSRuntime {
         let encoder = JSValueEncoder()
         let decoder = JSValueDecoder()
         guard let promise = try function.call(withArguments: args.map { try encoder.encode($0, into: self) }) else {
-            throw ModuleClient.Error.jsRuntime(.instanceCall(function: "Instance.\(functionName)", msg: "Failed to retrieve value from function"))
+            throw ModuleClient.Error.jsRuntime(.instanceCall(function: "Instance.\(functionName)", msg: "Failed to retrieve promise from function"))
         }
         return try await decoder.decode(T.self, from: promise.value(functionName))
     }

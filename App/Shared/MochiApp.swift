@@ -29,6 +29,7 @@ struct MochiApp: App {
                     store: appDelegate.store
                 )
             }
+            .injectPreference()
             // Ignoring safe area is required for
             // PreferenceHostingView to render outside
             // bounds

@@ -724,6 +724,19 @@ struct DatabaseClient: _Client {
     }
 }
 //
+//  DeviceClient.swift
+//  
+//
+//  Created by ErrorErrorError on 11/29/23.
+//  
+//
+
+struct DeviceClient: _Client {
+    var dependencies: any Dependencies {
+        ComposableArchitecture()
+    }
+}
+//
 //  FileClient.swift
 //  
 //
@@ -734,6 +747,25 @@ struct DatabaseClient: _Client {
 struct FileClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
+    }
+}
+//
+//  LocalizableClient.swift
+//
+//
+//  Created by ErrorErrorError on 12/1/23.
+//
+//
+
+import Foundation
+
+struct LocalizableClient: _Client {
+    var dependencies: any Dependencies {
+        ComposableArchitecture()
+    }
+
+    var resources: [Resource] {
+        Resource.process("Resources")
     }
 }
 //
@@ -772,6 +804,7 @@ struct ModuleClient: _Client {
         SwiftSoup()
         Semaphore()
         JSValueCoder()
+        LoggerClient()
     }
 }
 
@@ -1233,6 +1266,8 @@ struct Settings: _Feature {
         Architecture()
         BuildClient()
         FluidGradient()
+        ModuleClient()
+        ModuleLists()
         SharedModels()
         Styling()
         ViewComponents()
@@ -1325,6 +1360,7 @@ struct Architecture: _Shared {
     var dependencies: any Dependencies {
         FoundationHelpers()
         ComposableArchitecture()
+        LocalizableClient()
     }
 }
 //
@@ -1460,3 +1496,4 @@ let package = Package {
 .supportedPlatforms {
     MochiPlatforms()
 }
+.defaultLocalization("en")

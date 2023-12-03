@@ -58,7 +58,10 @@ final class Box {
 }
 
 @MainActor
-protocol OpaquePreferenceHostingController: UIViewController {
+protocol OpaquePreferenceProperties {
     var _homeIndicatorAutoHidden: Bool { get set }
 }
+
+@MainActor
+protocol OpaquePreferenceHostingController: OpaquePreferenceProperties, UIViewController {}
 #endif

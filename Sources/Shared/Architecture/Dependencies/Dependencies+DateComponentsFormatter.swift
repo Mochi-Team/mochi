@@ -17,6 +17,7 @@ public struct DateComponentsFormatterClient {
 
 public extension DateComponentsFormatterClient {
     private static let lock = NSRecursiveLock()
+
     func withFormatter<V>(_ callback: @Sendable (DateComponentsFormatter) -> V) -> V {
         Self.lock.lock()
         defer { Self.lock.unlock() }

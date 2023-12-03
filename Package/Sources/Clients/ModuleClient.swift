@@ -18,6 +18,7 @@ struct ModuleClient: _Client {
         SwiftSoup()
         Semaphore()
         JSValueCoder()
+        LoggerClient()
     }
 }
 

@@ -12,6 +12,5 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
-extension VideoPlayerFeature.View {
-}
+extension VideoPlayerFeature.View {}
 #endif

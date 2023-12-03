@@ -64,7 +64,7 @@ extension AppFeature.View: View {
                         state: \.$videoPlayer,
                         action: { .internal(.videoPlayer($0)) }
                     ),
-                    then: VideoPlayerFeature.View.init
+                    then: { VideoPlayerFeature.View(store: $0) }
                 )
                 .blur(radius: isVisible.state ? 0.0 : 30)
                 .opacity(isVisible.state ? 1.0 : 0.0)
@@ -77,12 +77,7 @@ extension AppFeature.View: View {
     @MainActor
     func navbar(_ selected: Self.State.Tab) -> some View {
         HStack(alignment: .top, spacing: 0) {
-            #if !os(macOS)
-            let allTabs = State.Tab.allCases
-            #else
-            let allTabs = State.Tab.allCases.filter { $0 != .settings }
-            #endif
-            ForEach(allTabs, id: \.rawValue) { tab in
+            ForEach(State.Tab.allCases, id: \.rawValue) { tab in
                 Button {
                     store.send(.view(.didSelectTab(tab)))
                 } label: {
@@ -99,7 +94,7 @@ extension AppFeature.View: View {
                             .frame(height: 18)
                             .padding(.top, 8)
 
-                        Text(tab.rawValue)
+                        Text(tab.localized)
                             .font(.system(size: 10, weight: .medium))
                     }
                     .foregroundColor(tab == selected ? tab.colorAccent : .gray)

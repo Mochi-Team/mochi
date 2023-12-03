@@ -29,3 +29,4 @@ let package = Package {
 .supportedPlatforms {
     MochiPlatforms()
 }
+.defaultLocalization("en")

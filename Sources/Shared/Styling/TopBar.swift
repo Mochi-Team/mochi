@@ -16,7 +16,7 @@ import ViewComponents
 public enum TopBarBackgroundStyle: Equatable {
     case system
     case gradient(Easing = .easeIn)
-    case blurred
+    case blurred(fade: Bool = false)
     case clear
 }
 
@@ -58,14 +58,18 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
                         Image(systemName: "chevron.backward")
                     }
                     .buttonStyle(.materialToolbarImage)
+                    .frame(maxHeight: .infinity)
                 }
 
                 leadingAccessory()
+                    .frame(maxHeight: .infinity)
 
                 Spacer()
 
                 trailingAccessory()
+                    .frame(maxHeight: .infinity)
             }
+            .fixedSize(horizontal: false, vertical: true)
 
             bottomAccessory()
         }
@@ -100,8 +104,15 @@ public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, Bottom
                         endPoint: .bottom
                     )
                     .transition(.opacity)
-                case .blurred:
-                    BlurView()
+                case let .blurred(fade):
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .preferredColorScheme(theme.colorScheme)
+                        .mask(LinearGradient(
+                            gradient: .init(colors: fade ? [.black, .black.opacity(0)] : [], easing: .easeIn),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ))
                         .transition(.opacity)
                 case .clear:
                     EmptyView()

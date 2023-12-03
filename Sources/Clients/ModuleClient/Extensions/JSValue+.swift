@@ -67,8 +67,8 @@ struct JSValueError: Error, LocalizedError, CustomStringConvertible {
     var description: String {
         """
         Instance\(functionName.flatMap { ".\($0)" } ?? "") => \
-        \(name ?? "Error"): \(errorDescription ?? "No Message")
-        \(failureReason.flatMap { "    \($0)" } ?? "\\")
+        \(name ?? "Error"): \(errorDescription ?? "No Message") \
+        \(failureReason.flatMap { "    \($0)" } ?? "")
         """
     }
 }

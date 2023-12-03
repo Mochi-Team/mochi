@@ -12,10 +12,15 @@ import Foundation
 // MARK: - FileClient
 
 public struct FileClient {
-    public let url: @Sendable (FileManager.SearchPathDirectory, FileManager.SearchPathDomainMask, URL?, Bool) throws -> URL
-    public let fileExists: @Sendable (String) -> Bool
-    public let create: @Sendable (URL) throws -> Void
-    public let remove: @Sendable (URL) throws -> Void
+    public let url: @Sendable (
+        _ search: FileManager.SearchPathDirectory,
+        _ searchMask: FileManager.SearchPathDomainMask,
+        _ appropriate: URL?,
+        _ create: Bool
+    ) throws -> URL
+    public let fileExists: @Sendable (_ path: String) -> Bool
+    public let create: @Sendable (_ url: URL) throws -> Void
+    public let remove: @Sendable (_ url: URL) throws -> Void
 }
 
 // MARK: TestDependencyKey

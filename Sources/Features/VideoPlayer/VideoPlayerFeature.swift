@@ -38,7 +38,6 @@ public struct VideoPlayerFeature: Feature {
                 case sourcesAndServers = "Sources & Servers"
                 case qualityAndSubtitles = "Quality & Subtitles"
                 case speed = "Playback Speed"
-                case settings = "Settings"
 
                 var image: Image {
                     switch self {
@@ -50,8 +49,6 @@ public struct VideoPlayerFeature: Feature {
                         Image(systemName: "captions.bubble")
                     case .speed:
                         Image(systemName: "speedometer")
-                    case .settings:
-                        Image(systemName: "gearshape")
                     }
                 }
             }

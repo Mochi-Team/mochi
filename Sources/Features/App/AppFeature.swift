@@ -43,7 +43,7 @@ public struct AppFeature: Feature {
             self.selected = selected
         }
 
-        public enum Tab: String, CaseIterable, Sendable {
+        public enum Tab: String, CaseIterable, Sendable, Localizable {
             case discover = "Discover"
             case repos = "Repos"
             case settings = "Settings"

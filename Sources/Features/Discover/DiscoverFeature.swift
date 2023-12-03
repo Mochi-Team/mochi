@@ -23,7 +23,7 @@ import ViewComponents
 // MARK: - DiscoverFeature
 
 public struct DiscoverFeature: Feature {
-    public enum Error: Swift.Error, Equatable, Sendable {
+    public enum Error: Swift.Error, Equatable, Sendable, Localizable {
         case system(System)
         case module(ModuleClient.Error)
 
@@ -32,14 +32,14 @@ public struct DiscoverFeature: Feature {
             case moduleNotSelected
         }
 
-        var description: String {
+        public var localizable: String {
             switch self {
             case .system(.moduleNotSelected):
-                "There Is No Module Select"
+                "There is no module selected"
             case .system(.unknown):
-                "Unknown System Error Has Occurred"
+                "Unknown system error has occurred"
             case .module:
-                "Failed to Load Module Discovery"
+                "Failed to load module listings"
             }
         }
     }
@@ -69,7 +69,7 @@ public struct DiscoverFeature: Feature {
         var title: String {
             switch self {
             case .home:
-                "Home"
+                .init(localizable: "Home")
             case let .module(moduleState):
                 moduleState.module.module.name
             }
@@ -157,6 +157,9 @@ public struct DiscoverFeature: Feature {
     @MainActor
     public struct View: FeatureView {
         public let store: StoreOf<DiscoverFeature>
+
+        @Dependency(\.localizableClient.localize)
+        var localize
 
         @Namespace
         public var searchAnimation

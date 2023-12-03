@@ -1,0 +1,48 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Discover" : {
+      "comment" : "Bottom Navigation",
+      "extractionState" : "manual"
+    },
+    "Home" : {
+      "comment" : "DiscoverFeature",
+      "extractionState" : "manual"
+    },
+    "Module Error" : {
+      "extractionState" : "manual"
+    },
+    "No content available" : {
+      "extractionState" : "manual"
+    },
+    "Repos" : {
+      "comment" : "Bottom Navigation",
+      "extractionState" : "manual"
+    },
+    "Retry" : {
+      "extractionState" : "manual"
+    },
+    "Settings" : {
+      "comment" : "Bottom Navigation",
+      "extractionState" : "manual"
+    },
+    "There are no listings for this module" : {
+      "extractionState" : "manual"
+    },
+    "There is no module selected" : {
+      "comment" : "DiscoverFeature.Error",
+      "extractionState" : "manual"
+    },
+    "There was an error retrieving content" : {
+      "extractionState" : "manual"
+    },
+    "Unknown system error has occurred" : {
+      "comment" : "DiscoverFeature.Error",
+      "extractionState" : "manual"
+    },
+    "View All" : {
+      "extractionState" : "manual"
+    }
+  },
+  "version" : "1.0"
+}

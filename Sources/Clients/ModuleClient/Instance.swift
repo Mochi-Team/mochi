@@ -8,24 +8,24 @@
 
 import Foundation
 import JavaScriptCore
-import Logging
 import SharedModels
 
 public extension ModuleClient {
+    // TODO: Make this a class and add support for module storage.
     struct Instance {
         private let id: RepoModuleID
         private let module: Module
         private let runtime: any JSRuntime
-        private let logger: Logger
+        private let logger: ModuleLogger
 
         init(id: RepoModuleID, module: Module) throws {
             self.id = id
             self.module = module
-            self.logger = Logger(label: id.description)
+            self.logger = try ModuleLogger(id: id, directory: module.directory)
             self.runtime = try JSContext(module) { [logger] type, msg in
                 switch type {
                 case .log:
-                    logger.log(level: .info, "\(msg)")
+                    logger.log("\(msg)")
                 case .debug:
                     logger.debug("\(msg)")
                 case .error:
@@ -33,11 +33,15 @@ public extension ModuleClient {
                 case .info:
                     logger.info("\(msg)")
                 case .warn:
-                    logger.warning("\(msg)")
+                    logger.warn("\(msg)")
                 }
             }
         }
     }
+}
+
+extension ModuleClient.Instance {
+    public var logs: AsyncStream<[ModuleLoggerEvent]> { self.logger.events.values.eraseToStream() }
 }
 
 /// Available SourceModule Methods
@@ -79,7 +83,7 @@ extension ModuleClient.Instance {
         do {
             return try await callback()
         } catch {
-            self.logger.error("\(error)")
+            logger.error("\(error)")
             throw error
         }
     }

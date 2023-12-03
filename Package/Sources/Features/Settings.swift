@@ -11,6 +11,8 @@ struct Settings: _Feature {
         Architecture()
         BuildClient()
         FluidGradient()
+        ModuleClient()
+        ModuleLists()
         SharedModels()
         Styling()
         ViewComponents()

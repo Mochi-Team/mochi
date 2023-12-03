@@ -163,7 +163,7 @@ extension DiscoverFeature.View: View {
                         content
                     }
                 }
-                .animation(.interactiveSpring(), value: binding.wrappedValue)
+                .animation(.interactiveSpring(duration: 0.3), value: binding.wrappedValue)
             }
         } destination: { store in
             SwitchStore(store) { state in
@@ -188,9 +188,9 @@ extension DiscoverFeature.View {
                 if listings.isEmpty {
                     VStack(spacing: 12) {
                         Spacer()
-                        Text("Listings Empty")
+                        Text(localizable: "Listings Empty")
                             .font(.title2.weight(.medium))
-                        Text("There are no listings for this module.")
+                        Text(localizable: "There are no listings for this module")
                         Spacer()
                     }
                     .foregroundColor(.gray)
@@ -203,13 +203,13 @@ extension DiscoverFeature.View {
             VStack(spacing: 12) {
                 Spacer()
 
-                Text("Module Error")
+                Text(localizable: "Module Error")
                     .font(.title2.weight(.medium))
-                Text("There was an error fetching content.")
+                Text(String(localizable: "There was an error retrieving content"))
                 Button {
                     // TODO: Allow retrying
                 } label: {
-                    Text("Retry")
+                    Text(localizable: "Retry")
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background {
@@ -225,6 +225,7 @@ extension DiscoverFeature.View {
         } waitingView: {
             let placeholders: [Playlist] = (0..<10).map { .placeholder($0) }
 
+            // TODO: Make it localizable?
             buildListingsView(
                 [
                     .init(
@@ -304,7 +305,7 @@ extension DiscoverFeature.View {
 
                 if listing.paging.nextPage != nil {
                     Button {} label: {
-                        Text("Show All")
+                        Text(localizable: "View All")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.gray)
                             .opacity(listing.items.isEmpty ? 0 : 1.0)
@@ -321,7 +322,7 @@ extension DiscoverFeature.View {
                     .cornerRadius(12)
                     .padding(.horizontal)
                     .overlay(
-                        Text("No content available")
+                        Text(localizable: "No content available")
                             .font(.callout.weight(.medium))
                     )
             } else {
@@ -375,7 +376,7 @@ extension DiscoverFeature.View {
 
                 if listing.paging.nextPage != nil {
                     Button {} label: {
-                        Text("Show All")
+                        Text(localizable: "View All")
                             .font(.footnote.weight(.bold))
                             .foregroundColor(.gray)
                             .opacity(listing.items.isEmpty ? 0 : 1.0)
@@ -392,7 +393,7 @@ extension DiscoverFeature.View {
                     .cornerRadius(12)
                     .padding(.horizontal)
                     .overlay(
-                        Text("No content available")
+                        Text(localizable: "No content available")
                             .font(.callout.weight(.medium))
                     )
             } else {
@@ -509,7 +510,7 @@ extension DiscoverFeature.View {
                                     }
 
                                 Text(playlist.title ?? "No Title")
-                                    .font(.title2.weight(.medium))
+                                    .font(.title3.weight(.medium))
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal)

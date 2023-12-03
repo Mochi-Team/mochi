@@ -4,10 +4,13 @@
 //
 //  Created by ErrorErrorError on 11/28/23.
 //  
-//  Source: https://gist.github.com/Amzd/01e1f69ecbc4c82c8586dcd292b1d30d
+//
 
+import Architecture
 import Foundation
+import LoggerClient
 import SwiftUI
+import ViewComponents
 
 #if canImport(UIKit)
 @MainActor
@@ -26,14 +29,40 @@ struct PreferenceHostingView<Content: View>: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
 }
 
+extension PreferenceHostingView {
+    func injectPreference() -> some View {
+        self.modifier(PreferenceModifier())
+    }
+}
+
+private struct PreferenceModifier: ViewModifier, OpaquePreferenceProperties {
+    @State
+    var _homeIndicatorAutoHidden = false
+
+    func body(content: Content) -> some View {
+        if #available(iOS 16, *) {
+            content
+                .persistentSystemOverlays(_homeIndicatorAutoHidden ? .hidden : .visible)
+                .onPreferenceChange(HomeIndicatorAutoHiddenPreferenceKey.self) { preference in
+                    _homeIndicatorAutoHidden = preference
+                }
+        } else {
+            // Use swizzle's version
+            content
+        }
+    }
+}
+
 extension UIViewController {
     static func swizzle() {
-        Swizzle(UIViewController.self) {
-            #selector(getter: childForHomeIndicatorAutoHidden) => #selector(__swizzledChildForHomeIndicatorAutoHidden)
+        if #unavailable(iOS 16) {
+            Swizzle(UIViewController.self) {
+                #selector(getter: childForHomeIndicatorAutoHidden) => #selector(swizzled_childForHomeIndicatorAutoHidden)
+            }
         }
     }
 
-    @objc func __swizzledChildForHomeIndicatorAutoHidden() -> UIViewController? {
+    @objc func swizzled_childForHomeIndicatorAutoHidden() -> UIViewController? {
         if self is OpaquePreferenceHostingController {
             return nil
         } else {
@@ -56,45 +85,3 @@ extension UIViewController {
     }
 }
 #endif
-
-// Move to utils?
-struct Swizzle {
-    @discardableResult
-    init(
-        _ type: AnyClass,
-        @SwizzleSelectorsBuilder builder: () -> [SwizzleReplacer]
-    ) {
-        builder().forEach { $0(type) }
-    }
-}
-
-struct SwizzleReplacer {
-    let original: Selector
-    let swizzled: Selector
-
-    func callAsFunction(_ type: AnyClass) {
-        guard let originalMethod = class_getInstanceMethod(type, original),
-              let swizzledMethod = class_getInstanceMethod(type, swizzled) else {
-            return
-        }
-
-        method_exchangeImplementations(originalMethod, swizzledMethod)
-    }
-}
-
-@resultBuilder
-enum SwizzleSelectorsBuilder {
-    typealias Component = SwizzleReplacer
-
-    static func buildBlock(_ components: Component...) -> [Component] {
-        components
-    }
-}
-
-infix operator =>
-
-extension Selector {
-    static func => (original: Selector, swizzled: Selector) -> SwizzleReplacer {
-        .init(original: original, swizzled: swizzled)
-    }
-}

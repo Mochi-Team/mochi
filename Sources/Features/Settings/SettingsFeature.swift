@@ -35,13 +35,19 @@ public struct SettingsFeature: Feature {
     public struct Path: Reducer {
         @CasePathable
         @dynamicMemberLookup
-        public enum State: Equatable, Sendable {}
+        public enum State: Equatable, Sendable {
+            case logs(Logs.State)
+        }
 
         @CasePathable
-        public enum Action: Equatable, Sendable {}
+        public enum Action: Equatable, Sendable {
+            case logs(Logs.Action)
+        }
 
         public var body: some ReducerOf<Self> {
-            EmptyReducer()
+            Scope(state: \.logs, action: \.logs) {
+                Logs()
+            }
         }
     }
 
@@ -66,6 +72,7 @@ public struct SettingsFeature: Feature {
         @CasePathable
         public enum ViewAction: SendableAction, BindableAction {
             case onTask
+            case didTapViewLogs
             case binding(BindingAction<State>)
         }
 
