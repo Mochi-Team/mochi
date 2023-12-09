@@ -39,7 +39,7 @@ struct ProgressBar: View {
                             .preferredColorScheme(.dark)
                         Color.white
                             .frame(
-                                width: proxy.size.width * (isDragging ? dragProgress ?? progress : progress),
+                                width: proxy.size.width * progress,
                                 height: proxy.size.height,
                                 alignment: .leading
                             )
@@ -58,18 +58,25 @@ struct ProgressBar: View {
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
+                            #if os(iOS)
                             if !isDragging {
                                 dragProgress = progress
                             }
-
-                            let locationX = value.location.x
-                            let percentage = locationX / proxy.size.width
-
-                            dragProgress = max(0, min(1.0, percentage))
-                        }
-                        .onEnded { _ in
                             if let dragProgress {
-                                viewState.send(.didSkipTo(time: dragProgress))
+                                let percentage = value.translation.width / proxy.size.width
+                                viewState.send(.didSkipTo(time: max(0, min(1.0, percentage + dragProgress))))
+                            }
+                            #else
+                            if !isDragging {
+                                dragProgress = progress
+                            }
+                            viewState.send(.didSkipTo(time: max(0, min(1.0, value.location.x / proxy.size.width))))
+                            #endif
+
+                        }
+                        .onEnded { value in
+                            if (value.translation.width == 0) {
+                                viewState.send(.didSkipTo(time: max(0, min(1.0, value.location.x / proxy.size.width))))
                             }
                             dragProgress = nil
                         }
@@ -99,7 +106,7 @@ struct ProgressBar: View {
     private var progressDisplayTime: String {
         if canUseControls {
             if isDragging {
-                let time = (dragProgress ?? .zero) * (viewState.state?.totalDuration ?? .zero)
+                let time = progress * (viewState.state?.totalDuration ?? .zero)
                 return formatter.playbackTimestamp(time) ?? Self.defaultZeroTime
             } else {
                 return formatter.playbackTimestamp(viewState.state?.duration ?? .zero) ?? Self.defaultZeroTime
