@@ -345,7 +345,7 @@ extension VideoPlayerFeature.View {
         WithViewStore(store, observe: \.videoPlayerStatus == nil) { canShowControls in
             if canShowControls.state {
                 WithViewStore(store, observe: RateBufferingState.init) { rateBufferingState in
-                    HStack(spacing: 0) {
+                    HStack(spacing: 10) {
                         Spacer()
 
                         Button {

@@ -19,7 +19,7 @@ struct ProgressBar: View {
     private var viewState: ViewStore<PlayerClient.Status.Playback?, VideoPlayerFeature.Action.ViewAction>
 
     @SwiftUI.State
-    private var dragProgress: Double?
+    private var isDragging = false
 
     @Dependency(\.dateComponentsFormatter)
     var formatter
@@ -58,27 +58,11 @@ struct ProgressBar: View {
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
-                            #if os(iOS)
-                            if !isDragging {
-                                dragProgress = progress
-                            }
-                            if let dragProgress {
-                                let percentage = value.translation.width / proxy.size.width
-                                viewState.send(.didSkipTo(time: max(0, min(1.0, percentage + dragProgress))))
-                            }
-                            #else
-                            if !isDragging {
-                                dragProgress = progress
-                            }
+                            isDragging = true
                             viewState.send(.didSkipTo(time: max(0, min(1.0, value.location.x / proxy.size.width))))
-                            #endif
-
                         }
-                        .onEnded { value in
-                            if (value.translation.width == 0) {
-                                viewState.send(.didSkipTo(time: max(0, min(1.0, value.location.x / proxy.size.width))))
-                            }
-                            dragProgress = nil
+                        .onEnded { _ in
+                            isDragging = false
                         }
                 )
                 .animation(.spring(response: 0.3), value: isDragging)
@@ -127,10 +111,6 @@ private extension ProgressBar {
         } else {
             .zero
         }
-    }
-
-    var isDragging: Bool {
-        dragProgress != nil
     }
 
     var canUseControls: Bool {
