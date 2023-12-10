@@ -101,7 +101,7 @@ struct ProgressBar: View {
     private var progressDisplayTime: String {
         if canUseControls {
             if isDragging {
-                let time = (dragProgress ?? .zero) * (viewState.state?.totalDuration ?? .zero)
+                let time = dragProgress * (viewState.state?.totalDuration ?? .zero)
                 return formatter.playbackTimestamp(time) ?? Self.defaultZeroTime
             } else {
                 return formatter.playbackTimestamp(viewState.state?.duration ?? .zero) ?? Self.defaultZeroTime
