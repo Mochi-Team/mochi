@@ -920,7 +920,7 @@ extension _Client {
 
 struct ComposableArchitecture: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.4.2")
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.5.5")
     }
 }
 //
@@ -1361,6 +1361,7 @@ struct Architecture: _Shared {
         FoundationHelpers()
         ComposableArchitecture()
         LocalizableClient()
+        LoggerClient()
     }
 }
 //

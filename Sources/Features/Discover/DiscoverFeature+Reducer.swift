@@ -40,10 +40,7 @@ extension DiscoverFeature {
                 state.path.append(.playlistDetails(.init(content: .init(repoModuleId: id, playlist: playlist))))
 
             case .view(.didTapSearchButton):
-                state.search = SearchFeature.State(
-                    searchFieldFocused: true,
-                    repoModuleId: state.section.module?.module.id
-                )
+                state.search = SearchFeature.State(repoModuleId: state.section.module?.module.id)
 
             case let .internal(.selectedModule(selection)):
                 if let selection {

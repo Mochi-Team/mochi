@@ -114,15 +114,11 @@ extension SearchFeature: Reducer {
 
             case let .view(.didTapPlaylist(playlist)):
                 if let repoModuleId = state.repoModuleId {
-                    state.searchFieldFocused = false
                     return .send(.delegate(.playlistTapped(repoModuleId, playlist)))
                 }
 
             case .view(.binding(\.$query)):
                 return state.fetchQuery()
-
-            case .view(.binding(\.$searchFieldFocused)):
-                break
 
             case .view(.binding):
                 break

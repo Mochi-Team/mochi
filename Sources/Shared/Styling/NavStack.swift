@@ -6,6 +6,7 @@
 //
 //
 
+@_spi(Presentation)
 import ComposableArchitecture
 import Foundation
 import OrderedCollections
@@ -34,22 +35,17 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
     }
 
     public var body: some View {
-        if #available(iOS 16, macOS 13, *) {
+        if #available(iOS 16.0, macOS 13.0, *) {
             NavigationStackStore(store) {
                 root()
-                #if os(iOS)
+                    #if os(iOS)
                     .themeable()
-                    .safeInset(from: \.bottomNavigation, edge: .bottom)
-                #endif
+                    #endif
             } destination: { store in
-                #if os(iOS)
                 destination(store)
-                    .navigationBarHidden(true)
+                    #if os(iOS)
                     .themeable()
-                    .safeInset(from: \.bottomNavigation, edge: .bottom)
-                #else
-                destination(store)
-                #endif
+                    #endif
             }
         } else {
             #if os(iOS)
@@ -57,7 +53,6 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                 ZStack {
                     root()
                         .themeable()
-                        .safeInset(from: \.bottomNavigation, edge: .bottom)
 
                     Group {
                         WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
@@ -66,9 +61,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                                     isActive: .init(
                                         get: { viewStore.state.contains(id) },
                                         set: { isActive, transaction in
-                                            if isActive {
-                                                // Stub
-                                            } else if !isActive, viewStore.state.contains(id) {
+                                            if !isActive, viewStore.state.contains(id) {
                                                 viewStore.send(.popFrom(id: id), transaction: transaction)
                                             }
                                         }
@@ -81,13 +74,12 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                                         )
                                     ) { store in
                                         destination(store)
-                                            .navigationBarHidden(true)
                                             .themeable()
-                                            .safeInset(from: \.bottomNavigation, edge: .bottom)
                                     }
                                 } label: {
                                     EmptyView()
                                 }
+                                .hidden()
                             }
                         }
                     }
@@ -158,10 +150,50 @@ private func returningLastNonNilValue<A, B>(_ f: @escaping (A) -> B?) -> (A) -> 
     }
 }
 
+public extension View {
+    @MainActor
+    func stackDestination<State, Action, Destination: View>(
+        store: Store<PresentationState<State>, PresentationAction<Action>>,
+        @ViewBuilder destination: @escaping (_ store: Store<State, Action>) -> Destination
+    ) -> some View {
+        self.presentation(store: store) { `self`, $item, destinationContent in
+            if #available(iOS 16.0, macOS 13.0, *) {
+                self.navigationDestination(isPresented: $item.isPresent()) {
+                    destinationContent(destination)
+                        .themeable()
+                }
+            } else if #unavailable(iOS 16.0) {
+                ZStack {
+                    NavigationLink(isActive: $item.isPresent()) {
+                        destinationContent(destination)
+                            .themeable()
+                    } label: {
+                        EmptyView()
+                    }
+                    .hidden()
+
+                    self
+                }
+            } else {
+                // macOS only
+                ZStack {
+                    if $item.isPresent().wrappedValue {
+                        destinationContent(destination)
+                            .themeable()
+                    } else {
+                        self
+                    }
+                }
+                .animation(.interactiveSpring(duration: 0.3), value: $item.isPresent().wrappedValue)
+            }
+        }
+    }
+}
+
 // MARK: - UINavigationController + UIGestureRecognizerDelegate
 
 #if os(iOS)
-// FIXME: This causes crashes on iOS 17
+// FIXME: This causes crashes on iOS 17?
 /// Hacky way to allow swipe back navigation when status bar is hidden
 extension UINavigationController: UIGestureRecognizerDelegate {
     override open func viewDidLoad() {

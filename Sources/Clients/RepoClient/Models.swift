@@ -15,6 +15,7 @@ public extension RepoClient {
     enum Error: Swift.Error, Equatable, Sendable {
         case failedToFindRepo
         case failedToDownloadModule
+        case invalidMimeTypeForModule(received: String)
         case failedToDownloadRepo
         case failedToAddRepo
         case failedToInstallModule

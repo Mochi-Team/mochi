@@ -363,7 +363,7 @@ extension VideoPlayerFeature.View {
         ProgressBar(
             store: store.scope(
                 state: \.player.playback,
-                action: { $0 }
+                action: \.self
             )
         )
         .foregroundColor(.white)
@@ -790,7 +790,6 @@ extension VideoPlayerFeature.View {
     }
 }
 
-
 #Preview {
     VideoPlayerFeature.View(
         store: .init(
@@ -809,4 +808,3 @@ extension VideoPlayerFeature.View {
     )
     .previewInterfaceOrientation(.landscapeRight)
 }
-

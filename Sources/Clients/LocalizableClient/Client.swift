@@ -17,6 +17,10 @@ extension LocalizableClient: DependencyKey {
     public static let liveValue: LocalizableClient = .init(
         localize: { String(localized: .init($0), bundle: .module) }
     )
+
+    public static let previewValue: LocalizableClient = .init(localize: { $0 })
+
+    public static let testValue: LocalizableClient = .init(localize: unimplemented(".localize"))
 }
 
 extension DependencyValues {

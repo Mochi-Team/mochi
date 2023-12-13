@@ -7,7 +7,6 @@
 //
 
 import Architecture
-@_spi(Presentation)
 import ComposableArchitecture
 import ModuleLists
 import Nuke
@@ -27,7 +26,7 @@ extension DiscoverFeature.View: View {
         NavStack(
             store.scope(
                 state: \.path,
-                action: Action.InternalAction.screens
+                action: \.internal.screens
             )
         ) {
             WithViewStore(store, observe: \.section) { viewStore in
@@ -45,55 +44,10 @@ extension DiscoverFeature.View: View {
                     }
                 }
                 .animation(.easeInOut(duration: 0.25), value: viewStore.state)
-                #if os(iOS)
-                .topBar(
-                    backgroundStyle: .gradient(),
-                    leadingAccessory: {
-                        Button {
-                            viewStore.send(.didTapOpenModules)
-                        } label: {
-                            HStack(spacing: 8) {
-                                if let url = viewStore.icon {
-                                    LazyImage(url: url) { state in
-                                        if let image = state.image {
-                                            image
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 22, height: 22)
-                                        } else {
-                                                EmptyView()
-                                        }
-                                    }
-                                    .transition(.opacity)
-                                }
-
-                                Text(viewStore.title)
-                                Image(systemName: "chevron.down")
-                                    .font(.body.weight(.bold))
-                                Spacer()
-                            }
-                            .font(.title.bold())
-                            .contentShape(Rectangle())
-                            .scaleEffect(1.0)
-                            .transition(.opacity)
-                            .animation(.easeInOut, value: viewStore.icon)
-                        }
-                        .buttonStyle(.plain)
-                    },
-                    trailingAccessory: {
-                        Button {
-                            viewStore.send(.didTapSearchButton)
-                        } label: {
-                            Image(systemName: "magnifyingglass")
-                        }
-                        .buttonStyle(.materialToolbarImage)
-                        .transition(.slide)
-                        .matchedGeometryEffect(id: "Search", in: searchAnimation)
-                    },
-                    bottomAccessory: EmptyView.init
-                )
-                #elseif os(macOS)
                 .navigationTitle("")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .toolbar {
                     ToolbarItem(placement: .navigation) {
                         Button {
@@ -115,17 +69,26 @@ extension DiscoverFeature.View: View {
                                 }
 
                                 Text(viewStore.title)
-                                    .font(.title3.bold())
 
                                 Image(systemName: "chevron.down")
-                                    .font(.system(size: 1).weight(.semibold))
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(.gray)
                             }
+                            #if os(iOS)
+                            .font(.title.bold())
+                            #else
+                            .font(.title3.bold())
+                            #endif
                             .contentShape(Rectangle())
                             .scaleEffect(1.0)
                             .transition(.opacity)
                             .animation(.easeInOut, value: viewStore.icon)
                         }
+                        #if os(macOS)
                         .buttonStyle(.bordered)
+                        #else
+                        .buttonStyle(.plain)
+                        #endif
                     }
 
                     ToolbarItem(placement: .automatic) {
@@ -134,9 +97,11 @@ extension DiscoverFeature.View: View {
                         } label: {
                             Image(systemName: "magnifyingglass")
                         }
+                        #if os(iOS)
+                        .buttonStyle(.materialToolbarItem)
+                        #endif
                     }
                 }
-                #endif
             }
             .ignoresSafeArea(.keyboard)
             .frame(
@@ -144,27 +109,20 @@ extension DiscoverFeature.View: View {
                 maxHeight: .infinity
             )
             .onAppear { store.send(.view(.didAppear)) }
+            .stackDestination(
+                store: store.scope(
+                    state: \.$search,
+                    action: \.internal.search
+                )
+            ) { store in
+                SearchFeature.View(store: store)
+            }
             .moduleListsSheet(
                 store.scope(
                     state: \.$moduleLists,
-                    action: { .internal(.moduleLists($0)) }
+                    action: \.internal.moduleLists
                 )
             )
-            .presentation(
-                store: store.scope(
-                    state: \.$search,
-                    action: Action.InternalAction.search
-                )
-            ) { (content, binding: Binding<Bool>, destination) in
-                ZStack {
-                    if binding.wrappedValue {
-                        destination({ SearchFeature.View(store: $0, namespace: searchAnimation) })
-                    } else {
-                        content
-                    }
-                }
-                .animation(.interactiveSpring(duration: 0.3), value: binding.wrappedValue)
-            }
         } destination: { store in
             SwitchStore(store) { state in
                 switch state {
@@ -544,3 +502,9 @@ extension DiscoverFeature.View {
         )
     )
 }
+
+#if os(macOS)
+extension ToolbarItemPlacement {
+    static var topBarTrailing = Self.automatic
+}
+#endif

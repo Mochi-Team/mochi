@@ -17,11 +17,11 @@ import ViewComponents
 extension SettingsFeature.View: View {
     @MainActor
     public var body: some View {
-        NavStack(store.scope(state: \.path, action: Action.InternalAction.path)) {
+        NavStack(store.scope(state: \.path, action: \.internal.path)) {
             listSections
                 .animation(.easeInOut, value: viewStore.userSettings.developerModeEnabled)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .topBar(title: "Settings")
+                .navigationTitle("Settings")
                 .task { viewStore.send(.onTask) }
         } destination: { store in
             SwitchStore(store) { state in
@@ -49,15 +49,16 @@ struct GeneralView: View {
     var viewStore: FeatureViewStore<SettingsFeature>
 
     var body: some View {
-        SettingsGroup(title: showTitle ? SettingsFeature.Section.general.localized : "") {
-            // TODO: Actually allow users to set which discover page to show on startup
-            SettingRow(title: "Discover Page", accessory: {
-                Toggle("", isOn: .constant(true))
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-            })
-        }
+        EmptyView()
+//        SettingsGroup(title: showTitle ? SettingsFeature.Section.general.localized : "") {
+//            // TODO: Actually allow users to set which discover page to show on startup
+//            SettingRow(title: "Discover Page", accessory: {
+//                Toggle("", isOn: .constant(true))
+//                    .labelsHidden()
+//                    .toggleStyle(.switch)
+//                    .controlSize(.small)
+//            })
+//        }
     }
 }
 
@@ -82,7 +83,7 @@ struct AppearanceView: View {
             }
 
             // TODO: Add option to change app icon
-            SettingRow(title: "App Icon", accessory: EmptyView.init) {}
+//            SettingRow(title: "App Icon", accessory: EmptyView.init) {}
         }
     }
 }
@@ -124,6 +125,9 @@ struct DeveloperView: View {
 
 @MainActor
 struct ThemePicker: View {
+    @ScaledMetric(relativeTo: .body)
+    var heightSize = 54
+
     @Binding
     var theme: Theme
 
@@ -142,17 +146,15 @@ struct ThemePicker: View {
                                         withStroke: self.theme == theme ? Color.accentColor : Color.gray.opacity(0.5),
                                         lineWidth: 2,
                                         fill: LinearGradient(
-                                            colors: [
-                                                Theme.light.backgroundColor,
-                                                Theme.light.overBackgroundColor,
-                                                Theme.dark.overBackgroundColor,
-                                                Theme.dark.backgroundColor
+                                            stops: [
+                                                .init(color: Theme.light.backgroundColor, location: 0.5),
+                                                .init(color: Theme.dark.backgroundColor, location: 0.5)
                                             ],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         )
                                     )
-                                    .frame(height: 54)
+                                    .frame(height: heightSize)
                                     .padding(.top, 1)
                             } else {
                                 Circle()
@@ -165,7 +167,7 @@ struct ThemePicker: View {
                                             endPoint: .trailing
                                         )
                                     )
-                                    .frame(height: 54)
+                                    .frame(height: heightSize)
                                     .padding(.top, 1)
                             }
 

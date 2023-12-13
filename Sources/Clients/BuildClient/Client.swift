@@ -23,7 +23,8 @@ public struct BuildKey: DependencyKey {
             .flatMap { $0 as? String }
             .flatMap { try? Semver($0) } ?? .init(0, 0, 0),
         number: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion")
-            .flatMap { $0 as? Int }
+            .flatMap { $0 as? String }
+            .flatMap { Int($0) }
             .flatMap { .init(rawValue: $0) } ?? .init(0)
     )
 }

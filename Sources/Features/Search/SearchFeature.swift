@@ -22,8 +22,6 @@ import ViewComponents
 public struct SearchFeature: Feature {
     public struct State: FeatureState {
         @BindingState
-        public var searchFieldFocused: Bool
-        @BindingState
         public var query: String
         @BindingState
         public var selectedFilters: [SearchFilter]
@@ -33,7 +31,6 @@ public struct SearchFeature: Feature {
         public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
 
         public init(
-            searchFieldFocused: Bool = false,
             repoModuleId: RepoModuleID? = nil,
             query: String = "",
             selectedFilters: [SearchFilter] = [],
@@ -41,7 +38,6 @@ public struct SearchFeature: Feature {
             items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
         ) {
             self.repoModuleId = repoModuleId
-            self.searchFieldFocused = searchFieldFocused
             self.query = query
             self.selectedFilters = selectedFilters
             self.allFilters = allFilters
@@ -84,15 +80,15 @@ public struct SearchFeature: Feature {
     public struct View: FeatureView {
         public let store: StoreOf<SearchFeature>
 
-        public var searchAnimation: Namespace.ID
+        @SwiftUI.State
+        var showStatusBarBackground = false
 
-        @FocusState
-        var searchFieldFocused: Bool
+        @Environment(\.theme)
+        var theme
 
         @MainActor
-        public init(store: StoreOf<SearchFeature>, namespace: Namespace.ID) {
+        public init(store: StoreOf<SearchFeature>) {
             self.store = store
-            self.searchAnimation = namespace
         }
     }
 

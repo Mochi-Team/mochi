@@ -66,9 +66,9 @@ public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
             )
             #else
             .init(
-                red: 0x0A / 0xFF,
-                green: 0x0A / 0xFF,
-                blue: 0x0A / 0xFF
+                red: 0x10 / 0xFF,
+                green: 0x10 / 0xFF,
+                blue: 0x10 / 0xFF
             )
             #endif
         }

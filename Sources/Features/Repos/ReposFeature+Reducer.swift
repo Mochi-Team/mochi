@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import Foundation
+import LoggerClient
 import RepoClient
 import SharedModels
 import Styling
@@ -67,7 +68,7 @@ extension ReposFeature {
                 state.path.append(RepoPackagesFeature.State(repo: repo))
 
             case .view(.binding(\.$url)):
-                guard let url = URL(string: state.url.lowercased()) else {
+                guard let url = URL(sanitize: state.url) else {
                     state.searchedRepo = .pending
                     return .cancel(id: Cancellables.repoURLDebounce)
                 }
@@ -80,7 +81,7 @@ extension ReposFeature {
                         try await send(.internal(.validateRepoURL(.loaded(repoClient.validate(url)))))
                     }
                 } catch: { error, send in
-                    print(error)
+                    logger.error("Failed to validate repo: \(error.localizedDescription)")
                     await send(.internal(.validateRepoURL(.failed(Error.notValidRepo))))
                 }
 
@@ -107,5 +108,29 @@ extension ReposFeature {
         .forEach(\.path, action: \.internal.path) {
             RepoPackagesFeature()
         }
+    }
+}
+
+extension URL {
+    init?(sanitize string: String) {
+        var components = URLComponents(string: string)
+        // Lowercase host and schema since they're not case sensitive
+        let host = components?.host?.lowercased()
+        let schema = components?.scheme?.lowercased()
+        components?.host = host
+        components?.scheme = schema
+
+        // Everything else is case sensitive, so check if there's a foward slash. If not, add it.
+
+        guard var string = components?.string else {
+            return nil
+        }
+
+        // Remove trailing slash
+        if string.hasSuffix("/") {
+            string = .init(string.dropLast())
+        }
+
+        self.init(string: string)
     }
 }

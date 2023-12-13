@@ -36,13 +36,14 @@ public struct SettingsGroup<Content: View>: View {
                 content()
             }
             .background {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .style(
                         withStroke: Color.gray.opacity(0.2),
                         lineWidth: 1,
                         fill: theme.overBackgroundColor
                     )
             }
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .clipped()
         }
         .frame(maxWidth: .infinity)

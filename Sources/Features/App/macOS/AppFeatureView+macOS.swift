@@ -36,14 +36,14 @@ extension AppFeature.View: View {
                                     DiscoverFeature.View(
                                         store: store.scope(
                                             state: \.discover,
-                                            action: Action.InternalAction.discover
+                                            action: \.internal.discover
                                         )
                                     )
                                 case .repos:
                                     ReposFeature.View(
                                         store: store.scope(
                                             state: \.repos,
-                                            action: Action.InternalAction.repos
+                                            action: \.internal.repos
                                         )
                                     )
                                 case .settings:
@@ -65,7 +65,7 @@ extension AppFeature.View: View {
         .window(
             store: store.scope(
                 state: \.$videoPlayer,
-                action: Action.InternalAction.videoPlayer
+                action: \.internal.videoPlayer
             ),
             content: VideoPlayerFeature.View.init
         )

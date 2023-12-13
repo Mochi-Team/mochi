@@ -19,13 +19,8 @@ public struct RepoModuleID: Hashable, Sendable {
 public extension Repo.ID {
     // Follow reverse domain name notation
     var displayIdentifier: String {
-        if rawValue.hasDirectoryPath {
-            // Assuming this repository is locally stored
-            "dev.errorerrorerror.mochi.repo.local"
-        } else {
-            // Assumes it's a remote url
-            rawValue.host?.split(separator: ".").reversed().joined(separator: ".") ?? "unknown"
-        }
+            // "dev.errorerrorerror.mochi.repo.local" for local storage
+        rawValue.host?.split(separator: ".").reversed().joined(separator: ".").lowercased() ?? rawValue.absoluteString
     }
 }
 

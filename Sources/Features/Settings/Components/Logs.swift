@@ -202,43 +202,50 @@ public extension Logs {
                 .padding()
             }
             #if os(iOS)
-            .topBar(title: "Logs", backCallback: {
-                store.send(.didTapBackButton)
-            }, trailingAccessory: {
-                Button {
-                    store.send(.didTapViewerList)
-                } label: {
-                    HStack {
-                        WithViewStore(store, observe: \.selected) { viewStore in
-                            switch viewStore.state {
-                            case .system:
-                                Text("System")
-                            case let .module(_, module, _):
-                                Text(module.name)
-                            }
-                        }
-
-                        Image(systemName: "chevron.up.chevron.down")
+            .navigationBarTitle("Logs", displayMode: .inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        store.send(.didTapBackButton)
+                    } label: {
+                        Image(systemName: "chevron.left")
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(.gray.opacity(0.12), in: Capsule())
+                    .buttonStyle(.materialToolbarItem)
                 }
-                .buttonStyle(.plain)
-                .font(.footnote.weight(.medium))
-                .frame(maxHeight: .infinity)
-            }, bottomAccessory: {
-                // TODO: Add filters
-                EmptyView()
-            })
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        store.send(.didTapViewerList)
+                    } label: {
+                        HStack {
+                            WithViewStore(store, observe: \.selected) { viewStore in
+                                switch viewStore.state {
+                                case .system:
+                                    Text("System")
+                                case let .module(_, module, _):
+                                    Text(module.name)
+                                }
+                            }
+
+                            Image(systemName: "chevron.up.chevron.down")
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(.gray.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .font(.footnote.weight(.medium))
+                }
+            }
             #else
-            .topBar(title: "Logs")
+            .navigationTitle("Logs")
             #endif
             .task { store.send(.onTask) }
             .moduleListsSheet(
                 store.scope(
                     state: \.$moduleLists,
-                    action: Logs.Action.moduleLists
+                    action: \.moduleLists
                 )
             )
         }

@@ -61,7 +61,7 @@ public struct SettingRow<Accessory: View, Content: View>: View {
             HStack {
                 VStack {
                     Text(title)
-                        .font(.callout.weight(.medium))
+                        .font(.callout)
                         .foregroundColor(theme.textColor)
                     if let footer {
                         Text(footer)
