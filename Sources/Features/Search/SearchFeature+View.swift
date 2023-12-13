@@ -22,72 +22,57 @@ import ViewComponents
 extension SearchFeature.View: View {
     @MainActor
     public var body: some View {
-        WithViewStore(store, observe: \.`self`) { viewStore in
-            VStack(alignment: .leading) {
-                #if os(macOS)
-                if viewStore.items.value?.isEmpty ?? true {
-                    filters
-                }
-                #endif
-                LoadableView(loadable: viewStore.items) { pagings in
+        ScrollViewTracker(.vertical) { offset in
+//            print(offset)
+            showStatusBarBackground = offset.y < 0
+        } content: {
+            WithViewStore(store, observe: \.items) { viewStore in
+                LoadableView(loadable: viewStore.state) { pagings in
                     if pagings.isEmpty {
                         Text("No results found.")
                     } else {
-                        ScrollView(.vertical) {
-                            #if os(macOS)
-                            filters
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        LazyVGrid(
+                            columns: .init(
+                                repeating: .init(alignment: .top),
+                                count: 3
+                            ),
+                            alignment: .leading
+                        ) {
+                            let allItems = pagings.values.flatMap { $0.value?.items ?? [] }
+                            ForEach(allItems) { item in
+                                VStack(alignment: .leading) {
+                                    FillAspectImage(url: item.posterImage)
+                                        .aspectRatio(2 / 3, contentMode: .fit)
+                                        .cornerRadius(12)
 
-                            Text("Items")
-                                .font(.body.weight(.bold))
-                                .foregroundColor(.gray)
-                                .padding(.horizontal)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            #endif
-
-                            LazyVGrid(
-                                columns: .init(
-                                    repeating: .init(alignment: .top),
-                                    count: 3
-                                ),
-                                alignment: .leading
-                            ) {
-                                let allItems = pagings.values.flatMap { $0.value?.items ?? [] }
-                                ForEach(allItems) { item in
-                                    VStack(alignment: .leading) {
-                                        FillAspectImage(url: item.posterImage)
-                                            .aspectRatio(2 / 3, contentMode: .fit)
-                                            .cornerRadius(12)
-
-                                        Text(item.title ?? "Title Unavailable")
-                                            .font(.footnote)
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        viewStore.send(.didTapPlaylist(item))
-                                    }
+                                    Text(item.title ?? "Title Unavailable")
+                                        .font(.footnote)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewStore.send(.didTapPlaylist(item))
                                 }
                             }
-                            .padding(.horizontal)
+                        }
+                        .padding(.horizontal)
 
-                            if let lastPage = pagings.values.last {
-                                LoadableView(loadable: lastPage) { page in
-                                    LazyView {
-                                        Spacer()
-                                            .frame(height: 1)
-                                            .onAppear {
-                                                if let nextPageId = page.nextPage {
-                                                    store.send(.view(.didShowNextPageIndicator(nextPageId)))
-                                                }
+                        if let lastPage = pagings.values.last {
+                            LoadableView(loadable: lastPage) { page in
+                                LazyView {
+                                    Spacer()
+                                        .frame(height: 1)
+                                        .onAppear {
+                                            if let nextPageId = page.nextPage {
+                                                store.send(.view(.didShowNextPageIndicator(nextPageId)))
                                             }
-                                    }
-                                } failedView: { _ in
-                                    Text("Failed to retrieve content")
-                                        .foregroundColor(.red)
-                                } waitingView: {
-                                    ProgressView()
-                                        .padding(.vertical, 8)
+                                        }
                                 }
+                            } failedView: { _ in
+                                Text("Failed to retrieve content")
+                                    .foregroundColor(.red)
+                            } waitingView: {
+                                ProgressView()
+                                    .padding(.vertical, 8)
                             }
                         }
                     }
@@ -100,63 +85,60 @@ extension SearchFeature.View: View {
                         .font(.body.weight(.semibold))
                         .foregroundColor(.gray)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .bind(viewStore.$searchFieldFocused, to: self.$searchFieldFocused)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .top) { filters }
         #if os(iOS)
-        .topBar(
-            backgroundStyle: .system,
-            backCallback: {
-                store.send(.view(.didTapBackButton))
-            },
-            leadingAccessory: {
-                WithViewStore(store, observe: \.`self`) { viewStore in
-                    VStack(spacing: 10) {
-                        HStack(spacing: 8) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.gray)
-
-                                TextField("Search...", text: viewStore.$query.removeDuplicates())
-                                    .textFieldStyle(.plain)
-                                    .focused($searchFieldFocused)
-                                    .frame(maxWidth: .infinity)
-                                    .transition(.slide)
-                                    .matchedGeometryEffect(id: "Search", in: searchAnimation)
-
-                                ZStack {
-                                    if !viewStore.query.isEmpty {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .onTapGesture {
-                                                viewStore.send(.didTapClearQuery)
-                                            }
-                                    }
-                                }
-                                .animation(.easeInOut, value: viewStore.query.isEmpty)
-                            }
-                            .padding(.horizontal)
-                            .padding(.vertical, 12)
-                            .background {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .style(
-                                        withStroke: Color.gray.opacity(0.16),
-                                        lineWidth: 1,
-                                        fill: Color.gray.opacity(0.1)
-                                    )
-                            }
-                            .frame(maxHeight: .infinity)
-                        }
-                        .fixedSize(horizontal: false, vertical: true)
-                    }
+        .navigationBarTitle("", displayMode: .inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                SwiftUI.Button {
+                    store.send(.view(.didTapBackButton))
+                } label: {
+                    Image(systemName: "chevron.left")
                 }
-                .padding(.leading, 8)
-            },
-            trailingAccessory: EmptyView.init,
-            bottomAccessory: { filters }
-        )
+                .buttonStyle(.materialToolbarItem)
+            }
+
+            ToolbarItem(placement: .principal) {
+                WithViewStore(store, observe: \.`self`) { viewStore in
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+
+                        TextField("Search...", text: viewStore.$query.removeDuplicates())
+                            .textFieldStyle(.plain)
+                            .frame(maxWidth: .infinity)
+
+                        Button {
+                            viewStore.send(.didTapClearQuery)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .opacity(viewStore.query.isEmpty ? 0 : 1.0)
+                        .animation(.easeInOut, value: viewStore.query.isEmpty)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .style(
+                                withStroke: Color.gray.opacity(0.16),
+                                fill: .thickMaterial
+                            )
+                    }
+                    .frame(maxHeight: .infinity)
+                    .padding(.leading, 8)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
         #elseif os(macOS)
         .navigationTitle("Search")
         .toolbar {
@@ -264,71 +246,68 @@ extension SearchFeature.View {
 
     var filters: some View {
         WithViewStore(store, observe: FiltersState.init) { viewStore in
-            VStack(alignment: .leading) {
-                if viewStore.isThereFilters {
-                    #if os(macOS)
-                    Text("Filters")
-                        .font(.body.weight(.bold))
-                        .foregroundColor(.gray)
-                        .padding(.horizontal)
-                    #endif
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            if !viewStore.selectedFilters.isEmpty {
-                                Menu {
-                                    Section {
-                                        Button(role: .destructive) {
-                                            viewStore.send(.didTapClearFilters)
-                                        } label: {
-                                            Text("Clear all filters")
-                                                .foregroundColor(.red)
-                                        }
-                                    } header: {
-                                        Text("\(viewStore.selectedFilters.count) filters applied")
+            if viewStore.isThereFilters {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        if !viewStore.selectedFilters.isEmpty {
+                            Menu {
+                                Section {
+                                    Button(role: .destructive) {
+                                        viewStore.send(.didTapClearFilters)
+                                    } label: {
+                                        Text("Clear all filters")
+                                            .foregroundColor(.red)
                                     }
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "line.3.horizontal.decrease")
-                                        Text(viewStore.selectedFilters.count.description)
-                                    }
-                                    .font(.footnote)
-                                    .padding(8)
-                                    .foregroundColor(.white)
-                                    .background(
-                                        Capsule()
-                                            .style(
-                                                withStroke: .gray.opacity(0.2),
-                                                fill: Theme.pastelGreen
-                                            )
+                                } header: {
+                                    Text("\(viewStore.selectedFilters.count) filters applied")
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "line.3.horizontal.decrease")
+                                    Text(viewStore.selectedFilters.count.description)
+                                }
+                                .font(.footnote)
+                                .padding(8)
+                                .foregroundColor(.white)
+                                .background(
+                                    Capsule()
+                                        .style(
+                                            withStroke: .gray.opacity(0.2),
+                                            fill: Theme.pastelGreen
                                         )
-                                }
-                                .buttonStyle(.plain)
-                                .frame(maxHeight: .infinity)
+                                )
                             }
-
-                            ForEach(viewStore.sortedAllFilters) { filter in
-                                FilterView(
-                                    filter: filter,
-                                    selectedOptions: viewStore.selectedFilters[id: filter.id]?.options ?? []
-                                ) { option in
-                                    viewStore.send(.didTapFilter(filter, option))
-                                }
-                                .frame(maxHeight: .infinity)
-                            }
+                            .buttonStyle(.plain)
+                            .frame(maxHeight: .infinity)
                         }
-                        .frame(maxHeight: .infinity)
-                        #if os(macOS)
-                        .padding(.horizontal)
-                        #endif
+
+                        ForEach(viewStore.sortedAllFilters) { filter in
+                            FilterView(
+                                filter: filter,
+                                selectedOptions: viewStore.selectedFilters[id: filter.id]?.options ?? []
+                            ) { option in
+                                viewStore.send(.didTapFilter(filter, option))
+                            }
+                            .frame(maxHeight: .infinity)
+                        }
                     }
-                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxHeight: .infinity)
+                    .padding(.horizontal)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+                .animation(.easeInOut(duration: 0.2), value: viewStore.selectedFilters.count)
+                .padding(.vertical, 12)
+                .background {
+                    if showStatusBarBackground {
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                    } else {
+                        Rectangle()
+                            .fill(theme.backgroundColor)
+                    }
                 }
             }
-            .animation(.easeInOut(duration: 0.2), value: viewStore.selectedFilters.count)
-            #if os(macOS)
-            .padding(.top)
-            #endif
         }
     }
 }
@@ -336,33 +315,34 @@ extension SearchFeature.View {
 // MARK: - SearchFeatureView_Previews
 
 #Preview {
-    SearchFeature.View(
-        store: .init(
-            initialState: .init(
-                query: "demo",
-                selectedFilters: .init([
-                    SearchFilter(
-                        id: .init("1"),
-                        displayName: "Filter",
-                        multiselect: true,
-                        required: false,
-                        options: [.init(id: .init("1"), displayName: "Option 1")]
-                    )
-                ]),
-                allFilters: .init([
-                    SearchFilter(
-                        id: .init("1"),
-                        displayName: "Filter",
-                        multiselect: true,
-                        required: false,
-                        options: [.init(id: .init("1"), displayName: "Option 1")]
-                    )
-                ]),
-                items: .pending
-            ),
-            reducer: { EmptyReducer() }
-        ),
-        namespace: Namespace().wrappedValue
-    )
+    NavigationView {
+        SearchFeature.View(
+            store: .init(
+                initialState: .init(
+                    query: "demo",
+                    selectedFilters: .init([
+                        SearchFilter(
+                            id: .init("1"),
+                            displayName: "Filter",
+                            multiselect: true,
+                            required: false,
+                            options: [.init(id: .init("1"), displayName: "Option 1")]
+                        )
+                    ]),
+                    allFilters: .init([
+                        SearchFilter(
+                            id: .init("1"),
+                            displayName: "Filter",
+                            multiselect: true,
+                            required: false,
+                            options: [.init(id: .init("1"), displayName: "Option 1")]
+                        )
+                    ]),
+                    items: .pending
+                ),
+                reducer: { EmptyReducer() }
+            )
+        )
+    }
     .themeable()
 }

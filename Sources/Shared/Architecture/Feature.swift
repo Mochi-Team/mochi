@@ -50,8 +50,16 @@ public protocol FeatureAction: Equatable, Sendable {
 
 // MARK: - FeatureView
 
+@MainActor
 public protocol FeatureView: View {
     associatedtype State: FeatureState
     associatedtype Action: FeatureAction
     var store: Store<State, Action> { get }
+}
+
+public extension FeatureView {
+    @discardableResult
+    func send(_ action: Action.ViewAction) -> StoreTask {
+        store.send(.view(action))
+    }
 }

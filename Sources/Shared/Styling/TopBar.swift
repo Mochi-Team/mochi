@@ -11,319 +11,26 @@ import SwiftUI
 import UserSettingsClient
 import ViewComponents
 
-// MARK: - TopBarBackgroundStyle
-
-public enum TopBarBackgroundStyle: Equatable {
-    case system
-    case gradient(Easing = .easeIn)
-    case blurred(fade: Bool = false)
-    case clear
+public extension ButtonStyle where Self == MaterialToolbarItemButtonStyle {
+    static var materialToolbarItem: MaterialToolbarItemButtonStyle { .init() }
 }
 
-// MARK: - TopBarView
+// MARK: - MaterialToolbarItemButtonStyle
 
-#if os(iOS)
-@MainActor
-public struct TopBarView<LeadingAccessory: View, TrailingAccessory: View, BottomAccessory: View>: View {
-    let backCallback: (() -> Void)?
-    var backgroundStyle: TopBarBackgroundStyle = .system
-    let leadingAccessory: () -> LeadingAccessory
-    let trailingAccessory: () -> TrailingAccessory
-    let bottomAccessory: () -> BottomAccessory
-
-    @Environment(\.theme)
-    var theme
-
-    public init(
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder leadingAccessory: @escaping () -> LeadingAccessory,
-        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
-        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
-    ) {
-        self.backCallback = backCallback
-        self.leadingAccessory = leadingAccessory
-        self.trailingAccessory = trailingAccessory
-        self.bottomAccessory = bottomAccessory
-        self.backgroundStyle = backgroundStyle
-    }
-
-    public var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                if let backCallback {
-                    SwiftUI.Button {
-                        backCallback()
-                    } label: {
-                        Image(systemName: "chevron.backward")
-                    }
-                    .buttonStyle(.materialToolbarImage)
-                    .frame(maxHeight: .infinity)
-                }
-
-                leadingAccessory()
-                    .frame(maxHeight: .infinity)
-
-                Spacer()
-
-                trailingAccessory()
-                    .frame(maxHeight: .infinity)
-            }
-            .fixedSize(horizontal: false, vertical: true)
-
-            bottomAccessory()
-        }
-        .safeAreaInset(edge: .leading) {
-            Spacer()
-                .frame(width: 0, height: 0)
-                .padding(.leading)
-        }
-        .safeAreaInset(edge: .trailing) {
-            Spacer()
-                .frame(width: 0, height: 0)
-                .padding(.trailing)
-        }
-        .padding(.top, 12)
-        .padding(.bottom, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            ZStack {
-                switch backgroundStyle {
-                case .system:
-                    theme.backgroundColor
-                        .transition(.opacity)
-                case .gradient:
-                    LinearGradient(
-                        gradient: .init(
-                            colors: [
-                                theme.backgroundColor,
-                                theme.backgroundColor.opacity(0.0)
-                            ]
-                        ),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .transition(.opacity)
-                case let .blurred(fade):
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .preferredColorScheme(theme.colorScheme)
-                        .mask(LinearGradient(
-                            gradient: .init(colors: fade ? [.black, .black.opacity(0)] : [], easing: .easeIn),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ))
-                        .transition(.opacity)
-                case .clear:
-                    EmptyView()
-                        .transition(.opacity)
-                }
-            }
-            .edgesIgnoringSafeArea(.top)
-            .animation(.easeInOut, value: backgroundStyle)
-        )
-    }
-
-    public func backgroundStyle(_ style: TopBarBackgroundStyle) -> Self {
-        var copy = self
-        copy.backgroundStyle = style
-        return copy
-    }
-}
-
-public extension TopBarView {
-    init(
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder leadingAccessory: @escaping () -> LeadingAccessory
-    ) where TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
-        self.init(
-            backgroundStyle: backgroundStyle,
-            backCallback: backCallback,
-            leadingAccessory: leadingAccessory,
-            trailingAccessory: EmptyView.init,
-            bottomAccessory: EmptyView.init
-        )
-    }
-
-    init(
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder leadingAccessory: @escaping () -> LeadingAccessory,
-        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
-    ) where BottomAccessory == EmptyView {
-        self.init(
-            backgroundStyle: backgroundStyle,
-            backCallback: backCallback,
-            leadingAccessory: leadingAccessory,
-            trailingAccessory: trailingAccessory,
-            bottomAccessory: EmptyView.init
-        )
-    }
-
-    init(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory,
-        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
-    ) where LeadingAccessory == Text? {
-        self.init(
-            backgroundStyle: backgroundStyle,
-            backCallback: backCallback,
-            leadingAccessory: {
-                if let title {
-                    Text(title)
-                        .font(.title.bold())
-                }
-            },
-            trailingAccessory: trailingAccessory,
-            bottomAccessory: bottomAccessory
-        )
-    }
-
-    init(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil
-    ) where LeadingAccessory == Text?, TrailingAccessory == EmptyView, BottomAccessory == EmptyView {
-        self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
-            EmptyView()
-        } bottomAccessory: {
-            EmptyView()
-        }
-    }
-
-    init(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
-    ) where LeadingAccessory == Text?, BottomAccessory == EmptyView {
-        self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
-            trailingAccessory()
-        } bottomAccessory: {
-            EmptyView()
-        }
-    }
-
-    init(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder bottomAccessory: @escaping () -> BottomAccessory
-    ) where LeadingAccessory == Text?, TrailingAccessory == EmptyView {
-        self.init(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
-            EmptyView()
-        } bottomAccessory: {
-            bottomAccessory()
-        }
-    }
-}
-
-@MainActor
-public extension View {
-    func topBar(
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder leadingAccessory: @escaping () -> some View,
-        @ViewBuilder trailingAccessory: @escaping () -> some View,
-        @ViewBuilder bottomAccessory: @escaping () -> some View
-    ) -> some View {
-        safeAreaInset(edge: .top) {
-            TopBarView(
-                backgroundStyle: backgroundStyle,
-                backCallback: backCallback,
-                leadingAccessory: leadingAccessory,
-                trailingAccessory: trailingAccessory,
-                bottomAccessory: bottomAccessory
-            )
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    func topBar(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder trailingAccessory: @escaping () -> some View,
-        @ViewBuilder bottomAccessory: @escaping () -> some View
-    ) -> some View {
-        safeAreaInset(edge: .top) {
-            TopBarView(
-                title: title,
-                backgroundStyle: backgroundStyle,
-                backCallback: backCallback,
-                trailingAccessory: trailingAccessory,
-                bottomAccessory: bottomAccessory
-            )
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    func topBar(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil
-    ) -> some View {
-        topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
-            EmptyView()
-        } bottomAccessory: {
-            EmptyView()
-        }
-    }
-
-    func topBar(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder trailingAccessory: @escaping () -> some View
-    ) -> some View {
-        topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback, trailingAccessory: trailingAccessory) {
-            EmptyView()
-        }
-    }
-
-    func topBar(
-        title: String? = nil,
-        backgroundStyle: TopBarBackgroundStyle = .system,
-        backCallback: (() -> Void)? = nil,
-        @ViewBuilder bottomAccessory: @escaping () -> some View
-    ) -> some View {
-        topBar(title: title, backgroundStyle: backgroundStyle, backCallback: backCallback) {
-            EmptyView()
-        } bottomAccessory: {
-            bottomAccessory()
-        }
-    }
-}
-
-public extension ButtonStyle where Self == MaterialToolbarImageButtonStyle {
-    static var materialToolbarImage: MaterialToolbarImageButtonStyle { .init() }
-}
-
-// MARK: - MaterialToolbarImageButtonStyle
-
-public struct MaterialToolbarImageButtonStyle: ButtonStyle {
+public struct MaterialToolbarItemButtonStyle: ButtonStyle {
     public init() {}
-
-    @ScaledMetric
-    var size = 28.0
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration
             .label
-            .font(.callout.bold())
-            .frame(width: size, height: size)
-            .background(.ultraThinMaterial, in: Circle())
-            .contentShape(Rectangle())
+            .materialToolbarItemStyle()
             .scaleEffect(configuration.isPressed ? 0.85 : 1.0)
             .animation(.spring(), value: configuration.isPressed)
     }
 }
 
 public extension MenuStyle where Self == MaterialToolbarButtonMenuStyle {
-    static var materialToolbarImage: MaterialToolbarButtonMenuStyle { .init() }
+    static var materialToolbarItem: MaterialToolbarButtonMenuStyle { .init() }
 }
 
 // MARK: - MaterialToolbarButtonMenuStyle
@@ -333,20 +40,32 @@ public struct MaterialToolbarButtonMenuStyle: MenuStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         Menu(configuration)
-            .foregroundColor(.label)
-            .font(.callout.bold())
-            .frame(width: 28, height: 28)
-            .background(.ultraThinMaterial, in: Circle())
+            .materialToolbarItemStyle()
+    }
+}
+
+private struct MaterialToolbarItemStyle: ViewModifier {
+    @ScaledMetric
+    var fontSize = 12
+
+    @ScaledMetric
+    var viewSize = 28
+
+    func body(content: Content) -> some View {
+        Circle()
+            .style(withStroke: .gray.opacity(0.16), fill: .regularMaterial)
+            .overlay {
+                content
+                    .foregroundColor(.label)
+                    .font(.system(size: fontSize, weight: .bold, design: .default))
+            }
+            .frame(width: viewSize, height: viewSize, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
             .contentShape(Rectangle())
     }
 }
 
-#endif
-
-#if canImport(AppKit)
 public extension View {
-    func topBar(title: String) -> some View {
-        self.navigationTitle(title)
+    func materialToolbarItemStyle() -> some View {
+        self.modifier(MaterialToolbarItemStyle())
     }
 }
-#endif

@@ -63,7 +63,7 @@ struct MochiApp: App {
             SettingsFeature.View(
                 store: appDelegate.store.scope(
                     state: \.settings,
-                    action: { .internal(.settings($0)) }
+                    action: \.internal.settings
                 )
             )
             .themeable()

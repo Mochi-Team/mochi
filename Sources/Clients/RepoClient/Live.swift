@@ -12,6 +12,7 @@ import DatabaseClient
 import Dependencies
 import FileClient
 import Foundation
+import LoggerClient
 import Semaphore
 import SharedModels
 
@@ -145,8 +146,7 @@ private class ModulesDownloadManager {
                         }
 
                         guard response.mimeType == "text/javascript" || response.mimeType == "application/javascript" else {
-                            print("Unknown mime type of file \(response.mimeType ?? "Unknown")")
-                            throw RepoClient.Error.failedToDownloadModule
+                            throw RepoClient.Error.invalidMimeTypeForModule(received: response.mimeType ?? "Unknown")
                         }
 
                         guard let directory = URL(
@@ -169,7 +169,7 @@ private class ModulesDownloadManager {
                     }
                 }
             } catch {
-                print(error)
+                logger.error("\(error.localizedDescription)")
                 states.value[repoModuleId] = .failed((error as? RepoClient.Error) ?? .failedToDownloadModule)
             }
             return nil

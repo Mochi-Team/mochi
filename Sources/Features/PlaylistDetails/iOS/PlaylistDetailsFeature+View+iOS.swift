@@ -81,28 +81,30 @@ extension PlaylistDetailsFeature.View: View {
         .edgesIgnoringSafeArea(.top)
         .ignoresSafeArea(.container, edges: .top)
         #if os(iOS)
-        .topBar(backgroundStyle: .clear) {
-            store.send(.view(.didTappedBackButton))
-        } trailingAccessory: {
-            // TODO: Make this change depending if it's in library already or not
-            Button {} label: {
-                Image(systemName: "plus")
-            }
-            .buttonStyle(.materialToolbarImage)
-
-            Menu {
-                WithViewStore(store, observe: \.playlist.url) { viewStore in
-                    Button {
-                        openURL(viewStore.state)
-                    } label: {
-                        Image(systemName: "arrow.up.right.square.fill")
-                        Text("Open Playlist URL")
-                    }
+        .navigationBarTitle("", displayMode: .inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {} label: {
+                    Image(systemName: "plus")
                 }
-            } label: {
-                Image(systemName: "ellipsis")
+                .buttonStyle(.materialToolbarItem)
             }
-            .menuStyle(.materialToolbarImage)
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    WithViewStore(store, observe: \.playlist.url) { viewStore in
+                        Button {
+                            openURL(viewStore.state)
+                        } label: {
+                            Image(systemName: "arrow.up.right.square.fill")
+                            Text("Open Playlist URL")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .menuStyle(.materialToolbarItem)
+            }
         }
         #elseif os(macOS)
         .toolbar {
@@ -132,7 +134,7 @@ extension PlaylistDetailsFeature.View: View {
         .sheet(
             store: store.scope(
                 state: \.$destination,
-                action: { .internal(.destination($0)) }
+                action: \.internal.destination
             ),
             state: /PlaylistDetailsFeature.Destination.State.readMore,
             action: PlaylistDetailsFeature.Destination.Action.readMore
@@ -354,7 +356,7 @@ extension PlaylistDetailsFeature.View {
             ContentCore.View(
                 store: store.scope(
                     state: \.content,
-                    action: Action.InternalAction.content
+                    action: \.internal.content
                 ),
                 contentType: playlistInfo.type
             )

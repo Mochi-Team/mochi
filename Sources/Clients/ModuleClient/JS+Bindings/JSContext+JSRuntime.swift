@@ -25,7 +25,7 @@ extension JSContext {
 
         let jsURL = try fileClient.retrieveModuleDirectory(module.mainJSFile)
         try evaluateScript(String(contentsOf: jsURL))
-        evaluateScript("const Instance = new source.default()")
+        evaluateScript("const Instance = new source.default();")
     }
 }
 

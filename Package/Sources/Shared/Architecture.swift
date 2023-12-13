@@ -11,5 +11,6 @@ struct Architecture: _Shared {
         FoundationHelpers()
         ComposableArchitecture()
         LocalizableClient()
+        LoggerClient()
     }
 }

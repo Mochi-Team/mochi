@@ -93,15 +93,27 @@ extension RepoPackagesFeature.View: View {
             maxHeight: .infinity
         )
         #if os(iOS)
-        .topBar {
-            store.send(.view(.didTapClose))
-        } trailingAccessory: {
-            Button {
-                store.send(.view(.didTapToRefreshRepo))
-            } label: {
-                Image(systemName: "arrow.triangle.2.circlepath")
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+//        .navigationBarBackButtonHidden()
+        .toolbar {
+//            ToolbarItem(placement: .topBarLeading) {
+//                Button {
+//                    store.send(.view(.didTapClose))
+//                } label: {
+//                    Image(systemName: "chevron.left")
+//                }
+//                .buttonStyle(.materialToolbarItem)
+//            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    store.send(.view(.didTapToRefreshRepo))
+                } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                }
+                .buttonStyle(.materialToolbarItem)
             }
-            .buttonStyle(.materialToolbarImage)
         }
         #elseif os(macOS)
         .toolbar {
