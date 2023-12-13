@@ -72,9 +72,12 @@ extension VideoPlayerFeature: Reducer {
                 return state.clearForChangedLinkIfNeeded(linkId)
 
             case let .view(.didSkipTo(time)):
-                return .run { _ in
-                    await playerClient.seek(time)
-                }
+                    return .merge(
+                        state.delayDismissOverlayIfNeeded(),
+                        .run { _ in
+                            await playerClient.seek(time)
+                        }
+                    )
 
             case .view(.didTogglePlayback):
                 let isPlaying = state.player.playback?.state == .playing
@@ -95,7 +98,7 @@ extension VideoPlayerFeature: Reducer {
                     await playerClient.setRate(.init(rate))
                 }
 
-            case .view(.didSkipFowards):
+            case .view(.didSkipForward):
                 let skipTime = state.playerSettings.skipTime // In seconds
                 let currentProgress = state.player.playback?.progress ?? .zero
                 let totalDuration = state.player.playback?.totalDuration ?? 1

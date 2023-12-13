@@ -46,7 +46,7 @@ extension ModuleListsFeature.View: View {
                 await viewStore.send(.onTask).finish()
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 300)
     }
 }
 

@@ -259,6 +259,7 @@ public extension ContentCore {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.horizontal)
+																.padding(.bottom)
                             }
                             .onAppear {
                                 proxy.scrollTo(selectedItemId, anchor: .center)

@@ -134,7 +134,7 @@ public struct VideoPlayerFeature: Feature {
             case didSelectMoreTab(State.Overlay.MoreTab)
             case didTapCloseMoreOverlay
             case didTogglePlayback
-            case didSkipFowards
+            case didSkipForward
             case didSkipBackwards
             case didChangePlaybackRate(Double)
             case didSkipTo(time: CGFloat)

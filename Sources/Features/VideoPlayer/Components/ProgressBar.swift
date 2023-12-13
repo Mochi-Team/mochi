@@ -19,7 +19,9 @@ struct ProgressBar: View {
     private var viewState: ViewStore<PlayerClient.Status.Playback?, VideoPlayerFeature.Action.ViewAction>
 
     @SwiftUI.State
-    private var dragProgress: Double?
+    private var dragProgress: Double = 0
+    @SwiftUI.State
+    private var isDragging = false
 
     @Dependency(\.dateComponentsFormatter)
     var formatter
@@ -39,7 +41,7 @@ struct ProgressBar: View {
                             .preferredColorScheme(.dark)
                         Color.white
                             .frame(
-                                width: proxy.size.width * (isDragging ? dragProgress ?? progress : progress),
+                                width: proxy.size.width * dragProgress,
                                 height: proxy.size.height,
                                 alignment: .leading
                             )
@@ -60,18 +62,13 @@ struct ProgressBar: View {
                         .onChanged { value in
                             if !isDragging {
                                 dragProgress = progress
+                                isDragging = true
                             }
-
-                            let locationX = value.location.x
-                            let percentage = locationX / proxy.size.width
-
-                            dragProgress = max(0, min(1.0, percentage))
+                            dragProgress = max(0, min(1.0, value.location.x / proxy.size.width))
+                            viewState.send(.didSkipTo(time: dragProgress))
                         }
                         .onEnded { _ in
-                            if let dragProgress {
-                                viewState.send(.didSkipTo(time: dragProgress))
-                            }
-                            dragProgress = nil
+                            isDragging = false
                         }
                 )
                 .animation(.spring(response: 0.3), value: isDragging)
@@ -94,12 +91,17 @@ struct ProgressBar: View {
             .font(.caption.monospacedDigit())
         }
         .disabled(!canUseControls)
+        .onAppear {
+            dragProgress = viewState.state?.progress ?? 0
+        }
+        // Stop initial bounce
+        .animation(.linear(duration: 0), value: dragProgress)
     }
 
     private var progressDisplayTime: String {
         if canUseControls {
             if isDragging {
-                let time = (dragProgress ?? .zero) * (viewState.state?.totalDuration ?? .zero)
+                let time = dragProgress * (viewState.state?.totalDuration ?? .zero)
                 return formatter.playbackTimestamp(time) ?? Self.defaultZeroTime
             } else {
                 return formatter.playbackTimestamp(viewState.state?.duration ?? .zero) ?? Self.defaultZeroTime
@@ -120,10 +122,6 @@ private extension ProgressBar {
         } else {
             .zero
         }
-    }
-
-    var isDragging: Bool {
-        dragProgress != nil
     }
 
     var canUseControls: Bool {
