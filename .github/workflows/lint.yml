@@ -10,24 +10,22 @@ on:
 
 jobs:
   run-swiftlint:
-    runs-on: macos-13
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/realm/swiftlint:0.54.0
     steps:
       - uses: actions/checkout@v3
-
       - name: Lint code using SwiftLint
         run: |
           swiftlint --version
           swiftlint lint --reporter github-actions-logging
 
   run-swiftformat:
-    runs-on: macos-13
+    runs-on: ubuntu-latest
+    container:
+        image: ghcr.io/nicklockwood/swiftformat:0.52.11
     steps:
       - uses: actions/checkout@v3
-
-      - name: Install SwiftFormat
-        run: |
-          brew install SwiftFormat
-
       - name: Lint code using SwiftFormat
         run: |
           swiftformat --version
