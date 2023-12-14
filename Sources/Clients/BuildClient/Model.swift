@@ -1,20 +1,24 @@
 //
-//  Build.swift
+//  Model.swift
 //
 //
 //  Created by ErrorErrorError on 11/27/23.
-//  
+//
 //
 
 import Foundation
 import Semver
 import Tagged
 
-public struct Build: Equatable, Sendable {
-    public let version: Semver
-    public let number: Number
+// MARK: - Build
 
-    public typealias Number = Tagged<((), number: ()), Int>
+public struct Build: Equatable, Sendable {
+  public let version: Semver
+  public let number: Number
+
+  public typealias Number = Tagged<((), number: ()), Int>
 }
+
+// MARK: - Semver + Sendable
 
 extension Semver: @unchecked Sendable {}

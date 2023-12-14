@@ -10,19 +10,19 @@
 import SwiftUI
 
 public struct HomeIndicatorAutoHiddenPreferenceKey: PreferenceKey {
-    public static var defaultValue = false
+  public static var defaultValue = false
 
-    public static func reduce(
-        value: inout Bool,
-        nextValue: () -> Bool
-    ) {
-        value = nextValue()
-    }
+  public static func reduce(
+    value: inout Bool,
+    nextValue: () -> Bool
+  ) {
+    value = nextValue()
+  }
 }
 
-public extension View {
-    func prefersHomeIndicatorAutoHidden(_ value: Bool) -> some View {
-        preference(key: HomeIndicatorAutoHiddenPreferenceKey.self, value: value)
-    }
+extension View {
+  public func prefersHomeIndicatorAutoHidden(_ value: Bool) -> some View {
+    preference(key: HomeIndicatorAutoHiddenPreferenceKey.self, value: value)
+  }
 }
 #endif

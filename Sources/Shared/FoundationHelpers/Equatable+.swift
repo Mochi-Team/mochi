@@ -8,9 +8,9 @@
 
 import Foundation
 
-public extension Equatable {
-    var `self`: Self {
-        get { self }
-        mutating set { self = newValue }
-    }
+extension Equatable {
+  public var `self`: Self {
+    get { self }
+    mutating set { self = newValue }
+  }
 }

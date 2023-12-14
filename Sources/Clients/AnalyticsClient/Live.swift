@@ -11,5 +11,5 @@ import Foundation
 
 // TODO: Implement analytics to better understand how people use this app
 extension AnalyticsClient: DependencyKey {
-    public static let liveValue = Self { _ in }
+  public static let liveValue = Self { _ in }
 }

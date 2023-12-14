@@ -13,22 +13,22 @@ import SwiftUI
 
 @MainActor
 struct SquircleModifier: ViewModifier {
-    @State
-    var sizeInset = SizeInset.zero
+  @State
+  var sizeInset = SizeInset.zero
 
-    @MainActor
-    func body(content: Content) -> some View {
-        content
-            .readSize { sizeInset in
-                self.sizeInset = sizeInset
-            }
-            .clipShape(RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous))
-    }
+  @MainActor
+  func body(content: Content) -> some View {
+    content
+      .readSize { sizeInset in
+        self.sizeInset = sizeInset
+      }
+      .clipShape(RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous))
+  }
 }
 
-public extension View {
-    @MainActor
-    func squircle() -> some View {
-        modifier(SquircleModifier())
-    }
+extension View {
+  @MainActor
+  public func squircle() -> some View {
+    modifier(SquircleModifier())
+  }
 }

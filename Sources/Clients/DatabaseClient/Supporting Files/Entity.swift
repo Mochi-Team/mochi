@@ -12,53 +12,53 @@ import Foundation
 // MARK: - Entity
 
 public protocol Entity {
-    static var entityName: String { get }
-    var objectID: ManagedObjectID? { get set }
-    static var properties: Set<Property<Self>> { get }
+  static var entityName: String { get }
+  var objectID: ManagedObjectID? { get set }
+  static var properties: Set<Property<Self>> { get }
 
-    init()
+  init()
 }
 
-public extension Entity {
-    static var entityName: String { .init(describing: Self.self) }
+extension Entity {
+  public static var entityName: String { .init(describing: Self.self) }
 }
 
 // MARK: - EntityError
 
 public enum EntityError: Error {
-    case managedObjectIdIsNotPermanent
+  case managedObjectIdIsNotPermanent
 }
 
 extension Entity {
-    /// Decodes an NSManagedObject data to Entity type
-    ///
-    init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
-        guard !id.isTemporaryID else {
-            throw EntityError.managedObjectIdIsNotPermanent
-        }
-
-        try self.init(unmanagedId: id, context: context)
+  /// Decodes an NSManagedObject data to Entity type
+  ///
+  init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
+    guard !id.isTemporaryID else {
+      throw EntityError.managedObjectIdIsNotPermanent
     }
 
-    init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
-        self.init()
+    try self.init(unmanagedId: id, context: context)
+  }
 
-        self.objectID = .init(objectID: unmanagedId)
+  init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+    self.init()
 
-        let managed = context.object(with: unmanagedId)
+    self.objectID = .init(objectID: unmanagedId)
 
-        for property in Self.properties {
-            try property.decode(&self, managed)
-        }
+    let managed = context.object(with: unmanagedId)
+
+    for property in Self.properties {
+      try property.decode(&self, managed)
     }
+  }
 
-    /// Copies Entity instance to managed object
-    ///
-    func copy(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
-        let managed = context.object(with: managedObjectId)
+  /// Copies Entity instance to managed object
+  ///
+  func copy(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+    let managed = context.object(with: managedObjectId)
 
-        try Self.properties.forEach { property in
-            try property.encode(self, managed)
-        }
+    try Self.properties.forEach { property in
+      try property.encode(self, managed)
     }
+  }
 }

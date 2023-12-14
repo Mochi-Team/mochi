@@ -10,9 +10,9 @@ import CoreData
 import Foundation
 
 public struct ManagedObjectID: Hashable, @unchecked Sendable {
-    let id: NSManagedObjectID
+  let id: NSManagedObjectID
 
-    init(objectID: NSManagedObjectID) {
-        self.id = objectID
-    }
+  init(objectID: NSManagedObjectID) {
+    self.id = objectID
+  }
 }

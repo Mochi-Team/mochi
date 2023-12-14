@@ -8,6 +8,6 @@
 
 import Foundation
 
-public extension AnalyticsClient {
-    enum Action: Sendable {}
+extension AnalyticsClient {
+  public enum Action: Sendable {}
 }

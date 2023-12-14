@@ -13,54 +13,54 @@ import Foundation
 // MARK: - PlayerItem
 
 final class PlayerItem: AVPlayerItem {
-    static let dashCustomPlaylistScheme = "mochi-mpd"
+  static let dashCustomPlaylistScheme = "mochi-mpd"
 
-    let payload: PlayerClient.VideoCompositionItem
+  let payload: PlayerClient.VideoCompositionItem
 
-    private let resourceQueue: DispatchQueue
+  private let resourceQueue: DispatchQueue
 
-    enum ResourceLoaderError: Swift.Error {
-        case responseError
-        case emptyData
-        case failedToCreateM3U8
+  enum ResourceLoaderError: Swift.Error {
+    case responseError
+    case emptyData
+    case failedToCreateM3U8
+  }
+
+  init(_ payload: PlayerClient.VideoCompositionItem) {
+    self.payload = payload
+    self.resourceQueue = DispatchQueue(label: "playeritem-\(payload.link.absoluteString)", qos: .utility)
+
+    let headers = payload.headers
+    let url: URL = if payload.subtitles.isEmpty {
+      payload.link
+    } else {
+      payload.link.change(scheme: Self.hlsCommonScheme)
     }
 
-    init(_ payload: PlayerClient.VideoCompositionItem) {
-        self.payload = payload
-        self.resourceQueue = DispatchQueue(label: "playeritem-\(payload.link.absoluteString)", qos: .utility)
+    let asset = AVURLAsset(
+      url: url,
+      // TODO: Validate if this is allowed or considered a private api
+      options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
+    )
 
-        let headers = payload.headers
-        let url: URL = if payload.subtitles.isEmpty {
-            payload.link
-        } else {
-            payload.link.change(scheme: Self.hlsCommonScheme)
-        }
+    super.init(
+      asset: asset,
+      automaticallyLoadedAssetKeys: [
+        "duration",
+        "availableMediaCharacteristicsWithMediaSelectionOptions"
+      ]
+    )
 
-        let asset = AVURLAsset(
-            url: url,
-            // TODO: Validate if this is allowed or considered a private api
-            options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
-        )
-
-        super.init(
-            asset: asset,
-            automaticallyLoadedAssetKeys: [
-                "duration",
-                "availableMediaCharacteristicsWithMediaSelectionOptions"
-            ]
-        )
-
-        asset.resourceLoader.setDelegate(self, queue: resourceQueue)
-    }
+    asset.resourceLoader.setDelegate(self, queue: resourceQueue)
+  }
 }
 
 // MARK: AVAssetResourceLoaderDelegate
 
 extension PlayerItem: AVAssetResourceLoaderDelegate {
-    func resourceLoader(
-        _: AVAssetResourceLoader,
-        shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
-    ) -> Bool {
+  func resourceLoader(
+    _: AVAssetResourceLoader,
+    shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
+  ) -> Bool {
 //        if payload.source.format == .mpd {
 //            if url.pathExtension == "ts" {
 //                loadingRequest.redirect = URLRequest(url: url.recoveryScheme)
@@ -75,21 +75,21 @@ extension PlayerItem: AVAssetResourceLoaderDelegate {
 //                handleDASHRequest(url, callback)
 //            }
 //        } else {
-        handleHLSRequest(loadingRequest: loadingRequest)
+    handleHLSRequest(loadingRequest: loadingRequest)
 //        }
-    }
+  }
 }
 
 extension URL {
-    func change(scheme: String) -> URL {
-        var component = URLComponents(url: self, resolvingAgainstBaseURL: false)
-        component?.scheme = scheme
-        return component?.url ?? self
-    }
+  func change(scheme: String) -> URL {
+    var component = URLComponents(url: self, resolvingAgainstBaseURL: false)
+    component?.scheme = scheme
+    return component?.url ?? self
+  }
 
-    var recoveryScheme: URL {
-        var component = URLComponents(url: self, resolvingAgainstBaseURL: false)
-        component?.scheme = "https"
-        return component?.url ?? self
-    }
+  var recoveryScheme: URL {
+    var component = URLComponents(url: self, resolvingAgainstBaseURL: false)
+    component?.scheme = "https"
+    return component?.url ?? self
+  }
 }

@@ -3,48 +3,50 @@
 //
 //
 //  Created by ErrorErrorError on 11/22/23.
-//  
+//
 //
 
 import Dependencies
 import Foundation
 import SwiftUI
 
+// MARK: - Localizable
+
 public protocol Localizable {
-    var localizable: String { get }
+  var localizable: String { get }
 }
 
-public extension Localizable {
-    var localized: String {
-        @Dependency(\.localizableClient.localize)
-        var localize
+extension Localizable {
+  public var localized: String {
+    @Dependency(\.localizableClient.localize)
+    var localize
 
-        return localize(self.localizable)
-    }
+    return localize(localizable)
+  }
 }
 
-public extension Localizable where Self: RawRepresentable, Self.RawValue == String {
-    var localizable: String { self.rawValue }
+extension Localizable where Self: RawRepresentable, Self.RawValue == String {
+  public var localizable: String { rawValue }
 }
 
-public extension Localizable where Self: CustomStringConvertible {
-    var localizable: String { self.description }
+extension Localizable where Self: CustomStringConvertible {
+  public var localizable: String { description }
 }
 
-public extension String {
-    init(localizable: String) {
-        @Dependency(\.localizableClient.localize)
-        var localize
+extension String {
+  public init(localizable: String) {
+    @Dependency(\.localizableClient.localize)
+    var localize
 
-        self = localize(localizable)
-    }
+    self = localize(localizable)
+  }
 }
 
-public extension Text {
-    init(localizable: String) {
-        @Dependency(\.localizableClient.localize)
-        var localize
+extension Text {
+  public init(localizable: String) {
+    @Dependency(\.localizableClient.localize)
+    var localize
 
-        self.init(localize(localizable))
-    }
+    self.init(localize(localizable))
+  }
 }

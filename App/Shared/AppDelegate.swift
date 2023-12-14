@@ -14,33 +14,34 @@ import Foundation
 import UIKit
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    let store = Store(
-        initialState: .init(),
-        reducer: { AppFeature() }
-    )
+  let store = Store(
+    initialState: .init(),
+    reducer: { AppFeature() }
+  )
 
-    func application(
-        _: UIApplication,
-        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-        store.send(.internal(.appDelegate(.didFinishLaunching)))
-        return true
-    }
+  func application(
+    _: UIApplication,
+    didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    store.send(.internal(.appDelegate(.didFinishLaunching)))
+    return true
+  }
 }
+
 #elseif canImport(AppKit)
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    let store = Store(
-        initialState: .init(),
-        reducer: { AppFeature() }
-    )
+  let store = Store(
+    initialState: .init(),
+    reducer: { AppFeature() }
+  )
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        store.send(.internal(.appDelegate(.didFinishLaunching)))
-    }
+  func applicationDidFinishLaunching(_: Notification) {
+    store.send(.internal(.appDelegate(.didFinishLaunching)))
+  }
 
-    func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
+  func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
 //        let viewStore = ViewStore(store)
 //
 //        if viewStore.hasPendingChanges {
@@ -48,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //            return .terminateLater
 //        }
 //
-        .terminateNow
-    }
+    .terminateNow
+  }
 }
 #endif

@@ -13,22 +13,22 @@ import SwiftUI
 
 @MainActor
 public struct LazyView<Content: View>: View {
-    let build: () -> Content
+  let build: () -> Content
 
-    @MainActor
-    public init(@ViewBuilder _ build: @escaping () -> Content) {
-        self.build = build
-    }
+  @MainActor
+  public init(@ViewBuilder _ build: @escaping () -> Content) {
+    self.build = build
+  }
 
-    @MainActor
-    public init(_ build: @autoclosure @escaping () -> Content) {
-        self.build = build
-    }
+  @MainActor
+  public init(_ build: @autoclosure @escaping () -> Content) {
+    self.build = build
+  }
 
-    @MainActor
-    public var body: some View {
-        LazyVStack {
-            build()
-        }
+  @MainActor
+  public var body: some View {
+    LazyVStack {
+      build()
     }
+  }
 }

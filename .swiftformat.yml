@@ -11,7 +11,7 @@
 --elseposition same-line
 --exponentcase lowercase
 --exponentgrouping disabled
---extensionacl on-extension
+--extensionacl on-declarations
 --fractiongrouping disabled
 --funcattributes prev-line
 --generictypes
@@ -19,7 +19,7 @@
 --hexgrouping 4,8
 --hexliteralcase uppercase
 --ifdef no-indent
---indent 4
+--indent 2
 --indentcase false
 --importgrouping alpha
 --linebreaks lf

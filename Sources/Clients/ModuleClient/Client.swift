@@ -15,67 +15,71 @@ import XCTestDynamicOverlay
 // MARK: - ModuleClient
 
 public struct ModuleClient: Sendable {
-    public var initialize: @Sendable () async throws -> Void
-    var getModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Self.Instance
-    public var removeCachedModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Void
-    public var removeCachedModules: @Sendable (_ repoID: Repo.ID) async throws -> Void
+  public var initialize: @Sendable () async throws -> Void
+  var getModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Self.Instance
+  public var removeCachedModule: @Sendable (_ repoModuleId: RepoModuleID) async throws -> Void
+  public var removeCachedModules: @Sendable (_ repoID: Repo.ID) async throws -> Void
 }
 
-public extension ModuleClient {
-    func withModule<R>(id: RepoModuleID, work: @Sendable (Self.Instance) async throws -> R) async throws -> R {
-        try await work(getModule(id))
-    }
+extension ModuleClient {
+  public func withModule<R>(id: RepoModuleID, work: @Sendable (Self.Instance) async throws -> R) async throws -> R {
+    try await work(getModule(id))
+  }
 }
 
 // MARK: ModuleClient.Error
 
-public extension ModuleClient {
-    enum Error: Swift.Error, Equatable, Sendable {
-        case client(ClientError)
-        case jsRuntime(JSRuntimeError)
-    }
+extension ModuleClient {
+  public enum Error: Swift.Error, Equatable, Sendable {
+    case client(ClientError)
+    case jsRuntime(JSRuntimeError)
+  }
 }
 
-public extension ModuleClient.Error {
-    enum ClientError: Equatable, Sendable {
-        case moduleNotFound
-    }
+// MARK: - ModuleClient.Error.ClientError
+
+extension ModuleClient.Error {
+  public enum ClientError: Equatable, Sendable {
+    case moduleNotFound
+  }
 }
 
-public extension ModuleClient.Error {
-    enum JSRuntimeError: Equatable, Sendable {
-        case promiseValueError
-        case retrievingInstanceFailed
-        case instanceCreationFailed
-        case instanceCall(function: String, msg: String)
-    }
+// MARK: - ModuleClient.Error.JSRuntimeError
+
+extension ModuleClient.Error {
+  public enum JSRuntimeError: Equatable, Sendable {
+    case promiseValueError
+    case retrievingInstanceFailed
+    case instanceCreationFailed
+    case instanceCall(function: String, msg: String)
+  }
 }
 
 // MARK: - SwiftSoup.Exception + Equatable
 
 extension SwiftSoup.Exception: Equatable {
-    public static func == (lhs: Exception, rhs: Exception) -> Bool {
-        switch (lhs, rhs) {
-        case let (.Error(typeOne, messageOne), .Error(typeTwo, messageTwo)):
-            typeOne == typeTwo && messageOne == messageTwo
-        }
+  public static func == (lhs: Exception, rhs: Exception) -> Bool {
+    switch (lhs, rhs) {
+    case let (.Error(typeOne, messageOne), .Error(typeTwo, messageTwo)):
+      typeOne == typeTwo && messageOne == messageTwo
     }
+  }
 }
 
 // MARK: - ModuleClient + TestDependencyKey
 
 extension ModuleClient: TestDependencyKey {
-    public static let testValue = Self(
-        initialize: unimplemented(),
-        getModule: unimplemented(),
-        removeCachedModule: unimplemented(),
-        removeCachedModules: unimplemented()
-    )
+  public static let testValue = Self(
+    initialize: unimplemented(),
+    getModule: unimplemented(),
+    removeCachedModule: unimplemented(),
+    removeCachedModules: unimplemented()
+  )
 }
 
-public extension DependencyValues {
-    var moduleClient: ModuleClient {
-        get { self[ModuleClient.self] }
-        set { self[ModuleClient.self] = newValue }
-    }
+extension DependencyValues {
+  public var moduleClient: ModuleClient {
+    get { self[ModuleClient.self] }
+    set { self[ModuleClient.self] = newValue }
+  }
 }

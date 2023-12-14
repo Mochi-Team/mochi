@@ -9,5 +9,5 @@
 import Foundation
 
 public enum AppIcon: Equatable, Sendable, Codable {
-    case `default`
+  case `default`
 }

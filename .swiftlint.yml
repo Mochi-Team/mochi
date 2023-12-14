@@ -10,6 +10,7 @@ excluded:
 disabled_rules:
   - nesting
   - vertical_parameter_alignment_on_call
+  - extension_access_modifier
 
 opt_in_rules:
   - anonymous_argument_in_multiline_closure
@@ -40,6 +41,7 @@ opt_in_rules:
   - identical_operands
   - implicit_return
   - implicitly_unwrapped_optional
+  - indentation_width
   - joined_default_parameter
   - last_where
   - literal_expression_end_indentation
@@ -74,12 +76,18 @@ analyzer_rules:
   - unused_import
   - unused_declaration
 
+conditional_returns_on_newline:
+  if_only: true
+
 private_over_fileprivate:
   validate_extensions: true
   severity: error
 
 force_unwrapping:
   severity: error
+
+indentation_width:
+  indentation_width: 2
 
 line_length:
   warning: 150

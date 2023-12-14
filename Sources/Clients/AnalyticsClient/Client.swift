@@ -13,20 +13,20 @@ import XCTestDynamicOverlay
 // MARK: - AnalyticsClient
 
 public struct AnalyticsClient: Sendable {
-    public var send: @Sendable (Action) -> Void
+  public var send: @Sendable (Action) -> Void
 }
 
 // MARK: TestDependencyKey
 
 extension AnalyticsClient: TestDependencyKey {
-    public static let testValue = Self(
-        send: unimplemented()
-    )
+  public static let testValue = Self(
+    send: unimplemented()
+  )
 }
 
-public extension DependencyValues {
-    var analyticsClient: AnalyticsClient {
-        get { self[AnalyticsClient.self] }
-        set { self[AnalyticsClient.self] = newValue }
-    }
+extension DependencyValues {
+  public var analyticsClient: AnalyticsClient {
+    get { self[AnalyticsClient.self] }
+    set { self[AnalyticsClient.self] = newValue }
+  }
 }

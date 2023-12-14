@@ -14,45 +14,45 @@ import UserSettingsClient
 // MARK: - ThemeModifier
 
 private struct ThemeModifier: ViewModifier {
-    @Dependency(\.userSettings)
-    var userSettingsClient
+  @Dependency(\.userSettings)
+  var userSettingsClient
 
-    @State
-    var currentTheme: Theme = ThemeKey.defaultValue
+  @State
+  var currentTheme: Theme = ThemeKey.defaultValue
 
-    func body(content: Content) -> some View {
-        content
-            .environment(\.theme, currentTheme)
-            .preferredColorScheme(currentTheme.colorScheme)
-            .background(currentTheme.backgroundColor.ignoresSafeArea(.all, edges: .all))
-            .animation(.easeInOut, value: currentTheme)
-            .task {
-                for await theme in userSettingsClient.theme {
-                    currentTheme = theme
-                }
-            }
-    }
+  func body(content: Content) -> some View {
+    content
+      .environment(\.theme, currentTheme)
+      .preferredColorScheme(currentTheme.colorScheme)
+      .background(currentTheme.backgroundColor.ignoresSafeArea(.all, edges: .all))
+      .animation(.easeInOut, value: currentTheme)
+      .task {
+        for await theme in userSettingsClient.theme {
+          currentTheme = theme
+        }
+      }
+  }
 }
 
 // MARK: - ThemeKey
 
 private struct ThemeKey: EnvironmentKey {
-    static var defaultValue: Theme {
-        @Dependency(\.userSettings)
-        var userSettingsClient
-        return userSettingsClient.theme
-    }
+  static var defaultValue: Theme {
+    @Dependency(\.userSettings)
+    var userSettingsClient
+    return userSettingsClient.theme
+  }
 }
 
-public extension EnvironmentValues {
-    var theme: Theme {
-        get { self[ThemeKey.self] }
-        set { self[ThemeKey.self] = newValue }
-    }
+extension EnvironmentValues {
+  public var theme: Theme {
+    get { self[ThemeKey.self] }
+    set { self[ThemeKey.self] = newValue }
+  }
 }
 
-public extension View {
-    func themeable() -> some View {
-        modifier(ThemeModifier())
-    }
+extension View {
+  public func themeable() -> some View {
+    modifier(ThemeModifier())
+  }
 }

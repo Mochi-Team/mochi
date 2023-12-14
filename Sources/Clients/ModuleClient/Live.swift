@@ -15,75 +15,75 @@ import SharedModels
 // MARK: - ModuleClient + DependencyKey
 
 extension ModuleClient: DependencyKey {
-    public static let liveValue: Self = {
-        let cached = ModulesCache()
+  public static let liveValue: Self = {
+    let cached = ModulesCache()
 
-        return Self(
-            initialize: cached.initialize,
-            getModule: cached.getCached,
-            removeCachedModule: cached.removeModule,
-            removeCachedModules: cached.removeModules
-        )
-    }()
+    return Self(
+      initialize: cached.initialize,
+      getModule: cached.getCached,
+      removeCachedModule: cached.removeModule,
+      removeCachedModules: cached.removeModules
+    )
+  }()
 }
 
 // MARK: - ModulesCache
 
 private actor ModulesCache {
-    private var cached: [RepoModuleID: ModuleClient.Instance] = [:]
-    private let semaphore = AsyncSemaphore(value: 1)
+  private var cached: [RepoModuleID: ModuleClient.Instance] = [:]
+  private let semaphore = AsyncSemaphore(value: 1)
 
-    init() {}
+  init() {}
 
-    @Sendable
-    func initialize() async throws {
-        @Dependency(\.databaseClient)
-        var databaseClient
+  @Sendable
+  func initialize() async throws {
+    @Dependency(\.databaseClient)
+    var databaseClient
+  }
+
+  @Sendable
+  func getCached(for id: RepoModuleID) async throws -> ModuleClient.Instance {
+    try await fetchFromDB(for: id)
+  }
+
+  private func fetchFromDB(for id: RepoModuleID) async throws -> ModuleClient.Instance {
+    @Dependency(\.databaseClient)
+    var databaseClient
+
+    try await semaphore.waitUnlessCancelled()
+    defer { semaphore.signal() }
+
+    // TODO: Check if the module is cached already & validate version & file hash or reload
+
+    if let instance = cached[id] {
+      return instance
     }
 
-    @Sendable
-    func getCached(for id: RepoModuleID) async throws -> ModuleClient.Instance {
-        try await fetchFromDB(for: id)
+    guard let repo = try await databaseClient.fetch(.all.where(\Repo.remoteURL == id.repoId.rawValue)).first,
+          let module: Module = repo.modules.first(where: { $0.id == id.moduleId }) else {
+      throw ModuleClient.Error.client(.moduleNotFound)
     }
 
-    private func fetchFromDB(for id: RepoModuleID) async throws -> ModuleClient.Instance {
-        @Dependency(\.databaseClient)
-        var databaseClient
+    let instance = try ModuleClient.Instance(id: id, module: module)
+    cached[id] = instance
 
-        try await semaphore.waitUnlessCancelled()
-        defer { semaphore.signal() }
+    return instance
+  }
 
-        // TODO: Check if the module is cached already & validate version & file hash or reload
+  @Sendable
+  func removeModule(id: RepoModuleID) async throws {
+    try await semaphore.waitUnlessCancelled()
+    defer { semaphore.signal() }
+    cached[id] = nil
+  }
 
-        if let instance = cached[id] {
-            return instance
-        }
+  @Sendable
+  func removeModules(id: Repo.ID) async throws {
+    try await semaphore.waitUnlessCancelled()
+    defer { semaphore.signal() }
 
-        guard let repo = try await databaseClient.fetch(.all.where(\Repo.remoteURL == id.repoId.rawValue)).first,
-              let module: Module = repo.modules.first(where: { $0.id == id.moduleId }) else {
-            throw ModuleClient.Error.client(.moduleNotFound)
-        }
-
-        let instance = try ModuleClient.Instance(id: id, module: module)
-        cached[id] = instance
-
-        return instance
+    for key in cached.keys where key.repoId == id {
+      cached[key] = nil
     }
-
-    @Sendable
-    func removeModule(id: RepoModuleID) async throws {
-        try await semaphore.waitUnlessCancelled()
-        defer { semaphore.signal() }
-        self.cached[id] = nil
-    }
-
-    @Sendable
-    func removeModules(id: Repo.ID) async throws {
-        try await semaphore.waitUnlessCancelled()
-        defer { semaphore.signal() }
-
-        for key in cached.keys where key.repoId == id {
-            cached[key] = nil
-        }
-    }
+  }
 }
