@@ -24,7 +24,7 @@ private enum Cancellable: Hashable, CaseIterable {
 
 // MARK: - ContentCore
 
-public struct ContentCore: Feature {
+public struct ContentCore: Reducer {
     public struct State: FeatureState {
         public var repoModuleId: RepoModuleID
         public var playlist: Playlist
@@ -42,36 +42,16 @@ public struct ContentCore: Feature {
     }
 
     @CasePathable
-    public enum Action: FeatureAction {
-        @CasePathable
-        public enum ViewAction: SendableAction {
-            case didTapContent(Playlist.ItemsRequestOptions)
-            case didTapPlaylistItem(
-                Playlist.Group.ID,
-                Playlist.Group.Variant.ID,
-                PagingID,
-                id: Playlist.Item.ID
-            )
-        }
-
-        @CasePathable
-        public enum DelegateAction: SendableAction {
-            case didTapPlaylistItem(
-                Playlist.Group.ID,
-                Playlist.Group.Variant.ID,
-                PagingID,
-                id: Playlist.Item.ID
-            )
-        }
-
-        @CasePathable
-        public enum InternalAction: SendableAction {
-            case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
-        }
-
-        case view(ViewAction)
-        case delegate(DelegateAction)
-        case `internal`(InternalAction)
+    @dynamicMemberLookup
+    public enum Action: SendableAction {
+        case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
+        case didTapContent(Playlist.ItemsRequestOptions)
+        case didTapPlaylistItem(
+            Playlist.Group.ID,
+            Playlist.Group.Variant.ID,
+            PagingID,
+            id: Playlist.Item.ID
+        )
     }
 
     public enum Error: Swift.Error, Equatable, Sendable {
@@ -83,13 +63,13 @@ public struct ContentCore: Feature {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case let .view(.didTapContent(option)):
+            case let .didTapContent(option):
                 return state.fetchContent(option)
 
-            case let .view(.didTapPlaylistItem(groupId, variantId, pageId, itemId)):
-                return .send(.delegate(.didTapPlaylistItem(groupId, variantId, pageId, id: itemId)))
+            case .didTapPlaylistItem:
+                break
 
-            case let .internal(.update(option, response)):
+            case let .update(option, response):
                 guard case var .loaded(value) = state.groups, let option, var group = value[id: option.groupId] else {
                     state.groups = response.flatMap { .loaded($0) }
                     break
@@ -164,12 +144,6 @@ public struct ContentCore: Feature {
                 }
                 value[id: option.groupId] = group
                 state.groups = .loaded(value)
-
-            case .view:
-                break
-
-            case .delegate:
-                break
             }
             return .none
         }
@@ -204,11 +178,11 @@ public extension ContentCore.State {
                     try await module.playlistEpisodes(playlistId, option)
                 }
 
-                await send(.internal(.update(option: option, .loaded(value))))
+                await send(.update(option: option, .loaded(value)))
             }
         } catch: { error, send in
             logger.error("\(#function) - \(error)")
-            await send(.internal(.update(option: option, .failed(error))))
+            await send(.update(option: option, .failed(error)))
         }
     }
 }

@@ -346,7 +346,7 @@ extension VideoPlayerFeature.View {
             var action: VideoPlayerFeature.Action {
                 switch self {
                 case let .next(_, group, variant, paging, itemId):
-                    .internal(.content(.delegate(.didTapPlaylistItem(group, variant, paging, id: itemId))))
+                    .internal(.content(.didTapPlaylistItem(group, variant, paging, id: itemId)))
                 case let .times(time):
                     .view(.didSkipTo(time: time.endTime))
                 }

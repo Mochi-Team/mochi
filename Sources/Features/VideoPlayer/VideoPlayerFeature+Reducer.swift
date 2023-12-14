@@ -132,16 +132,13 @@ extension VideoPlayerFeature: Reducer {
             case .internal(.hideToolsOverlay):
                 state.overlay = state.overlay == .tools ? nil : state.overlay
 
-            case let .internal(.content(.delegate(.didTapPlaylistItem(group, variant, page, itemId)))):
+            case let .internal(.content(.didTapPlaylistItem(group, variant, page, itemId))):
                 state.overlay = .tools
                 return state.clearForNewEpisodeIfNeeded(group, variant, page, itemId)
 
-            // TODO: Remove this warning
-            // swiftlint:disable tca_feature_reducer_actions
-            case .internal(.content(.internal(.update(_, .loaded)))):
+            case .internal(.content(.update(_, .loaded))):
                 // TODO: Decide if it should fetch sources or not
                 return state.fetchSourcesIfNecessary()
-            // swiftlint:enable tca_feature_reducer_actions
 
             case let .internal(.sourcesResponse(episodeId, .loaded(response))):
                 state.loadables.update(with: episodeId, response: .loaded(response))

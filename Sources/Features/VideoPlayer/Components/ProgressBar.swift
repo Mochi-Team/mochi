@@ -74,7 +74,6 @@ struct ProgressBar: View {
                     ZStack(alignment: .leading) {
                         Rectangle()
                             .fill(.thinMaterial)
-                            .preferredColorScheme(.dark)
                         Color.white
                             .frame(
                                 width: proxy.size.width * progress,
@@ -113,8 +112,10 @@ struct ProgressBar: View {
 
             Text("\(progressDisplayTime) / \(durationDisplayTime)")
                 .font(.caption.monospacedDigit())
+                .foregroundColor(.white)
         }
         .disabled(!canUseControls)
+        .preferredColorScheme(.dark)
     }
 
     private var progressDisplayTime: String {

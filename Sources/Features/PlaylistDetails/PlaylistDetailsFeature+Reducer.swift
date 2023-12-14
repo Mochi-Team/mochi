@@ -62,7 +62,7 @@ extension PlaylistDetailsFeature {
             case let .internal(.playlistDetailsResponse(loadable)):
                 state.details = loadable
 
-            case let .internal(.content(.delegate(.didTapPlaylistItem(groupId, variantId, pageId, itemId)))):
+            case let .internal(.content(.didTapPlaylistItem(groupId, variantId, pageId, itemId))):
                 guard state.content.groups.value != nil else {
                     break
                 }

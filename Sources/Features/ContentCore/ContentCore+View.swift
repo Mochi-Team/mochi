@@ -17,7 +17,7 @@ import ViewComponents
 
 public extension ContentCore {
     @MainActor
-    struct View: FeatureView {
+    struct View: SwiftUI.View {
         public let store: StoreOf<ContentCore>
 
         @ObservedObject
@@ -88,7 +88,7 @@ public extension ContentCore {
                                 ForEach(viewStore.groups.value ?? [], id: \.id) { group in
                                     Button {
                                         _selectedGroupId = group.id
-                                        store.send(.view(.didTapContent(.group(group.id))))
+                                        store.send(.didTapContent(.group(group.id)))
                                     } label: {
                                         Text(group.altTitle ?? .init(
                                             format: contentType.multiGroupsDefaultTitle,
@@ -126,7 +126,7 @@ public extension ContentCore {
                                         _selectedPagingId = paging.id
 
                                         if let groupId = groupLoadable.value?.id, let variantId = variantLoadable.value?.id {
-                                            store.send(.view(.didTapContent(.page(groupId, variantId, paging.id))))
+                                            store.send(.didTapContent(.page(groupId, variantId, paging.id)))
                                         }
                                     } label: {
                                         Text(paging.title ?? "Page \(index + 1)")
@@ -156,7 +156,7 @@ public extension ContentCore {
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal)
 
-                    // TODO: Allow variations to also be a menu
+                    // TODO: Allow variations to also be a menu?
                     ScrollView(.horizontal) {
                         HStack(spacing: 6) {
                             if let selectedVariant = variantLoadable.value {
@@ -172,7 +172,7 @@ public extension ContentCore {
                                             .onTapGesture {
                                                 if let groupId = groupLoadable.value?.id {
                                                     _selectedVariantId = variant.id
-                                                    store.send(.view(.didTapContent(.variant(groupId, variant.id))))
+                                                    store.send(.didTapContent(.variant(groupId, variant.id)))
                                                 }
                                             }
                                     }
@@ -250,7 +250,7 @@ public extension ContentCore {
                                             if let groupId = groupLoadable.value?.id,
                                                let variantId = variantLoadable.value?.id,
                                                let pageId = pageLoadable.value?.id {
-                                                store.send(.view(.didTapPlaylistItem(groupId, variantId, pageId, id: item.id)))
+                                                store.send(.didTapPlaylistItem(groupId, variantId, pageId, id: item.id))
                                             }
                                         }
                                         .id(item.id)
@@ -259,7 +259,7 @@ public extension ContentCore {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.horizontal)
-																.padding(.bottom)
+                                .padding(.bottom)
                             }
                             .onAppear {
                                 proxy.scrollTo(selectedItemId, anchor: .center)
