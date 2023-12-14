@@ -23,11 +23,9 @@ public struct AppDelegateFeature: Reducer {
     case didFinishLaunching
   }
 
-  @Dependency(\.databaseClient)
-  var databaseClient
+  @Dependency(\.databaseClient) var databaseClient
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
   public init() {}
 

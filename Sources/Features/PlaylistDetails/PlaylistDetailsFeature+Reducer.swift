@@ -24,8 +24,7 @@ extension PlaylistDetailsFeature {
     case fetchPlaylistDetails
   }
 
-  @ReducerBuilder<State, Action>
-  public var body: some ReducerOf<Self> {
+  @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
     Case(/Action.view) {
       BindingReducer()
     }
@@ -102,11 +101,8 @@ extension PlaylistDetailsFeature {
 
 extension PlaylistDetailsFeature.State {
   mutating func fetchPlaylistDetails(forced: Bool = false) -> Effect<PlaylistDetailsFeature.Action> {
-    @Dependency(\.databaseClient)
-    var databaseClient
-
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.databaseClient) var databaseClient
+    @Dependency(\.moduleClient) var moduleClient
 
     var effects = [Effect<PlaylistDetailsFeature.Action>]()
 

@@ -21,8 +21,7 @@ import ViewComponents
 // MARK: - DiscoverFeature.View + View
 
 extension DiscoverFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     NavStack(
       store.scope(
         state: \.path,

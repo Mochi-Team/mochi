@@ -14,8 +14,7 @@ public struct SettingsGroup<Content: View>: View {
   let title: String
   let content: () -> Content
 
-  @Environment(\.theme)
-  var theme
+  @Environment(\.theme) var theme
 
   public init(
     title: String,

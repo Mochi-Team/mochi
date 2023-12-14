@@ -20,15 +20,11 @@ extension Reducer {
 // MARK: - AnalyticsReducer
 
 public struct AnalyticsReducer<State, Action>: Reducer {
-  @usableFromInline
-  let toAnalyticsAction: (State, Action) -> AnalyticsClient.Action?
+  @usableFromInline let toAnalyticsAction: (State, Action) -> AnalyticsClient.Action?
 
-  @usableFromInline
-  @Dependency(\.analyticsClient)
-  var analyticsClient
+  @Dependency(\.analyticsClient) var analyticsClient
 
-  @inlinable
-  public var body: some Reducer<State, Action> {
+  @inlinable public var body: some Reducer<State, Action> {
     Reduce { state, action in
       guard let event = toAnalyticsAction(state, action) else {
         return .none

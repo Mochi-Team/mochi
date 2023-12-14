@@ -53,16 +53,13 @@ public struct ViewMoreListing: Reducer {
     case update(id: PagingID, loadable: Loadable<Paging<Playlist>>)
   }
 
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.dismiss) var dismiss
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
   public init() {}
 
-  @ReducerBuilder<State, Action>
-  public var body: some ReducerOf<Self> {
+  @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .didTapBackButton:
@@ -123,8 +120,7 @@ extension ViewMoreListing {
 
     private let columns = 2
 
-    @Dependency(\.localizableClient.localize)
-    var localize
+    @Dependency(\.localizableClient.localize) var localize
 
     public init(store: StoreOf<ViewMoreListing>) {
       self.store = store

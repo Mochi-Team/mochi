@@ -20,8 +20,7 @@ extension JSContext {
     setConsoleBinding(logger)
     setRequestBinding()
 
-    @Dependency(\.fileClient)
-    var fileClient
+    @Dependency(\.fileClient) var fileClient
 
     let jsURL = try fileClient.retrieveModuleDirectory(module.mainJSFile)
     try evaluateScript(String(contentsOf: jsURL))

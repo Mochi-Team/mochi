@@ -41,7 +41,6 @@ opt_in_rules:
   - identical_operands
   - implicit_return
   - implicitly_unwrapped_optional
-  - indentation_width
   - joined_default_parameter
   - last_where
   - literal_expression_end_indentation
@@ -85,9 +84,6 @@ private_over_fileprivate:
 
 force_unwrapping:
   severity: error
-
-indentation_width:
-  indentation_width: 2
 
 line_length:
   warning: 150

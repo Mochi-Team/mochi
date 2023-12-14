@@ -15,8 +15,7 @@ import SwiftUI
 
 @MainActor
 public struct NukeImage<Content: View>: View {
-  @StateObject
-  private var viewModel = FetchImage()
+  @StateObject private var viewModel = FetchImage()
   private var request: ImageRequest?
   private var content: (AsyncImagePhase) -> Content
 
@@ -31,8 +30,7 @@ public struct NukeImage<Content: View>: View {
     self.request = request.flatMap { .init(urlRequest: $0) }
   }
 
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     ZStack {
       if let result = viewModel.result {
         switch result {

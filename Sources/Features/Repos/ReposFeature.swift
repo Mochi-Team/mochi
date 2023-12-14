@@ -18,18 +18,15 @@ import Tagged
 import ViewComponents
 
 public struct ReposFeature: Feature {
-  @Dependency(\.repoClient)
-  var repoClient
+  @Dependency(\.repoClient) var repoClient
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
   public init() {}
 
   public struct State: FeatureState {
     public var repos: IdentifiedArrayOf<Repo>
-    @BindingState
-    public var url: String
+    @BindingState public var url: String
     public var searchedRepo: Loadable<RepoClient.RepoPayload>
     public var path: StackState<RepoPackagesFeature.State>
 
@@ -77,11 +74,9 @@ public struct ReposFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<ReposFeature>
 
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
-    @Dependency(\.dateFormatter)
-    var dateFormatter
+    @Dependency(\.dateFormatter) var dateFormatter
 
     @MainActor
     public init(store: StoreOf<ReposFeature>) {

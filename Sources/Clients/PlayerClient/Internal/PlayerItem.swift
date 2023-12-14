@@ -61,22 +61,22 @@ extension PlayerItem: AVAssetResourceLoaderDelegate {
     _: AVAssetResourceLoader,
     shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
   ) -> Bool {
-//        if payload.source.format == .mpd {
-//            if url.pathExtension == "ts" {
-//                loadingRequest.redirect = URLRequest(url: url.recoveryScheme)
-//                loadingRequest.response = HTTPURLResponse(
-//                    url: url.recoveryScheme,
-//                    statusCode: 302,
-//                    httpVersion: nil,
-//                    headerFields: nil
-//                )
-//                loadingRequest.finishLoading()
-//            } else {
-//                handleDASHRequest(url, callback)
-//            }
-//        } else {
+    //        if payload.source.format == .mpd {
+    //            if url.pathExtension == "ts" {
+    //                loadingRequest.redirect = URLRequest(url: url.recoveryScheme)
+    //                loadingRequest.response = HTTPURLResponse(
+    //                    url: url.recoveryScheme,
+    //                    statusCode: 302,
+    //                    httpVersion: nil,
+    //                    headerFields: nil
+    //                )
+    //                loadingRequest.finishLoading()
+    //            } else {
+    //                handleDASHRequest(url, callback)
+    //            }
+    //        } else {
     handleHLSRequest(loadingRequest: loadingRequest)
-//        }
+    //        }
   }
 }
 

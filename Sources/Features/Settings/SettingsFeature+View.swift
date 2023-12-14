@@ -15,8 +15,7 @@ import ViewComponents
 // MARK: - SettingsFeature.View + View
 
 extension SettingsFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     NavStack(store.scope(state: \.path, action: \.internal.path)) {
       listSections
         .animation(.easeInOut, value: viewStore.userSettings.developerModeEnabled)
@@ -44,11 +43,9 @@ extension SettingsFeature.View: View {
 struct GeneralView: View {
   var showTitle = true
 
-  @Environment(\.theme)
-  var theme
+  @Environment(\.theme) var theme
 
-  @ObservedObject
-  var viewStore: FeatureViewStore<SettingsFeature>
+  @ObservedObject var viewStore: FeatureViewStore<SettingsFeature>
 
   var body: some View {
     EmptyView()
@@ -70,11 +67,9 @@ struct GeneralView: View {
 struct AppearanceView: View {
   var showTitle = true
 
-  @Environment(\.theme)
-  var theme
+  @Environment(\.theme) var theme
 
-  @ObservedObject
-  var viewStore: FeatureViewStore<SettingsFeature>
+  @ObservedObject var viewStore: FeatureViewStore<SettingsFeature>
 
   var body: some View {
     SettingsGroup(title: showTitle ? SettingsFeature.Section.appearance.localized : "") {
@@ -87,7 +82,7 @@ struct AppearanceView: View {
       }
 
       // TODO: Add option to change app icon
-//            SettingRow(title: "App Icon", accessory: EmptyView.init) {}
+      // SettingRow(title: "App Icon", accessory: EmptyView.init) {}
     }
   }
 }
@@ -98,11 +93,9 @@ struct AppearanceView: View {
 struct DeveloperView: View {
   var showTitle = true
 
-  @Environment(\.theme)
-  var theme
+  @Environment(\.theme) var theme
 
-  @ObservedObject
-  var viewStore: FeatureViewStore<SettingsFeature>
+  @ObservedObject var viewStore: FeatureViewStore<SettingsFeature>
 
   var body: some View {
     SettingsGroup(title: showTitle ? SettingsFeature.Section.developer.localized : "") {
@@ -131,14 +124,11 @@ struct DeveloperView: View {
 
 @MainActor
 struct ThemePicker: View {
-  @ScaledMetric(relativeTo: .body)
-  var heightSize = 54
+  @ScaledMetric(relativeTo: .body) var heightSize = 54
 
-  @Binding
-  var theme: Theme
+  @Binding var theme: Theme
 
-  @MainActor
-  var body: some View {
+  @MainActor var body: some View {
     ScrollView(.horizontal) {
       HStack(alignment: .center, spacing: 12) {
         ForEach(Theme.allCases, id: \.self) { theme in

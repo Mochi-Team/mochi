@@ -18,8 +18,7 @@ public protocol Localizable {
 
 extension Localizable {
   public var localized: String {
-    @Dependency(\.localizableClient.localize)
-    var localize
+    @Dependency(\.localizableClient.localize) var localize
 
     return localize(localizable)
   }
@@ -35,8 +34,7 @@ extension Localizable where Self: CustomStringConvertible {
 
 extension String {
   public init(localizable: String) {
-    @Dependency(\.localizableClient.localize)
-    var localize
+    @Dependency(\.localizableClient.localize) var localize
 
     self = localize(localizable)
   }
@@ -44,8 +42,7 @@ extension String {
 
 extension Text {
   public init(localizable: String) {
-    @Dependency(\.localizableClient.localize)
-    var localize
+    @Dependency(\.localizableClient.localize) var localize
 
     self.init(localize(localizable))
   }

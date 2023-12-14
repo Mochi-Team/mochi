@@ -77,8 +77,7 @@ public struct VideoPlayerFeature: Feature {
       overlay: Overlay? = .tools,
       playerSettings: PlayerSettings = .init()
     ) {
-      @Dependency(\.playerClient.get)
-      var status
+      @Dependency(\.playerClient.get) var status
 
       self.init(
         repoModuleId: repoModuleId,
@@ -165,23 +164,17 @@ public struct VideoPlayerFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<VideoPlayerFeature>
 
-    @Dependency(\.playerClient.player)
-    var player
+    @Dependency(\.playerClient.player) var player
 
-    @SwiftUI.State
-    var enablePiP = false
+    @SwiftUI.State var enablePiP = false
 
-    @SwiftUI.State
-    var gravity = AVLayerVideoGravity.resizeAspect
+    @SwiftUI.State var gravity = AVLayerVideoGravity.resizeAspect
 
-    @SwiftUI.State
-    var pipSupported = true
+    @SwiftUI.State var pipSupported = true
 
-    @SwiftUI.State
-    var pipPossible = true
+    @SwiftUI.State var pipPossible = true
 
-    @SwiftUI.State
-    var pipStatus = PiPStatus.restoreUI
+    @SwiftUI.State var pipStatus = PiPStatus.restoreUI
 
     @MainActor
     public init(store: StoreOf<VideoPlayerFeature>) {
@@ -189,14 +182,11 @@ public struct VideoPlayerFeature: Feature {
     }
   }
 
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.dismiss) var dismiss
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
-  @Dependency(\.playerClient)
-  var playerClient
+  @Dependency(\.playerClient) var playerClient
 
   public init() {}
 }

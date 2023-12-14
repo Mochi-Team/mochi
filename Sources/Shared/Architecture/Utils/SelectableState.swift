@@ -57,9 +57,9 @@ public struct SelectableState<C: IdentifiableAccess> {
 
   private mutating func update(_ newValue: C) {
     // TODO: Figure out if selected should be updated
-//        if let _selected {
-//            self._selected = newValue[id: _selected] == nil ? nil : _selected
-//        }
+    // if let _selected {
+    //   self._selected = newValue[id: _selected] == nil ? nil : _selected
+    // }
     _wrappedValue = newValue
   }
 }

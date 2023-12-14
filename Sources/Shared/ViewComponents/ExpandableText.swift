@@ -13,8 +13,7 @@ import SwiftUI
 
 public struct ExpandableText: View {
   private let callback: () -> Void
-  @State
-  private var truncated = false
+  @State private var truncated = false
 
   private var lineLimit: Int?
 

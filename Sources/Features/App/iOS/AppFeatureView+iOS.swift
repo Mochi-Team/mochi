@@ -21,8 +21,7 @@ import ViewComponents
 
 #if os(iOS)
 extension AppFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     WithViewStore(store, observe: \.selected) { viewStore in
       TabView(
         selection: viewStore.binding(

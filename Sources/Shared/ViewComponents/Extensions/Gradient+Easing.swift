@@ -60,7 +60,7 @@ extension Gradient {
         let stepPosition = Double(step) * stepSize
         let point = easing(stepPosition)
 
-//                print("from: \(firstStop.location), to: \(secondStop.location), step: \(step), stepPosition: \(stepPosition), point: \(point)")
+        // print("from: \(firstStop.location), to: \(secondStop.location), step: \(step), stepPosition: \(stepPosition), point: \(point)")
 
         let color = PlatformColor.blend(
           from: .init(firstStop.color),
@@ -77,26 +77,25 @@ extension Gradient {
       }
 
       // Moves color location based on curve
-//            for step in 0...steps {
-//                let stepPosition = Double(step) * stepSize
-//                let curvePosition = (transitionLength * stepPosition) + firstStop.location
-//                let point = easing(curvePosition)
-//
-//                print("from: \(firstStop.location), to: \(secondStop.location), step: \(step), stepPosition: \(stepPosition), curve: \(curvePosition), point: \(point)")
-//
-//                let color = PlatformColor.blend(
-//                    from: .init(firstStop.color),
-//                    to: .init(secondStop.color),
-//                    amount: (point.y - firstStop.location) / transitionLength
-//                )
-//
-//                newStops.append(
-//                    .init(
-//                        color: .init(color),
-//                        location: point.x
-//                    )
-//                )
-//            }
+      //      for step in 0...steps {
+      //        let stepPosition = Double(step) * stepSize
+      //        let curvePosition = (transitionLength * stepPosition) + firstStop.location
+      //        let point = easing(curvePosition)
+      //        print("from: \(firstStop.location), to: \(secondStop.location), step: \(step), stepPosition: \(stepPosition), curve: \(curvePosition), point: \(point)")
+      //
+      //        let color = PlatformColor.blend(
+      //          from: .init(firstStop.color),
+      //          to: .init(secondStop.color),
+      //          amount: (point.y - firstStop.location) / transitionLength
+      //        )
+      //
+      //        newStops.append(
+      //          .init(
+      //            color: .init(color),
+      //            location: point.x
+      //          )
+      //        )
+      //      }
 
       if currentStop == stops.count - 2 {
         newStops.append(secondStop)

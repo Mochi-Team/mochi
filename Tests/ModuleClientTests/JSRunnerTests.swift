@@ -8,6 +8,4 @@
 
 import XCTest
 
-final class JSRunnerTests: XCTestCase {
-  func testBindingRequest() throws {}
-}
+final class JSRunnerTests: XCTestCase {}

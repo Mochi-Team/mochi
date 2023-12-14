@@ -53,8 +53,7 @@ public struct SettingRow<Accessory: View, Content: View>: View {
     )
   }
 
-  @Environment(\.theme)
-  var theme
+  @Environment(\.theme) var theme
 
   public var body: some View {
     VStack(alignment: .leading, spacing: 0) {

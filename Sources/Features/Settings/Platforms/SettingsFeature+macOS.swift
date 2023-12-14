@@ -10,8 +10,7 @@ import SwiftUI
 
 #if os(macOS)
 extension SettingsFeature.View {
-  @MainActor
-  public var listSections: some View {
+  @MainActor public var listSections: some View {
     TabView {
       ForEach(SettingsFeature.Section.allCases, id: \.self) { section in
         VStack {

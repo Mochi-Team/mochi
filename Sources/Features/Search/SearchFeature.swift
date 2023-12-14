@@ -21,10 +21,8 @@ import ViewComponents
 
 public struct SearchFeature: Feature {
   public struct State: FeatureState {
-    @BindingState
-    public var query: String
-    @BindingState
-    public var selectedFilters: [SearchFilter]
+    @BindingState public var query: String
+    @BindingState public var selectedFilters: [SearchFilter]
 
     public var repoModuleId: RepoModuleID?
     public var allFilters: [SearchFilter]
@@ -80,11 +78,9 @@ public struct SearchFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<SearchFeature>
 
-    @SwiftUI.State
-    var showStatusBarBackground = false
+    @SwiftUI.State var showStatusBarBackground = false
 
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
     @MainActor
     public init(store: StoreOf<SearchFeature>) {
@@ -92,14 +88,11 @@ public struct SearchFeature: Feature {
     }
   }
 
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.dismiss) var dismiss
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
-  @Dependency(\.repoClient)
-  var repoClient
+  @Dependency(\.repoClient) var repoClient
 
   public init() {}
 }

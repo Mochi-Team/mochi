@@ -29,8 +29,7 @@ public struct Logs: Reducer {
   public struct State: Equatable, Sendable {
     public var selected: Selection
 
-    @PresentationState
-    public var moduleLists: ModuleListsFeature.State?
+    @PresentationState public var moduleLists: ModuleListsFeature.State?
 
     fileprivate var initialized = false
 
@@ -40,8 +39,7 @@ public struct Logs: Reducer {
     ) {
       self.moduleLists = moduleLists
 
-      @Dependency(\.loggerClient)
-      var loggerClient
+      @Dependency(\.loggerClient) var loggerClient
 
       self.selected = .system(loggerClient.get())
     }
@@ -74,14 +72,11 @@ public struct Logs: Reducer {
     case moduleLists(PresentationAction<ModuleListsFeature.Action>)
   }
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
-  @Dependency(\.loggerClient)
-  var loggerClient
+  @Dependency(\.loggerClient) var loggerClient
 
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.dismiss) var dismiss
 
   public init() {}
 
@@ -140,8 +135,7 @@ public struct Logs: Reducer {
 
 extension Logs.State {
   fileprivate mutating func observeSystemLogs() -> Effect<Logs.Action> {
-    @Dependency(\.loggerClient)
-    var loggerClient
+    @Dependency(\.loggerClient) var loggerClient
 
     selected = .system(loggerClient.get())
 
@@ -162,16 +156,14 @@ extension Logs {
   public struct View: SwiftUI.View {
     public let store: StoreOf<Logs>
 
-    @Dependency(\.dateFormatter)
-    var dateFormatter
+    @Dependency(\.dateFormatter) var dateFormatter
 
     @MainActor
     public init(store: StoreOf<Logs>) {
       self.store = store
     }
 
-    @MainActor
-    public var body: some SwiftUI.View {
+    @MainActor public var body: some SwiftUI.View {
       ScrollView(.vertical) {
         LazyVStack(spacing: 12) {
           WithViewStore(store, observe: \.selected) { viewStore in

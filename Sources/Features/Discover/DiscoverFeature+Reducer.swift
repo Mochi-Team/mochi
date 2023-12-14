@@ -23,8 +23,7 @@ extension DiscoverFeature {
     case fetchDiscoverList
   }
 
-  @ReducerBuilder<State, Action>
-  public var body: some ReducerOf<Self> {
+  @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .view(.didAppear):
@@ -126,8 +125,7 @@ extension DiscoverFeature {
 
 extension DiscoverFeature.State {
   mutating func fetchLatestListings(_ selectedModule: RepoClient.SelectedModule?) -> Effect<DiscoverFeature.Action> {
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.moduleClient) var moduleClient
 
     guard let selectedModule else {
       section = .home(.init())

@@ -20,8 +20,7 @@ extension ContentCore {
   public struct View: SwiftUI.View {
     public let store: StoreOf<ContentCore>
 
-    @ObservedObject
-    private var viewStore: ViewStoreOf<ContentCore>
+    @ObservedObject private var viewStore: ViewStoreOf<ContentCore>
     private let contentType: Playlist.PlaylistType
 
     @MainActor
@@ -42,17 +41,13 @@ extension ContentCore {
       self.selectedItemId = selectedItemId
     }
 
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
-    @SwiftUI.State
-    private var _selectedGroupId: Playlist.Group.ID?
+    @SwiftUI.State private var _selectedGroupId: Playlist.Group.ID?
 
-    @SwiftUI.State
-    private var _selectedVariantId: Playlist.Group.Variant.ID?
+    @SwiftUI.State private var _selectedVariantId: Playlist.Group.Variant.ID?
 
-    @SwiftUI.State
-    private var _selectedPagingId: PagingID?
+    @SwiftUI.State private var _selectedPagingId: PagingID?
 
     private let selectedItemId: Playlist.Item.ID?
 
@@ -77,8 +72,7 @@ extension ContentCore {
       (viewStore.groups.value?.count ?? 0) > 1
     }
 
-    @MainActor
-    public var body: some SwiftUI.View {
+    @MainActor public var body: some SwiftUI.View {
       HeaderWithContent {
         VStack {
           HStack(alignment: .center) {
@@ -204,7 +198,7 @@ extension ContentCore {
                   .font(.callout.weight(.semibold))
 
                 Button {
-//                                    viewStore.send(.view(.didTapRetry(items)))
+                  // viewStore.send(.view(.didTapRetry(items)))
                 } label: {
                   Text("Retry")
                     .padding(.horizontal, 8)
@@ -324,8 +318,7 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
   let label: () -> Label
   let content: () -> Content
 
-  @MainActor
-  var body: some View {
+  @MainActor var body: some View {
     LazyVStack(alignment: .leading, spacing: 12) {
       label()
         .font(.title3.bold())

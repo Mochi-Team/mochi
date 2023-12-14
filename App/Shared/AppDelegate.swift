@@ -42,13 +42,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
-//        let viewStore = ViewStore(store)
-//
-//        if viewStore.hasPendingChanges {
-//            viewStore.send(.appDelegate(.appWillTerminate))
-//            return .terminateLater
-//        }
-//
     .terminateNow
   }
 }

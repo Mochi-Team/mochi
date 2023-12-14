@@ -41,8 +41,7 @@ final class ModuleLogger {
   private let logFileURL: URL
   private let queue: DispatchQueue
 
-  @Dependency(\.fileClient)
-  var fileClient
+  @Dependency(\.fileClient) var fileClient
 
   init(
     id: RepoModuleID,
@@ -51,8 +50,7 @@ final class ModuleLogger {
     self.id = id
     self.queue = .init(label: "\(id.description)-logger")
 
-    @Dependency(\.fileClient)
-    var fileClient
+    @Dependency(\.fileClient) var fileClient
 
     self.logFileURL = try fileClient.retrieveModuleDirectory(directory)
       .appendingPathComponent("logs")

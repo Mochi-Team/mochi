@@ -17,8 +17,7 @@ import ViewComponents
 // MARK: - ReposFeature.View + View
 
 extension ReposFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     NavStack(
       store.scope(
         state: \.path,
@@ -116,8 +115,7 @@ extension ReposFeature.View: View {
 
 extension ReposFeature.View {
   private struct RepoURLInputViewState: Equatable, @unchecked Sendable {
-    @BindingViewState
-    var url: String
+    @BindingViewState var url: String
     let searchedRepo: Loadable<RepoClient.RepoPayload>
     let canAddRepo: Bool
 
@@ -132,8 +130,7 @@ extension ReposFeature.View {
     }
   }
 
-  @MainActor
-  var repoUrlTextInput: some View {
+  @MainActor var repoUrlTextInput: some View {
     WithViewStore(store, observe: RepoURLInputViewState.init) { viewStore in
       VStack(spacing: 0) {
         HStack(spacing: 12) {

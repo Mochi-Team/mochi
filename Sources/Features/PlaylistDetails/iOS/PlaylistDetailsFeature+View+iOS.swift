@@ -20,8 +20,7 @@ import ViewComponents
 // MARK: - PlaylistDetailsFeature.View + View
 
 extension PlaylistDetailsFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     WithViewStore(store, observe: \.playlistInfo) { viewStore in
       ZStack {
         if viewStore.error != nil {
@@ -371,8 +370,7 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
   let label: () -> Label
   let content: () -> Content
 
-  @MainActor
-  var body: some View {
+  @MainActor var body: some View {
     LazyVStack(alignment: .leading, spacing: 12) {
       label()
         .font(.title3.bold())
@@ -405,13 +403,11 @@ private struct HeaderWithContent<Label: View, Content: View>: View {
 }
 
 extension PlaylistDetailsFeature.View {
-  @MainActor
-  var dotSpaced: some View {
+  @MainActor var dotSpaced: some View {
     Text("\u{2022}")
   }
 
-  @MainActor
-  var readableColor: Color {
+  @MainActor var readableColor: Color {
     imageDominatColor?.isDark ?? true ? .white : .black
   }
 }

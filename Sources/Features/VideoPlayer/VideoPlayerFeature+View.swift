@@ -21,8 +21,7 @@ import ViewComponents
 // MARK: - VideoPlayerFeature.View + View
 
 extension VideoPlayerFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     ZStack {
       WithViewStore(store, observe: \.overlay == nil) { viewStore in
         PlayerView(
@@ -115,8 +114,7 @@ extension VideoPlayerFeature.View: View {
 }
 
 extension VideoPlayerFeature.View {
-  @MainActor
-  var toolsOverlay: some View {
+  @MainActor var toolsOverlay: some View {
     WithViewStore(store, observe: \.overlay == .tools) { viewStore in
       VStack {
         if viewStore.state {
@@ -203,8 +201,7 @@ extension VideoPlayerFeature.View {
     }
   }
 
-  @MainActor
-  var topBar: some View {
+  @MainActor var topBar: some View {
     HStack(alignment: .top, spacing: 12) {
       Button {
         store.send(.view(.didTapBackButton))
@@ -249,8 +246,8 @@ extension VideoPlayerFeature.View {
           Spacer()
             .frame(height: 2)
 
-//                    Text(viewStore.playlist.title ?? "No title")
-//                        .font(.footnote)
+          // Text(viewStore.playlist.title ?? "No title")
+          //   .font(.footnote)
         }
         .onTapGesture {
           store.send(.view(.didTapBackButton))
@@ -328,8 +325,7 @@ extension VideoPlayerFeature.View {
     }
   }
 
-  @MainActor
-  var controlsBar: some View {
+  @MainActor var controlsBar: some View {
     WithViewStore(store, observe: \.videoPlayerStatus == nil) { canShowControls in
       if canShowControls.state {
         WithViewStore(store, observe: RateBufferingState.init) { rateBufferingState in
@@ -384,8 +380,7 @@ extension VideoPlayerFeature.View {
     .foregroundColor(.white)
   }
 
-  @MainActor
-  var bottomBar: some View {
+  @MainActor var bottomBar: some View {
     ProgressBar(
       store: store.scope(
         state: \.player.playback,
@@ -396,8 +391,7 @@ extension VideoPlayerFeature.View {
     .frame(maxWidth: .infinity)
   }
 
-  @MainActor
-  var contentStatusView: some View {
+  @MainActor var contentStatusView: some View {
     WithViewStore(store, observe: \.videoPlayerStatus) { viewStore in
       switch viewStore.state {
       case let .some(.loading(type)):
@@ -508,8 +502,7 @@ extension Loadable {
 }
 
 extension VideoPlayerFeature.View {
-  @MainActor
-  var moreOverlay: some View {
+  @MainActor var moreOverlay: some View {
     WithViewStore(store, observe: \.overlay?.more) { viewStore in
       ZStack {
         if let selected = viewStore.state {
@@ -583,8 +576,7 @@ extension VideoPlayerFeature.View {
     }
   }
 
-  @MainActor
-  var episodes: some View {
+  @MainActor var episodes: some View {
     WithViewStore(store, observe: EpisodeViewState.init) { viewStore in
       ContentCore.View(
         store: store.scope(
@@ -600,8 +592,7 @@ extension VideoPlayerFeature.View {
     }
   }
 
-  @MainActor
-  var sourcesAndServers: some View {
+  @MainActor var sourcesAndServers: some View {
     WithViewStore(store) { state in
       state.loadables[episodeId: state.selected.itemId]
     } content: { loadableSourcesStore in
@@ -658,8 +649,7 @@ extension VideoPlayerFeature.View {
     }
   }
 
-  @MainActor
-  var qualityAndSubtitles: some View {
+  @MainActor var qualityAndSubtitles: some View {
     WithViewStore(store, observe: \.selectedServerResponse) { loadableServerResponseState in
       LoadableView(loadable: loadableServerResponseState.state) { response in
         VStack(alignment: .leading, spacing: 8) {
@@ -750,8 +740,7 @@ extension VideoPlayerFeature.View {
       )
     }
 
-    @MainActor
-    var body: some View {
+    @MainActor var body: some View {
       VStack(alignment: .leading, spacing: 8) {
         Text(title)
           .font(.headline.weight(.semibold))

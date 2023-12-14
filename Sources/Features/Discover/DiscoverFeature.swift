@@ -103,11 +103,9 @@ public struct DiscoverFeature: Feature {
     public var section: Section
     public var path: StackState<Path.State>
 
-    @PresentationState
-    public var search: SearchFeature.State?
+    @PresentationState public var search: SearchFeature.State?
 
-    @PresentationState
-    public var moduleLists: ModuleListsFeature.State?
+    @PresentationState public var moduleLists: ModuleListsFeature.State?
 
     public init(
       section: DiscoverFeature.Section = .home(),
@@ -165,8 +163,7 @@ public struct DiscoverFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<DiscoverFeature>
 
-    @Dependency(\.localizableClient.localize)
-    var localize
+    @Dependency(\.localizableClient.localize) var localize
 
     @MainActor
     public init(store: StoreOf<DiscoverFeature>) {
@@ -174,11 +171,9 @@ public struct DiscoverFeature: Feature {
     }
   }
 
-  @Dependency(\.repoClient)
-  var repoClient
+  @Dependency(\.repoClient) var repoClient
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
   public init() {}
 }

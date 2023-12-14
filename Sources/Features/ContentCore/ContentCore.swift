@@ -160,8 +160,7 @@ extension ContentCore.State {
     _ option: Playlist.ItemsRequestOptions? = nil,
     forced: Bool = false
   ) -> Effect<ContentCore.Action> {
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.moduleClient) var moduleClient
 
     let playlistId = playlist.id
     let repoModuleId = repoModuleId

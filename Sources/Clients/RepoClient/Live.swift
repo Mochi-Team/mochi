@@ -21,11 +21,9 @@ import SharedModels
 extension RepoClient: DependencyKey {
   private static let downloadManager = ModulesDownloadManager()
 
-  @Dependency(\.databaseClient)
-  private static var databaseClient
+  @Dependency(\.databaseClient) private static var databaseClient
 
-  @Dependency(\.fileClient)
-  private static var fileClient
+  @Dependency(\.fileClient) private static var fileClient
 
   public static let liveValue = Self(
     validate: { url in
@@ -102,11 +100,9 @@ private class ModulesDownloadManager {
   private var semaphore = AsyncSemaphore(value: 1)
   private var downloadTasks = [RepoModuleID: Task<Module?, Never>]()
 
-  @Dependency(\.fileClient)
-  var fileClient
+  @Dependency(\.fileClient) var fileClient
 
-  @Dependency(\.databaseClient)
-  var databaseClient
+  @Dependency(\.databaseClient) var databaseClient
 
   func addToQueue(_ repoModuleId: RepoModuleID, module: Module.Manifest) {
     Task.detached { [weak self] in

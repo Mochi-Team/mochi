@@ -13,11 +13,9 @@ public struct SheetDetent<Content: View>: View {
   let initialHeight: CGFloat
   let content: () -> Content
 
-  @Binding
-  private var isExpanded: Bool
+  @Binding private var isExpanded: Bool
 
-  @GestureState
-  private var offsetHeight = 0.0
+  @GestureState private var offsetHeight = 0.0
 
   public init(
     isExpanded: Binding<Bool>,

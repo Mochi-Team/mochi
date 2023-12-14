@@ -198,11 +198,9 @@ extension VideoPlayerFeature.State {
 
 extension VideoPlayerFeature.State {
   public func dismiss() -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.playerClient)
-    var playerClient
+    @Dependency(\.playerClient) var playerClient
 
-    @Dependency(\.dismiss)
-    var dismiss
+    @Dependency(\.dismiss) var dismiss
 
     return .merge(
       .merge(Cancellables.allCases.map { .cancel(id: $0) }),
@@ -218,8 +216,7 @@ extension VideoPlayerFeature.State {
     pageId: PagingID,
     episodeId: Playlist.Item.ID
   ) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.playerClient)
-    var playerClient
+    @Dependency(\.playerClient) var playerClient
 
     var shouldClearContents = false
     var shouldClearSources = false
@@ -279,8 +276,7 @@ extension VideoPlayerFeature.State {
     _ pageId: PagingID,
     _ episodeId: Playlist.Item.ID
   ) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.playerClient)
-    var playerClient
+    @Dependency(\.playerClient) var playerClient
 
     if selected.groupId != groupId ||
       selected.variantId != variantId ||
@@ -306,8 +302,7 @@ extension VideoPlayerFeature.State {
   }
 
   public mutating func clearForChangedSourceIfNeeded(_ sourceId: Playlist.EpisodeSource.ID) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.playerClient)
-    var playerClient
+    @Dependency(\.playerClient) var playerClient
 
     if selected.sourceId != sourceId {
       selected.sourceId = sourceId
@@ -331,8 +326,7 @@ extension VideoPlayerFeature.State {
   }
 
   public mutating func clearForChangedServerIfNeeded(_ serverId: Playlist.EpisodeServer.ID) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.playerClient)
-    var playerClient
+    @Dependency(\.playerClient) var playerClient
 
     if serverId != selected.serverId {
       selected.serverId = serverId
@@ -351,8 +345,7 @@ extension VideoPlayerFeature.State {
   }
 
   public mutating func clearForChangedLinkIfNeeded(_ linkId: Playlist.EpisodeServer.Link.ID) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.playerClient)
-    var playerClient
+    @Dependency(\.playerClient) var playerClient
 
     if selected.linkId != linkId {
       selected.linkId = linkId
@@ -395,8 +388,7 @@ extension VideoPlayerFeature.State {
   }
 
   public mutating func fetchSourcesIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.moduleClient) var moduleClient
 
     let repoModuleId = content.repoModuleId
     let playlist = playlist
@@ -426,8 +418,7 @@ extension VideoPlayerFeature.State {
   }
 
   public mutating func fetchServerIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.moduleClient) var moduleClient
 
     let repoModuleId = content.repoModuleId
     let playlist = playlist

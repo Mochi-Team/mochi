@@ -28,8 +28,7 @@ public struct AppFeature: Feature {
 
     public var selected = Tab.discover
 
-    @PresentationState
-    public var videoPlayer: VideoPlayerFeature.State?
+    @PresentationState public var videoPlayer: VideoPlayerFeature.State?
 
     public init(
       discover: DiscoverFeature.State = .init(),
@@ -113,8 +112,7 @@ public struct AppFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<AppFeature>
 
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
     @MainActor
     public init(store: StoreOf<AppFeature>) {
@@ -122,11 +120,9 @@ public struct AppFeature: Feature {
     }
   }
 
-  @Dependency(\.databaseClient)
-  var databaseClient
+  @Dependency(\.databaseClient) var databaseClient
 
-  @Dependency(\.playerClient)
-  var playerClient
+  @Dependency(\.playerClient) var playerClient
 
   public init() {}
 }

@@ -38,8 +38,7 @@ public enum Loadable<T> {
     }
   }
 
-  @inlinable
-  public var didFinish: Bool {
+  @inlinable public var didFinish: Bool {
     switch self {
     case .pending, .loading:
       false
@@ -48,8 +47,7 @@ public enum Loadable<T> {
     }
   }
 
-  @inlinable
-  public var value: T? {
+  @inlinable public var value: T? {
     if case let .loaded(value) = self {
       return value
     }

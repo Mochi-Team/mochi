@@ -13,8 +13,7 @@ import SwiftUI
 
 @MainActor
 struct SquircleModifier: ViewModifier {
-  @State
-  var sizeInset = SizeInset.zero
+  @State var sizeInset = SizeInset.zero
 
   @MainActor
   func body(content: Content) -> some View {

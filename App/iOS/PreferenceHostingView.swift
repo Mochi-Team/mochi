@@ -36,8 +36,7 @@ extension PreferenceHostingView {
 }
 
 private struct PreferenceModifier: ViewModifier, OpaquePreferenceProperties {
-  @State
-  var _homeIndicatorAutoHidden = false
+  @State var _homeIndicatorAutoHidden = false
 
   func body(content: Content) -> some View {
     if #available(iOS 16, *) {

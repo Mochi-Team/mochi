@@ -24,8 +24,7 @@ extension DependencyValues {
 
 extension Double {
   public var withoutTrailingZeroes: String {
-    @Dependency(\.numberFormatter)
-    var formatter
+    @Dependency(\.numberFormatter) var formatter
 
     formatter.numberStyle = .decimal
     formatter.maximumFractionDigits = 2

@@ -17,10 +17,8 @@ public struct PopupView<C: View>: View {
   let content: () -> C
   let dismiss: () -> Void
 
-  @GestureState
-  private var gestureTranslation: CGFloat = 0
-  @Binding
-  private var isPresenting: Bool
+  @GestureState private var gestureTranslation: CGFloat = 0
+  @Binding private var isPresenting: Bool
 
   public init(
     isPresenting: Binding<Bool>,
@@ -139,8 +137,7 @@ private struct PopupViewModifier<
   SheetContent: View
 >: ViewModifier {
   let store: Store<PresentationState<State>, PresentationAction<Action>>
-  @ObservedObject
-  var viewStore: ViewStore<PresentationState<State>, PresentationAction<Action>>
+  @ObservedObject var viewStore: ViewStore<PresentationState<State>, PresentationAction<Action>>
   let toDestinationState: (State) -> DestinationState?
   let fromDestinationAction: (DestinationAction) -> Action
   let sheetContent: (Store<DestinationState, DestinationAction>) -> SheetContent

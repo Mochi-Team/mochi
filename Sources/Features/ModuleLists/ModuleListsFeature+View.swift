@@ -15,8 +15,7 @@ import SwiftUI
 // MARK: - ModuleListsFeature.View + View
 
 extension ModuleListsFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     WithViewStore(store, observe: \.repos) { viewStore in
       VStack {
         if viewStore.isEmpty {
@@ -142,10 +141,10 @@ extension ModuleListsFeature.View {
         Text(module.name)
           .font(.body.weight(.medium))
 
-//                Text(module.id.rawValue)
-//                    .font(.footnote.weight(.medium))
-//                    .foregroundColor(.gray)
-//
+        // Text(module.id.rawValue)
+        //   .font(.footnote.weight(.medium))
+        //   .foregroundColor(.gray)
+
         Text("v\(module.version.description)")
           .font(.footnote.weight(.medium))
           .foregroundColor(.gray)

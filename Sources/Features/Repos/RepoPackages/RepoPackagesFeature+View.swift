@@ -19,8 +19,7 @@ import ViewComponents
 // MARK: - RepoPackagesFeature.View + View
 
 extension RepoPackagesFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     ScrollView(.vertical) {
       VStack(spacing: 12) {
         repoHeader
@@ -92,51 +91,46 @@ extension RepoPackagesFeature.View: View {
       maxWidth: .infinity,
       maxHeight: .infinity
     )
-    #if os(iOS)
-    .navigationTitle("")
-    .navigationBarTitleDisplayMode(.inline)
-//        .navigationBarBackButtonHidden()
-    .toolbar {
-//            ToolbarItem(placement: .topBarLeading) {
-//                Button {
-//                    store.send(.view(.didTapClose))
-//                } label: {
-//                    Image(systemName: "chevron.left")
-//                }
-//                .buttonStyle(.materialToolbarItem)
-//            }
-
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          store.send(.view(.didTapToRefreshRepo))
-        } label: {
-          Image(systemName: "arrow.triangle.2.circlepath")
-        }
-        .buttonStyle(.materialToolbarItem)
-      }
-    }
-    #elseif os(macOS)
-    .toolbar {
-      ToolbarItem(placement: .automatic) {
-        Button {
-          store.send(.view(.didTapToRefreshRepo))
-        } label: {
-          Image(systemName: "arrow.triangle.2.circlepath")
-        }
-      }
-    }
-    #endif
-    .task {
-      await store.send(.view(.onTask)).finish()
-    }
+    .task { await store.send(.view(.onTask)).finish() }
     .background(theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
-    .transition(.move(edge: .trailing).combined(with: .opacity))
+    #if os(iOS)
+      .navigationTitle("")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button {
+            store.send(.view(.didTapClose))
+          } label: {
+            Image(systemName: "chevron.left")
+          }
+          .buttonStyle(.materialToolbarItem)
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            store.send(.view(.didTapToRefreshRepo))
+          } label: {
+            Image(systemName: "arrow.triangle.2.circlepath")
+          }
+          .buttonStyle(.materialToolbarItem)
+        }
+      }
+    #elseif os(macOS)
+      .toolbar {
+        ToolbarItem(placement: .automatic) {
+          Button {
+            store.send(.view(.didTapToRefreshRepo))
+          } label: {
+            Image(systemName: "arrow.triangle.2.circlepath")
+          }
+        }
+      }
+    #endif
   }
 }
 
 extension RepoPackagesFeature.View {
-  @MainActor
-  var repoHeader: some View {
+  @MainActor var repoHeader: some View {
     WithViewStore(store, observe: \.repo) { viewStore in
       VStack(alignment: .leading, spacing: 0) {
         Spacer()

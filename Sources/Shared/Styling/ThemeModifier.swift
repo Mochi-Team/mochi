@@ -14,11 +14,9 @@ import UserSettingsClient
 // MARK: - ThemeModifier
 
 private struct ThemeModifier: ViewModifier {
-  @Dependency(\.userSettings)
-  var userSettingsClient
+  @Dependency(\.userSettings) var userSettingsClient
 
-  @State
-  var currentTheme: Theme = ThemeKey.defaultValue
+  @State var currentTheme: Theme = ThemeKey.defaultValue
 
   func body(content: Content) -> some View {
     content
@@ -38,8 +36,7 @@ private struct ThemeModifier: ViewModifier {
 
 private struct ThemeKey: EnvironmentKey {
   static var defaultValue: Theme {
-    @Dependency(\.userSettings)
-    var userSettingsClient
+    @Dependency(\.userSettings) var userSettingsClient
     return userSettingsClient.theme
   }
 }

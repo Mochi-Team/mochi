@@ -17,8 +17,7 @@ import VideoPlayer
 
 #if os(macOS)
 extension AppFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     NavigationView {
       WithViewStore(store, observe: \.selected) { viewStore in
         List {

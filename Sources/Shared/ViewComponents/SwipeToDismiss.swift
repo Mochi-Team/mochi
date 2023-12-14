@@ -15,14 +15,11 @@ import SwiftUI
 public struct SwipeToDismissModifier: ViewModifier {
   var onDismiss: () -> Void
 
-  @State
-  private var didDismiss = false
+  @State private var didDismiss = false
 
-  @State
-  private var offset: CGSize = .zero
+  @State private var offset: CGSize = .zero
 
-  @GestureState
-  private var isDragActive = false
+  @GestureState private var isDragActive = false
 
   @MainActor
   public func body(content: Content) -> some View {

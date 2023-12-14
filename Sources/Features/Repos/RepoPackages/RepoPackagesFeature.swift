@@ -21,14 +21,11 @@ import ViewComponents
 // MARK: - RepoPackagesFeature
 
 public struct RepoPackagesFeature: Feature {
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.dismiss) var dismiss
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
-  @Dependency(\.repoClient)
-  var repoClient
+  @Dependency(\.repoClient) var repoClient
 
   public init() {}
 }
@@ -95,8 +92,7 @@ extension RepoPackagesFeature {
   public struct View: FeatureView {
     public let store: StoreOf<RepoPackagesFeature>
 
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
     @MainActor
     public init(store: StoreOf<RepoPackagesFeature>) {

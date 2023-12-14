@@ -17,8 +17,7 @@ import ViewComponents
 private class WindowViewModel: NSObject, ObservableObject, NSWindowDelegate {
   private var window: NSWindow
 
-  @Published
-  var dismissCount = 0
+  @Published var dismissCount = 0
 
   override init() {
     self.window = .init(
@@ -56,12 +55,9 @@ private class WindowViewModel: NSObject, ObservableObject, NSWindowDelegate {
 
 @MainActor
 private struct NativeWindowModifier<Inner: View>: ViewModifier {
-  @Binding
-  var isPresented: Bool
-  @ViewBuilder
-  let inner: () -> Inner
-  @StateObject
-  var windowController = WindowViewModel()
+  @Binding var isPresented: Bool
+  @ViewBuilder let inner: () -> Inner
+  @StateObject var windowController = WindowViewModel()
 
   func body(content: Content) -> some View {
     content

@@ -11,8 +11,7 @@ import ComposableArchitecture
 import UserSettingsClient
 
 extension SettingsFeature {
-  @ReducerBuilder<State, Action>
-  public var body: some ReducerOf<Self> {
+  @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
     Scope(state: \.self, action: \.view) {
       BindingReducer()
         .onChange(of: \.userSettings) { _, userSettings in
@@ -26,7 +25,6 @@ extension SettingsFeature {
       switch action {
       case .view(.didTapViewLogs):
         state.path.append(.logs(.init()))
-
       case .view(.onTask):
         break
       case .view(.binding):

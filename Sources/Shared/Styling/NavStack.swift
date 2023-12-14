@@ -79,6 +79,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
                 } label: {
                   EmptyView()
                 }
+                .isDetailLink(false)
                 .hidden()
               }
             }
@@ -170,6 +171,7 @@ extension View {
           } label: {
             EmptyView()
           }
+          .isDetailLink(false)
           .hidden()
 
           self

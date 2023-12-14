@@ -97,8 +97,7 @@ extension RepoPackagesFeature {
 
 extension RepoPackagesFeature.State {
   mutating func fetchRemoteModules(forced: Bool = false) -> Effect<RepoPackagesFeature.Action> {
-    @Dependency(\.repoClient)
-    var repoClient
+    @Dependency(\.repoClient) var repoClient
 
     // TODO: Cache request
 

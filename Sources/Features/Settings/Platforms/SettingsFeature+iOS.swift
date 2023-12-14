@@ -13,8 +13,7 @@ import SwiftUI
 
 #if os(iOS)
 extension SettingsFeature.View {
-  @MainActor
-  public var listSections: some View {
+  @MainActor public var listSections: some View {
     ScrollView(.vertical) {
       VStack(spacing: 16) {
         ForEach(SettingsFeature.Section.allCases, id: \.self) { section in
@@ -36,8 +35,7 @@ extension SettingsFeature.View {
 
 @MainActor
 private struct VersionView: View {
-  @Dependency(\.build)
-  var build
+  @Dependency(\.build) var build
 
   var body: some View {
     VStack(spacing: 12) {

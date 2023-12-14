@@ -25,8 +25,7 @@ public struct LazyView<Content: View>: View {
     self.build = build
   }
 
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     LazyVStack {
       build()
     }

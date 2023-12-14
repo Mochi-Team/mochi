@@ -27,8 +27,7 @@ extension ReposFeature {
     case notValidRepo
   }
 
-  @ReducerBuilder<State, Action>
-  public var body: some ReducerOf<Self> {
+  @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
     Case(/Action.view) {
       BindingReducer()
     }

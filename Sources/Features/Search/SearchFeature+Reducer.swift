@@ -153,8 +153,7 @@ extension SearchFeature.State {
       return .none
     }
 
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.moduleClient) var moduleClient
 
     return .run { send in
       await withTaskCancellation(id: Cancellables.fetchingSearchFilters) {
@@ -186,8 +185,7 @@ extension SearchFeature.State {
       return .cancel(id: Cancellables.fetchingItemsDebounce)
     }
 
-    @Dependency(\.moduleClient)
-    var moduleClient
+    @Dependency(\.moduleClient) var moduleClient
 
     items = .loading
 

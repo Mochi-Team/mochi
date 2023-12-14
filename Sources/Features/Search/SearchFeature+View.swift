@@ -20,8 +20,7 @@ import ViewComponents
 // MARK: - SearchFeature.View + View
 
 extension SearchFeature.View: View {
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     ScrollViewTracker(.vertical) { offset in
       showStatusBarBackground = offset.y < 0
     } content: {
@@ -89,6 +88,7 @@ extension SearchFeature.View: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .safeAreaInset(edge: .top) { filters }
+    .task { store.send(.view(.didAppear)) }
     #if os(iOS)
       .navigationBarTitle("", displayMode: .inline)
       .navigationBarBackButtonHidden()
@@ -158,19 +158,14 @@ extension SearchFeature.View: View {
         }
       }
     #endif
-      .task {
-        store.send(.view(.didAppear))
-      }
   }
 }
 
 extension SearchFeature.View {
   private struct FilterView: View {
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
-    @Environment(\.colorScheme)
-    var scheme
+    @Environment(\.colorScheme) var scheme
 
     let filter: SearchFilter
     let selectedOptions: [SearchFilter.Option]

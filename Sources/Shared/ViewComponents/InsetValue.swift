@@ -16,8 +16,7 @@ import SwiftUI
 public class InsetableValues: @unchecked Sendable, ObservableObject {
   static var _current = InsetableValues()
 
-  @Published
-  var values = [ObjectIdentifier: CGSize]()
+  @Published var values = [ObjectIdentifier: CGSize]()
 
   private init() {}
 
@@ -37,8 +36,7 @@ public protocol InsetableKey {
 
 @propertyWrapper
 public struct InsetValue: @unchecked Sendable, DynamicProperty {
-  @ObservedObject
-  var values = InsetableValues._current
+  @ObservedObject var values = InsetableValues._current
 
   private let keyPath: KeyPath<InsetableValues, CGSize>
 
@@ -85,8 +83,7 @@ extension View {
     edge: SwiftUI.VerticalEdge = .bottom,
     alignment: SwiftUI.HorizontalAlignment = .center
   ) -> some View {
-    @InsetValue(key)
-    var value
+    @InsetValue(key) var value
     return safeAreaInset(edge: edge, alignment: alignment) {
       Spacer()
         .frame(width: value.width, height: value.height)

@@ -37,8 +37,7 @@ private actor ModulesCache {
 
   @Sendable
   func initialize() async throws {
-    @Dependency(\.databaseClient)
-    var databaseClient
+    @Dependency(\.databaseClient) var databaseClient
   }
 
   @Sendable
@@ -47,8 +46,7 @@ private actor ModulesCache {
   }
 
   private func fetchFromDB(for id: RepoModuleID) async throws -> ModuleClient.Instance {
-    @Dependency(\.databaseClient)
-    var databaseClient
+    @Dependency(\.databaseClient) var databaseClient
 
     try await semaphore.waitUnlessCancelled()
     defer { semaphore.signal() }

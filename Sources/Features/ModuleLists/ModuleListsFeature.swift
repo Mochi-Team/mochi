@@ -73,14 +73,9 @@ public struct ModuleListsFeature: Feature {
     }
   }
 
-  @Dependency(\.repoClient)
-  var repoClient
-
-  @Dependency(\.databaseClient)
-  var databaseClient
-
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.repoClient) var repoClient
+  @Dependency(\.databaseClient) var databaseClient
+  @Dependency(\.dismiss) var dismiss
 
   public init() {}
 }

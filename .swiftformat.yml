@@ -36,7 +36,7 @@
 --throwcapturing
 --trimwhitespace always
 --typeattributes prev-line
---varattributes prev-line
+--varattributes same-line
 --voidtype void
 --wraparguments before-first
 --wrapeffects never
@@ -46,6 +46,7 @@
 
 # op-ins (enable)
 
+--enable blockComments
 --enable genericExtensions
 --enable spaceInsideGenerics
 --enable opaqueGenericParameters

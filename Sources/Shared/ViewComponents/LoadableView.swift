@@ -35,8 +35,7 @@ public struct LoadableView<T, Loaded: View, Failed: View, Loading: View, Pending
     self.pendingView = pendingView
   }
 
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     switch loadable {
     case .pending:
       pendingView()

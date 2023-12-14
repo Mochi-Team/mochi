@@ -44,7 +44,7 @@ public struct SettingsFeature: Feature {
       case logs(Logs.Action)
     }
 
-    public var body: some ReducerOf<Self> {
+    @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
       Scope(state: \.logs, action: \.logs) {
         Logs()
       }
@@ -54,15 +54,13 @@ public struct SettingsFeature: Feature {
   public struct State: FeatureState {
     public var path: StackState<Path.State>
 
-    @BindingState
-    public var userSettings: UserSettings
+    @BindingState public var userSettings: UserSettings
 
     public init(
       path: StackState<Path.State> = .init()
     ) {
       self.path = path
-      @Dependency(\.userSettings)
-      var userSettings
+      @Dependency(\.userSettings) var userSettings
       self.userSettings = userSettings.get()
     }
   }
@@ -92,11 +90,10 @@ public struct SettingsFeature: Feature {
   @MainActor
   public struct View: FeatureView {
     public let store: StoreOf<SettingsFeature>
-    @ObservedObject
-    public var viewStore: FeatureViewStore<SettingsFeature>
 
-    @Environment(\.theme)
-    var theme
+    @ObservedObject public var viewStore: FeatureViewStore<SettingsFeature>
+
+    @Environment(\.theme) var theme
 
     @MainActor
     public init(store: StoreOf<SettingsFeature>) {
@@ -105,11 +102,9 @@ public struct SettingsFeature: Feature {
     }
   }
 
-  @Dependency(\.mainQueue)
-  var mainQueue
+  @Dependency(\.mainQueue) var mainQueue
 
-  @Dependency(\.userSettings)
-  var userSettingsClient
+  @Dependency(\.userSettings) var userSettingsClient
 
   public init() {}
 }

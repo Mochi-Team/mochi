@@ -59,8 +59,7 @@ public struct PlaylistDetailsFeature: Feature {
     public var playlist: Playlist { content.playlist }
     public var details: Loadable<Playlist.Details>
 
-    @PresentationState
-    public var destination: Destination.State?
+    @PresentationState public var destination: Destination.State?
 
     var playlistInfo: Loadable<PlaylistInfo> {
       details.map { .init(playlist: playlist, details: $0) }
@@ -145,14 +144,11 @@ public struct PlaylistDetailsFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<PlaylistDetailsFeature>
 
-    @Environment(\.openURL)
-    var openURL
+    @Environment(\.openURL) var openURL
 
-    @SwiftUI.State
-    var imageDominatColor: Color?
+    @SwiftUI.State var imageDominatColor: Color?
 
-    @Environment(\.theme)
-    var theme
+    @Environment(\.theme) var theme
 
     @MainActor
     public init(store: StoreOf<PlaylistDetailsFeature>) {
@@ -160,17 +156,13 @@ public struct PlaylistDetailsFeature: Feature {
     }
   }
 
-  @Dependency(\.moduleClient)
-  var moduleClient
+  @Dependency(\.moduleClient) var moduleClient
 
-  @Dependency(\.databaseClient)
-  var databaseClient
+  @Dependency(\.databaseClient) var databaseClient
 
-  @Dependency(\.repoClient)
-  var repoClient
+  @Dependency(\.repoClient) var repoClient
 
-  @Dependency(\.dismiss)
-  var dismiss
+  @Dependency(\.dismiss) var dismiss
 
   public init() {}
 }

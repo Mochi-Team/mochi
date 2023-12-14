@@ -39,14 +39,11 @@ private struct DragOffset: Equatable {
 struct ProgressBar: View {
   let store: Store<PlayerClient.Status.Playback?, VideoPlayerFeature.Action>
 
-  @ObservedObject
-  private var viewState: ViewStore<PlayerClient.Status.Playback?, VideoPlayerFeature.Action.ViewAction>
+  @ObservedObject private var viewState: ViewStore<PlayerClient.Status.Playback?, VideoPlayerFeature.Action.ViewAction>
 
-  @SwiftUI.State
-  private var dragged: DragOffset?
+  @SwiftUI.State private var dragged: DragOffset?
 
-  @Dependency(\.dateComponentsFormatter)
-  var formatter
+  @Dependency(\.dateComponentsFormatter) var formatter
 
   var progress: Double {
     if canUseControls {
