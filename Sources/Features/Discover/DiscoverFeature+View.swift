@@ -26,7 +26,7 @@ extension DiscoverFeature.View: View {
         NavStack(
             store.scope(
                 state: \.path,
-                action: \.internal.screens
+                action: \.internal.path
             )
         ) {
             WithViewStore(store, observe: \.section) { viewStore in
@@ -131,6 +131,12 @@ extension DiscoverFeature.View: View {
                         /DiscoverFeature.Path.State.playlistDetails,
                         action: DiscoverFeature.Path.Action.playlistDetails,
                         then: { store in PlaylistDetailsFeature.View(store: store) }
+                    )
+                case .viewMoreListing:
+                    CaseLet(
+                        /DiscoverFeature.Path.State.viewMoreListing,
+                        action: DiscoverFeature.Path.Action.viewMoreListing,
+                        then: { store in ViewMoreListing.View(store: store) }
                     )
                 }
             }
@@ -262,8 +268,10 @@ extension DiscoverFeature.View {
                 Spacer()
 
                 if listing.paging.nextPage != nil {
-                    Button {} label: {
-                        Text(localizable: "View All")
+                    Button {
+                        store.send(.view(.didTapViewMoreListing(listing.id)))
+                    } label: {
+                        Text(localizable: "View More")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.gray)
                             .opacity(listing.items.isEmpty ? 0 : 1.0)
@@ -333,8 +341,10 @@ extension DiscoverFeature.View {
                 Spacer()
 
                 if listing.paging.nextPage != nil {
-                    Button {} label: {
-                        Text(localizable: "View All")
+                    Button {
+                        store.send(.view(.didTapViewMoreListing(listing.id)))
+                    } label: {
+                        Text(localizable: "View More")
                             .font(.footnote.weight(.bold))
                             .foregroundColor(.gray)
                             .opacity(listing.items.isEmpty ? 0 : 1.0)
@@ -430,9 +440,9 @@ extension DiscoverFeature.View {
 
                 if listing.paging.nextPage != nil {
                     Button {
-                        // TODO: open new view to show all pagings
+                        store.send(.view(.didTapViewMoreListing(listing.id)))
                     } label: {
-                        Text("Show All")
+                        Text(localizable: "View More")
                             .font(.footnote.weight(.bold))
                             .foregroundColor(.gray)
                             .opacity(listing.items.isEmpty ? 0 : 1.0)

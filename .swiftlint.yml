@@ -127,7 +127,7 @@ custom_rules:
   tca_feature_reducer_actions:
     included: ".*\\+Reducer\\.swift"
     name: "Reducer Boundary"
-    regex: "(?<!action|send)\\(\\s*\\.(internal|view).*\\s*\\)"
+    regex: "(?<!action|send)\\(\\s*\\.(internal|view)\\s*(\\(.*\\))?\\)"
     capture_group: 1
     message: "Only access delegate actions of embedded features."
     severity: error

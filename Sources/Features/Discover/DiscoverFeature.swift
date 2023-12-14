@@ -9,6 +9,7 @@
 import Architecture
 import ComposableArchitecture
 import Foundation
+import LocalizableClient
 import ModuleClient
 import ModuleLists
 import OrderedCollections
@@ -35,22 +36,26 @@ public struct DiscoverFeature: Feature {
         public var localizable: String {
             switch self {
             case .system(.moduleNotSelected):
-                "There is no module selected"
+                .init(localizable: "There is no module selected")
             case .system(.unknown):
-                "Unknown system error has occurred"
+                .init(localizable: "Unknown system error has occurred")
             case .module:
-                "Failed to load module listings"
+                .init(localizable: "Failed to load module listings")
             }
         }
     }
 
     public struct Path: Reducer {
+        @CasePathable
+        @dynamicMemberLookup
         public enum State: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.State)
+            case viewMoreListing(ViewMoreListing.State)
         }
 
         public enum Action: Equatable, Sendable {
             case playlistDetails(PlaylistDetailsFeature.Action)
+            case viewMoreListing(ViewMoreListing.Action)
         }
 
         public var body: some ReducerOf<Self> {
@@ -106,12 +111,12 @@ public struct DiscoverFeature: Feature {
 
         public init(
             section: DiscoverFeature.Section = .home(),
-            screens: StackState<Path.State> = .init(),
+            path: StackState<Path.State> = .init(),
             search: SearchFeature.State? = nil,
             moduleLists: ModuleListsFeature.State? = nil
         ) {
             self.section = section
-            self.path = screens
+            self.path = path
             self.search = search
             self.moduleLists = moduleLists
         }
@@ -125,6 +130,7 @@ public struct DiscoverFeature: Feature {
             case didTapOpenModules
             case didTapPlaylist(Playlist)
             case didTapSearchButton
+            case didTapViewMoreListing(DiscoverListing.ID)
         }
 
         @CasePathable
@@ -144,8 +150,9 @@ public struct DiscoverFeature: Feature {
         public enum InternalAction: SendableAction {
             case selectedModule(RepoClient.SelectedModule?)
             case loadedListings(RepoModuleID, Loadable<[DiscoverListing]>)
-            case screens(StackAction<Path.State, Path.Action>)
+            case path(StackAction<Path.State, Path.Action>)
             case moduleLists(PresentationAction<ModuleListsFeature.Action>)
+            // TODO: move to paths
             case search(PresentationAction<SearchFeature.Action>)
         }
 
@@ -160,9 +167,6 @@ public struct DiscoverFeature: Feature {
 
         @Dependency(\.localizableClient.localize)
         var localize
-
-        @Namespace
-        public var searchAnimation
 
         @MainActor
         public init(store: StoreOf<DiscoverFeature>) {

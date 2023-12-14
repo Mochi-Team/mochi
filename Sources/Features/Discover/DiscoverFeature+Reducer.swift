@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import LoggerClient
 import ModuleClient
 import ModuleLists
 import PlaylistDetails
@@ -42,6 +43,19 @@ extension DiscoverFeature {
             case .view(.didTapSearchButton):
                 state.search = SearchFeature.State(repoModuleId: state.section.module?.module.id)
 
+            case let .view(.didTapViewMoreListing(listingId)):
+                guard let id = state.section.module?.module.id else {
+                    logger.warning("repoModuleID was not set which failed to view more listing")
+                    break
+                }
+
+                guard let listing = state.section.module?.listings.value?[id: listingId] else {
+                    logger.warning("listing item was not found but trigger tap event")
+                    break
+                }
+
+                state.path.append(.viewMoreListing(.init(repoModuleId: id, listing: listing)))
+
             case let .internal(.selectedModule(selection)):
                 if let selection {
                     state.section = .module(.init(module: selection, listings: .pending))
@@ -63,7 +77,13 @@ extension DiscoverFeature {
             case let .internal(.search(.presented(.delegate(.playlistTapped(repoModuleId, playlist))))):
                 state.path.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
 
-            case let .internal(.screens(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, variant, paging, itemId)))))):
+            case let.internal(.path(.element(elementId, .viewMoreListing(.didTapPlaylist(playlist))))):
+                guard let id = state.path[id: elementId]?.viewMoreListing?.repoModuleId else {
+                    break
+                }
+                state.path.append(.playlistDetails(.init(content: .init(repoModuleId: id, playlist: playlist))))
+
+            case let .internal(.path(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, variant, paging, itemId)))))):
                 return .send(
                     .delegate(
                         .playbackVideoItem(
@@ -84,7 +104,7 @@ extension DiscoverFeature {
             case .internal(.search):
                 break
 
-            case .internal(.screens):
+            case .internal(.path):
                 break
 
             case .delegate:
@@ -98,7 +118,7 @@ extension DiscoverFeature {
         .ifLet(\.$search, action: \.internal.search) {
             SearchFeature()
         }
-        .forEach(\.path, action: \.internal.screens) {
+        .forEach(\.path, action: \.internal.path) {
             DiscoverFeature.Path()
         }
     }

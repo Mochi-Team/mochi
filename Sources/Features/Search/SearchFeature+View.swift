@@ -23,7 +23,6 @@ extension SearchFeature.View: View {
     @MainActor
     public var body: some View {
         ScrollViewTracker(.vertical) { offset in
-//            print(offset)
             showStatusBarBackground = offset.y < 0
         } content: {
             WithViewStore(store, observe: \.items) { viewStore in
