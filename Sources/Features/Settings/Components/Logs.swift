@@ -201,6 +201,12 @@ public extension Logs {
                 }
                 .padding()
             }
+            .moduleListsSheet(
+                store.scope(
+                    state: \.$moduleLists,
+                    action: \.moduleLists
+                )
+            )
             #if os(iOS)
             .navigationBarTitle("Logs", displayMode: .inline)
             .navigationBarBackButtonHidden()
@@ -242,12 +248,6 @@ public extension Logs {
             .navigationTitle("Logs")
             #endif
             .task { store.send(.onTask) }
-            .moduleListsSheet(
-                store.scope(
-                    state: \.$moduleLists,
-                    action: \.moduleLists
-                )
-            )
         }
 
         @MainActor

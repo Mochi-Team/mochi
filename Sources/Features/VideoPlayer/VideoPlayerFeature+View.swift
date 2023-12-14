@@ -22,57 +22,69 @@ extension VideoPlayerFeature.View: View {
     @MainActor
     public var body: some View {
         ZStack {
-            GeometryReader { proxy in
-                WithViewStore(store, observe: \.overlay == nil) { viewStore in
-                    WithViewStore(store, observe: RateBufferingState.init) { rateBufferingState in
-                        PlayerView(
-                            player: player(),
-                            gravity: gravity,
-                            enablePIP: $enablePiP
-                        )
-                        // Reducer should not handle these properties, they should be binded to the view instead.
-                        .pictureInPictureIsPossible { possible in
-                            pipPossible = possible
-                        }
-                        .pictureInPictureIsSupported { supported in
-                            pipSupported = supported
-                        }
-                        .pictureInPictureStatus { status in
-                            pipStatus = status
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .edgesIgnoringSafeArea(.all)
-                        .ignoresSafeArea(.all, edges: .all)
-                        .contentShape(Rectangle())
-                        .gesture(
-                            MagnificationGesture()
-                                .onEnded { scale in
-                                    if scale < 1 {
-                                        gravity = .resizeAspect
-                                    } else {
-                                        gravity = .resizeAspectFill
-                                    }
-                                }
-                        )
-                        .gesture(SimultaneousGesture(TapGesture(count: 2), TapGesture(count: 1))
-                            .simultaneously(with: DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                                           ).onEnded { value in
-                            if (value.first?.first != nil) {
-                                if proxy.size.width / 2 > (value.second?.location.x ?? .zero) {
-                                    rateBufferingState.send(.view(.didSkipBackwards))
-                                } else {
-                                    rateBufferingState.send(.view(.didSkipForward))
-                                }
-                            } else {
-                                store.send(.view(.didTapPlayer))
-                            }
-                        })
-                        #if os(iOS)
-                        .statusBarHidden(viewStore.state)
-                        .animation(.easeInOut, value: viewStore.state)
-                        #endif
-                    }
+            WithViewStore(store, observe: \.overlay == nil) { viewStore in
+                PlayerView(
+                    player: player(),
+                    gravity: gravity,
+                    enablePIP: $enablePiP
+                )
+                // Reducer should not handle these properties, they should be binded to the view instead.
+                .pictureInPictureIsPossible { possible in
+                    pipPossible = possible
                 }
+                .pictureInPictureIsSupported { supported in
+                    pipSupported = supported
+                }
+                .pictureInPictureStatus { status in
+                    pipStatus = status
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea(.all, edges: .all)
+                .contentShape(Rectangle())
+                .overlay {
+                    HStack(spacing: 0) {
+                        Color.clear
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                TapGesture(count: 2)
+                                    .onEnded { _ in
+                                        viewStore.send(.didSkipBackwards)
+                                    }
+                            )
+
+                        Color.clear
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                TapGesture(count: 2)
+                                    .onEnded { _ in
+                                        viewStore.send(.didSkipForward)
+                                    }
+                            )
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .edgesIgnoringSafeArea(.all)
+                    .ignoresSafeArea(.all, edges: .all)
+                }
+                .gesture(
+                    MagnificationGesture()
+                        .onEnded { scale in
+                            if scale < 1 {
+                                gravity = .resizeAspect
+                            } else {
+                                gravity = .resizeAspectFill
+                            }
+                        }
+                )
+                .onTapGesture {
+                    viewStore.send(.didTapPlayer)
+                }
+                #if os(iOS)
+                .statusBarHidden(viewStore.state)
+                .animation(.easeInOut, value: viewStore.state)
+                #endif
             }
         }
         .overlay {
@@ -123,37 +135,11 @@ extension VideoPlayerFeature.View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background {
                 if viewStore.state {
-                    GeometryReader { proxy in
-                        WithViewStore(store, observe: RateBufferingState.init) { rateBufferingState in
-                            Color.black
-                                .opacity(0.35)
-                                .ignoresSafeArea()
-                                .edgesIgnoringSafeArea(.all)
-                                .gesture(
-                                    MagnificationGesture()
-                                        .onEnded { scale in
-                                            if scale < 1 {
-                                                gravity = .resizeAspect
-                                            } else {
-                                                gravity = .resizeAspectFill
-                                            }
-                                        }
-                                )
-                                .gesture(SimultaneousGesture(TapGesture(count: 2), TapGesture(count: 1))
-                                    .simultaneously(with: DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                                    ).onEnded { value in
-                                        if (value.first?.first != nil) {
-                                            if proxy.size.width / 2 > (value.second?.location.x ?? .zero) {
-                                                rateBufferingState.send(.view(.didSkipBackwards))
-                                            } else {
-                                                rateBufferingState.send(.view(.didSkipForward))
-                                            }
-                                        } else {
-                                            store.send(.view(.didTapPlayer))
-                                        }
-                                })
-                        }
-                    }
+                    Color.black
+                        .opacity(0.35)
+                        .ignoresSafeArea()
+                        .edgesIgnoringSafeArea(.all)
+                        .allowsHitTesting(false)
                 }
             }
             .animation(.easeInOut, value: viewStore.state)

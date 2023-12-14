@@ -81,6 +81,7 @@ extension VideoPlayerFeature: Reducer {
 
             case .view(.didTogglePlayback):
                 let isPlaying = state.player.playback?.state == .playing
+                let playRate = state.playerSettings.speed
                 return .merge(
                     state.delayDismissOverlayIfNeeded(),
                     .run { _ in
@@ -88,6 +89,7 @@ extension VideoPlayerFeature: Reducer {
                             await playerClient.pause()
                         } else {
                             await playerClient.play()
+                            await playerClient.setRate(.init(playRate))
                         }
                     }
                 )

@@ -40,8 +40,35 @@ extension PlayerClient: DependencyKey {
 // MARK: - InternalPlayer
 
 private class InternalPlayer {
+    private enum ResolvableTime {
+        case waiting(Double)
+        case resolved
+
+        func waiting() -> Double? {
+            switch self {
+            case let .waiting(waiting):
+                waiting
+            case .resolved:
+                nil
+            }
+        }
+
+        mutating func resolve() -> Double? {
+            switch self {
+            case .waiting(let double):
+                self = .resolved
+                return double
+            case .resolved:
+                self = .resolved
+                return nil
+            }
+        }
+    }
+
     let player: AVQueuePlayer
     let subject = CurrentValueSubject<PlayerClient.Status, Never>(.idle)
+
+    private let resolveProgress = LockIsolated<ResolvableTime>(.resolved)
 
     #if os(iOS)
     private let session: AVAudioSession
@@ -82,6 +109,8 @@ private class InternalPlayer {
 
     @MainActor
     func load(_ item: PlayerClient.VideoCompositionItem) throws {
+        resolveProgress.setValue(.resolved)
+
         let playerItem = PlayerItem(item)
         player.replaceCurrentItem(with: playerItem)
 
@@ -114,15 +143,20 @@ private class InternalPlayer {
 
     @MainActor
     func seek(to progress: Double) async {
+        resolveProgress.setValue(.waiting(progress))
+        updatePlayback()
+
         if let duration = player.currentItem?.duration, duration.seconds > .zero {
-            await player.seek(
+            if await player.seek(
                 to: .init(
                     seconds: duration.seconds * progress,
                     preferredTimescale: CMTimeScale(NSEC_PER_SEC)
                 ),
                 toleranceBefore: .zero,
                 toleranceAfter: .zero
-            )
+            ) {
+                _ = resolveProgress.withValue { $0.resolve() }
+            }
         }
     }
 
@@ -135,6 +169,7 @@ private class InternalPlayer {
     func clear() async {
         player.pause()
         player.removeAllItems()
+        resolveProgress.setValue(.resolved)
         #if os(iOS)
         try? session.setActive(false, options: .notifyOthersOnDeactivation)
         #endif
@@ -322,7 +357,7 @@ extension InternalPlayer {
                 updatedStatus = .playback(
                     .init(
                         state: isBuffering ? .buffering : player.rate == .zero ? .paused : .playing,
-                        duration: item.currentDuration,
+                        duration: resolveProgress.value.waiting().flatMap { $0 * item.totalDuration } ?? item.currentDuration,
                         buffered: item.bufferProgress,
                         totalDuration: item.totalDuration,
                         selections: [
