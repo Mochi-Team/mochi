@@ -219,13 +219,13 @@ extension SearchFeature.State {
 }
 
 extension SearchFeature.State {
-  public mutating func clearQuery() -> Effect<SearchFeature.Action> {
+  mutating func clearQuery() -> Effect<SearchFeature.Action> {
     query = ""
     items = .pending
     return .cancel(id: Cancellables.fetchingItemsDebounce)
   }
 
-  public mutating func updateModule(with repoModuleId: RepoModuleID?) -> Effect<SearchFeature.Action> {
+  mutating func updateModule(with repoModuleId: RepoModuleID?) -> Effect<SearchFeature.Action> {
     self.repoModuleId = repoModuleId
     selectedFilters = .init()
     allFilters = .init()

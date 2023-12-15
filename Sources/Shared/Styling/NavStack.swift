@@ -171,7 +171,9 @@ extension View {
           } label: {
             EmptyView()
           }
+          #if os(iOS)
           .isDetailLink(false)
+          #endif
           .hidden()
 
           self

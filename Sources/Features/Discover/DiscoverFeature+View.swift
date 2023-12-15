@@ -108,14 +108,6 @@ extension DiscoverFeature.View: View {
         maxHeight: .infinity
       )
       .onAppear { store.send(.view(.didAppear)) }
-      .stackDestination(
-        store: store.scope(
-          state: \.$search,
-          action: \.internal.search
-        )
-      ) { store in
-        SearchFeature.View(store: store)
-      }
       .moduleListsSheet(
         store.scope(
           state: \.$moduleLists,
@@ -136,6 +128,12 @@ extension DiscoverFeature.View: View {
             /DiscoverFeature.Path.State.viewMoreListing,
             action: DiscoverFeature.Path.Action.viewMoreListing,
             then: { store in ViewMoreListing.View(store: store) }
+          )
+        case .search:
+          CaseLet(
+            /DiscoverFeature.Path.State.search,
+            action: DiscoverFeature.Path.Action.search,
+            then: { store in SearchFeature.View(store: store) }
           )
         }
       }

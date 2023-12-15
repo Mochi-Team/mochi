@@ -121,7 +121,6 @@ public struct AppFeature: Feature {
   }
 
   @Dependency(\.databaseClient) var databaseClient
-
   @Dependency(\.playerClient) var playerClient
 
   public init() {}

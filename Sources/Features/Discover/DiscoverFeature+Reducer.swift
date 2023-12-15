@@ -34,13 +34,13 @@ extension DiscoverFeature {
         state.moduleLists = .init()
 
       case let .view(.didTapPlaylist(playlist)):
-        guard let id = state.section.module?.module.id else {
-          break
-        }
+        guard let id = state.section.module?.module.id else { break }
         state.path.append(.playlistDetails(.init(content: .init(repoModuleId: id, playlist: playlist))))
 
       case .view(.didTapSearchButton):
-        state.search = SearchFeature.State(repoModuleId: state.section.module?.module.id)
+        if !state.path.contains(where: { $0.is(\.search) }) {
+          state.path.append(.search(.init(repoModuleId: state.section.module?.module.id)))
+        }
 
       case let .view(.didTapViewMoreListing(listingId)):
         guard let id = state.section.module?.module.id else {
@@ -73,13 +73,11 @@ extension DiscoverFeature {
         state.moduleLists = nil
         return .send(.internal(.selectedModule(repoModule)))
 
-      case let .internal(.search(.presented(.delegate(.playlistTapped(repoModuleId, playlist))))):
+      case let .internal(.path(.element(_, .search(.delegate(.playlistTapped(repoModuleId, playlist)))))):
         state.path.append(.playlistDetails(.init(content: .init(repoModuleId: repoModuleId, playlist: playlist))))
 
       case let .internal(.path(.element(elementId, .viewMoreListing(.didTapPlaylist(playlist))))):
-        guard let id = state.path[id: elementId]?.viewMoreListing?.repoModuleId else {
-          break
-        }
+        guard let id = state.path[id: elementId]?.viewMoreListing?.repoModuleId else { break }
         state.path.append(.playlistDetails(.init(content: .init(repoModuleId: id, playlist: playlist))))
 
       case let .internal(.path(.element(_, .playlistDetails(.delegate(.playbackVideoItem(items, id, playlist, group, variant, paging, itemId)))))):
@@ -100,9 +98,6 @@ extension DiscoverFeature {
       case .internal(.moduleLists):
         break
 
-      case .internal(.search):
-        break
-
       case .internal(.path):
         break
 
@@ -114,11 +109,8 @@ extension DiscoverFeature {
     .ifLet(\.$moduleLists, action: \.internal.moduleLists) {
       ModuleListsFeature()
     }
-    .ifLet(\.$search, action: \.internal.search) {
-      SearchFeature()
-    }
     .forEach(\.path, action: \.internal.path) {
-      DiscoverFeature.Path()
+      Path()
     }
   }
 }

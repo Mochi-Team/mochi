@@ -90,7 +90,8 @@ extension SearchFeature.View: View {
     .safeAreaInset(edge: .top) { filters }
     .task { store.send(.view(.didAppear)) }
     #if os(iOS)
-      .navigationBarTitle("", displayMode: .inline)
+      .navigationTitle("")
+      .navigationBarTitleDisplayMode(.inline)
       .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(placement: .navigation) {
@@ -141,14 +142,6 @@ extension SearchFeature.View: View {
     #elseif os(macOS)
       .navigationTitle("Search")
       .toolbar {
-        ToolbarItem(placement: .navigation) {
-          Button {
-            store.send(.view(.didTapBackButton))
-          } label: {
-            Image(systemName: "chevron.left")
-          }
-        }
-
         ToolbarItem(placement: .automatic) {
           WithViewStore(store, observe: \.`self`) { viewStore in
             TextField("Search...", text: viewStore.$query.removeDuplicates())

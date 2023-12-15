@@ -49,18 +49,31 @@ public struct DiscoverFeature: Feature {
     @CasePathable
     @dynamicMemberLookup
     public enum State: Equatable, Sendable {
+      case search(SearchFeature.State)
       case playlistDetails(PlaylistDetailsFeature.State)
       case viewMoreListing(ViewMoreListing.State)
     }
 
+    @CasePathable
+    @dynamicMemberLookup
     public enum Action: Equatable, Sendable {
+      case search(SearchFeature.Action)
       case playlistDetails(PlaylistDetailsFeature.Action)
       case viewMoreListing(ViewMoreListing.Action)
     }
 
+    @ReducerBuilder<State, Action>
     public var body: some ReducerOf<Self> {
-      Scope(state: /State.playlistDetails, action: /Action.playlistDetails) {
+      Scope(state: \.search, action: \.search) {
+        SearchFeature()
+      }
+
+      Scope(state: \.playlistDetails, action: \.playlistDetails) {
         PlaylistDetailsFeature()
+      }
+
+      Scope(state: \.viewMoreListing, action: \.viewMoreListing) {
+        ViewMoreListing()
       }
     }
   }
@@ -103,26 +116,24 @@ public struct DiscoverFeature: Feature {
     public var section: Section
     public var path: StackState<Path.State>
 
-    @PresentationState public var search: SearchFeature.State?
-
     @PresentationState public var moduleLists: ModuleListsFeature.State?
 
     public init(
       section: DiscoverFeature.Section = .home(),
       path: StackState<Path.State> = .init(),
-      search: SearchFeature.State? = nil,
       moduleLists: ModuleListsFeature.State? = nil
     ) {
       self.section = section
       self.path = path
-      self.search = search
       self.moduleLists = moduleLists
     }
   }
 
   @CasePathable
+  @dynamicMemberLookup
   public enum Action: FeatureAction {
     @CasePathable
+    @dynamicMemberLookup
     public enum ViewAction: SendableAction {
       case didAppear
       case didTapOpenModules
@@ -132,6 +143,7 @@ public struct DiscoverFeature: Feature {
     }
 
     @CasePathable
+    @dynamicMemberLookup
     public enum DelegateAction: SendableAction {
       case playbackVideoItem(
         Playlist.ItemsResponse,
@@ -148,10 +160,8 @@ public struct DiscoverFeature: Feature {
     public enum InternalAction: SendableAction {
       case selectedModule(RepoClient.SelectedModule?)
       case loadedListings(RepoModuleID, Loadable<[DiscoverListing]>)
-      case path(StackAction<Path.State, Path.Action>)
       case moduleLists(PresentationAction<ModuleListsFeature.Action>)
-      // TODO: move to paths
-      case search(PresentationAction<SearchFeature.Action>)
+      case path(StackAction<Path.State, Path.Action>)
     }
 
     case view(ViewAction)
@@ -180,7 +190,8 @@ public struct DiscoverFeature: Feature {
 
 extension DiscoverFeature.State {
   public mutating func clearQuery() -> Effect<DiscoverFeature.Action> {
-    search?.clearQuery()
-      .map { .internal(.search(.presented($0))) } ?? .none
+      // search?.clearQuery()
+      //  .map { .internal(.search(.presented($0))) } ?? .none
+    .none
   }
 }

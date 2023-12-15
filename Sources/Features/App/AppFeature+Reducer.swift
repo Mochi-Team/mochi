@@ -30,11 +30,7 @@ extension AppFeature: Reducer {
         if state.selected == tab {
           switch tab {
           case .discover:
-            if !state.discover.path.isEmpty {
-              state.discover.path.removeAll()
-            } else if state.discover.search != nil {
-              state.discover.search = nil
-            }
+            state.discover.path.removeAll()
           case .repos:
             state.repos.path.removeAll()
           case .settings:
