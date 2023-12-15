@@ -27,7 +27,10 @@ public struct ChipView<Accessory: View, Background: ShapeStyle>: View {
     accessory()
       .padding(.horizontal, 10)
       .padding(.vertical, 6)
-      .background(background(), in: Capsule(style: .continuous))
+      .background {
+        Capsule(style: .continuous)
+          .style(withStroke: .gray.opacity(0.2), lineWidth: 1, fill: background())
+      }
   }
 
   public func background<S: ShapeStyle>(_ style: S) -> ChipView<Accessory, S> {

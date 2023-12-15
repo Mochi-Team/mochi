@@ -34,21 +34,15 @@ extension SearchFeature: Reducer {
         return state.fetchFilters()
 
       case let .view(.didShowNextPageIndicator(pagingId)):
-        guard var value = state.items.value, value[pagingId] == nil else {
+        guard let value = state.searchResult.value, !value.pagingExists(pagingId) else {
           break
         }
 
-        guard let selected = state.repoModuleId else {
-          break
-        }
-
+        let selected = state.repoModuleId
         let searchQuery = state.query
         let searchFilters = state.selectedFilters
 
-        value[pagingId] = .loading
-        state.items = .loaded(value)
-
-        logger.debug("Requesting search page: \(pagingId.rawValue)")
+        state.searchResult.modify(\.loaded) { $0.update(pagingId, loadable: .loading) }
 
         return .run { send in
           await withTaskCancellation(id: Cancellables.fetchingItemsDebounce, cancelInFlight: true) {
@@ -113,9 +107,7 @@ extension SearchFeature: Reducer {
         return state.fetchQuery()
 
       case let .view(.didTapPlaylist(playlist)):
-        if let repoModuleId = state.repoModuleId {
-          return .send(.delegate(.playlistTapped(repoModuleId, playlist)))
-        }
+        return .send(.delegate(.playlistTapped(state.repoModuleId, playlist)))
 
       case .view(.binding(\.$query)):
         return state.fetchQuery()
@@ -130,13 +122,10 @@ extension SearchFeature: Reducer {
         state.allFilters = []
 
       case let .internal(.loadedItems(loadable)):
-        state.items = loadable.map { [$0.id: .loaded($0)] }
+        state.searchResult = loadable.map { .init(initial: $0) }
 
       case let .internal(.loadedPageResult(pagingId, loadable)):
-        if var value = state.items.value {
-          value[pagingId] = loadable
-          state.items = .loaded(value)
-        }
+        state.searchResult.modify(\.loaded) { $0.update(pagingId, loadable: loadable) }
 
       case .delegate:
         break
@@ -148,13 +137,9 @@ extension SearchFeature: Reducer {
 
 extension SearchFeature.State {
   mutating func fetchFilters() -> Effect<SearchFeature.Action> {
-    guard let selected = repoModuleId else {
-      allFilters = []
-      return .none
-    }
-
     @Dependency(\.moduleClient) var moduleClient
 
+    let selected = repoModuleId
     return .run { send in
       await withTaskCancellation(id: Cancellables.fetchingSearchFilters) {
         await send(
@@ -173,21 +158,17 @@ extension SearchFeature.State {
   }
 
   mutating func fetchQuery() -> Effect<SearchFeature.Action> {
-    guard let selected = repoModuleId else {
-      items = .pending
-      return .cancel(id: Cancellables.fetchingItemsDebounce)
-    }
-
+    let selected = repoModuleId
     let searchQuery = query
 
     guard !searchQuery.isEmpty else {
-      items = .pending
+      searchResult = .pending
       return .cancel(id: Cancellables.fetchingItemsDebounce)
     }
 
     @Dependency(\.moduleClient) var moduleClient
 
-    items = .loading
+    searchResult = .loading
 
     let filters = selectedFilters
 
@@ -221,15 +202,8 @@ extension SearchFeature.State {
 extension SearchFeature.State {
   mutating func clearQuery() -> Effect<SearchFeature.Action> {
     query = ""
-    items = .pending
+    searchResult = .pending
     return .cancel(id: Cancellables.fetchingItemsDebounce)
-  }
-
-  mutating func updateModule(with repoModuleId: RepoModuleID?) -> Effect<SearchFeature.Action> {
-    self.repoModuleId = repoModuleId
-    selectedFilters = .init()
-    allFilters = .init()
-    return clearQuery().concatenate(with: fetchFilters())
   }
 }
 

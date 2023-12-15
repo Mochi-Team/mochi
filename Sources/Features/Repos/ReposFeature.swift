@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import ClipboardClient
 import ComposableArchitecture
 import Foundation
 import ModuleClient
@@ -18,12 +19,6 @@ import Tagged
 import ViewComponents
 
 public struct ReposFeature: Feature {
-  @Dependency(\.repoClient) var repoClient
-
-  @Dependency(\.moduleClient) var moduleClient
-
-  public init() {}
-
   public struct State: FeatureState {
     public var repos: IdentifiedArrayOf<Repo>
     @BindingState public var url: String
@@ -51,6 +46,7 @@ public struct ReposFeature: Feature {
       case didTapRefreshRepos(Repo.ID? = nil)
       case didTapRepo(Repo.ID)
       case didTapAddNewRepo(RepoClient.RepoPayload)
+      case didTapCopyRepoURL(Repo.ID)
       case didTapDeleteRepo(Repo.ID)
       case binding(BindingAction<State>)
     }
@@ -83,4 +79,10 @@ public struct ReposFeature: Feature {
       self.store = store
     }
   }
+
+  @Dependency(\.clipboardClient) var clipboardClient
+  @Dependency(\.repoClient) var repoClient
+  @Dependency(\.moduleClient) var moduleClient
+
+  public init() {}
 }

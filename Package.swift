@@ -703,6 +703,21 @@ struct BuildClient: _Client {
     }
 }
 //
+//  ClipboardClient.swift
+//  
+//
+//  Created by ErrorErrorError on 12/15/23.
+//  
+//
+
+import Foundation
+
+struct ClipboardClient: _Client {
+    var dependencies: any Dependencies {
+        ComposableArchitecture()
+    }
+}
+//
 //  DatabaseClient.swift
 //  
 //
@@ -1219,6 +1234,7 @@ import Foundation
 struct Repos: _Feature {
     var dependencies: any Dependencies {
         Architecture()
+        ClipboardClient()
         ModuleClient()
         RepoClient()
         SharedModels()

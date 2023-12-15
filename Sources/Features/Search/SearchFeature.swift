@@ -20,26 +20,56 @@ import Tagged
 import ViewComponents
 
 public struct SearchFeature: Feature {
+  public struct SearchResult: Equatable, Sendable {
+    private let initial: Paging<Playlist>
+    private var loadables: OrderedDictionary<PagingID, Loadable<Paging<Playlist>>> = .init()
+
+    public var items: [Playlist] {
+      initial.items + loadables.values.flatMap(\.value?.items ?? [])
+    }
+
+    public var nextPage: Loadable<PagingID>? {
+      initial.nextPage.flatMap { loadables[$0] == nil ? .loaded($0) : nil } ??
+        loadables.values.last?.map(\.nextPage)
+    }
+
+    public init(
+      initial: Paging<Playlist>,
+      loadables: OrderedDictionary<PagingID, Loadable<Paging<Playlist>>> = .init()
+    ) {
+      self.initial = initial
+      self.loadables = loadables
+    }
+
+    mutating func update(_ id: PagingID, loadable: Loadable<Paging<Playlist>>) {
+      loadables[id] = loadable
+    }
+
+    func pagingExists(_ id: PagingID) -> Bool {
+      initial.id == id || loadables[id] != nil
+    }
+  }
+
   public struct State: FeatureState {
     @BindingState public var query: String
     @BindingState public var selectedFilters: [SearchFilter]
 
-    public var repoModuleId: RepoModuleID?
+    public let repoModuleId: RepoModuleID
     public var allFilters: [SearchFilter]
-    public var items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>>
+    public var searchResult = Loadable<SearchResult>.pending
 
     public init(
-      repoModuleId: RepoModuleID? = nil,
+      repoModuleId: RepoModuleID,
       query: String = "",
       selectedFilters: [SearchFilter] = [],
       allFilters: [SearchFilter] = [],
-      items: Loadable<OrderedDictionary<PagingID, Loadable<Paging<Playlist>>>> = .pending
+      searchResult: Loadable<SearchResult> = .pending
     ) {
       self.repoModuleId = repoModuleId
       self.query = query
       self.selectedFilters = selectedFilters
       self.allFilters = allFilters
-      self.items = items
+      self.searchResult = searchResult
     }
   }
 
@@ -89,9 +119,7 @@ public struct SearchFeature: Feature {
   }
 
   @Dependency(\.dismiss) var dismiss
-
   @Dependency(\.moduleClient) var moduleClient
-
   @Dependency(\.repoClient) var repoClient
 
   public init() {}

@@ -91,14 +91,19 @@ extension DiscoverFeature.View: View {
             }
 
             ToolbarItem(placement: .automatic) {
-              Button {
-                viewStore.send(.didTapSearchButton)
-              } label: {
-                Image(systemName: "magnifyingglass")
+              WithViewStore(store) { state in
+                !state.section.is(\.home)
+              } content: { showMagnifyingGlass in
+                Button {
+                  viewStore.send(.didTapSearchButton)
+                } label: {
+                  Image(systemName: "magnifyingglass")
+                }
+                #if os(iOS)
+                .buttonStyle(.materialToolbarItem)
+                #endif
+                .opacity(showMagnifyingGlass.state ? 1.0 : 0)
               }
-              #if os(iOS)
-              .buttonStyle(.materialToolbarItem)
-              #endif
             }
           }
       }

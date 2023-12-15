@@ -21,7 +21,7 @@ import ViewComponents
 extension RepoPackagesFeature.View: View {
   @MainActor public var body: some View {
     ScrollView(.vertical) {
-      VStack(spacing: 12) {
+      LazyVStack(spacing: 12) {
         repoHeader
 
         Divider()
@@ -32,7 +32,7 @@ extension RepoPackagesFeature.View: View {
             if !viewStore.isEmpty {
               LazyVStack(spacing: 8) {
                 Text("Installed Modules")
-                  .font(.footnote.bold())
+                  .font(.footnote.weight(.medium))
                   .foregroundColor(.gray)
                   .frame(maxWidth: .infinity, alignment: .leading)
                   .padding(.horizontal)
@@ -52,7 +52,7 @@ extension RepoPackagesFeature.View: View {
         WithViewStore(store, observe: \.packages) { viewStore in
           LazyVStack(spacing: 8) {
             Text("All Modules")
-              .font(.footnote.bold())
+              .font(.footnote.weight(.medium))
               .foregroundColor(.gray)
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.horizontal)
@@ -61,7 +61,8 @@ extension RepoPackagesFeature.View: View {
             LoadableView(loadable: viewStore.state) { packages in
               Group {
                 if packages.isEmpty || !packages.contains(where: !\.isEmpty) {
-                  packagesStatusView(.noModulesFound)
+                  StatusView(.noModulesFound)
+                    .transition(.opacity)
                 } else {
                   LazyVStack(spacing: 8) {
                     ForEach(packages, id: \.self) { package in
@@ -74,10 +75,10 @@ extension RepoPackagesFeature.View: View {
               }
               .transition(.opacity)
             } failedView: { _ in
-              packagesStatusView(.failedToFetch)
+              StatusView(.failedToFetch)
                 .transition(.opacity)
             } waitingView: {
-              packagesStatusView(.fetchingModules)
+              StatusView(.fetchingModules)
                 .transition(.opacity)
             }
           }
@@ -87,25 +88,13 @@ extension RepoPackagesFeature.View: View {
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .task { await store.send(.view(.onTask)).finish() }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
+    .task { await store.send(.view(.onTask)).finish() }
     #if os(iOS)
       .navigationTitle("")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
-          Button {
-            store.send(.view(.didTapClose))
-          } label: {
-            Image(systemName: "chevron.left")
-          }
-          .buttonStyle(.materialToolbarItem)
-        }
-
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             store.send(.view(.didTapToRefreshRepo))
@@ -173,12 +162,14 @@ extension RepoPackagesFeature.View {
     case noModulesFound = "No Modules Available"
     case failedToFetch = "Failed to Fetch Modules"
 
-    var description: String? {
+    var details: String {
       switch self {
       case .failedToFetch:
         "There was an error communicating with the repo."
-      default:
-        nil
+      case .noModulesFound:
+        "Check your internet connection."
+      case .fetchingModules:
+        "Currently attempting to retrieve modules from repo."
       }
     }
 
@@ -193,46 +184,16 @@ extension RepoPackagesFeature.View {
       }
     }
 
-    var backgroundColor: Color {
+    var icon: String {
       switch self {
-      case .fetchingModules:
-        .gray
       case .noModulesFound:
-        .gray
+        "package.badge.questionmark.fill"
+      case .fetchingModules:
+        "package.badge.clock.fill"
       case .failedToFetch:
-        .red
+        "package.trianglebadge.exclamationmark.fill"
       }
     }
-  }
-
-  @MainActor
-  func packagesStatusView(_ state: PackagesStatusState) -> some View {
-    VStack(spacing: 0) {
-      Image(systemName: "shippingbox.fill")
-        .resizable()
-        .aspectRatio(contentMode: .fit)
-        .foregroundColor(state.packageIconColor)
-        .frame(width: 32)
-
-      Spacer()
-        .frame(height: 8)
-
-      Text(state.rawValue)
-        .font(.callout.weight(.semibold))
-
-      if let description = state.description {
-        Spacer()
-          .frame(height: 2)
-
-        Text(description)
-          .font(.footnote)
-      }
-    }
-    .padding(20)
-    .frame(maxWidth: .infinity)
-    .background(state.backgroundColor.opacity(0.12))
-    .cornerRadius(12)
-    .padding(.horizontal)
   }
 
   struct PackageDownloadState: Equatable {
@@ -378,18 +339,31 @@ extension RepoPackagesFeature.View {
   }
 }
 
+extension StatusView {
+  init(_ status: RepoPackagesFeature.View.PackagesStatusState) {
+    self.init(
+      title: status.rawValue,
+      description: status.details,
+      image: .asset(status.icon, hasBadge: true),
+      foregroundColor: status.packageIconColor
+    )
+  }
+}
+
 // MARK: - RepoPackagesFeatureView_Previews
 
 #Preview {
-  RepoPackagesFeature.View(
-    store: .init(
-      initialState: .init(
-        repo: .init(
-          remoteURL: .init(string: "/").unsafelyUnwrapped,
-          manifest: .init(name: "Repo 1", author: "errorerrorerror")
-        )
-      ),
-      reducer: { EmptyReducer() }
+  NavigationView {
+    RepoPackagesFeature.View(
+      store: .init(
+        initialState: .init(
+          repo: .init(
+            remoteURL: .init(string: "/").unsafelyUnwrapped,
+            manifest: .init(name: "Repo 1", author: "errorerrorerror")
+          )
+        ),
+        reducer: { EmptyReducer() }
+      )
     )
-  )
+  }
 }

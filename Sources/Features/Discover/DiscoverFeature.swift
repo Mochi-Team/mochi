@@ -62,8 +62,7 @@ public struct DiscoverFeature: Feature {
       case viewMoreListing(ViewMoreListing.Action)
     }
 
-    @ReducerBuilder<State, Action>
-    public var body: some ReducerOf<Self> {
+    @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
       Scope(state: \.search, action: \.search) {
         SearchFeature()
       }
@@ -186,12 +185,4 @@ public struct DiscoverFeature: Feature {
   @Dependency(\.moduleClient) var moduleClient
 
   public init() {}
-}
-
-extension DiscoverFeature.State {
-  public mutating func clearQuery() -> Effect<DiscoverFeature.Action> {
-      // search?.clearQuery()
-      //  .map { .internal(.search(.presented($0))) } ?? .none
-    .none
-  }
 }

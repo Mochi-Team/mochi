@@ -13,6 +13,7 @@ import Foundation
 
 // TODO: Allow setting error for better debugging
 @CasePathable
+@dynamicMemberLookup
 public enum Loadable<T> {
   case pending
   case loading
@@ -91,6 +92,24 @@ public enum Loadable<T> {
       .loading
     case let .loaded(value):
       transform(value)
+    case let .failed(error):
+      .failed(error)
+    }
+  }
+
+  @inlinable
+  public func map<V>(_ transform: @escaping (T) -> V?) -> Loadable<V>? {
+    switch self {
+    case .pending:
+      .pending
+    case .loading:
+      .loading
+    case let .loaded(value):
+      if let value = transform(value) {
+        .loaded(value)
+      } else {
+        nil
+      }
     case let .failed(error):
       .failed(error)
     }

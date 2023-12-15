@@ -28,7 +28,7 @@ public struct ScrollViewTracker<Content: View>: View {
     _ axis: Axis.Set = [.horizontal, .vertical],
     showsIndicators: Bool = true,
     onScroll: ScrollAction? = nil,
-    content: @escaping () -> Content
+    @ViewBuilder content: @escaping () -> Content
   ) {
     self.axis = axis
     self.showsIndicators = showsIndicators

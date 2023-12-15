@@ -7,6 +7,7 @@
 //
 
 import Architecture
+import ClipboardClient
 import ComposableArchitecture
 import Foundation
 import LoggerClient
@@ -49,6 +50,9 @@ extension ReposFeature {
         state.searchedRepo = .pending
 
         return .run { try await repoClient.addRepo(repoPayload) }
+
+      case let .view(.didTapCopyRepoURL(repoId)):
+        return .run { clipboardClient.copyValue(repoId.rawValue.absoluteString) }
 
       case let .view(.didTapDeleteRepo(repoId)):
         return .merge(

@@ -24,10 +24,16 @@ extension SearchFeature.View: View {
     ScrollViewTracker(.vertical) { offset in
       showStatusBarBackground = offset.y < 0
     } content: {
-      WithViewStore(store, observe: \.items) { viewStore in
-        LoadableView(loadable: viewStore.state) { pagings in
-          if pagings.isEmpty {
-            Text("No results found.")
+      WithViewStore(store, observe: \.searchResult) { viewStore in
+        LoadableView(loadable: viewStore.state) { searchResult in
+          if searchResult.items.isEmpty {
+            WithViewStore(store, observe: \.query) { queryStore in
+              StatusView(
+                title: "No Results",
+                description: "for \"\(queryStore.state)\"",
+                assetImage: "search"
+              )
+            }
           } else {
             LazyVGrid(
               columns: .init(
@@ -36,8 +42,7 @@ extension SearchFeature.View: View {
               ),
               alignment: .leading
             ) {
-              let allItems = pagings.values.flatMap { $0.value?.items ?? [] }
-              ForEach(allItems) { item in
+              ForEach(searchResult.items) { item in
                 VStack(alignment: .leading) {
                   FillAspectImage(url: item.posterImage)
                     .aspectRatio(2 / 3, contentMode: .fit)
@@ -54,20 +59,24 @@ extension SearchFeature.View: View {
             }
             .padding(.horizontal)
 
-            if let lastPage = pagings.values.last {
-              LoadableView(loadable: lastPage) { page in
+            if let nextPage = searchResult.nextPage {
+              LoadableView(loadable: nextPage) { nextPageId in
                 LazyView {
                   Spacer()
                     .frame(height: 1)
                     .onAppear {
-                      if let nextPageId = page.nextPage {
-                        store.send(.view(.didShowNextPageIndicator(nextPageId)))
-                      }
+                      store.send(.view(.didShowNextPageIndicator(nextPageId)))
                     }
                 }
               } failedView: { _ in
-                Text("Failed to retrieve content")
-                  .foregroundColor(.red)
+                Button {
+                  // TODO: Allow refetch when paging failed
+                } label: {
+                  Image(systemName: "arrow.clockwise")
+                    .font(.body)
+                    .padding(4)
+                }
+                .contentShape(Rectangle())
               } waitingView: {
                 ProgressView()
                   .padding(.vertical, 8)
@@ -75,13 +84,25 @@ extension SearchFeature.View: View {
             }
           }
         } failedView: { _ in
-          Text("Failed to fetch itemss")
+          // TODO: Make error more explicit
+          StatusView(
+            title: .init(localizable: "Search Failed"),
+            description: .init(localizable: "Failed to retrieve items."),
+            image: .asset("search.trianglebadge.exclamationmark", hasBadge: true),
+            foregroundColor: .red
+          )
         } loadingView: {
-          ProgressView()
+          StatusView(
+            title: .init(localizable: "Searching..."),
+            description: .init(localizable: ""),
+            image: .asset("search.badge.clock", hasBadge: true)
+          )
         } pendingView: {
-          Text("Type to search")
-            .font(.body.weight(.semibold))
-            .foregroundColor(.gray)
+          StatusView(
+            title: .init(localizable: "Search Empty"),
+            description: "Type to start searching.",
+            systemImage: "magnifyingglass"
+          )
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -233,68 +254,75 @@ extension SearchFeature.View {
 
   var filters: some View {
     WithViewStore(store, observe: FiltersState.init) { viewStore in
-      if viewStore.isThereFilters {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 8) {
-            if !viewStore.selectedFilters.isEmpty {
-              Menu {
-                Section {
-                  Button(role: .destructive) {
-                    viewStore.send(.didTapClearFilters)
-                  } label: {
-                    Text("Clear all filters")
-                      .foregroundColor(.red)
+      Group {
+        if viewStore.isThereFilters {
+          ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+              if !viewStore.selectedFilters.isEmpty {
+                Menu {
+                  Section {
+                    Button(role: .destructive) {
+                      viewStore.send(.didTapClearFilters)
+                    } label: {
+                      Text("Clear all filters")
+                        .foregroundColor(.red)
+                    }
+                  } header: {
+                    Text("\(viewStore.selectedFilters.count) filters applied")
                   }
-                } header: {
-                  Text("\(viewStore.selectedFilters.count) filters applied")
+                } label: {
+                  HStack(spacing: 4) {
+                    Image(systemName: "line.3.horizontal.decrease")
+                    Text(viewStore.selectedFilters.count.description)
+                  }
+                  .font(.footnote)
+                  .padding(8)
+                  .foregroundColor(.white)
+                  .background(
+                    Capsule()
+                      .style(
+                        withStroke: .gray.opacity(0.2),
+                        fill: Theme.pastelGreen
+                      )
+                  )
                 }
-              } label: {
-                HStack(spacing: 4) {
-                  Image(systemName: "line.3.horizontal.decrease")
-                  Text(viewStore.selectedFilters.count.description)
-                }
-                .font(.footnote)
-                .padding(8)
-                .foregroundColor(.white)
-                .background(
-                  Capsule()
-                    .style(
-                      withStroke: .gray.opacity(0.2),
-                      fill: Theme.pastelGreen
-                    )
-                )
+                .buttonStyle(.plain)
+                .frame(maxHeight: .infinity)
               }
-              .buttonStyle(.plain)
-              .frame(maxHeight: .infinity)
-            }
 
-            ForEach(viewStore.sortedAllFilters) { filter in
-              FilterView(
-                filter: filter,
-                selectedOptions: viewStore.selectedFilters[id: filter.id]?.options ?? []
-              ) { option in
-                viewStore.send(.didTapFilter(filter, option))
+              ForEach(viewStore.sortedAllFilters) { filter in
+                FilterView(
+                  filter: filter,
+                  selectedOptions: viewStore.selectedFilters[id: filter.id]?.options ?? []
+                ) { option in
+                  viewStore.send(.didTapFilter(filter, option))
+                }
+                .frame(maxHeight: .infinity)
               }
-              .frame(maxHeight: .infinity)
             }
+            .frame(maxHeight: .infinity)
+            .padding(.horizontal)
           }
-          .frame(maxHeight: .infinity)
-          .padding(.horizontal)
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity)
-        .animation(.easeInOut(duration: 0.2), value: viewStore.selectedFilters.count)
-        .padding(.vertical, 12)
-        .background {
-          if showStatusBarBackground {
-            Rectangle()
-              .fill(.ultraThinMaterial)
-          } else {
-            Rectangle()
-              .fill(theme.backgroundColor)
-          }
+          .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity)
+          .animation(.easeInOut(duration: 0.2), value: viewStore.selectedFilters.count)
+          .padding(.vertical, 12)
+        } else {
+          Spacer()
+            .frame(height: 24)
         }
       }
+      .background {
+        if showStatusBarBackground {
+          Rectangle()
+            .fill(.ultraThinMaterial)
+        } else {
+          Rectangle()
+            .fill(theme.backgroundColor)
+        }
+      }
+      .animation(.easeInOut, value: viewStore.isThereFilters)
+      .animation(.easeInOut, value: showStatusBarBackground)
     }
   }
 }
@@ -306,6 +334,7 @@ extension SearchFeature.View {
     SearchFeature.View(
       store: .init(
         initialState: .init(
+          repoModuleId: Repo().id(.init(rawValue: "")),
           query: "demo",
           selectedFilters: .init([
             SearchFilter(
@@ -325,7 +354,7 @@ extension SearchFeature.View {
               options: [.init(id: .init("1"), displayName: "Option 1")]
             )
           ]),
-          items: .pending
+          searchResult: .pending
         ),
         reducer: { EmptyReducer() }
       )

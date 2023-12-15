@@ -18,10 +18,12 @@ struct SquircleModifier: ViewModifier {
   @MainActor
   func body(content: Content) -> some View {
     content
-      .readSize { sizeInset in
-        self.sizeInset = sizeInset
-      }
+      .readSize { sizeInset = $0 }
       .clipShape(RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous))
+      .overlay {
+        RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous)
+          .style(withStroke: .gray.opacity(0.16), fill: .clear)
+      }
   }
 }
 

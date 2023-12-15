@@ -34,7 +34,7 @@ extension ReposFeature.View: View {
               .frame(height: 24)
 
             Text("\(viewStore.count) Installed Repos")
-              .font(.subheadline)
+              .font(.footnote.weight(.medium))
               .foregroundColor(.gray)
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.horizontal)
@@ -54,6 +54,15 @@ extension ReposFeature.View: View {
                     }
                     .contextMenu {
                       Button {
+                        self.store.send(.view(.didTapCopyRepoURL(repo.id)))
+                      } label: {
+                        Label("Copy Repo URL", systemImage: "doc.on.clipboard")
+                      }
+                      .buttonStyle(.plain)
+
+                      Divider()
+
+                      Button(role: .destructive) {
                         self.store.send(.view(.didTapDeleteRepo(repo.id)))
                       } label: {
                         Label("Delete Repo", systemImage: "trash.fill")
@@ -68,21 +77,11 @@ extension ReposFeature.View: View {
                   }
                 }
               } else {
-                VStack(alignment: .leading) {
-                  Text("No Repos Added")
-                    .font(.callout.weight(.medium))
-
-                  Text("Add repos to view and install modules.")
-                    .font(.callout)
-                }
-                .foregroundColor(.gray)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background {
-                  RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .foregroundColor(.gray.opacity(0.12))
-                }
-                .padding(.horizontal)
+                StatusView(
+                  title: "No Repos Added",
+                  description: "Add repos to view and install modules.",
+                  image: .asset("package.badge.plus.fill", hasBadge: true)
+                )
               }
             }
             .animation(.easeInOut, value: viewStore.state)
