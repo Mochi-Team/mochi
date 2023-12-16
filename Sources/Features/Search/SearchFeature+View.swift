@@ -22,7 +22,7 @@ import ViewComponents
 extension SearchFeature.View: View {
   @MainActor public var body: some View {
     ScrollViewTracker(.vertical) { offset in
-      showStatusBarBackground = offset.y < 0
+      showStatusBarBackground = offset.y <= -2.9 // FIXME: SafeAreaInset affects the offset of this
     } content: {
       WithViewStore(store, observe: \.searchResult) { viewStore in
         LoadableView(loadable: viewStore.state) { searchResult in
@@ -108,7 +108,7 @@ extension SearchFeature.View: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .safeAreaInset(edge: .top) { filters }
+    .safeAreaInset(edge: .top, spacing: 0) { filters }
     .task { store.send(.view(.didAppear)) }
     #if os(iOS)
       .navigationTitle("")
@@ -321,8 +321,8 @@ extension SearchFeature.View {
             .fill(theme.backgroundColor)
         }
       }
-      .animation(.easeInOut, value: viewStore.isThereFilters)
-      .animation(.easeInOut, value: showStatusBarBackground)
+      .animation(.easeInOut(duration: 0.3), value: viewStore.isThereFilters)
+      .animation(.easeInOut(duration: 0.2), value: showStatusBarBackground)
     }
   }
 }

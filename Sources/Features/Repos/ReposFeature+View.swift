@@ -26,8 +26,10 @@ extension ReposFeature.View: View {
     ) {
       ScrollView(.vertical, showsIndicators: false) {
         LazyVStack(spacing: 0) {
+          #if os(iOS)
           repoUrlTextInput
             .padding(.horizontal)
+          #endif
 
           WithViewStore(store, observe: \.repos) { viewStore in
             Spacer()
@@ -88,24 +90,22 @@ extension ReposFeature.View: View {
           }
         }
       }
+      .initialTask {
+        _ = await MainActor.run {
+          store.send(.view(.onTask))
+        }
+      }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .navigationTitle("Repos")
       #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
-      #endif
-        .toolbar {
-          ToolbarItem(placement: .automatic) {
-            Button {
-              store.send(.view(.didTapRefreshRepos(nil)))
-            } label: {
-              Image(systemName: "arrow.triangle.2.circlepath")
-            }
-            #if os(iOS)
-            .buttonStyle(.materialToolbarItem)
-            #endif
-          }
+      .navigationBarTitleDisplayMode(.large)
+      #elseif os(macOS)
+      .toolbar {
+        ToolbarItem(placement: .automatic) {
+          repoUrlTextInput
         }
-        .task { store.send(.view(.onTask)) }
+      }
+      #endif
     } destination: { store in
       RepoPackagesFeature.View(store: store)
     }
@@ -113,7 +113,7 @@ extension ReposFeature.View: View {
 }
 
 extension ReposFeature.View {
-  private struct RepoURLInputViewState: Equatable, @unchecked Sendable {
+  struct RepoURLInputViewState: Equatable, @unchecked Sendable {
     @BindingViewState var url: String
     let searchedRepo: Loadable<RepoClient.RepoPayload>
     let canAddRepo: Bool
@@ -126,95 +126,6 @@ extension ReposFeature.View {
       } else {
         self.canAddRepo = false
       }
-    }
-  }
-
-  @MainActor var repoUrlTextInput: some View {
-    WithViewStore(store, observe: RepoURLInputViewState.init) { viewStore in
-      VStack(spacing: 0) {
-        HStack(spacing: 12) {
-          Group {
-            switch viewStore.searchedRepo {
-            case .failed:
-              Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.red)
-            case .loading:
-              ProgressView()
-                .fixedSize(horizontal: true, vertical: true)
-                .controlSize(.small)
-            default:
-              Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
-            }
-          }
-
-          TextField(
-            "Enter or paste a repo url...",
-            text: viewStore.$url
-              .removeDuplicates()
-          )
-          .textFieldStyle(.plain)
-          .autocorrectionDisabled(true)
-          #if os(iOS)
-            .textInputAutocapitalization(.never)
-            .keyboardType(.URL)
-          #endif
-            .font(.system(size: 16, weight: .regular))
-            .frame(maxWidth: .infinity)
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
-        .frame(maxHeight: .infinity)
-
-        LoadableView(loadable: viewStore.searchedRepo) { repo in
-          Divider()
-
-          HStack(alignment: .center) {
-            LazyImage(url: repo.iconURL) { state in
-              if let image = state.image {
-                image
-              } else {
-                EmptyView()
-              }
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-              Text(repo.name)
-                .font(.callout)
-
-              Text(repo.author)
-                .font(.caption)
-                .foregroundColor(.gray)
-            }
-
-            Spacer()
-
-            if viewStore.canAddRepo {
-              Button {
-                viewStore.send(.didTapAddNewRepo(repo))
-              } label: {
-                Image(systemName: "plus.circle.fill")
-                  .font(.system(size: 18).weight(.semibold))
-                  .contentShape(Rectangle())
-              }
-              .buttonStyle(.plain)
-              .transition(.scale.combined(with: .opacity))
-            } else {
-              Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 18).weight(.semibold))
-            }
-          }
-          .padding(.vertical, 12)
-        }
-        .padding(.horizontal)
-      }
-      .background(
-        RoundedRectangle(cornerRadius: 12)
-          .foregroundColor(.gray.opacity(0.1))
-      )
-      .animation(.easeInOut(duration: 0.2), value: viewStore.searchedRepo)
-      .animation(.easeInOut(duration: 0.2), value: viewStore.url.count)
-      .fixedSize(horizontal: false, vertical: true)
     }
   }
 }

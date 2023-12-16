@@ -50,6 +50,7 @@ struct MochiApp: App {
     }
     #if os(macOS)
     .windowStyle(.titleBar)
+    .windowToolbarStyle(.unified)
     .commands {
       SidebarCommands()
       ToolbarCommands()

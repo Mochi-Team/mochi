@@ -52,7 +52,6 @@
 --enable opaqueGenericParameters
 --enable isEmpty
 --enable markTypes
---enable wrapConditionalBodies
 --enable wrapEnumCases
 
 # op-ins (disable)

@@ -20,7 +20,7 @@ import ViewComponents
 
 extension RepoPackagesFeature.View: View {
   @MainActor public var body: some View {
-    ScrollView(.vertical) {
+    ScrollViewTracker(.vertical) {
       LazyVStack(spacing: 12) {
         repoHeader
 
@@ -91,29 +91,20 @@ extension RepoPackagesFeature.View: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(theme.backgroundColor.ignoresSafeArea().edgesIgnoringSafeArea(.all))
     .task { await store.send(.view(.onTask)).finish() }
+    .navigationTitle("")
     #if os(iOS)
-      .navigationTitle("")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            store.send(.view(.didTapToRefreshRepo))
-          } label: {
-            Image(systemName: "arrow.triangle.2.circlepath")
-          }
-          .buttonStyle(.materialToolbarItem)
-        }
-      }
+    .refreshable { await store.send(.view(.didTapToRefreshRepo)).finish() }
+    .navigationBarTitleDisplayMode(.inline)
     #elseif os(macOS)
-      .toolbar {
-        ToolbarItem(placement: .automatic) {
-          Button {
-            store.send(.view(.didTapToRefreshRepo))
-          } label: {
-            Image(systemName: "arrow.triangle.2.circlepath")
-          }
+    .toolbar {
+      ToolbarItem(placement: .automatic) {
+        Button {
+          store.send(.view(.didTapToRefreshRepo))
+        } label: {
+          Image(systemName: "arrow.triangle.2.circlepath")
         }
       }
+    }
     #endif
   }
 }
@@ -337,6 +328,13 @@ extension RepoPackagesFeature.View {
     }
     .background(theme.backgroundColor)
   }
+}
+
+enum RefreshableState {
+  case pulling(CGPoint)
+  case released(CGPoint)
+
+//  var isValid: Bool {}
 }
 
 extension StatusView {

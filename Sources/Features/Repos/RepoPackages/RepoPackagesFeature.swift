@@ -22,9 +22,7 @@ import ViewComponents
 
 public struct RepoPackagesFeature: Feature {
   @Dependency(\.dismiss) var dismiss
-
   @Dependency(\.moduleClient) var moduleClient
-
   @Dependency(\.repoClient) var repoClient
 
   public init() {}
@@ -37,7 +35,6 @@ extension RepoPackagesFeature {
 
   public struct State: FeatureState {
     public var repo: Repo
-    public var fetchedModules: Loadable<[Module.Manifest]>
     public var downloadStates: [Module.ID: RepoClient.RepoModuleDownloadState]
     public var packages: Loadable<[Package]>
 
@@ -47,12 +44,10 @@ extension RepoPackagesFeature {
 
     public init(
       repo: Repo,
-      fetchedModules: Loadable<[Module.Manifest]> = .pending,
       installingModules: [Module.ID: RepoClient.RepoModuleDownloadState] = [:],
       packages: Loadable<[Package]> = .pending
     ) {
       self.repo = repo
-      self.fetchedModules = fetchedModules
       self.downloadStates = installingModules
       self.packages = packages
     }

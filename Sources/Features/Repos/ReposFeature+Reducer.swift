@@ -20,7 +20,6 @@ extension ReposFeature {
     case repoURLDebounce
     case refreshFetchingAllRemoteModules
     case loadRepos
-    case fetchRemoteRepoModules(Repo.ID)
     case observeInstallingModules
   }
 
@@ -42,9 +41,6 @@ extension ReposFeature {
           }
         }
 
-      case .view(.didTapRefreshRepos):
-        break
-
       case let .view(.didTapAddNewRepo(repoPayload)):
         state.url = ""
         state.searchedRepo = .pending
@@ -60,14 +56,11 @@ extension ReposFeature {
             try await Task.sleep(nanoseconds: 1_000_000 * 500)
             try await repoClient.deleteRepo(repoId)
           },
-          .cancel(id: Cancellables.fetchRemoteRepoModules(repoId)),
           .run { try await moduleClient.removeCachedModules(repoId) }
         )
 
       case let .view(.didTapRepo(repoId)):
-        guard let repo = state.repos[id: repoId] else {
-          break
-        }
+        guard let repo = state.repos[id: repoId] else { break }
         state.path.append(RepoPackagesFeature.State(repo: repo))
 
       case .view(.binding(\.$url)):
@@ -97,9 +90,6 @@ extension ReposFeature {
       case let .internal(.loadRepos(repos)):
         state.repos = .init(uniqueElements: repos)
 
-      case .internal(.path(.element(_, .delegate))):
-        break
-
       case .internal(.path):
         break
 
@@ -125,9 +115,7 @@ extension URL {
 
     // Everything else is case sensitive, so check if there's a foward slash. If not, add it.
 
-    guard var string = components?.string else {
-      return nil
-    }
+    guard var string = components?.string else { return nil }
 
     // Remove trailing slash
     if string.hasSuffix("/") {

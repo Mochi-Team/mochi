@@ -43,7 +43,6 @@ public struct ReposFeature: Feature {
     @CasePathable
     public enum ViewAction: SendableAction, BindableAction {
       case onTask
-      case didTapRefreshRepos(Repo.ID? = nil)
       case didTapRepo(Repo.ID)
       case didTapAddNewRepo(RepoClient.RepoPayload)
       case didTapCopyRepoURL(Repo.ID)
@@ -71,7 +70,6 @@ public struct ReposFeature: Feature {
     public let store: StoreOf<ReposFeature>
 
     @Environment(\.theme) var theme
-
     @Dependency(\.dateFormatter) var dateFormatter
 
     @MainActor

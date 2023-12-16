@@ -16,6 +16,7 @@ extension RepoPackagesFeature {
     case fetchingModules
   }
 
+  @ReducerBuilder<State, Action>
   public var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
@@ -63,7 +64,6 @@ extension RepoPackagesFeature {
         state.repo = repo ?? state.repo
 
       case let .internal(.repoModules(modules)):
-        state.fetchedModules = modules
         state.packages = modules.map { manifests in
           Dictionary(grouping: manifests, by: \.id)
             .map(\.value)
@@ -101,16 +101,16 @@ extension RepoPackagesFeature.State {
 
     // TODO: Cache request
 
-    guard !fetchedModules.hasInitialized || forced else {
+    guard !packages.hasInitialized || forced else {
       return .none
     }
 
-    fetchedModules = .loading
+    packages = .pending
 
     let id = repo.id
-
     return .run { send in
       try await withTaskCancellation(id: RepoPackagesFeature.Cancellable.fetchingModules, cancelInFlight: true) {
+        await send(.internal(.repoModules(.loading)))
         let modules = try await repoClient.fetchModulesMetadata(id)
         await send(.internal(.repoModules(.loaded(modules))))
       }
