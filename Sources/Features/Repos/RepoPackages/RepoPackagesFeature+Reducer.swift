@@ -16,8 +16,7 @@ extension RepoPackagesFeature {
     case fetchingModules
   }
 
-  @ReducerBuilder<State, Action>
-  public var body: some ReducerOf<Self> {
+  @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .view(.onTask):

@@ -14,10 +14,12 @@ import SwiftUI
 
 private struct ScrollOffsetPreferenceKey: SwiftUI.PreferenceKey {
   static var defaultValue: CGPoint = .zero
-  static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) {}
+  static func reduce(value _: inout CGPoint, nextValue _: () -> CGPoint) {}
 }
 
 private let scrollOffsetNamespace = "scrollView"
+
+// MARK: - RefreshableStatus
 
 @CasePathable
 @dynamicMemberLookup
@@ -55,8 +57,7 @@ public struct ScrollViewTracker<Content: View>: View {
     self.content = content
   }
 
-  @MainActor
-  public var body: some View {
+  @MainActor public var body: some View {
     ScrollView(axis, showsIndicators: showsIndicators) {
       ZStack(alignment: .top) {
         GeometryReader { geo in
@@ -81,9 +82,9 @@ public struct ScrollViewTracker<Content: View>: View {
     .onPreferenceChange(ScrollOffsetPreferenceKey.self, perform: action)
     .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
       if #unavailable(iOS 16), refresh != nil {
-        if value.y > 0 && refreshableState == nil {
+        if value.y > 0, refreshableState == nil {
           refreshableState = .pending
-        } else if value.y > amountToPullBeforeRefreshing && refreshableState == .pending {
+        } else if value.y > amountToPullBeforeRefreshing, refreshableState == .pending {
           #if canImport(UIKit)
           UIImpactFeedbackGenerator(style: .medium).impactOccurred()
           #endif
@@ -95,7 +96,7 @@ public struct ScrollViewTracker<Content: View>: View {
               }
             }
           )
-        } else if value.y <= 0 && !(refreshableState?.is(\.refreshing) ?? false) {
+        } else if value.y <= 0, !(refreshableState?.is(\.refreshing) ?? false) {
           refreshableState = nil
         }
       }

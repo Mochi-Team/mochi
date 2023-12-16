@@ -3,11 +3,13 @@
 //
 //
 //  Created by ErrorErrorError on 12/15/23.
-//  
+//
 //
 
 import Foundation
 import SwiftUI
+
+// MARK: - OnInitialTask
 
 private struct OnInitialTask: ViewModifier {
   @State var appeared = false
@@ -29,6 +31,6 @@ extension View {
     priority: TaskPriority = .userInitiated,
     _ callback: @escaping @Sendable () async -> Void
   ) -> some View {
-    self.modifier(OnInitialTask(priority: priority, callback: callback))
+    modifier(OnInitialTask(priority: priority, callback: callback))
   }
 }

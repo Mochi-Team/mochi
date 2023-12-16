@@ -98,19 +98,21 @@ extension ReposFeature.View: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .navigationTitle("Repos")
       #if os(iOS)
-      .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.large)
       #elseif os(macOS)
-      .toolbar {
-        ToolbarItem(placement: .automatic) {
-          repoUrlTextInput
+        .toolbar {
+          ToolbarItem(placement: .automatic) {
+            repoUrlTextInput
+          }
         }
-      }
       #endif
     } destination: { store in
       RepoPackagesFeature.View(store: store)
     }
   }
 }
+
+// MARK: - ReposFeature.View.RepoURLInputViewState
 
 extension ReposFeature.View {
   struct RepoURLInputViewState: Equatable, @unchecked Sendable {
