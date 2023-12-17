@@ -113,6 +113,30 @@ extension SnapScroll.EdgeInsets {
   }
 }
 
+// MARK: - HeightAwareTabView
+
+@MainActor
+public struct HeightAwareTabView<Content: View>: View {
+  public init(
+    @ViewBuilder content: @escaping () -> Content
+  ) {
+    self.content = content
+  }
+
+  @State private var height: CGFloat = .zero
+  let content: () -> Content
+
+  public var body: some View {
+    TabView {
+      content()
+        .readSize { size in
+          height = size.vertical
+        }
+    }
+    .frame(minHeight: height)
+  }
+}
+
 // MARK: - SnapScroll_Previews
 
 #Preview {

@@ -88,15 +88,17 @@ extension SearchFeature.View: View {
           StatusView(
             title: .init(localizable: "Search Failed"),
             description: .init(localizable: "Failed to retrieve items."),
-            image: .asset("search.trianglebadge.exclamationmark", hasBadge: true),
+            image: .asset("search.trianglebadge.exclamationmark"),
             foregroundColor: .red
           )
         } loadingView: {
-          StatusView(
-            title: .init(localizable: "Searching..."),
-            description: .init(localizable: ""),
-            image: .asset("search.badge.clock", hasBadge: true)
-          )
+          WithViewStore(store, observe: \.query) { queryStore in
+            StatusView(
+              title: "Searching...",
+              description: "for \"\(queryStore.state)\"",
+              assetImage: "search.badge.clock"
+            )
+          }
         } pendingView: {
           StatusView(
             title: .init(localizable: "Search Empty"),

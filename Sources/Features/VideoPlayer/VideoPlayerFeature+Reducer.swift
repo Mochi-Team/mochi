@@ -147,6 +147,7 @@ extension VideoPlayerFeature: Reducer {
         if state.selected.sourceId == nil {
           state.selected.sourceId = response.first?.id
         }
+
         if state.selected.serverId == nil {
           state.selected.serverId = response.first?.servers.first?.id
         }
@@ -199,7 +200,6 @@ extension VideoPlayerFeature.State {
 extension VideoPlayerFeature.State {
   public func dismiss() -> Effect<VideoPlayerFeature.Action> {
     @Dependency(\.playerClient) var playerClient
-
     @Dependency(\.dismiss) var dismiss
 
     return .merge(
@@ -262,7 +262,7 @@ extension VideoPlayerFeature.State {
       loadables.playlistItemSourcesLoadables.removeAll()
 
       return .merge(
-        shouldClearContents ? content.clear() : .none, content.fetchContent().map { .internal(.content($0)) },
+        shouldClearContents ? content.clear() : .none, content.fetchContent(.page(groupId, variantId, pageId)).map { .internal(.content($0)) },
         .run { await playerClient.clear() }
       )
     }
@@ -293,9 +293,7 @@ extension VideoPlayerFeature.State {
       loadables.playlistItemSourcesLoadables.removeAll()
       return .merge(
         fetchSourcesIfNecessary(),
-        .run {
-          await playerClient.clear()
-        }
+        .run { await playerClient.clear() }
       )
     }
     return .none
@@ -426,13 +424,8 @@ extension VideoPlayerFeature.State {
     let sourceId = selected.sourceId
     let serverId = selected.serverId
 
-    guard let sourceId else {
-      return .none
-    }
-
-    guard let serverId else {
-      return .none
-    }
+    guard let sourceId else { return .none }
+    guard let serverId else { return .none }
 
     if forced || !loadables[serverId: serverId].hasInitialized {
       loadables.update(with: serverId, response: .loading)

@@ -22,6 +22,11 @@ extension ModuleListsFeature {
           }
         }
 
+      case .view(.didTapToDismiss):
+        return .run {
+          await dismiss()
+        }
+
       case let .view(.didSelectModule(repoId, moduleId)):
         guard let module = state.repos[id: repoId]?.modules[id: moduleId]?.manifest else {
           break

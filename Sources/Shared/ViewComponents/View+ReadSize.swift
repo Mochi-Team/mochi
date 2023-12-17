@@ -72,3 +72,23 @@ extension View {
     )
   }
 }
+
+// MARK: - ReadableSizeView
+
+@MainActor
+public struct ReadableSizeView<Content: View>: View {
+  @MainActor
+  public init(
+    @ViewBuilder content: @escaping (CGSize) -> Content
+  ) {
+    self.content = content
+  }
+
+  let content: (CGSize) -> Content
+  @State var size = CGSize.zero
+
+  @MainActor public var body: some View {
+    content(size)
+      .readSize { size = $0.size }
+  }
+}

@@ -108,10 +108,7 @@ extension DiscoverFeature.View: View {
           }
       }
       .ignoresSafeArea(.keyboard)
-      .frame(
-        maxWidth: .infinity,
-        maxHeight: .infinity
-      )
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
       .onAppear { store.send(.view(.didAppear)) }
       .moduleListsSheet(
         store.scope(
@@ -191,7 +188,6 @@ extension DiscoverFeature.View {
     } waitingView: {
       let placeholders: [Playlist] = (0..<10).map { .placeholder($0) }
 
-      // TODO: Make it localizable?
       buildListingsView(
         [
           .init(
@@ -244,6 +240,8 @@ extension DiscoverFeature.View {
   func buildListingsView(_ listings: [DiscoverListing]) -> some View {
     ScrollView(.vertical, showsIndicators: false) {
       VStack(spacing: 24) {
+        Spacer()
+          .frame(height: 12)
         ForEach(listings, id: \.id) { listing in
           switch listing.type {
           case .default:
@@ -262,209 +260,124 @@ extension DiscoverFeature.View {
 extension DiscoverFeature.View {
   @MainActor
   func rowListing(_ listing: DiscoverListing) -> some View {
-    LazyVStack(alignment: .leading) {
-      HStack {
-        Text(listing.title)
-          .font(.system(size: 18, weight: .semibold))
-
-        Spacer()
-
-        if listing.paging.nextPage != nil {
-          Button {
-            store.send(.view(.didTapViewMoreListing(listing.id)))
-          } label: {
-            Text(localizable: "View More")
-              .font(.system(size: 13, weight: .bold))
-              .foregroundColor(.gray)
-              .opacity(listing.items.isEmpty ? 0 : 1.0)
-          }
-          .buttonStyle(.plain)
-        }
-      }
-      .padding(.horizontal)
-
-      if listing.items.isEmpty {
-        Color.gray.opacity(0.2)
-          .frame(maxWidth: .infinity)
-          .frame(height: 128)
-          .cornerRadius(12)
-          .padding(.horizontal)
-          .overlay(
-            Text(localizable: "No content available")
-              .font(.callout.weight(.medium))
-          )
-      } else {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(alignment: .top, spacing: 12) {
-            ForEach(listing.items) { playlist in
-              VStack(alignment: .leading, spacing: 6) {
-                LazyImage(
-                  url: playlist.posterImage,
-                  transaction: .init(animation: .easeInOut(duration: 0.16))
-                ) { state in
-                  if let image = state.image {
-                    image.resizable()
-                  } else {
-                    Color.gray
-                      .opacity(0.35)
-                  }
+    listingViewContainer(listing) {
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(alignment: .top, spacing: 12) {
+          ForEach(listing.items) { playlist in
+            VStack(alignment: .leading, spacing: 6) {
+              LazyImage(
+                url: playlist.posterImage,
+                transaction: .init(animation: .easeInOut(duration: 0.16))
+              ) { state in
+                if let image = state.image {
+                  image.resizable()
+                } else {
+                  Color.gray
+                    .opacity(0.35)
                 }
-                .aspectRatio(5 / 7, contentMode: .fit)
-                .cornerRadius(12)
+              }
+              .aspectRatio(listing.orientation.aspectRatio, contentMode: .fit)
+              .cornerRadius(12)
 
-                Text(playlist.title ?? "No Title")
-                  .lineLimit(3)
-                  .font(.subheadline.weight(.medium))
-                  .multilineTextAlignment(.leading)
-                  .fixedSize(horizontal: false, vertical: true)
-              }
-              .frame(width: 124)
-              .contentShape(Rectangle())
-              .onTapGesture {
-                store.send(.view(.didTapPlaylist(playlist)))
-              }
+              Text(playlist.title ?? "No Title")
+                .lineLimit(3)
+                .font(.subheadline.weight(.medium))
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(width: 124)
+            .contentShape(Rectangle())
+            .onTapGesture {
+              store.send(.view(.didTapPlaylist(playlist)))
             }
           }
-          .padding(.horizontal)
         }
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal)
       }
+      .frame(maxWidth: .infinity)
     }
-    .frame(maxWidth: .infinity)
   }
 
   @MainActor
   func rankListing(_ listing: DiscoverListing) -> some View {
-    LazyVStack(alignment: .leading) {
-      HStack {
-        Text(listing.title)
-          .font(.title3.weight(.semibold))
+    listingViewContainer(listing) {
+      let rowCount = 3
+      let sections: Int = (listing.items.count - 1) / rowCount
 
-        Spacer()
+      ReadableSizeView { size in
+        ScrollView(.horizontal, showsIndicators: false) {
+          LazyHStack(alignment: .top) {
+            ForEach(Array(0...sections), id: \.self) { col in
+              VStack(alignment: .leading, spacing: 6) {
+                let start = col * rowCount
+                let end = start + min(rowCount, listing.items.count - start)
 
-        if listing.paging.nextPage != nil {
-          Button {
-            store.send(.view(.didTapViewMoreListing(listing.id)))
-          } label: {
-            Text(localizable: "View More")
-              .font(.footnote.weight(.bold))
-              .foregroundColor(.gray)
-              .opacity(listing.items.isEmpty ? 0 : 1.0)
-          }
-          .buttonStyle(.plain)
-        }
-      }
-      .padding(.horizontal)
+                ForEach(start..<end, id: \.self) { idx in
+                  let playlist = listing.items[idx]
+                  HStack(alignment: .center, spacing: 8) {
+                    Text("\(idx + 1)")
+                      .font(.body.monospacedDigit().weight(.bold))
 
-      if listing.items.isEmpty {
-        Color.gray.opacity(0.2)
-          .frame(maxWidth: .infinity)
-          .frame(height: 128)
-          .cornerRadius(12)
-          .padding(.horizontal)
-          .overlay(
-            Text(localizable: "No content available")
-              .font(.callout.weight(.medium))
-          )
-      } else {
-        let rowCount = 3
-        let sections: Int = (listing.items.count - 1) / rowCount
-        SnapScroll(
-          alignment: .top,
-          spacing: 20,
-          edgeInsets: .init(trailing: 40),
-          items: Array(0...sections)
-        ) { col in
-          let start = col * rowCount
-          let end = start + min(rowCount, listing.items.count - start)
+                    LazyImage(
+                      url: playlist.posterImage,
+                      transaction: .init(animation: .easeInOut(duration: 0.16))
+                    ) { state in
+                      if let image = state.image {
+                        image.resizable()
+                      } else {
+                        Color.gray
+                          .opacity(0.35)
+                      }
+                    }
+                    .aspectRatio(listing.orientation.aspectRatio, contentMode: .fit)
+                    .frame(width: 80)
+                    .cornerRadius(12)
 
-          VStack(alignment: .leading, spacing: 6) {
-            ForEach(start..<end, id: \.self) { idx in
-              let playlist = listing.items[idx]
-              HStack(alignment: .center, spacing: 8) {
-                Text("\(idx + 1)")
-                  .font(.body.monospacedDigit().weight(.bold))
+                    Text(playlist.title ?? "No Title")
+                      .lineLimit(3)
+                      .font(.subheadline.weight(.medium))
+                      .multilineTextAlignment(.leading)
+                      .fixedSize(horizontal: false, vertical: true)
 
-                LazyImage(
-                  url: playlist.posterImage,
-                  transaction: .init(animation: .easeInOut(duration: 0.16))
-                ) { state in
-                  if let image = state.image {
-                    image.resizable()
-                  } else {
-                    Color.gray
-                      .opacity(0.35)
+                    Spacer()
+                  }
+                  .frame(maxWidth: .infinity)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .contentShape(Rectangle())
+                  .onTapGesture {
+                    store.send(.view(.didTapPlaylist(playlist)))
+                  }
+
+                  if idx < (end - 1) {
+                    Divider()
                   }
                 }
-                .aspectRatio(5 / 7, contentMode: .fill)
-                .frame(width: 64)
-                .cornerRadius(12)
-
-                Text(playlist.title ?? "No Title")
-                  .lineLimit(3)
-                  .font(.subheadline.weight(.medium))
-                  .multilineTextAlignment(.leading)
-                  .fixedSize(horizontal: false, vertical: true)
-
-                Spacer()
+                .frame(maxWidth: .infinity)
               }
+              .frame(width: horizontalSizeClass == .compact ? size.width * 0.8 : size.width * 0.9 / 3)
               .frame(maxWidth: .infinity)
-              .fixedSize(horizontal: false, vertical: true)
-              .contentShape(Rectangle())
-              .onTapGesture {
-                store.send(.view(.didTapPlaylist(playlist)))
-              }
-
-              if idx < (end - 1) {
-                Divider()
-              }
             }
             .frame(maxWidth: .infinity)
           }
           .frame(maxWidth: .infinity)
+          .padding(.horizontal)
         }
-        .aspectRatio(1.5, contentMode: .fill)
         .frame(maxWidth: .infinity)
       }
+      .frame(maxWidth: .infinity)
     }
-    .frame(maxWidth: .infinity)
   }
 
   @MainActor
   @ViewBuilder
   func featuredListing(_ listing: DiscoverListing) -> some View {
-    VStack {
-      HStack {
-        Text(listing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No Title" : listing.title)
-          .font(.title3.weight(.semibold))
-
-        Spacer()
-
-        if listing.paging.nextPage != nil {
-          Button {
-            store.send(.view(.didTapViewMoreListing(listing.id)))
-          } label: {
-            Text(localizable: "View More")
-              .font(.footnote.weight(.bold))
-              .foregroundColor(.gray)
-              .opacity(listing.items.isEmpty ? 0 : 1.0)
-          }
-          .buttonStyle(.plain)
-        }
-      }
-      .padding(.horizontal)
-
-      // TODO: Make size based on listing's size type
-      // TODO: Make it snap for devices lower than iOS 17 (other platforms too)
-      // TODO: Show indicators for macOS
-      GeometryReader { proxy in
-        let maxWidthPerItem = proxy.size.width * 0.8
+    listingViewContainer(listing) {
+      ReadableSizeView { size in
         ScrollView(.horizontal, showsIndicators: false) {
-          LazyHStack {
+          LazyHStack(spacing: 16) {
             ForEach(listing.items) { playlist in
               ZStack(alignment: .bottom) {
                 FillAspectImage(url: playlist.posterImage ?? playlist.bannerImage)
-                  // TODO: Make gradient with blur
                   .overlay {
                     LinearGradient(
                       gradient: .init(
@@ -486,21 +399,70 @@ extension DiscoverFeature.View {
                   .padding(.horizontal)
                   .padding(.bottom)
               }
-              .cornerRadius(12)
-              .onTapGesture {
-                store.send(.view(.didTapPlaylist(playlist)))
-              }
-              .frame(width: maxWidthPerItem)
+              .aspectRatio(listing.orientation.aspectRatio, contentMode: .fit)
+              .frame(
+                width: horizontalSizeClass == .compact ? size.width * 0.8 :
+                  listing.orientation == .portrait ? min(178, size.width * 0.9 / 4) :
+                  min(220, size.width * 0.9 / 4)
+              )
               .frame(maxHeight: .infinity)
+              .clipShape(RoundedRectangle(cornerRadius: 18))
+              .onTapGesture { store.send(.view(.didTapPlaylist(playlist))) }
             }
           }
           .padding(.horizontal)
         }
         .frame(maxWidth: .infinity)
       }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .aspectRatio(listing.orientation == .portrait ? 6 / 7 : 16 / 10, contentMode: .fit)
+      .frame(maxWidth: .infinity)
     }
+  }
+}
+
+extension DiscoverFeature.View {
+  @MainActor
+  func listingViewContainer(_ listing: DiscoverListing, @ViewBuilder content: () -> some View) -> some View {
+    LazyVStack(alignment: .leading) {
+      HStack {
+        Text(listing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No Title" : listing.title.trimmingCharacters(in: .whitespacesAndNewlines))
+          .font(.title3.weight(.semibold))
+
+        Spacer()
+
+        if listing.paging.nextPage != nil {
+          Button {
+            store.send(.view(.didTapViewMoreListing(listing.id)))
+          } label: {
+            Text(localizable: "View More")
+              .font(.footnote.weight(.bold))
+              .foregroundColor(.gray)
+              .opacity(listing.items.isEmpty ? 0 : 1.0)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.horizontal)
+
+      if listing.items.isEmpty {
+        Color.gray.opacity(0.2)
+          .frame(maxWidth: .infinity)
+          .frame(height: 128)
+          .cornerRadius(12)
+          .padding(.horizontal)
+          .overlay(
+            Text(localizable: "No content available")
+              .font(.callout.weight(.medium))
+          )
+      } else {
+        content()
+      }
+    }
+  }
+}
+
+extension DiscoverListing.OrientationType {
+  var aspectRatio: Double {
+    self == .portrait ? 3 / 4 : 16 / 10
   }
 }
 
@@ -509,8 +471,18 @@ extension DiscoverFeature.View {
 #Preview {
   DiscoverFeature.View(
     store: .init(
-      initialState: .init(section: .home()),
-      reducer: { DiscoverFeature() }
+      initialState: .init(
+        section: .module(
+          .init(
+            module: .init(
+              repoId: .init(rawValue: .init(string: "/").unsafelyUnwrapped),
+              module: .init()
+            ),
+            listings: .pending
+          )
+        )
+      ),
+      reducer: { EmptyReducer() }
     )
   )
 }

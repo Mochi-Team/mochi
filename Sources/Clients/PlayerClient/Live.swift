@@ -126,6 +126,7 @@ private class InternalPlayer {
     player.rate = rate
   }
 
+  // TODO: Fix issue with options not setting
   @MainActor
   func setOption(_ option: MediaSelectionOption?, in group: MediaSelectionGroup) {
     player.currentItem?.select(option?._ref, in: group._ref)
@@ -238,6 +239,7 @@ extension InternalPlayer {
       guard let self else {
         return .commandFailed
       }
+
       guard let event = event as? MPSkipIntervalCommandEvent else {
         return .commandFailed
       }
@@ -346,7 +348,7 @@ extension InternalPlayer {
   private func updatePlayback() {
     let updatedStatus: PlayerClient.Status
 
-    if player.status == .failed || player.status == .unknown {
+    if player.status == .failed {
       updatedStatus = .error
     } else {
       if let item = player.currentItem, item.totalDuration != .zero {

@@ -871,6 +871,7 @@ struct RepoClient: _Client {
     var dependencies: any Dependencies {
         DatabaseClient()
         FileClient()
+        Semaphore()
         SharedModels()
         Tagged()
         ComposableArchitecture()

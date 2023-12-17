@@ -82,7 +82,7 @@ extension ReposFeature.View: View {
                 StatusView(
                   title: "No Repos Added",
                   description: "Add repos to view and install modules.",
-                  image: .asset("package.badge.plus.fill", hasBadge: true)
+                  image: .asset("package.badge.plus.fill")
                 )
               }
             }

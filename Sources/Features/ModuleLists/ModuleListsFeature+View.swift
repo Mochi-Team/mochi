@@ -17,35 +17,54 @@ import SwiftUI
 extension ModuleListsFeature.View: View {
   @MainActor public var body: some View {
     WithViewStore(store, observe: \.repos) { viewStore in
-      VStack {
+      ScrollView(.vertical) {
         if viewStore.isEmpty {
-          VStack(spacing: 12) {
-            Text("No modules installed")
-              .font(.headline.bold())
+          Spacer()
+            .frame(height: 12)
 
-            Text("Make sure you have modules installed in the repos tab.")
-              .font(.callout)
-              .multilineTextAlignment(.center)
-              .font(.body)
-          }
-          .padding()
+          StatusView(
+            title: "No Repos Added",
+            description: "Make sure you add a repo in the Repos tab.",
+            assetImage: "package.badge.questionmark.fill"
+          )
         } else {
-          ScrollView(.vertical) {
-            VStack(spacing: 24) {
-              ForEach(viewStore.state) { repo in
-                repoSection(repo)
-              }
+          VStack(spacing: 24) {
+            ForEach(viewStore.state) { repo in
+              repoSection(repo)
             }
-            .padding()
           }
         }
       }
-      .frame(maxWidth: .infinity)
-      .task {
-        await viewStore.send(.onTask).finish()
+      .safeAreaInset(edge: .top) {
+        VStack {
+          Capsule()
+            .frame(width: 48, height: 4)
+            .foregroundColor(.gray.opacity(0.26))
+            .padding(.top, 8)
+
+          HStack {
+            Text(localizable: "Module Selection")
+              .font(.title3.bold())
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(.horizontal)
+
+            Button {
+              store.send(.view(.didTapToDismiss))
+            } label: {
+              Image(systemName: "xmark")
+            }
+            .buttonStyle(.materialToolbarItem)
+            .padding(.horizontal)
+          }
+
+          Divider()
+        }
+        .background(.thinMaterial)
       }
+      .frame(maxWidth: .infinity)
+      .task { await viewStore.send(.onTask).finish() }
     }
-    .frame(maxWidth: .infinity, minHeight: 300)
+    .frame(maxWidth: .infinity, minHeight: 300, maxHeight: .infinity)
   }
 }
 
@@ -68,11 +87,11 @@ extension ModuleListsFeature.View {
 
         VStack(alignment: .leading) {
           Text(repo.name)
-            .font(.title3.bold())
+            .font(.headline)
 
           Text(repo.author)
-            .font(.subheadline.bold())
-            .opacity(0.8)
+            .font(.subheadline)
+            .opacity(0.6)
 
           Spacer()
             .frame(height: 4)
@@ -86,31 +105,29 @@ extension ModuleListsFeature.View {
       }
       .fixedSize(horizontal: true, vertical: false)
       .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.horizontal)
 
       Divider()
+        .padding(.horizontal)
 
       VStack(spacing: 8) {
         if repo.modules.isEmpty {
-          VStack(spacing: 8) {
-            Text("No modules installed")
-              .font(.headline.bold())
-
-            Text("This repo does not contained any installed modules.")
-              .font(.callout)
-              .multilineTextAlignment(.center)
-          }
-          .padding(12)
-          .frame(maxWidth: .infinity)
-          .background(Color.gray.opacity(0.16).cornerRadius(12))
+          StatusView(
+            title: "No Modules Added",
+            description: "No modules have been added for this repo.",
+            assetImage: "package.badge.questionmark.fill"
+          )
         } else {
           ForEach(repo.modules.sorted { $0.name < $1.name }, id: \.id) { module in
             Button {
               store.send(.view(.didSelectModule(repo.id, module.id)))
             } label: {
-              moduleRow(repo, module.manifest)
+              moduleRow(repo, module)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .padding(.horizontal)
+            .disabled(!module.isValid)
           }
         }
       }
@@ -121,13 +138,13 @@ extension ModuleListsFeature.View {
   @MainActor
   func moduleRow(
     _ repo: Repo,
-    _ module: Module.Manifest
+    _ module: Module
   ) -> some View {
     HStack {
-      LazyImage(url: module.iconURL(repoURL: repo.remoteURL)) { state in
+      LazyImage(url: module.manifest.iconURL(repoURL: repo.remoteURL)) { state in
         if let image = state.image {
           image.resizable()
-            .aspectRatio(contentMode: .fit)
+            .scaledToFit()
         } else if state.error != nil {
           EmptyView()
         } else {
@@ -141,16 +158,17 @@ extension ModuleListsFeature.View {
         Text(module.name)
           .font(.body.weight(.medium))
 
-        // Text(module.id.rawValue)
-        //   .font(.footnote.weight(.medium))
-        //   .foregroundColor(.gray)
-
         Text("v\(module.version.description)")
           .font(.footnote.weight(.medium))
           .foregroundColor(.gray)
       }
 
       Spacer()
+
+      if !module.isValid {
+        Image(systemName: "exclamationmark.triangle.fill")
+          .foregroundColor(.red)
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 8)
@@ -162,18 +180,10 @@ extension View {
   public func moduleListsSheet(
     _ store: Store<PresentationState<ModuleListsFeature.State>, PresentationAction<ModuleListsFeature.Action>>
   ) -> some View {
-    #if os(iOS)
-    sheet(
-      store: store,
-      detents: [.medium(), .large()],
-      content: ModuleListsFeature.View.init
-    )
-    #else
     sheet(
       store: store,
       content: ModuleListsFeature.View.init
     )
-    #endif
   }
 }
 
@@ -192,7 +202,14 @@ import Styling
               name: "Local Repo",
               author: "errorerrorerror",
               description: "This is a local repo"
-            )
+            ),
+            modules: [
+              .init(
+                directory: URL(string: "/").unsafelyUnwrapped,
+                installDate: .init(),
+                manifest: .init()
+              )
+            ]
           )
         ],
         selected: nil
@@ -201,4 +218,15 @@ import Styling
     )
   )
   .previewLayout(.sizeThatFits)
+}
+
+extension Module {
+  fileprivate var isValid: Bool {
+    @Dependency(\.fileClient) var fileClient
+    if let file = try? fileClient.retrieveModuleDirectory(mainJSFile) {
+      return fileClient.fileExists(file.path)
+    } else {
+      return false
+    }
+  }
 }

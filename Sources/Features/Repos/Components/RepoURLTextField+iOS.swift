@@ -26,7 +26,7 @@ extension ReposFeature.View {
             case .loading:
               ProgressView()
                 .fixedSize(horizontal: true, vertical: true)
-                .controlSize(.small)
+                .controlSize(.regular)
             default:
               Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)

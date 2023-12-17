@@ -108,6 +108,14 @@ public struct DiscoverFeature: Feature {
     public struct ModuleListingState: Equatable, Sendable {
       public var module: RepoClient.SelectedModule
       public var listings: Loadable<[DiscoverListing]>
+
+      public init(
+        module: RepoClient.SelectedModule,
+        listings: Loadable<[DiscoverListing]>
+      ) {
+        self.module = module
+        self.listings = listings
+      }
     }
   }
 
@@ -173,6 +181,7 @@ public struct DiscoverFeature: Feature {
     public let store: StoreOf<DiscoverFeature>
 
     @Dependency(\.localizableClient.localize) var localize
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
     @MainActor
     public init(store: StoreOf<DiscoverFeature>) {
@@ -181,7 +190,6 @@ public struct DiscoverFeature: Feature {
   }
 
   @Dependency(\.repoClient) var repoClient
-
   @Dependency(\.moduleClient) var moduleClient
 
   public init() {}

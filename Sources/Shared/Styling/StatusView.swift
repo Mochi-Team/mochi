@@ -14,8 +14,17 @@ import SwiftUI
 @MainActor
 public struct StatusView: View {
   public enum ImageType {
-    case asset(String, hasBadge: Bool = false)
-    case system(String, hasBadge: Bool = false)
+    case asset(String)
+    case system(String)
+  }
+
+  var hasBadge: Bool {
+    switch image {
+    case let .asset(image), let .system(image):
+      image.contains("badge")
+    case nil:
+      false
+    }
   }
 
   let title: String
@@ -51,12 +60,12 @@ public struct StatusView: View {
       if let image {
         Group {
           switch image {
-          case let .asset(name, hasBadge):
+          case let .asset(name):
             Image(name)
               .resizable()
               .scaledToFit()
               .frame(height: hasBadge ? 28 : 18)
-          case let .system(name, hasBadge):
+          case let .system(name):
             Image(systemName: name)
               .resizable()
               .scaledToFit()

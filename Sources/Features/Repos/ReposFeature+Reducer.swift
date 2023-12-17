@@ -73,6 +73,7 @@ extension ReposFeature {
 
         return .run { send in
           try await withTaskCancellation(id: Cancellables.repoURLDebounce, cancelInFlight: true) {
+            await send(.internal(.validateRepoURL(.loading)))
             try await Task.sleep(nanoseconds: 1_000_000 * 1_250)
             try await send(.internal(.validateRepoURL(.loaded(repoClient.validate(url)))))
           }

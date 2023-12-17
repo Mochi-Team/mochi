@@ -14,16 +14,21 @@ import SwiftUI
 @MainActor
 struct SquircleModifier: ViewModifier {
   @State var sizeInset = SizeInset.zero
+  @Environment(\.colorScheme) var scheme
 
   @MainActor
   func body(content: Content) -> some View {
     content
       .readSize { sizeInset = $0 }
-      .clipShape(RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous))
+      .clipShape(clippedShape)
       .overlay {
-        RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous)
-          .style(withStroke: .gray.opacity(0.16), fill: .clear)
+        clippedShape
+          .style(withStroke: Color(white: scheme == .dark ? 0.25 : 0.75), lineWidth: 0.5, fill: .clear)
       }
+  }
+
+  var clippedShape: some Shape {
+    RoundedRectangle(cornerRadius: sizeInset.size.width / 4, style: .continuous)
   }
 }
 

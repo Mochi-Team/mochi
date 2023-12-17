@@ -418,7 +418,9 @@ extension VideoPlayerFeature.View {
           Text("There was an error loading \(type.rawValue). Please try again later.")
             .font(.callout)
 
-          Button {} label: {
+          Button {
+            // TODO: Allow Retry
+          } label: {
             Text("Retry")
               .padding(12)
               .background(Color(white: 0.16))

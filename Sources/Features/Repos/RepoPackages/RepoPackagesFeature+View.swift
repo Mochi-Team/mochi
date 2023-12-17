@@ -335,8 +335,6 @@ extension RepoPackagesFeature.View {
 enum RefreshableState {
   case pulling(CGPoint)
   case released(CGPoint)
-
-//  var isValid: Bool {}
 }
 
 extension StatusView {
@@ -344,7 +342,7 @@ extension StatusView {
     self.init(
       title: status.rawValue,
       description: status.details,
-      image: .asset(status.icon, hasBadge: true),
+      image: .asset(status.icon),
       foregroundColor: status.packageIconColor
     )
   }

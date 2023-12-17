@@ -14,9 +14,27 @@ import Foundation
 
 public struct MediaSelectionGroup: Hashable, Sendable {
   public var displayName: String
-  public private(set) var selected: MediaSelectionOption?
+  public var selected: MediaSelectionOption?
+  public var options: [MediaSelectionOption]
+  public var defaultOption: MediaSelectionOption?
+  public var allowsEmptySelection: Bool
 
   let _ref: AVMediaSelectionGroup
+
+  public init(
+    displayName: String,
+    selected: MediaSelectionOption? = nil,
+    options: [MediaSelectionOption] = [],
+    defaultOption: MediaSelectionOption? = nil,
+    allowsEmptySelection: Bool
+  ) {
+    self.displayName = displayName
+    self.selected = selected
+    self.options = options
+    self.defaultOption = defaultOption
+    self.allowsEmptySelection = allowsEmptySelection
+    self._ref = .init()
+  }
 
   init(
     name: String,
@@ -26,55 +44,67 @@ public struct MediaSelectionGroup: Hashable, Sendable {
     self._ref = ref
     self.displayName = name
     self.selected = selected
-  }
-
-  public var allowsEmptySelection: Bool {
-    _ref.allowsEmptySelection
-  }
-
-  public var options: [MediaSelectionOption] {
-    _ref.options.map { .init($0) }
-  }
-
-  public var defaultOption: MediaSelectionOption? {
-    _ref.defaultOption.flatMap { .init($0) }
+    self.options = _ref.options.map { .init($0) }
+    self.defaultOption = _ref.defaultOption.flatMap { .init($0) }
+    self.allowsEmptySelection = _ref.allowsEmptySelection
   }
 
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_ref)
+    hasher.combine(displayName)
+    hasher.combine(selected)
+    hasher.combine(options)
+    hasher.combine(defaultOption)
+    hasher.combine(allowsEmptySelection)
   }
 
-  public static func == (lhs: Self, rhs: Self) {
-    lhs._ref.isEqual(rhs._ref)
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs._ref.isEqual(rhs._ref) &&
+      lhs.displayName == rhs.displayName &&
+      lhs.selected == rhs.selected &&
+      lhs.options == rhs.options &&
+      lhs.defaultOption == rhs.defaultOption &&
+      lhs.allowsEmptySelection == rhs.allowsEmptySelection
   }
 }
 
 // MARK: - MediaSelectionOption
 
 public struct MediaSelectionOption: Hashable, Sendable {
+  public var mediaType: AVMediaType
+  public var displayName: String
+  public var isPlayable: Bool
+
   let _ref: AVMediaSelectionOption
+
+  init(
+    mediaType: AVMediaType,
+    displayName: String,
+    isPlayable: Bool
+  ) {
+    self.mediaType = mediaType
+    self.displayName = displayName
+    self.isPlayable = isPlayable
+    self._ref = .init()
+  }
 
   init(_ ref: AVMediaSelectionOption) {
     self._ref = ref
-  }
-
-  public var mediaType: AVMediaType {
-    _ref.mediaType
-  }
-
-  public var displayName: String {
-    _ref.displayName
-  }
-
-  public var isPlayable: Bool {
-    _ref.isPlayable
+    self.mediaType = _ref.mediaType
+    self.displayName = _ref.displayName
+    self.isPlayable = _ref.isPlayable
   }
 
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_ref)
+    hasher.combine(displayName)
+    hasher.combine(isPlayable)
   }
 
-  public static func == (lhs: Self, rhs: Self) {
-    lhs._ref.isEqual(rhs._ref)
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs._ref.isEqual(rhs._ref) &&
+      lhs.mediaType == rhs.mediaType &&
+      lhs.displayName == rhs.displayName &&
+      lhs.isPlayable == rhs.isPlayable
   }
 }
