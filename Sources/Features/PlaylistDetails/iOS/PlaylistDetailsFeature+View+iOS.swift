@@ -250,7 +250,9 @@ extension PlaylistDetailsFeature.View {
             }
 
             Button {
-              // TODO: Handle resume play
+              if let action = viewStore.state.action {
+                viewStore.send(action)
+              }
             } label: {
               HStack {
                 if let image = viewStore.state.image {
@@ -289,7 +291,7 @@ extension PlaylistDetailsFeature.View {
             .buttonStyle(.plain)
             .animation(.easeIn(duration: 0.12), value: viewStore.state)
             .animation(.easeIn(duration: 0.12), value: imageDominatColor)
-            .disabled(viewStore.state == .unavailable)
+            .disabled(viewStore.state.action == nil)
             .shimmering(active: viewStore.state == .loading)
           }
         }

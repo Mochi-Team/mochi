@@ -66,7 +66,15 @@ public struct PlaylistDetailsFeature: Feature {
     }
 
     public var resumableState: Resumable {
-      content.groups.didFinish ? (content.groups.value == nil ? .unavailable : .start) : .loading
+      // TODO: Show start based on last resumed or selected content?
+      if let group = content.groups.value?.first,
+         let variant = group.variants.value?.first,
+         let page = variant.pagings.value?.first,
+         let item = page.items.value?.first {
+        return .start(group.id, variant.id, page.id, item.id)
+      } else {
+        return content.groups.didFinish ? .unavailable : .loading
+      }
     }
 
     public init(
@@ -81,12 +89,23 @@ public struct PlaylistDetailsFeature: Feature {
 
     public enum Resumable: Equatable, Sendable {
       case loading
-      case start
+      case start(Playlist.Group.ID, Playlist.Group.Variant.ID, PagingID, Playlist.Item.ID)
       case `continue`(String, Double)
       case unavailable
 
       var image: Image? {
         self != .unavailable ? .init(systemName: "play.fill") : nil
+      }
+
+      var action: Action? {
+        switch self {
+        case let .start(groupId, variantId, pagingId, itemId):
+            .internal(.content(.didTapPlaylistItem(groupId, variantId, pagingId, id: itemId)))
+        case .continue:
+          nil
+        default:
+          nil
+        }
       }
 
       var description: String {

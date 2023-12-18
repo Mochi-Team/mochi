@@ -30,7 +30,7 @@ public struct SearchFeature: Feature {
 
     public var nextPage: Loadable<PagingID>? {
       initial.nextPage.flatMap { loadables[$0] == nil ? .loaded($0) : nil } ??
-        loadables.values.last?.map(\.nextPage)
+        loadables.values.last?.optionalMap(\.nextPage)
     }
 
     public init(

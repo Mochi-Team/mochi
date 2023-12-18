@@ -98,7 +98,7 @@ public enum Loadable<T> {
   }
 
   @inlinable
-  public func map<V>(_ transform: @escaping (T) -> V?) -> Loadable<V>? {
+  public func optionalMap<V>(_ transform: @escaping (T) -> V?) -> Loadable<V>? {
     switch self {
     case .pending:
       .pending

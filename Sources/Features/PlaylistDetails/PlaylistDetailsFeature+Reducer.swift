@@ -62,9 +62,7 @@ extension PlaylistDetailsFeature {
         state.details = loadable
 
       case let .internal(.content(.didTapPlaylistItem(groupId, variantId, pageId, itemId))):
-        guard state.content.groups.value != nil else {
-          break
-        }
+        guard state.content.groups.value != nil else { break }
 
         switch state.content.playlist.type {
         case .video:
