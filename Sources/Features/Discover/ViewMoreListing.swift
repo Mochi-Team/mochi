@@ -130,13 +130,7 @@ extension ViewMoreListing {
       WithViewStore(store, observe: ViewState.init) { viewStore in
         ScrollView(.vertical) {
           LazyVGrid(
-            columns: .init(
-              repeating: .init(
-                .adaptive(minimum: 120),
-                alignment: .top
-              ),
-              count: columns
-            ),
+            columns: [.init(.adaptive(minimum: 120), alignment: .top)],
             alignment: .leading
           ) {
             let allItems = viewStore.items.values.flatMap { $0.value?.items ?? [] }

@@ -16,11 +16,11 @@ extension SettingsFeature.View {
         VStack {
           switch section {
           case .general:
-            GeneralView(showTitle: false, viewStore: viewStore)
+            GeneralView(showTitle: false, store: store)
           case .appearance:
-            AppearanceView(showTitle: false, viewStore: viewStore)
+            AppearanceView(showTitle: false, store: store)
           case .developer:
-            DeveloperView(showTitle: false, viewStore: viewStore)
+            DeveloperView(showTitle: false, store: store)
           }
           Spacer()
         }

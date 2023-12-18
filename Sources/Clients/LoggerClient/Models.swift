@@ -34,7 +34,6 @@ struct ConsumableLogsHandler: LogHandler {
   var logLevel = Logger.Level.info
 
   private let lock = NSLock()
-
   static let event = CurrentValueSubject<[SystemLogEvent], Never>([])
 
   subscript(metadataKey key: String) -> Logger.Metadata.Value? {

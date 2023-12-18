@@ -18,10 +18,9 @@ extension SettingsFeature.View: View {
   @MainActor public var body: some View {
     NavStack(store.scope(state: \.path, action: \.internal.path)) {
       listSections
-        .animation(.easeInOut, value: viewStore.userSettings.developerModeEnabled)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Settings")
-        .task { viewStore.send(.onTask) }
+        .task { store.send(.view(.onTask)) }
     } destination: { store in
       SwitchStore(store) { state in
         switch state {
@@ -42,10 +41,9 @@ extension SettingsFeature.View: View {
 @MainActor
 struct GeneralView: View {
   var showTitle = true
+  let store: StoreOf<SettingsFeature>
 
   @Environment(\.theme) var theme
-
-  @ObservedObject var viewStore: FeatureViewStore<SettingsFeature>
 
   var body: some View {
     EmptyView()
@@ -66,23 +64,24 @@ struct GeneralView: View {
 @MainActor
 struct AppearanceView: View {
   var showTitle = true
+  let store: StoreOf<SettingsFeature>
 
   @Environment(\.theme) var theme
 
-  @ObservedObject var viewStore: FeatureViewStore<SettingsFeature>
-
   var body: some View {
-    SettingsGroup(title: showTitle ? SettingsFeature.Section.appearance.localized : "") {
-      SettingRow(title: "Theme") {
-        Text(viewStore.userSettings.theme.name)
-          .font(.callout)
-          .foregroundColor(theme.textColor.opacity(0.65))
-      } content: {
-        ThemePicker(theme: viewStore.$userSettings.theme)
-      }
+    WithViewStore(store, observe: \.`self`) { viewStore in
+      SettingsGroup(title: showTitle ? SettingsFeature.Section.appearance.localized : "") {
+        SettingRow(title: "Theme") {
+          Text(viewStore.userSettings.theme.name)
+            .font(.callout)
+            .foregroundColor(theme.textColor.opacity(0.65))
+        } content: {
+          ThemePicker(theme: viewStore.$userSettings.theme)
+        }
 
-      // TODO: Add option to change app icon
-      // SettingRow(title: "App Icon", accessory: EmptyView.init) {}
+          // TODO: Add option to change app icon
+          // SettingRow(title: "App Icon", accessory: EmptyView.init) {}
+      }
     }
   }
 }
@@ -92,30 +91,32 @@ struct AppearanceView: View {
 @MainActor
 struct DeveloperView: View {
   var showTitle = true
+  let store: StoreOf<SettingsFeature>
 
   @Environment(\.theme) var theme
 
-  @ObservedObject var viewStore: FeatureViewStore<SettingsFeature>
-
   var body: some View {
-    SettingsGroup(title: showTitle ? SettingsFeature.Section.developer.localized : "") {
-      SettingRow(title: String(localized: "Developer Mode"), accessory: {
-        Toggle("", isOn: viewStore.$userSettings.developerModeEnabled)
-          .labelsHidden()
-          .toggleStyle(.switch)
-          .controlSize(.small)
-      })
-
-      if viewStore.userSettings.developerModeEnabled {
-        SettingRow(title: String(localized: "View Logs"), accessory: {
-          Image(systemName: "chevron.right")
-            .font(.footnote)
+    WithViewStore(store, observe: \.`self`) { viewStore in
+      SettingsGroup(title: showTitle ? SettingsFeature.Section.developer.localized : "") {
+        SettingRow(title: String(localized: "Developer Mode"), accessory: {
+          Toggle("", isOn: viewStore.$userSettings.developerModeEnabled)
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.small)
         })
-        .contentShape(Rectangle())
-        .onTapGesture {
-          viewStore.send(.didTapViewLogs)
+
+        if viewStore.userSettings.developerModeEnabled {
+          SettingRow(title: String(localized: "View Logs"), accessory: {
+            Image(systemName: "chevron.right")
+              .font(.footnote)
+          })
+          .contentShape(Rectangle())
+          .onTapGesture {
+            viewStore.send(.didTapViewLogs)
+          }
         }
       }
+      .animation(.easeInOut, value: viewStore.userSettings.developerModeEnabled)
     }
   }
 }
@@ -124,9 +125,9 @@ struct DeveloperView: View {
 
 @MainActor
 struct ThemePicker: View {
-  @ScaledMetric(relativeTo: .body) var heightSize = 54
-
   @Binding var theme: Theme
+
+  @ScaledMetric(relativeTo: .body) var heightSize = 54
 
   @MainActor var body: some View {
     ScrollView(.horizontal) {

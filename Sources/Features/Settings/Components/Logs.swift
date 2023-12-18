@@ -73,9 +73,7 @@ public struct Logs: Reducer {
   }
 
   @Dependency(\.moduleClient) var moduleClient
-
   @Dependency(\.loggerClient) var loggerClient
-
   @Dependency(\.dismiss) var dismiss
 
   public init() {}
@@ -204,7 +202,8 @@ extension Logs {
         )
       )
       #if os(iOS)
-      .navigationBarTitle("Logs", displayMode: .inline)
+      .navigationTitle("")
+      .navigationBarTitleDisplayMode(.inline)
       .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
@@ -216,7 +215,29 @@ extension Logs {
           .buttonStyle(.materialToolbarItem)
         }
 
-        ToolbarItem(placement: .topBarTrailing) {
+        // TODO: Export logs
+        // ToolbarItem(placement: .topBarTrailing) {
+        //   Button {
+        //   } label: {
+        //     Image(systemName: "square.and.arrow.up")
+        //   }
+        //   .buttonStyle(.materialToolbarItem)
+        // }
+      }
+      #else
+      .navigationTitle("Logs")
+      .toolbar {
+        // TODO: Export logs
+        // ToolbarItem(placement: .automatic) {
+        //   Button {
+        //   } label: {
+        //     Image(systemName: "square.and.arrow.up")
+        //   }
+        // }
+      }
+      #endif
+      .toolbar {
+        ToolbarItem(placement: .navigation) {
           Button {
             store.send(.didTapViewerList)
           } label: {
@@ -230,20 +251,25 @@ extension Logs {
                 }
               }
 
-              Image(systemName: "chevron.up.chevron.down")
+              Image(systemName: "chevron.down")
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
+            #if os(iOS)
             .background(.gray.opacity(0.12), in: Capsule())
+            #elseif os(macOS)
+            .background(.gray.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            #endif
           }
           .buttonStyle(.plain)
           .font(.footnote.weight(.medium))
         }
       }
-      #else
-      .navigationTitle("Logs")
-      #endif
-      .task { store.send(.onTask) }
+      .initialTask {
+        _ = await MainActor.run {
+          store.send(.onTask)
+        }
+      }
     }
 
     @MainActor
@@ -256,11 +282,8 @@ extension Logs {
       VStack(alignment: .leading) {
         HStack {
           Text(level.capitalized)
-            .foregroundColor(levelColor.isDark ? .white : .black)
+            .foregroundColor(levelColor)
             .font(.caption.weight(.semibold))
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(Capsule().style(withStroke: .gray.opacity(0.16), fill: levelColor))
 
           Spacer()
 
@@ -321,7 +344,7 @@ extension ModuleLoggerLevel {
   fileprivate var color: Color {
     switch self {
     case .log:
-      .white
+      .gray
     case .info, .debug:
       .blue
     case .warn:

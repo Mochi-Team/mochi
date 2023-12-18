@@ -36,10 +36,7 @@ extension SearchFeature.View: View {
             }
           } else {
             LazyVGrid(
-              columns: .init(
-                repeating: .init(alignment: .top),
-                count: 3
-              ),
+              columns: [.init(.adaptive(minimum: 120), alignment: .top)],
               alignment: .leading
             ) {
               ForEach(searchResult.items) { item in
@@ -317,7 +314,8 @@ extension SearchFeature.View {
       .background {
         if showStatusBarBackground {
           Rectangle()
-            .fill(.ultraThinMaterial)
+            .fill(.regularMaterial)
+            .tint(theme.backgroundColor)
         } else {
           Rectangle()
             .fill(theme.backgroundColor)

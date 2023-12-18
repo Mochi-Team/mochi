@@ -109,8 +109,8 @@ public struct SearchFeature: Feature {
     public let store: StoreOf<SearchFeature>
 
     @SwiftUI.State var showStatusBarBackground = false
-
     @Environment(\.theme) var theme
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
     @MainActor
     public init(store: StoreOf<SearchFeature>) {

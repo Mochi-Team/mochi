@@ -34,7 +34,6 @@ public struct SettingsFeature: Feature {
 
   public struct Path: Reducer {
     @CasePathable
-    @dynamicMemberLookup
     public enum State: Equatable, Sendable {
       case logs(Logs.State)
     }
@@ -56,9 +55,7 @@ public struct SettingsFeature: Feature {
 
     @BindingState public var userSettings: UserSettings
 
-    public init(
-      path: StackState<Path.State> = .init()
-    ) {
+    public init(path: StackState<Path.State> = .init()) {
       self.path = path
       @Dependency(\.userSettings) var userSettings
       self.userSettings = userSettings.get()
@@ -91,14 +88,11 @@ public struct SettingsFeature: Feature {
   public struct View: FeatureView {
     public let store: StoreOf<SettingsFeature>
 
-    @ObservedObject public var viewStore: FeatureViewStore<SettingsFeature>
-
     @Environment(\.theme) var theme
 
     @MainActor
     public init(store: StoreOf<SettingsFeature>) {
       self.store = store
-      self.viewStore = .init(store, observe: \.`self`)
     }
   }
 

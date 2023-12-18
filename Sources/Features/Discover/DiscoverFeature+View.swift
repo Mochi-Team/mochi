@@ -424,8 +424,11 @@ extension DiscoverFeature.View {
   func listingViewContainer(_ listing: DiscoverListing, @ViewBuilder content: () -> some View) -> some View {
     LazyVStack(alignment: .leading) {
       HStack {
-        Text(listing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No Title" : listing.title.trimmingCharacters(in: .whitespacesAndNewlines))
-          .font(.title3.weight(.semibold))
+        Text(
+          listing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No Title" :
+          listing.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+        .font(.title3.weight(.semibold))
 
         Spacer()
 

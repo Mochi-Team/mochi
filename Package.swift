@@ -820,6 +820,7 @@ struct ModuleClient: _Client {
         Semaphore()
         JSValueCoder()
         LoggerClient()
+        Parsing()
     }
 }
 
@@ -974,6 +975,19 @@ struct Nuke: PackageDependency {
 struct NukeUI: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: Nuke.nukeURL, exact: Nuke.nukeVersion)
+    }
+}
+//
+//  Parsing.swift
+//
+//
+//  Created by ErrorErrorError on 12/17/23.
+//  
+//
+
+struct Parsing: PackageDependency {
+    var dependency: Package.Dependency {
+        .package(url: "https://github.com/pointfreeco/swift-parsing", exact: "0.13.0")
     }
 }
 //

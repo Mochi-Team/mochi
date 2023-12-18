@@ -19,6 +19,7 @@ struct ModuleClient: _Client {
         Semaphore()
         JSValueCoder()
         LoggerClient()
+        Parsing()
     }
 }
 

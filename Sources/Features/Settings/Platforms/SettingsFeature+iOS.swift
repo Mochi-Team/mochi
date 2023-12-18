@@ -19,11 +19,11 @@ extension SettingsFeature.View {
         ForEach(SettingsFeature.Section.allCases, id: \.self) { section in
           switch section {
           case .general:
-            GeneralView(viewStore: viewStore)
+            GeneralView(store: store)
           case .appearance:
-            AppearanceView(viewStore: viewStore)
+            AppearanceView(store: store)
           case .developer:
-            DeveloperView(viewStore: viewStore)
+            DeveloperView(store: store)
           }
         }
 

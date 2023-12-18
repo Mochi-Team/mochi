@@ -11,6 +11,7 @@ import Dependencies
 import FileClient
 import Foundation
 import LoggerClient
+import Parsing
 import SharedModels
 
 // MARK: - ModuleLoggerLevel
@@ -21,14 +22,49 @@ public enum ModuleLoggerLevel: String, CaseIterable, Sendable, Equatable {
   case debug
   case warn
   case error
+
+  init(rawValueWithDefault: String) {
+    self = Self(rawValue: rawValueWithDefault) ?? .log
+  }
 }
 
 // MARK: - ModuleLoggerEvent
 
-public struct ModuleLoggerEvent: Equatable, Sendable {
+struct ModuleLoggerEventParser: ParserPrinter {
+  let id: RepoModuleID
+
+  @ParserBuilder<Substring>
+  var body: some ParserPrinter<Substring.UTF8View, ModuleLoggerEvent> {
+    ParsePrint(.memberwise(ModuleLoggerEvent.init(timestamp:level:body:))) {
+      ParsePrint(.memberwise(Date.init(timeIntervalSince1970:))) {
+        Double.parser()
+      }
+      ": ".utf8
+      Skip { PrefixUpTo(" ".utf8) }
+      .printing("".utf8)
+      " [".utf8
+      ModuleLoggerLevel.parser()
+      "] ".utf8
+      Rest()
+        .map(.string)
+    }
+  }
+}
+
+public struct ModuleLoggerEvent: Equatable, Sendable, Parser {
+  public let timestamp: Date
   public let level: ModuleLoggerLevel
-  public let timestamp: Date = .init()
   public let body: String
+
+  init(
+    timestamp: Date = .init(),
+    level: ModuleLoggerLevel,
+    body: String
+  ) {
+    self.timestamp = timestamp
+    self.level = level
+    self.body = body
+  }
 }
 
 // MARK: - ModuleLogger
@@ -85,19 +121,22 @@ final class ModuleLogger {
   }
 
   private func append(_ event: ModuleLoggerEvent) {
+    let parser = ModuleLoggerEventParser(id: id)
     queue.async { [id, logFileURL, weak self] in
       self?.events.withValue { $0.append(event) }
-      let msgString = "\(event.timestamp.timeIntervalSince1970): \(id.description) [\(event.level.rawValue)] \(event.body)\n"
       do {
+        let msgString = try parser.print(event)
         let handle = try FileHandle(forWritingTo: logFileURL)
         defer {
           try? handle.synchronize()
           try? handle.close()
         }
         try handle.seekToEnd()
-        try handle.write(contentsOf: msgString.data(using: .utf8) ?? .init())
+        try handle.write(contentsOf: [UInt8](msgString))
+        try handle.seekToEnd()
+        try handle.write(contentsOf: [UInt8]("\n".utf8))
       } catch {
-        logger.error("Failed to log message for \(id.description). Error: \(error.localizedDescription)")
+        logger.error("Failed to log message for \(id.description). Error: \(error)")
       }
     }
   }
