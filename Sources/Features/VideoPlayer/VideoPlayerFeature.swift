@@ -137,6 +137,7 @@ public struct VideoPlayerFeature: Feature {
       case didSkipBackwards
       case didChangePlaybackRate(Double)
       case didSkipTo(time: CGFloat)
+      case didSeekTo(time: CGFloat)
       case didTapGroupOption(MediaSelectionOption?, for: MediaSelectionGroup)
       case didTapSource(Playlist.EpisodeSource.ID)
       case didTapServer(Playlist.EpisodeServer.ID)
@@ -167,13 +168,9 @@ public struct VideoPlayerFeature: Feature {
     @Dependency(\.playerClient.player) var player
 
     @SwiftUI.State var enablePiP = false
-
     @SwiftUI.State var gravity = AVLayerVideoGravity.resizeAspect
-
     @SwiftUI.State var pipSupported = true
-
     @SwiftUI.State var pipPossible = true
-
     @SwiftUI.State var pipStatus = PiPStatus.restoreUI
 
     @MainActor
@@ -183,9 +180,7 @@ public struct VideoPlayerFeature: Feature {
   }
 
   @Dependency(\.dismiss) var dismiss
-
   @Dependency(\.moduleClient) var moduleClient
-
   @Dependency(\.playerClient) var playerClient
 
   public init() {}
@@ -322,15 +317,14 @@ extension VideoPlayerFeature.State {
 
 extension VideoPlayerFeature.View {
   struct SkipActionViewState: Equatable {
+    @CasePathable
+    @dynamicMemberLookup
     enum Action: Hashable, CustomStringConvertible {
       case times(Playlist.EpisodeServer.SkipTime)
       case next(Double, Playlist.Group.ID, Playlist.Group.Variant.ID, PagingID, Playlist.Item.ID)
 
       var isEnding: Bool {
-        if case let .times(time) = self {
-          return time.type == .ending
-        }
-        return false
+        self.times?.type == .ending
       }
 
       var action: VideoPlayerFeature.Action {
@@ -397,7 +391,8 @@ extension VideoPlayerFeature.View {
 
       if let currentEpisode = state.selectedItem.value,
          let episodes = state.selectedPage.value?.items.value,
-         let index = episodes.firstIndex(where: { $0.id == currentEpisode.id }), (index + 1) < episodes.endIndex {
+         let index = episodes.firstIndex(where: \.id == currentEpisode.id),
+         (index + 1) < episodes.endIndex {
         let nextEpisode = episodes[index + 1]
 
         if let ending = actions.first(where: \.isEnding), case let .times(type) = ending {

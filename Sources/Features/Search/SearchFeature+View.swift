@@ -25,84 +25,87 @@ extension SearchFeature.View: View {
       showStatusBarBackground = offset.y <= -2.9 // FIXME: SafeAreaInset affects the offset of this
     } content: {
       WithViewStore(store, observe: \.searchResult) { viewStore in
-        LoadableView(loadable: viewStore.state) { searchResult in
-          if searchResult.items.isEmpty {
+        ZStack {
+          LoadableView(loadable: viewStore.state) { searchResult in
+            if searchResult.items.isEmpty {
+              WithViewStore(store, observe: \.query) { queryStore in
+                StatusView(
+                  title: "No Results",
+                  description: "for \"\(queryStore.state)\"",
+                  assetImage: "search.badge.questionmark"
+                )
+              }
+            } else {
+              LazyVGrid(
+                columns: [.init(.adaptive(minimum: 120), alignment: .top)],
+                alignment: .leading
+              ) {
+                ForEach(searchResult.items) { item in
+                  VStack(alignment: .leading) {
+                    FillAspectImage(url: item.posterImage)
+                      .aspectRatio(2 / 3, contentMode: .fit)
+                      .cornerRadius(12)
+
+                    Text(item.title ?? "Title Unavailable")
+                      .font(.footnote)
+                  }
+                  .contentShape(Rectangle())
+                  .onTapGesture {
+                    viewStore.send(.didTapPlaylist(item))
+                  }
+                }
+              }
+              .padding(.horizontal)
+
+              if let nextPage = searchResult.nextPage {
+                LoadableView(loadable: nextPage) { nextPageId in
+                  LazyView {
+                    Spacer()
+                      .frame(height: 1)
+                      .onAppear {
+                        store.send(.view(.didShowNextPageIndicator(nextPageId)))
+                      }
+                  }
+                } failedView: { _ in
+                  Button {
+                      // TODO: Allow refetch when paging failed
+                  } label: {
+                    Image(systemName: "arrow.clockwise")
+                      .font(.body)
+                      .padding(4)
+                  }
+                  .contentShape(Rectangle())
+                } waitingView: {
+                  ProgressView()
+                    .padding(.vertical, 8)
+                }
+              }
+            }
+          } failedView: { _ in
+              // TODO: Make error more explicit
+            StatusView(
+              title: .init(localizable: "Search Failed"),
+              description: .init(localizable: "Failed to retrieve items."),
+              image: .asset("search.trianglebadge.exclamationmark"),
+              foregroundColor: .red
+            )
+          } loadingView: {
             WithViewStore(store, observe: \.query) { queryStore in
               StatusView(
-                title: "No Results",
+                title: "Searching...",
                 description: "for \"\(queryStore.state)\"",
-                assetImage: "search"
+                assetImage: "search.badge.clock"
               )
             }
-          } else {
-            LazyVGrid(
-              columns: [.init(.adaptive(minimum: 120), alignment: .top)],
-              alignment: .leading
-            ) {
-              ForEach(searchResult.items) { item in
-                VStack(alignment: .leading) {
-                  FillAspectImage(url: item.posterImage)
-                    .aspectRatio(2 / 3, contentMode: .fit)
-                    .cornerRadius(12)
-
-                  Text(item.title ?? "Title Unavailable")
-                    .font(.footnote)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                  viewStore.send(.didTapPlaylist(item))
-                }
-              }
-            }
-            .padding(.horizontal)
-
-            if let nextPage = searchResult.nextPage {
-              LoadableView(loadable: nextPage) { nextPageId in
-                LazyView {
-                  Spacer()
-                    .frame(height: 1)
-                    .onAppear {
-                      store.send(.view(.didShowNextPageIndicator(nextPageId)))
-                    }
-                }
-              } failedView: { _ in
-                Button {
-                  // TODO: Allow refetch when paging failed
-                } label: {
-                  Image(systemName: "arrow.clockwise")
-                    .font(.body)
-                    .padding(4)
-                }
-                .contentShape(Rectangle())
-              } waitingView: {
-                ProgressView()
-                  .padding(.vertical, 8)
-              }
-            }
-          }
-        } failedView: { _ in
-          // TODO: Make error more explicit
-          StatusView(
-            title: .init(localizable: "Search Failed"),
-            description: .init(localizable: "Failed to retrieve items."),
-            image: .asset("search.trianglebadge.exclamationmark"),
-            foregroundColor: .red
-          )
-        } loadingView: {
-          WithViewStore(store, observe: \.query) { queryStore in
+          } pendingView: {
             StatusView(
-              title: "Searching...",
-              description: "for \"\(queryStore.state)\"",
-              assetImage: "search.badge.clock"
+              title: .init(localizable: "Search Empty"),
+              description: "Type to start searching.",
+              systemImage: "magnifyingglass"
             )
           }
-        } pendingView: {
-          StatusView(
-            title: .init(localizable: "Search Empty"),
-            description: "Type to start searching.",
-            systemImage: "magnifyingglass"
-          )
         }
+        .animation(.easeInOut(duration: 0.2), value: viewStore.state.didFinish)
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

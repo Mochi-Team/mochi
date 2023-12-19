@@ -71,13 +71,20 @@ extension VideoPlayerFeature: Reducer {
       case let .view(.didTapLink(linkId)):
         return state.clearForChangedLinkIfNeeded(linkId)
 
-      case let .view(.didSkipTo(time)):
+      case let .view(.didSeekTo(time)):
         return .merge(
           state.delayDismissOverlayIfNeeded(),
-          .run { _ in
-            await playerClient.seek(time)
-          }
+          .run { await playerClient.seek(time) }
         )
+
+      case let .view(.didSkipTo(time)):
+        if let totalDuration = state.player.playback?.totalDuration, totalDuration != .zero {
+          let progress = time / totalDuration
+          return .merge(
+            state.delayDismissOverlayIfNeeded(),
+            .run {  await playerClient.seek(progress) }
+          )
+        }
 
       case .view(.didTogglePlayback):
         let isPlaying = state.player.playback?.state == .playing

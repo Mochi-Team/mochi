@@ -99,7 +99,7 @@ struct ProgressBar: View {
               let percentageX = value.location.x / proxy.size.width
 
               dragged = dragged ?? .init(progress: progress, initial: percentageX)
-              viewState.send(.didSkipTo(time: dragged?.progress ?? .zero))
+              viewState.send(.didSeekTo(time: dragged?.progress ?? .zero))
               dragged?(percentageX)
             }
             .onEnded { _ in
