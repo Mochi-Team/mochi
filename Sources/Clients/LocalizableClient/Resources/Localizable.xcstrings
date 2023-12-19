@@ -3,45 +3,141 @@
   "strings" : {
     "Discover" : {
       "comment" : "Bottom Navigation",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entdecken"
+          }
+        }
+      }
     },
     "Home" : {
       "comment" : "DiscoverFeature",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startseite"
+          }
+        }
+      }
     },
     "Module Error" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modul-Fehler"
+          }
+        }
+      }
     },
     "No content available" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Inhalte verfügbar"
+          }
+        }
+      }
     },
     "Repos" : {
       "comment" : "Bottom Navigation",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repos"
+          }
+        }
+      }
     },
     "Retry" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederholen"
+          }
+        }
+      }
     },
     "Settings" : {
       "comment" : "Bottom Navigation",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        }
+      }
     },
     "There are no listings for this module" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt keine Auflistungen für dieses Modul"
+          }
+        }
+      }
     },
     "There is no module selected" : {
       "comment" : "DiscoverFeature.Error",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es ist kein Modul ausgewählt"
+          }
+        }
+      }
     },
     "There was an error retrieving content" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gab einen Fehler bei dem Laden der Inhalte"
+          }
+        }
+      }
     },
     "Unknown system error has occurred" : {
       "comment" : "DiscoverFeature.Error",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein unbekannter System-Fehler ist aufgetreten"
+          }
+        }
+      }
     },
     "View All" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siehe alle"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
