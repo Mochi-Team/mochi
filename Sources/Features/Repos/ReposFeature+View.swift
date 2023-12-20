@@ -24,14 +24,14 @@ extension ReposFeature.View: View {
         action: \.internal.path
       )
     ) {
-      ScrollView(.vertical, showsIndicators: false) {
-        LazyVStack(spacing: 0) {
-          #if os(iOS)
-          repoUrlTextInput
-            .padding(.horizontal)
-          #endif
+      WithViewStore(store, observe: \.repos) { viewStore in
+        ScrollView(.vertical, showsIndicators: false) {
+          LazyVStack(spacing: 0) {
+            #if os(iOS)
+            repoUrlTextInput
+              .padding(.horizontal)
+            #endif
 
-          WithViewStore(store, observe: \.repos) { viewStore in
             Spacer()
               .frame(height: 24)
 
@@ -44,51 +44,49 @@ extension ReposFeature.View: View {
             Spacer()
               .frame(height: 8)
 
-            ZStack {
-              if !viewStore.isEmpty {
-                ForEach(viewStore.state) { repo in
-                  repoRow(repo)
-                    .padding(.horizontal)
-                    .background(theme.backgroundColor)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                      self.store.send(.view(.didTapRepo(repo.id)))
-                    }
-                    .contextMenu {
-                      Button {
-                        self.store.send(.view(.didTapCopyRepoURL(repo.id)))
-                      } label: {
-                        Label("Copy Repo URL", systemImage: "doc.on.clipboard")
-                      }
-                      .buttonStyle(.plain)
-
-                      Divider()
-
-                      Button(role: .destructive) {
-                        self.store.send(.view(.didTapDeleteRepo(repo.id)))
-                      } label: {
-                        Label("Delete Repo", systemImage: "trash.fill")
-                          .foregroundColor(.red)
-                      }
-                      .buttonStyle(.plain)
-                    }
-
-                  if viewStore.last?.id != repo.id {
-                    Divider()
-                      .padding(.horizontal)
+            if !viewStore.isEmpty {
+              ForEach(viewStore.state) { repo in
+                repoRow(repo)
+                  .padding(.horizontal)
+                  .background(theme.backgroundColor)
+                  .contentShape(Rectangle())
+                  .onTapGesture {
+                    self.store.send(.view(.didTapRepo(repo.id)))
                   }
+                  .contextMenu {
+                    Button {
+                      self.store.send(.view(.didTapCopyRepoURL(repo.id)))
+                    } label: {
+                      Label("Copy Repo URL", systemImage: "doc.on.clipboard")
+                    }
+                    .buttonStyle(.plain)
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                      self.store.send(.view(.didTapDeleteRepo(repo.id)))
+                    } label: {
+                      Label("Delete Repo", systemImage: "trash.fill")
+                        .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                  }
+
+                if viewStore.last?.id != repo.id {
+                  Divider()
+                    .padding(.horizontal)
                 }
-              } else {
-                StatusView(
-                  title: "No Repos Added",
-                  description: "Add repos to view and install modules.",
-                  image: .asset("package.badge.plus.fill")
-                )
               }
+            } else {
+              StatusView(
+                title: "No Repos Added",
+                description: "Add repos to view and install modules.",
+                image: .asset("package.badge.plus.fill")
+              )
             }
-            .animation(.easeInOut, value: viewStore.state)
           }
         }
+        .animation(.easeInOut, value: viewStore.state)
       }
       .initialTask {
         _ = await MainActor.run {
