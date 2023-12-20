@@ -28,20 +28,19 @@ public enum ModuleLoggerLevel: String, CaseIterable, Sendable, Equatable {
   }
 }
 
-// MARK: - ModuleLoggerEvent
+// MARK: - ModuleLoggerEventParser
 
 struct ModuleLoggerEventParser: ParserPrinter {
   let id: RepoModuleID
 
-  @ParserBuilder<Substring>
-  var body: some ParserPrinter<Substring.UTF8View, ModuleLoggerEvent> {
+  @ParserBuilder<Substring> var body: some ParserPrinter<Substring.UTF8View, ModuleLoggerEvent> {
     ParsePrint(.memberwise(ModuleLoggerEvent.init(timestamp:level:body:))) {
       ParsePrint(.memberwise(Date.init(timeIntervalSince1970:))) {
         Double.parser()
       }
       ": ".utf8
       Skip { PrefixUpTo(" ".utf8) }
-      .printing("".utf8)
+        .printing("".utf8)
       " [".utf8
       ModuleLoggerLevel.parser()
       "] ".utf8
@@ -50,6 +49,8 @@ struct ModuleLoggerEventParser: ParserPrinter {
     }
   }
 }
+
+// MARK: - ModuleLoggerEvent
 
 public struct ModuleLoggerEvent: Equatable, Sendable, Parser {
   public let timestamp: Date

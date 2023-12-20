@@ -226,50 +226,50 @@ extension Logs {
       }
       #else
       .navigationTitle("Logs")
-      .toolbar {
-        // TODO: Export logs
-        // ToolbarItem(placement: .automatic) {
-        //   Button {
-        //   } label: {
-        //     Image(systemName: "square.and.arrow.up")
-        //   }
-        // }
-      }
+        .toolbar {
+          // TODO: Export logs
+          // ToolbarItem(placement: .automatic) {
+          //   Button {
+          //   } label: {
+          //     Image(systemName: "square.and.arrow.up")
+          //   }
+          // }
+        }
       #endif
-      .toolbar {
-        ToolbarItem(placement: .navigation) {
-          Button {
-            store.send(.didTapViewerList)
-          } label: {
-            HStack {
-              WithViewStore(store, observe: \.selected) { viewStore in
-                switch viewStore.state {
-                case .system:
-                  Text("System")
-                case let .module(_, module, _):
-                  Text(module.name)
+        .toolbar {
+          ToolbarItem(placement: .navigation) {
+            Button {
+              store.send(.didTapViewerList)
+            } label: {
+              HStack {
+                WithViewStore(store, observe: \.selected) { viewStore in
+                  switch viewStore.state {
+                  case .system:
+                    Text("System")
+                  case let .module(_, module, _):
+                    Text(module.name)
+                  }
                 }
-              }
 
-              Image(systemName: "chevron.down")
+                Image(systemName: "chevron.down")
+              }
+              .padding(.horizontal, 8)
+              .padding(.vertical, 8)
+              #if os(iOS)
+                .background(.gray.opacity(0.12), in: Capsule())
+              #elseif os(macOS)
+                .background(.gray.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+              #endif
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 8)
-            #if os(iOS)
-            .background(.gray.opacity(0.12), in: Capsule())
-            #elseif os(macOS)
-            .background(.gray.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-            #endif
+            .buttonStyle(.plain)
+            .font(.footnote.weight(.medium))
           }
-          .buttonStyle(.plain)
-          .font(.footnote.weight(.medium))
         }
-      }
-      .initialTask {
-        _ = await MainActor.run {
-          store.send(.onTask)
+        .initialTask {
+          _ = await MainActor.run {
+            store.send(.onTask)
+          }
         }
-      }
     }
 
     @MainActor

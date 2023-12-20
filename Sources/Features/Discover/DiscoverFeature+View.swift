@@ -426,7 +426,7 @@ extension DiscoverFeature.View {
       HStack {
         Text(
           listing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No Title" :
-          listing.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            listing.title.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         .font(.title3.weight(.semibold))
 

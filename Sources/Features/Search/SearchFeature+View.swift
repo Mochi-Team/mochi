@@ -68,7 +68,7 @@ extension SearchFeature.View: View {
                   }
                 } failedView: { _ in
                   Button {
-                      // TODO: Allow refetch when paging failed
+                    // TODO: Allow refetch when paging failed
                   } label: {
                     Image(systemName: "arrow.clockwise")
                       .font(.body)
@@ -82,7 +82,7 @@ extension SearchFeature.View: View {
               }
             }
           } failedView: { _ in
-              // TODO: Make error more explicit
+            // TODO: Make error more explicit
             StatusView(
               title: .init(localizable: "Search Failed"),
               description: .init(localizable: "Failed to retrieve items."),

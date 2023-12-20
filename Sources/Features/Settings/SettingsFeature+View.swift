@@ -79,8 +79,8 @@ struct AppearanceView: View {
           ThemePicker(theme: viewStore.$userSettings.theme)
         }
 
-          // TODO: Add option to change app icon
-          // SettingRow(title: "App Icon", accessory: EmptyView.init) {}
+        // TODO: Add option to change app icon
+        // SettingRow(title: "App Icon", accessory: EmptyView.init) {}
       }
     }
   }

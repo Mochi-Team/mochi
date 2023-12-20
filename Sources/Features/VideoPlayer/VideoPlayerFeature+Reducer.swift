@@ -82,7 +82,7 @@ extension VideoPlayerFeature: Reducer {
           let progress = time / totalDuration
           return .merge(
             state.delayDismissOverlayIfNeeded(),
-            .run {  await playerClient.seek(progress) }
+            .run { await playerClient.seek(progress) }
           )
         }
 

@@ -71,9 +71,9 @@ public struct PlaylistDetailsFeature: Feature {
          let variant = group.variants.value?.first,
          let page = variant.pagings.value?.first,
          let item = page.items.value?.first {
-        return .start(group.id, variant.id, page.id, item.id)
+        .start(group.id, variant.id, page.id, item.id)
       } else {
-        return content.groups.didFinish ? .unavailable : .loading
+        content.groups.didFinish ? .unavailable : .loading
       }
     }
 
@@ -100,7 +100,7 @@ public struct PlaylistDetailsFeature: Feature {
       var action: Action? {
         switch self {
         case let .start(groupId, variantId, pagingId, itemId):
-            .internal(.content(.didTapPlaylistItem(groupId, variantId, pagingId, id: itemId)))
+          .internal(.content(.didTapPlaylistItem(groupId, variantId, pagingId, id: itemId)))
         case .continue:
           nil
         default:
