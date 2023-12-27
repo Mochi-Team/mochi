@@ -110,69 +110,66 @@ extension SearchFeature.View: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .safeAreaInset(edge: .top, spacing: 0) { filters }
     .task { store.send(.view(.didAppear)) }
+    .safeAreaInset(edge: .top, spacing: 0) { filters }
     #if os(iOS)
-      .navigationTitle("")
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationBarBackButtonHidden()
-      .toolbar {
-        ToolbarItem(placement: .navigation) {
-          SwiftUI.Button {
-            store.send(.view(.didTapBackButton))
-          } label: {
-            Image(systemName: "chevron.left")
-          }
-          .buttonStyle(.materialToolbarItem)
+    .navigationBarHidden(true)
+    .navigationTitle("")
+    .safeAreaInset(edge: .top, spacing: 0) {
+      HStack(spacing: 12) {
+        SwiftUI.Button {
+          store.send(.view(.didTapBackButton))
+        } label: {
+          Image(systemName: "chevron.left")
         }
+        .buttonStyle(.materialToolbarItem)
 
-        ToolbarItem(placement: .principal) {
-          WithViewStore(store, observe: \.`self`) { viewStore in
-            HStack(spacing: 8) {
-              Image(systemName: "magnifyingglass")
-                .font(.caption)
-                .foregroundColor(.gray)
+        WithViewStore(store, observe: \.`self`) { viewStore in
+          HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+              .foregroundColor(.gray)
 
-              TextField("Search...", text: viewStore.$query.removeDuplicates())
-                .textFieldStyle(.plain)
-                .frame(maxWidth: .infinity)
-
-              Button {
-                viewStore.send(.didTapClearQuery)
-              } label: {
-                Image(systemName: "xmark.circle.fill")
-                  .font(.caption)
-                  .foregroundColor(.gray)
-              }
-              .opacity(viewStore.query.isEmpty ? 0 : 1.0)
-              .animation(.easeInOut, value: viewStore.query.isEmpty)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background {
-              RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .style(
-                  withStroke: Color.gray.opacity(0.16),
-                  fill: .thickMaterial
-                )
-            }
-            .frame(maxHeight: .infinity)
-            .padding(.leading, 8)
-            .fixedSize(horizontal: false, vertical: true)
-          }
-        }
-      }
-    #elseif os(macOS)
-      .navigationTitle("Search")
-      .toolbar {
-        ToolbarItem(placement: .automatic) {
-          WithViewStore(store, observe: \.`self`) { viewStore in
             TextField("Search...", text: viewStore.$query.removeDuplicates())
-              .textFieldStyle(.roundedBorder)
-              .frame(minWidth: 200)
+              .textFieldStyle(.plain)
+              .font(.body)
+              .frame(maxWidth: .infinity)
+
+            Button {
+              viewStore.send(.didTapClearQuery)
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .foregroundColor(.gray)
+            }
+            .disabled(viewStore.query.isEmpty)
+            .opacity(viewStore.query.isEmpty ? 0 : 1.0)
+            .animation(.easeInOut, value: viewStore.query.isEmpty)
           }
+          .font(.callout)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 4)
+          .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+              .style(
+                withStroke: Color.gray.opacity(0.16),
+                fill: .thickMaterial
+              )
+          }
+          .frame(maxWidth: .infinity)
         }
       }
+      .padding(.horizontal)
+    }
+    #elseif os(macOS)
+    .navigationTitle("Search")
+    .toolbar {
+      ToolbarItem(placement: .automatic) {
+        WithViewStore(store, observe: \.`self`) { viewStore in
+          TextField("Search...", text: viewStore.$query.removeDuplicates())
+            .textFieldStyle(.roundedBorder)
+            .frame(minWidth: 200)
+        }
+      }
+    }
     #endif
   }
 }
@@ -180,7 +177,6 @@ extension SearchFeature.View: View {
 extension SearchFeature.View {
   private struct FilterView: View {
     @Environment(\.theme) var theme
-
     @Environment(\.colorScheme) var scheme
 
     let filter: SearchFilter
@@ -311,21 +307,27 @@ extension SearchFeature.View {
           .padding(.vertical, 12)
         } else {
           Spacer()
-            .frame(height: 24)
+            .frame(height: 0)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom)
         }
       }
       .background {
-        if showStatusBarBackground {
-          Rectangle()
-            .fill(.regularMaterial)
-            .tint(theme.backgroundColor)
-        } else {
-          Rectangle()
-            .fill(theme.backgroundColor)
+        Group {
+          if showStatusBarBackground {
+            Rectangle()
+              .fill(.regularMaterial)
+              .tint(theme.backgroundColor)
+          } else {
+            Rectangle()
+              .fill(theme.backgroundColor)
+          }
         }
+        .ignoresSafeArea(.all, edges: .all)
+        .edgesIgnoringSafeArea(.all)
       }
-      .animation(.easeInOut(duration: 0.3), value: viewStore.isThereFilters)
       .animation(.easeInOut(duration: 0.2), value: showStatusBarBackground)
+      .animation(.easeInOut(duration: 0.3), value: viewStore.isThereFilters)
     }
   }
 }
@@ -339,24 +341,26 @@ extension SearchFeature.View {
         initialState: .init(
           repoModuleId: Repo().id(.init(rawValue: "")),
           query: "demo",
-          selectedFilters: .init([
-            SearchFilter(
-              id: .init("1"),
-              displayName: "Filter",
-              multiselect: true,
-              required: false,
-              options: [.init(id: .init("1"), displayName: "Option 1")]
-            )
-          ]),
-          allFilters: .init([
-            SearchFilter(
-              id: .init("1"),
-              displayName: "Filter",
-              multiselect: true,
-              required: false,
-              options: [.init(id: .init("1"), displayName: "Option 1")]
-            )
-          ]),
+//          selectedFilters: .init(),
+//          allFilters: .init(),
+//          selectedFilters: .init([
+//            SearchFilter(
+//              id: .init("1"),
+//              displayName: "Filter",
+//              multiselect: true,
+//              required: false,
+//              options: [.init(id: .init("1"), displayName: "Option 1")]
+//            )
+//          ]),
+//          allFilters: .init([
+//            SearchFilter(
+//              id: .init("1"),
+//              displayName: "Filter",
+//              multiselect: true,
+//              required: false,
+//              options: [.init(id: .init("1"), displayName: "Option 1")]
+//            )
+//          ]),
           searchResult: .pending
         ),
         reducer: { EmptyReducer() }
