@@ -129,7 +129,11 @@ extension PlaylistDetailsFeature.View: View {
         }
       }
     #endif
-      .task { await store.send(.view(.onTask)).finish() }
+      .initialTask {
+        _ = await MainActor.run {
+          store.send(.view(.onTask))
+        }
+      }
       .sheet(
         store: store.scope(
           state: \.$destination,

@@ -44,17 +44,42 @@ public struct ViewMoreListing: Reducer {
       self.items = .init(dictionaryLiteral: (listing.paging.id, .loaded(listing.paging)))
       self.items.merge(items, uniquingKeysWith: { _, new in new })
     }
+
+    mutating func fetchPage(pageId: PagingID) -> Effect<ViewMoreListing.Action> {
+      @Dependency(\.dismiss) var dismiss
+      @Dependency(\.moduleClient) var moduleClient
+
+      let id = repoModuleId
+      let listingId = listing.id
+
+      items[pageId] = .loading
+
+      return .run { send in
+        let listings = try await moduleClient.withModule(id: id) { instance in
+          try await instance.discoverListings(.init(listingId: listingId, page: pageId))
+        }
+
+        guard let listing = listings[id: listingId], listing.paging.id == pageId else {
+          throw Error.contentTypeMissing(expected: pageId, found: listings[id: listingId]?.paging.id, listingId: listingId)
+        }
+
+        await send(.update(id: pageId, loadable: .loaded(listing.paging)))
+      } catch: { error, send in
+        logger.error("failed to retrieve discover listing: \(error)")
+        await send(.update(id: pageId, loadable: .failed(error)))
+      }
+    }
   }
 
   public enum Action: Equatable, Sendable {
     case didTapBackButton
     case didTapPlaylist(Playlist)
     case didShowNextPageIndicator(id: PagingID)
+    case didTapRetryLoadingPage(PagingID)
     case update(id: PagingID, loadable: Loadable<Paging<Playlist>>)
   }
 
   @Dependency(\.dismiss) var dismiss
-
   @Dependency(\.moduleClient) var moduleClient
 
   public init() {}
@@ -64,33 +89,14 @@ public struct ViewMoreListing: Reducer {
       switch action {
       case .didTapBackButton:
         return .run { await dismiss() }
+
       case let .didShowNextPageIndicator(pageId):
-        let id = state.repoModuleId
-        let listingId = state.listing.id
+        guard !(state.items[pageId]?.hasInitialized ?? false) else { break }
+        return state.fetchPage(pageId: pageId)
 
-        guard !(state.items[pageId]?.hasInitialized ?? false) else {
-          break
-        }
+      case let .didTapRetryLoadingPage(pageId):
+        return state.fetchPage(pageId: pageId)
 
-        state.items[pageId] = .loading
-
-        return .run { send in
-          let listings = try await moduleClient.withModule(id: id) { instance in
-            try await instance.discoverListings(.init(listingId: listingId, page: pageId))
-          }
-
-          guard let listing = listings[id: listingId], listing.paging.id == pageId else {
-            throw Error.contentTypeMissing(expected: pageId, found: listings[id: listingId]?.paging.id, listingId: listingId)
-          }
-
-          await send(.update(id: pageId, loadable: .loaded(listing.paging)))
-        } catch: { error, send in
-          if let error = error as? Error {
-            logger.error("failed to retrieve discover listing: \(error.localizedDescription)")
-          }
-
-          await send(.update(id: pageId, loadable: .failed(error)))
-        }
       case let .update(id, loadable):
         state.items[id] = loadable
 
@@ -118,8 +124,6 @@ extension ViewMoreListing {
   public struct View: SwiftUI.View {
     let store: StoreOf<ViewMoreListing>
 
-    private let columns = 2
-
     @Dependency(\.localizableClient.localize) var localize
 
     public init(store: StoreOf<ViewMoreListing>) {
@@ -137,7 +141,7 @@ extension ViewMoreListing {
             ForEach(allItems) { item in
               VStack(alignment: .leading) {
                 FillAspectImage(url: item.posterImage)
-                  .aspectRatio(viewStore.orientation == .portrait ? 2 / 3 : 16 / 9, contentMode: .fit)
+                  .aspectRatio(viewStore.state.orientation.aspectRatio, contentMode: .fit)
                   .cornerRadius(12)
 
                 Text(item.title ?? localize("Title Unavailable"))
@@ -151,7 +155,7 @@ extension ViewMoreListing {
           }
           .padding(.horizontal)
 
-          if let lastPage = viewStore.items.values.last {
+          if let lastPageKey = viewStore.items.keys.last, let lastPage = viewStore.items[lastPageKey] {
             LoadableView(loadable: lastPage) { page in
               LazyView {
                 Spacer()
@@ -163,12 +167,20 @@ extension ViewMoreListing {
                   }
               }
             } failedView: { _ in
-              Text(localizable: "Failed to retrieve content")
-                .foregroundColor(.red)
+              Button {
+                viewStore.send(.didTapRetryLoadingPage(lastPageKey))
+              } label: {
+                StatusView(
+                  title: localize("Content Failed"),
+                  description: localize("Failed to retrieve content. Tap to retry."),
+                  foregroundColor: .red
+                )
+              }
+              .buttonStyle(.plain)
             } waitingView: {
               ProgressView()
-                .padding(.vertical, 8)
             }
+            .padding(.vertical, 8)
           }
         }
         .navigationTitle(viewStore.state.title)
