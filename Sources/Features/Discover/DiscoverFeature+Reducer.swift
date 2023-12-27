@@ -138,25 +138,7 @@ extension DiscoverFeature.State {
           try await module.discoverListings()
         }
 
-        await send(
-          .internal(
-            .loadedListings(
-              id,
-              .loaded(
-                value.sorted { leftElement, rightElement in
-                  switch (leftElement.type, rightElement.type) {
-                  case (.featured, .featured):
-                    true
-                  case (_, .featured):
-                    false
-                  default:
-                    true
-                  }
-                }
-              )
-            )
-          )
-        )
+        await send(.internal(.loadedListings(id, .loaded(value))))
       }
     } catch: { error, send in
       if let error = error as? ModuleClient.Error {

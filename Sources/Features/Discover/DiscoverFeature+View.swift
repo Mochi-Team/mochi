@@ -241,7 +241,8 @@ extension DiscoverFeature.View {
     ScrollView(.vertical, showsIndicators: false) {
       VStack(spacing: 24) {
         Spacer()
-          .frame(height: 12)
+          .frame(height: 0)
+          .fixedSize(horizontal: false, vertical: true)
         ForEach(listings, id: \.id) { listing in
           switch listing.type {
           case .default:

@@ -87,6 +87,7 @@ extension PlaylistDetailsFeature.View: View {
             Image(systemName: "plus")
           }
           .buttonStyle(.materialToolbarItem)
+          .disabled(true)
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -101,8 +102,8 @@ extension PlaylistDetailsFeature.View: View {
             }
           } label: {
             Image(systemName: "ellipsis")
+              .materialToolbarItemStyle()
           }
-          .menuStyle(.materialToolbarItem)
         }
       }
     #elseif os(macOS)
@@ -111,6 +112,7 @@ extension PlaylistDetailsFeature.View: View {
           Button {} label: {
             Image(systemName: "plus")
           }
+          .disabled(true)
         }
 
         ToolbarItem(placement: .automatic) {

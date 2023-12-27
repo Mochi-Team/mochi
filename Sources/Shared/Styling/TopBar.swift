@@ -48,7 +48,6 @@ public struct MaterialToolbarButtonMenuStyle: MenuStyle {
 
 private struct MaterialToolbarItemStyle: ViewModifier {
   @ScaledMetric var fontSize = 12
-
   @ScaledMetric var viewSize = 28
 
   func body(content: Content) -> some View {
