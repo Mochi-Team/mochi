@@ -136,7 +136,7 @@ extension ContentCore {
               }
 
               if let selectedPage = pageLoadable.value,
-                  let index = variantLoadable.value?.pagings.value?.firstIndex(where: \.id == selectedPage.id) {
+                 let index = variantLoadable.value?.pagings.value?.firstIndex(where: \.id == selectedPage.id) {
                 textView(selectedPage.title ?? "Page \(index + 1)")
               } else {
                 textView("Not Selected")
@@ -201,7 +201,7 @@ extension ContentCore {
             ScrollViewReader { proxy in
               ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 12) {
-                  ForEach(items.value ?? Self.placeholderItems, id: \.id) { item in
+                  ForEach(items.value ?? Self.placeholderItems, id: \.number) { item in
                     VStack(alignment: .leading, spacing: 0) {
                       FillAspectImage(url: item.thumbnail ?? viewStore.playlist.posterImage)
                         .aspectRatio(16 / 9, contentMode: .fit)

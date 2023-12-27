@@ -17,5 +17,6 @@ struct PlayerClient: _Client {
         UserDefaultsClient()
         ComposableArchitecture()
         ViewComponents()
+        XMLCoder()
     }
 }

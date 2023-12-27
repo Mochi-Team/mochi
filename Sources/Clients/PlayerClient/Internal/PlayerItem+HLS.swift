@@ -47,11 +47,9 @@ extension PlayerItem {
   }
 
   private func handleM3U8(_ requestingUrl: URL, _ loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
-    let originalUrl = requestingUrl.recoveryScheme
-
-    // If it matches main payload url
-    if payload.link == originalUrl {
-      return downloadM3U8(requestingUrl.recoveryScheme) { [weak self] result in
+    // Check if the requested url is the initial modified link
+    if requestingUrl == payload.modifiedLink {
+      return downloadM3U8(payload.link) { [weak self] result in
         switch result {
         case let .success(data):
           guard let string = String(data: data, encoding: .utf8) else {
@@ -65,7 +63,7 @@ extension PlayerItem {
             let mainM3U8 = self?.parseMainMultiVariantPlaylist(string)
             playlistData = mainM3U8?.data(using: .utf8) ?? data
           } else {
-            let m3u8 = self?.buildMainPlaylist(string)
+            let m3u8 = self?.convertMainPlaylistToMultivariant(string)
             playlistData = m3u8?.data(using: .utf8) ?? data
           }
 
@@ -87,7 +85,7 @@ extension PlayerItem {
       loadingRequest.redirect = request
 
       loadingRequest.response = HTTPURLResponse(
-        url: originalUrl,
+        url: requestingUrl.recoveryScheme,
         statusCode: 302,
         httpVersion: nil,
         headerFields: loadingRequest.request.allHTTPHeaderFields ?? [:]
@@ -181,20 +179,7 @@ extension PlayerItem {
     var subtitlePosition = lastPositionMedia ?? firstPositionInf
 
     for (idx, subtitle) in payload.subtitles.enumerated() {
-      let m3u8Subtitles: OrderedDictionary = [
-        "TYPE": "SUBTITLES",
-        "GROUP-ID": "\"\(Self.hlsSubtitleGroupID)\"",
-        "NAME": "\"\(subtitle.name)\"",
-        "CHARACTERISTICS": "\"public.accessibility.transcribes-spoken-dialog\"",
-        "DEFAULT": subtitle.default ? "YES" : "NO",
-        "AUTOSELECT": subtitle.autoselect ? "YES" : "NO",
-        "FORCED": subtitle.forced ? "YES" : "NO",
-        "URI": "\"\(Self.hlsSubtitlesScheme)://\(idx).subtitle.m3u8\"",
-        "LANGUAGE": "\"\(subtitle.name)\""
-      ]
-
-      let m3u8SubtitlesString = "#EXT-X-MEDIA:" + m3u8Subtitles.map { "\($0.key)=\($0.value)" }
-        .joined(separator: ",")
+      let m3u8SubtitlesString = makeSubtitleTypes(idx, subtitle)
       if subtitlePosition <= lines.endIndex {
         lines.insert(m3u8SubtitlesString, at: subtitlePosition)
       } else {
@@ -210,8 +195,34 @@ extension PlayerItem {
     return lines.joined(separator: "\n")
   }
 
-  private func buildMainPlaylist(_ m3u8String: String) -> String {
-    // TODO: Build main playlist non-multivariants
-    m3u8String
+  private func convertMainPlaylistToMultivariant(_: String) -> String {
+    // Build a multivariant playlist out of a single main playlist
+    let subtitlesMediaStrings = payload.subtitles.enumerated()
+      .map(makeSubtitleTypes)
+
+    return """
+    #EXTM3U
+    \(subtitlesMediaStrings.joined(separator: "\n"))
+    #EXT-X-STREAM-INF:BANDWIDTH=640000,SUBTITLES="\(Self.hlsSubtitleGroupID)"
+    \(payload.link.absoluteString)
+    """
+  }
+
+  private func makeSubtitleTypes(_ idx: Int, _ subtitle: PlayerClient.VideoCompositionItem.Subtitle) -> String {
+    "#EXT-X-MEDIA:" + (
+      [
+        "TYPE": "SUBTITLES",
+        "GROUP-ID": "\"\(Self.hlsSubtitleGroupID)\"",
+        "NAME": "\"\(subtitle.name)\"",
+        "CHARACTERISTICS": "\"public.accessibility.transcribes-spoken-dialog\"",
+        "DEFAULT": subtitle.default ? "YES" : "NO",
+        "AUTOSELECT": subtitle.autoselect ? "YES" : "NO",
+        "FORCED": subtitle.forced ? "YES" : "NO",
+        "URI": "\"\(Self.hlsSubtitlesScheme)://\(idx).subtitle.m3u8\"",
+        "LANGUAGE": "\"\(subtitle.name)\""
+      ] as OrderedDictionary
+    )
+    .map { "\($0.key)=\($0.value)" }
+    .joined(separator: ",")
   }
 }

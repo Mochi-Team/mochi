@@ -856,6 +856,7 @@ struct PlayerClient: _Client {
         UserDefaultsClient()
         ComposableArchitecture()
         ViewComponents()
+        XMLCoder()
     }
 }
 //
@@ -1119,6 +1120,20 @@ struct Tagged: PackageDependency {
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0")
     }
 }
+//
+//  XMLCoder.swift
+//
+//
+//  Created by ErrorErrorError on 12/27/23.
+//  
+//
+
+struct XMLCoder: PackageDependency {
+    var dependency: Package.Dependency {
+        .package(url: "https://github.com/CoreOffice/XMLCoder.git", exact: "0.17.1")
+    }
+}
+
 //
 //  ContentCore.swift
 //  

@@ -375,7 +375,8 @@ extension VideoPlayerFeature.State {
             title: episode.flatMap { $0.title ?? "Episode \($0.number.withoutTrailingZeroes)" },
             artworkImage: episode?.thumbnail ?? playlist.posterImage,
             author: playlist.title
-          )
+          ),
+          format: link.format == .hls ? .hls : .dash
         )
 
         return .run { _ in

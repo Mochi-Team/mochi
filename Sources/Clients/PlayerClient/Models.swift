@@ -59,17 +59,25 @@ extension PlayerClient {
     let headers: [String: String]
     let subtitles: [Subtitle]
     let metadata: SourceMetadata
+    let format: Format
+
+    public enum Format {
+      case hls
+      case dash
+    }
 
     public init(
       link: URL,
       headers: [String: String] = [:],
       subtitles: [Subtitle] = [],
-      metadata: SourceMetadata
+      metadata: SourceMetadata,
+      format: Format
     ) {
       self.link = link
       self.headers = headers
       self.subtitles = subtitles
       self.metadata = metadata
+      self.format = format
     }
 
     public struct Subtitle {

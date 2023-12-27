@@ -148,7 +148,9 @@ private struct DrilledView<Destination: View>: View {
     } label: {
       EmptyView()
     }
+    #if os(iOS)
     .isDetailLink(false)
+    #endif
     .hidden()
   }
 }

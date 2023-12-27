@@ -10,12 +10,23 @@ import AVFoundation
 import AVKit
 import Foundation
 
+// MARK: - MetaPayload
+
+@dynamicMemberLookup
+struct MetaPayload {
+  let modifiedLink: URL
+  let payload: PlayerClient.VideoCompositionItem
+  var mpdData: MPD?
+
+  subscript<Value>(dynamicMember keyPath: KeyPath<PlayerClient.VideoCompositionItem, Value>) -> Value {
+    payload[keyPath: keyPath]
+  }
+}
+
 // MARK: - PlayerItem
 
 final class PlayerItem: AVPlayerItem {
-  static let dashCustomPlaylistScheme = "mochi-mpd"
-
-  let payload: PlayerClient.VideoCompositionItem
+  var payload: MetaPayload
 
   private let resourceQueue: DispatchQueue
 
@@ -26,18 +37,17 @@ final class PlayerItem: AVPlayerItem {
   }
 
   init(_ payload: PlayerClient.VideoCompositionItem) {
-    self.payload = payload
     self.resourceQueue = DispatchQueue(label: "playeritem-\(payload.link.absoluteString)", qos: .utility)
 
     let headers = payload.headers
-    let url: URL = if payload.subtitles.isEmpty {
-      payload.link
+    if payload.subtitles.isEmpty {
+      self.payload = .init(modifiedLink: payload.link, payload: payload)
     } else {
-      payload.link.change(scheme: Self.hlsCommonScheme)
+      self.payload = .init(modifiedLink: payload.link.change(scheme: Self.hlsCommonScheme), payload: payload)
     }
 
     let asset = AVURLAsset(
-      url: url,
+      url: self.payload.modifiedLink,
       // TODO: Validate if this is allowed or considered a private api
       options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
     )
@@ -61,22 +71,11 @@ extension PlayerItem: AVAssetResourceLoaderDelegate {
     _: AVAssetResourceLoader,
     shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
   ) -> Bool {
-    //        if payload.source.format == .mpd {
-    //            if url.pathExtension == "ts" {
-    //                loadingRequest.redirect = URLRequest(url: url.recoveryScheme)
-    //                loadingRequest.response = HTTPURLResponse(
-    //                    url: url.recoveryScheme,
-    //                    statusCode: 302,
-    //                    httpVersion: nil,
-    //                    headerFields: nil
-    //                )
-    //                loadingRequest.finishLoading()
-    //            } else {
-    //                handleDASHRequest(url, callback)
-    //            }
-    //        } else {
-    handleHLSRequest(loadingRequest: loadingRequest)
-    //        }
+    if payload.format == .dash {
+      handleDASHRequest(loadingRequest)
+    } else {
+      handleHLSRequest(loadingRequest: loadingRequest)
+    }
   }
 }
 
