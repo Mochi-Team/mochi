@@ -44,9 +44,7 @@ extension ContentCore {
     @Environment(\.theme) var theme
 
     @SwiftUI.State private var _selectedGroupId: Playlist.Group.ID?
-
     @SwiftUI.State private var _selectedVariantId: Playlist.Group.Variant.ID?
-
     @SwiftUI.State private var _selectedPagingId: PagingID?
 
     private let selectedItemId: Playlist.Item.ID?
@@ -137,7 +135,8 @@ extension ContentCore {
                   .background(.thinMaterial, in: Capsule())
               }
 
-              if let selectedPage = pageLoadable.value, let index = variantLoadable.value?.pagings.value?.firstIndex(where: \.id == selectedPage.id) {
+              if let selectedPage = pageLoadable.value,
+                  let index = variantLoadable.value?.pagings.value?.firstIndex(where: \.id == selectedPage.id) {
                 textView(selectedPage.title ?? "Page \(index + 1)")
               } else {
                 textView("Not Selected")
@@ -188,35 +187,16 @@ extension ContentCore {
         let items = pageLoadable.flatMap(\.items)
         ZStack {
           if items.error != nil {
-            RoundedRectangle(cornerRadius: 12)
-              .fill(Color.red.opacity(0.16))
-              .padding(.horizontal)
-              .frame(maxWidth: .infinity)
-              .frame(height: 125)
-              .overlay {
-                Text("There was an error loading content.")
-                  .font(.callout.weight(.semibold))
-
-                Button {
-                  // viewStore.send(.view(.didTapRetry(items)))
-                } label: {
-                  Text("Retry")
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-              }
+            StatusView(
+              title: "Content Error",
+              description: "There was an error loading content.",
+              foregroundColor: .red
+            )
           } else if items.didFinish, (items.value?.count ?? 0) == 0 {
-            RoundedRectangle(cornerRadius: 12)
-              .fill(Color.gray.opacity(0.12))
-              .padding(.horizontal)
-              .frame(maxWidth: .infinity)
-              .frame(height: 125)
-              .overlay {
-                Text("There is no content available.")
-                  .font(.callout.weight(.medium))
-              }
+            StatusView(
+              title: "Content List Empty",
+              description: "There is no content available."
+            )
           } else {
             ScrollViewReader { proxy in
               ScrollView(.horizontal, showsIndicators: false) {
@@ -259,6 +239,21 @@ extension ContentCore {
               }
               .onAppear {
                 proxy.scrollTo(selectedItemId, anchor: .center)
+                if items == .pending {
+                  guard let groupId = groupLoadable.value?.id else { return }
+
+                  guard let variantId = variantLoadable.value?.id else {
+                    viewStore.send(.didRequestLoadingPendingContent(.group(groupId)))
+                    return
+                  }
+
+                  guard let pagingId = pageLoadable.value?.id else {
+                    viewStore.send(.didRequestLoadingPendingContent(.variant(groupId, variantId)))
+                    return
+                  }
+
+                  viewStore.send(.didRequestLoadingPendingContent(.page(groupId, variantId, pagingId)))
+                }
               }
             }
             .frame(maxWidth: .infinity)

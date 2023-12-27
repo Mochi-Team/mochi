@@ -45,6 +45,7 @@ public struct ContentCore: Reducer {
   @dynamicMemberLookup
   public enum Action: SendableAction {
     case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
+    case didRequestLoadingPendingContent(Playlist.ItemsRequestOptions?)
     case didTapContent(Playlist.ItemsRequestOptions)
     case didTapPlaylistItem(
       Playlist.Group.ID,
@@ -69,81 +70,11 @@ public struct ContentCore: Reducer {
       case .didTapPlaylistItem:
         break
 
+      case let .didRequestLoadingPendingContent(options):
+        return state.fetchContent(options)
+
       case let .update(option, response):
-        guard case var .loaded(value) = state.groups, let option, var group = value[id: option.groupId] else {
-          state.groups = response.flatMap { .loaded($0) }
-          break
-        }
-
-        let variantsResponse = response
-          .flatMap { .init(expected: $0[id: group.id]) }
-          .flatMap { .init(expected: $0.variants.value) }
-
-        if case .group = option {
-          group = .init(
-            id: group.id,
-            number: group.number,
-            altTitle: group.altTitle,
-            variants: variantsResponse
-          )
-        } else if let variantId = option.variantId {
-          let pagingsResponse = variantsResponse
-            .flatMap { .init(expected: $0[id: variantId]) }
-            .flatMap { .init(expected: $0.pagings.value) }
-
-          if let pageId = option.pagingId {
-            // Update page's items
-            group = .init(
-              id: group.id,
-              number: group.number,
-              altTitle: group.altTitle,
-              variants: group.variants.map { variants in
-                var variants = variants
-
-                variants[id: variantId] = variants[id: variantId].flatMap { variant in
-                  .init(
-                    id: variant.id,
-                    title: variant.title,
-                    pagings: variant.pagings.map { pagings in
-                      var pagings = pagings
-
-                      pagings[id: pageId] = pagings[id: pageId].flatMap { page in
-                        .init(
-                          id: page.id,
-                          previousPage: page.previousPage,
-                          nextPage: page.nextPage,
-                          title: page.title,
-                          items: pagingsResponse
-                            .flatMap { .init(expected: $0[id: page.id]) }
-                            .flatMap { .init(expected: $0.items.value) }
-                        )
-                      }
-
-                      return pagings
-                    }
-                  )
-                }
-                return variants
-              }
-            )
-          } else {
-            group = .init(
-              id: group.id,
-              number: group.number,
-              altTitle: group.altTitle,
-              variants: group.variants.map { variants in
-                var variants = variants
-
-                variants[id: variantId] = variants[id: variantId]
-                  .flatMap { .init(id: $0.id, title: $0.title, pagings: pagingsResponse) }
-
-                return variants
-              }
-            )
-          }
-        }
-        value[id: option.groupId] = group
-        state.groups = .loaded(value)
+        state.update(option, response)
       }
       return .none
     }
@@ -165,11 +96,28 @@ extension ContentCore.State {
     let playlistId = playlist.id
     let repoModuleId = repoModuleId
 
-    // TODO: Force should modify the respective group/variant/paging
-
-    if forced || !groups.hasInitialized {
-      groups = .loading
+    if !forced {
+      // Do not submit request if loadable is not pending
+      if let groupId = option?.groupId {
+        if let variantId = option?.variantId {
+          if let pagingId = option?.pagingId {
+            if let loadable = groups.value?[id: groupId]?.variants.value?[id: variantId]?.pagings.value?[id: pagingId]?.items, loadable != .pending {
+              return .none
+            }
+          } else if let loadable = groups.value?[id: groupId]?.variants.value?[id: variantId]?.pagings, loadable != .pending {
+            return .none
+          }
+        } else if let loadable = groups.value?[id: groupId]?.variants, loadable != .pending {
+          return .none
+        }
+      } else {
+        if groups != .pending {
+          return .none
+        }
+      }
     }
+
+    update(option, .loading)
 
     return .run { send in
       try await withTaskCancellation(id: Cancellable.fetchContent, cancelInFlight: true) {
@@ -221,6 +169,83 @@ extension ContentCore.State {
     page(groupId: groupId, variantId: variantId, pageId: pageId)
       .flatMap(\.items)
       .flatMap { .init(expected: $0[id: itemId]) }
+  }
+
+  mutating func update(_ option: Playlist.ItemsRequestOptions?, _ response: Loadable<Playlist.ItemsResponse>) {
+    guard case var .loaded(value) = groups, let option, var group = value[id: option.groupId] else {
+      groups = response.flatMap { .loaded($0) }
+      return
+    }
+
+    let variantsResponse = response
+      .flatMap { .init(expected: $0[id: group.id]) }
+      .flatMap { .init(expected: $0.variants.value) }
+
+    if case .group = option {
+      group = .init(
+        id: group.id,
+        number: group.number,
+        altTitle: group.altTitle,
+        variants: variantsResponse
+      )
+    } else if let variantId = option.variantId {
+      let pagingsResponse = variantsResponse
+        .flatMap { .init(expected: $0[id: variantId]) }
+        .flatMap { .init(expected: $0.pagings.value) }
+
+      if let pageId = option.pagingId {
+        // Update page's items
+        group = .init(
+          id: group.id,
+          number: group.number,
+          altTitle: group.altTitle,
+          variants: group.variants.map { variants in
+            var variants = variants
+
+            variants[id: variantId] = variants[id: variantId].flatMap { variant in
+              .init(
+                id: variant.id,
+                title: variant.title,
+                pagings: variant.pagings.map { pagings in
+                  var pagings = pagings
+
+                  pagings[id: pageId] = pagings[id: pageId].flatMap { page in
+                    .init(
+                      id: page.id,
+                      previousPage: page.previousPage,
+                      nextPage: page.nextPage,
+                      title: page.title,
+                      items: pagingsResponse
+                        .flatMap { .init(expected: $0[id: page.id]) }
+                        .flatMap { .init(expected: $0.items.value) }
+                    )
+                  }
+
+                  return pagings
+                }
+              )
+            }
+            return variants
+          }
+        )
+      } else {
+        group = .init(
+          id: group.id,
+          number: group.number,
+          altTitle: group.altTitle,
+          variants: group.variants.map { variants in
+            var variants = variants
+
+            variants[id: variantId] = variants[id: variantId]
+              .flatMap { .init(id: $0.id, title: $0.title, pagings: pagingsResponse) }
+
+            return variants
+          }
+        )
+      }
+    }
+    value[id: option.groupId] = group
+    groups = .loaded(value)
   }
 }
 

@@ -164,9 +164,7 @@ public struct PlaylistDetailsFeature: Feature {
     public let store: StoreOf<PlaylistDetailsFeature>
 
     @Environment(\.openURL) var openURL
-
     @SwiftUI.State var imageDominatColor: Color?
-
     @Environment(\.theme) var theme
 
     @MainActor
@@ -176,11 +174,8 @@ public struct PlaylistDetailsFeature: Feature {
   }
 
   @Dependency(\.moduleClient) var moduleClient
-
   @Dependency(\.databaseClient) var databaseClient
-
   @Dependency(\.repoClient) var repoClient
-
   @Dependency(\.dismiss) var dismiss
 
   public init() {}

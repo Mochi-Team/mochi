@@ -19,7 +19,6 @@ public protocol Localizable {
 extension Localizable {
   public var localized: String {
     @Dependency(\.localizableClient.localize) var localize
-
     return localize(localizable)
   }
 }
