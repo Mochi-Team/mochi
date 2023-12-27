@@ -39,7 +39,7 @@ extension AppFeature.View: View {
                   action: \.internal.discover
                 )
               )
-              .tint(nil)
+              .accentColor(nil)
             case .repos:
               ReposFeature.View(
                 store: store.scope(
@@ -47,7 +47,7 @@ extension AppFeature.View: View {
                   action: \.internal.repos
                 )
               )
-              .tint(nil)
+              .accentColor(nil)
             case .settings:
               SettingsFeature.View(
                 store: store.scope(
@@ -55,7 +55,7 @@ extension AppFeature.View: View {
                   action: \.internal.settings
                 )
               )
-              .tint(nil)
+              .accentColor(nil)
             }
           }
           .tabItem {
@@ -65,7 +65,7 @@ extension AppFeature.View: View {
         }
       }
       // Set tint of tab item
-      .tint(viewStore.state.colorAccent)
+      .accentColor(viewStore.state.colorAccent)
     }
     .onAppear { store.send(.view(.didAppear)) }
     .overlay {
