@@ -95,9 +95,10 @@ extension MPD.Period.AdaptationSet {
     }
   }
 }
-// swiftlint:enable identifier_name
 
 // MARK: - MPD.Period.AdaptationSet.Representation.SegmentBase
+
+// swiftlint:enable identifier_name
 
 extension MPD.Period.AdaptationSet.Representation {
   struct SegmentBase: Codable {
