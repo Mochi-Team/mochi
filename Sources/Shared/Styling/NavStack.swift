@@ -9,13 +9,10 @@
 @_spi(Presentation)
 import ComposableArchitecture
 import Foundation
+import FoundationHelpers
 import OrderedCollections
 import SwiftUI
 import ViewComponents
-
-extension Animation {
-  public static var navStackTransion: Animation { .timingCurve(0.31, 0.47, 0.31, 1, duration: 0.4) }
-}
 
 // MARK: - NavStack
 
@@ -50,42 +47,30 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
     } else {
       #if os(iOS)
       NavigationView {
-        ZStack {
-          root()
-            .themeable()
-
-          Group {
+        root()
+          .themeable()
+          .background {
             WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
-              ForEach(viewStore.state, id: \.self) { id in
-                NavigationLink(
-                  isActive: .init(
-                    get: { viewStore.state.contains(id) },
-                    set: { isActive, transaction in
-                      if !isActive, viewStore.state.contains(id) {
-                        viewStore.send(.popFrom(id: id), transaction: transaction)
-                      }
-                    }
-                  )
-                ) {
-                  IfLetStore(
-                    store.scope(
-                      state: returningLastNonNilValue { $0[id: id] },
-                      action: { .element(id: id, action: $0 as Action) }
-                    )
-                  ) { store in
-                    destination(store)
-                      .themeable()
-                  }
-                } label: {
-                  EmptyView()
+                // Simulate "drilling down" for iOS 15
+              DrilledView(set: viewStore.state, index: viewStore.startIndex) { id, transaction in
+                if viewStore.state.contains(id) {
+                  viewStore.send(.popFrom(id: id), transaction: transaction)
                 }
-                .isDetailLink(false)
-                .hidden()
+              } destination: { id in
+                IfLetStore(
+                  store.scope(
+                    state: returningLastNonNilValue { $0[id: id] },
+                    action: { .element(id: id, action: $0 as Action) }
+                  )
+                ) { store in
+                  destination(store)
+                    .themeable()
+                }
               }
+              .hidden()
             }
+            .hidden()
           }
-          .hidden()
-        }
       }
       .navigationViewStyle(.stack)
       #elseif os(macOS)
@@ -116,6 +101,54 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
       }
       #endif
     }
+  }
+}
+
+@MainActor
+private struct DrilledView<Destination: View>: View {
+  typealias Elements = OrderedSet<StackElementID>
+  let set: Elements
+  let index: Elements.Index
+  let popped: (Elements.Element, Transaction) -> Void
+  let destination: (Elements.Element) -> Destination
+
+  var id: Elements.Element? {
+    if set.startIndex <= index && index < set.endIndex {
+      set[index]
+    } else {
+      nil
+    }
+  }
+
+  @MainActor
+  var body: some View {
+    NavigationLink(
+      isActive: .init(
+        get: { id.flatMap(set.contains) ?? false },
+        set: { isActive, transaction in
+          if let id, !isActive {
+             popped(id, transaction)
+          }
+        }
+      )
+    ) {
+      if let id {
+        destination(id)
+          .background(
+            Self(
+              set: set,
+              index: set.index(after: index),
+              popped: popped,
+              destination: destination
+            )
+            .hidden()
+          )
+      }
+    } label: {
+      EmptyView()
+    }
+    .isDetailLink(false)
+    .hidden()
   }
 }
 
@@ -158,7 +191,7 @@ extension View {
     @ViewBuilder destination: @escaping (_ store: Store<State, Action>) -> some View
   ) -> some View {
     presentation(store: store) { `self`, $item, destinationContent in
-      if #available(iOS 16.0, macOS 13.0, *) {
+      if #available(iOS 18.0, macOS 13.0, *) {
         self.navigationDestination(isPresented: $item.isPresent()) {
           destinationContent(destination)
             .themeable()

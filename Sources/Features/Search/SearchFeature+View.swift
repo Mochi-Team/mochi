@@ -209,7 +209,7 @@ extension SearchFeature.View {
           Image(systemName: "chevron.up.chevron.down")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(selectedOptions.isEmpty ? nil : .white)
+        .foregroundColor(selectedOptions.isEmpty ? theme.textColor : .white)
         .lineLimit(1)
         .font(.footnote)
         .padding(.horizontal, 12)
