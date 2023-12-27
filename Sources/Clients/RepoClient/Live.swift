@@ -22,14 +22,13 @@ extension RepoClient: DependencyKey {
   private static let downloadManager = ModulesDownloadManager()
 
   @Dependency(\.databaseClient) private static var databaseClient
-
   @Dependency(\.fileClient) private static var fileClient
 
   public static let liveValue = Self(
     validate: { url in
       let manifestURL = url.appendingPathComponent("Manifest.json", isDirectory: false)
       let request = URLRequest(url: manifestURL)
-      let (data, response) = try await URLSession.shared.data(for: request)
+      let (data, response) = try await URLSession.ephemeral.data(for: request)
       let manifest = try RepoManifest.decode(from: data)
       let repoPayload = RepoPayload(
         remoteURL: url,
@@ -84,7 +83,7 @@ extension RepoClient: DependencyKey {
     fetchModulesMetadata: { repoId in
       let url = repoId.rawValue.appendingPathComponent("Manifest.json", isDirectory: false)
       let request = URLRequest(url: url)
-      let (data, response) = try await URLSession.shared.data(for: request)
+      let (data, response) = try await URLSession.ephemeral.data(for: request)
       return try RepoManifest.decode(from: data).modules
     }
   )
@@ -123,7 +122,7 @@ private class ModulesDownloadManager {
     let moduleFileURL = repoModuleId.repoId.rawValue.appendingPathComponent(module.file, isDirectory: false)
     let request = URLRequest(url: moduleFileURL)
 
-    let sequence = URLSession.shared.data(request)
+    let sequence = URLSession.data(request)
     states.value[repoModuleId] = .downloading(percent: 0)
 
     let task = Task<Module?, Never> {
@@ -222,7 +221,7 @@ extension URLSession {
     case value(Data, URLResponse)
   }
 
-  func data(_ request: URLRequest) -> AsyncThrowingStream<DataProgress, Error> {
+  static func data(_ request: URLRequest) -> AsyncThrowingStream<DataProgress, Error> {
     class Delegate: NSObject, URLSessionTaskDelegate {
       let continuation: AsyncThrowingStream<DataProgress, Error>.Continuation
       var observation: NSKeyValueObservation?
@@ -243,8 +242,7 @@ extension URLSession {
 
     return .init { continuation in
       let delegate = Delegate(continuation: continuation)
-
-      let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+      let session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
       session.dataTask(with: request) { data, response, error in
         guard let response, let data else {
           continuation.finish(throwing: error)
@@ -257,4 +255,8 @@ extension URLSession {
       .resume()
     }
   }
+}
+
+extension URLSession {
+  fileprivate static let ephemeral = URLSession(configuration: .ephemeral)
 }
