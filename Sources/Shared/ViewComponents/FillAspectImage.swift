@@ -13,21 +13,24 @@ import SwiftUI
 
 public struct FillAspectImage: View {
   let url: URL?
+  let transaction: Transaction
   var averageColor: ((Color?) -> Void)?
 
   public init(
     url: URL?,
+    transaction: Transaction = .init(animation: .easeInOut(duration: 0.4)),
     averageColor: ((Color?) -> Void)? = nil
   ) {
     self.url = url
     self.averageColor = averageColor
+    self.transaction = transaction
   }
 
   public var body: some View {
     GeometryReader { proxy in
       LazyImage(
         url: url,
-        transaction: .init(animation: .easeInOut(duration: 0.4))
+        transaction: transaction
       ) { state in
         if let image = state.image {
           image

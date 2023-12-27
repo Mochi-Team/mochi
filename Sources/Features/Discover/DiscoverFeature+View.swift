@@ -265,19 +265,9 @@ extension DiscoverFeature.View {
         HStack(alignment: .top, spacing: 12) {
           ForEach(listing.items) { playlist in
             VStack(alignment: .leading, spacing: 6) {
-              LazyImage(
-                url: playlist.posterImage,
-                transaction: .init(animation: .easeInOut(duration: 0.16))
-              ) { state in
-                if let image = state.image {
-                  image.resizable()
-                } else {
-                  Color.gray
-                    .opacity(0.35)
-                }
-              }
-              .aspectRatio(listing.orientation.aspectRatio, contentMode: .fit)
-              .cornerRadius(12)
+              FillAspectImage(url: playlist.posterImage ?? playlist.bannerImage)
+                .aspectRatio(listing.orientation.aspectRatio, contentMode: .fit)
+                .cornerRadius(12)
 
               Text(playlist.title ?? "No Title")
                 .lineLimit(3)
@@ -318,17 +308,10 @@ extension DiscoverFeature.View {
                     Text("\(idx + 1)")
                       .font(.body.monospacedDigit().weight(.bold))
 
-                    LazyImage(
+                    FillAspectImage(
                       url: playlist.posterImage,
                       transaction: .init(animation: .easeInOut(duration: 0.16))
-                    ) { state in
-                      if let image = state.image {
-                        image.resizable()
-                      } else {
-                        Color.gray
-                          .opacity(0.35)
-                      }
-                    }
+                    )
                     .aspectRatio(listing.orientation.aspectRatio, contentMode: .fit)
                     .frame(width: 80)
                     .cornerRadius(12)
