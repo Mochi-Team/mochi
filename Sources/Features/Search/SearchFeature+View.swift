@@ -113,63 +113,63 @@ extension SearchFeature.View: View {
     .task { store.send(.view(.didAppear)) }
     .safeAreaInset(edge: .top, spacing: 0) { filters }
     #if os(iOS)
-    .navigationBarHidden(true)
-    .navigationTitle("")
-    .safeAreaInset(edge: .top, spacing: 0) {
-      HStack(spacing: 12) {
-        SwiftUI.Button {
-          store.send(.view(.didTapBackButton))
-        } label: {
-          Image(systemName: "chevron.left")
-        }
-        .buttonStyle(.materialToolbarItem)
+      .navigationBarHidden(true)
+      .navigationTitle("")
+      .safeAreaInset(edge: .top, spacing: 0) {
+        HStack(spacing: 12) {
+          SwiftUI.Button {
+            store.send(.view(.didTapBackButton))
+          } label: {
+            Image(systemName: "chevron.left")
+          }
+          .buttonStyle(.materialToolbarItem)
 
-        WithViewStore(store, observe: \.`self`) { viewStore in
-          HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-              .foregroundColor(.gray)
-
-            TextField("Search...", text: viewStore.$query.removeDuplicates())
-              .textFieldStyle(.plain)
-              .font(.body)
-              .frame(maxWidth: .infinity)
-
-            Button {
-              viewStore.send(.didTapClearQuery)
-            } label: {
-              Image(systemName: "xmark.circle.fill")
+          WithViewStore(store, observe: \.`self`) { viewStore in
+            HStack(spacing: 8) {
+              Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
+
+              TextField("Search...", text: viewStore.$query.removeDuplicates())
+                .textFieldStyle(.plain)
+                .font(.body)
+                .frame(maxWidth: .infinity)
+
+              Button {
+                viewStore.send(.didTapClearQuery)
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .foregroundColor(.gray)
+              }
+              .disabled(viewStore.query.isEmpty)
+              .opacity(viewStore.query.isEmpty ? 0 : 1.0)
+              .animation(.easeInOut, value: viewStore.query.isEmpty)
             }
-            .disabled(viewStore.query.isEmpty)
-            .opacity(viewStore.query.isEmpty ? 0 : 1.0)
-            .animation(.easeInOut, value: viewStore.query.isEmpty)
+            .font(.callout)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .background {
+              RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .style(
+                  withStroke: Color.gray.opacity(0.16),
+                  fill: .thickMaterial
+                )
+            }
+            .frame(maxWidth: .infinity)
           }
-          .font(.callout)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 4)
-          .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-              .style(
-                withStroke: Color.gray.opacity(0.16),
-                fill: .thickMaterial
-              )
-          }
-          .frame(maxWidth: .infinity)
         }
+        .padding(.horizontal)
       }
-      .padding(.horizontal)
-    }
     #elseif os(macOS)
-    .navigationTitle("Search")
-    .toolbar {
-      ToolbarItem(placement: .automatic) {
-        WithViewStore(store, observe: \.`self`) { viewStore in
-          TextField("Search...", text: viewStore.$query.removeDuplicates())
-            .textFieldStyle(.roundedBorder)
-            .frame(minWidth: 200)
+      .navigationTitle("Search")
+      .toolbar {
+        ToolbarItem(placement: .automatic) {
+          WithViewStore(store, observe: \.`self`) { viewStore in
+            TextField("Search...", text: viewStore.$query.removeDuplicates())
+              .textFieldStyle(.roundedBorder)
+              .frame(minWidth: 200)
+          }
         }
       }
-    }
     #endif
   }
 }

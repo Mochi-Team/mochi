@@ -51,7 +51,7 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
           .themeable()
           .background {
             WithViewStore(store, observe: \.ids, removeDuplicates: areOrderedSetsDuplicates) { viewStore in
-                // Simulate "drilling down" for iOS 15
+              // Simulate "drilling down" for iOS 15
               DrilledView(set: viewStore.state, index: viewStore.startIndex) { id, transaction in
                 if viewStore.state.contains(id) {
                   viewStore.send(.popFrom(id: id), transaction: transaction)
@@ -104,6 +104,8 @@ public struct NavStack<State: Equatable, Action, Root: View, Destination: View>:
   }
 }
 
+// MARK: - DrilledView
+
 @MainActor
 private struct DrilledView<Destination: View>: View {
   typealias Elements = OrderedSet<StackElementID>
@@ -113,21 +115,20 @@ private struct DrilledView<Destination: View>: View {
   let destination: (Elements.Element) -> Destination
 
   var id: Elements.Element? {
-    if set.startIndex <= index && index < set.endIndex {
+    if set.startIndex <= index, index < set.endIndex {
       set[index]
     } else {
       nil
     }
   }
 
-  @MainActor
-  var body: some View {
+  @MainActor var body: some View {
     NavigationLink(
       isActive: .init(
         get: { id.flatMap(set.contains) ?? false },
         set: { isActive, transaction in
           if let id, !isActive {
-             popped(id, transaction)
+            popped(id, transaction)
           }
         }
       )
