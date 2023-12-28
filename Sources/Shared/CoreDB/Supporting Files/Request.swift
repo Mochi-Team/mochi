@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - _Request
 
-protocol _Request {
+public protocol _Request {
   associatedtype SomeEntity: Entity
   var fetchLimit: Int? { get set }
   var predicate: NSPredicate? { get set }
@@ -20,9 +20,9 @@ protocol _Request {
 // MARK: - Request
 
 public struct Request<SomeEntity: Entity>: _Request {
-  var fetchLimit: Int?
-  var predicate: NSPredicate?
-  var sortDescriptors: [SortDescriptor] = []
+  public var fetchLimit: Int?
+  public var predicate: NSPredicate?
+  public var sortDescriptors: [SortDescriptor] = []
 
   fileprivate init() {}
 }
@@ -83,7 +83,7 @@ extension Request {
 
 // MARK: - SortDescriptor
 
-struct SortDescriptor: Equatable {
+public struct SortDescriptor: Equatable {
   let keyPathString: String
   var ascending = true
 }

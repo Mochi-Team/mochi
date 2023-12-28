@@ -59,10 +59,10 @@ public struct MediaSelectionGroup: Hashable, Sendable {
 
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.displayName == rhs.displayName &&
-    lhs.selected == rhs.selected &&
-    lhs.options == rhs.options &&
-    lhs.defaultOption == rhs.defaultOption &&
-    lhs.allowsEmptySelection == rhs.allowsEmptySelection
+      lhs.selected == rhs.selected &&
+      lhs.options == rhs.options &&
+      lhs.defaultOption == rhs.defaultOption &&
+      lhs.allowsEmptySelection == rhs.allowsEmptySelection
   }
 }
 
@@ -101,7 +101,7 @@ public struct MediaSelectionOption: Hashable, Sendable {
 
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.mediaType == rhs.mediaType &&
-    lhs.displayName == rhs.displayName &&
-    lhs.isPlayable == rhs.isPlayable
+      lhs.displayName == rhs.displayName &&
+      lhs.isPlayable == rhs.isPlayable
   }
 }

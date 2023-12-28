@@ -13,6 +13,7 @@ struct DatabaseClient: _Client {
         ComposableArchitecture()
         Semver()
         Tagged()
+        CoreDB()
     }
 
     var resources: [Resource] {

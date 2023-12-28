@@ -99,7 +99,7 @@ type_name:
     error: 60
 
 identifier_name:
-  allowed_symbols: "_"
+  allowed_symbols: ["_", "$"]
   min_length: 3
   max_length:
     warning: 60

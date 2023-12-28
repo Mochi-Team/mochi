@@ -732,6 +732,7 @@ struct DatabaseClient: _Client {
         ComposableArchitecture()
         Semver()
         Tagged()
+        CoreDB()
     }
 
     var resources: [Resource] {
@@ -1362,6 +1363,20 @@ extension _Feature {
     }
 }
 //
+//  CoreDBMacros.swift
+//
+//
+//  Created by ErrorErrorError on 12/28/23.
+//  
+//
+
+struct CoreDBMacros: _Macro {
+  var dependencies: any Dependencies {
+    SwiftSyntaxMacros()
+    SwiftCompilerPlugin()
+  }
+}
+//
 //  File.swift
 //  
 //
@@ -1408,6 +1423,19 @@ struct Architecture: _Shared {
         ComposableArchitecture()
         LocalizableClient()
         LoggerClient()
+    }
+}
+//
+//  CoreDB.swift
+//
+//
+//  Created by ErrorErrorError on 12/28/23.
+//  
+//
+
+struct CoreDB: _Shared {
+    var dependencies: any Dependencies {
+      CoreDBMacros()
     }
 }
 //

@@ -1,5 +1,5 @@
 //
-//  Property.swift
+//  OGProperty.swift
 //
 //
 //  Created by ErrorErrorError on 5/15/23.
@@ -107,7 +107,7 @@ extension Property {
         return
       }
 
-      if let entityManagedObjectId = entity.objectID?.id {
+      if let entityManagedObjectId = entity._$id.objectID {
         try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
       } else {
         let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
@@ -152,7 +152,7 @@ extension Property {
 
       object.willChangeValue(forKey: name)
 
-      if let entityManagedObjectId = entity.objectID?.id {
+      if let entityManagedObjectId = entity._$id.objectID {
         try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
       } else {
         let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
@@ -203,7 +203,7 @@ extension Property {
       let cocoaSet = NSMutableSet()
 
       try set.forEach { entity in
-        if let entityManagedObjectId = entity.objectID?.id {
+        if let entityManagedObjectId = entity._$id.objectID {
           try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
           cocoaSet.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
@@ -256,7 +256,7 @@ extension Property {
       let cocoaSet = NSMutableSet()
 
       try instance[keyPath: keyPath].forEach { entity in
-        if let entityManagedObjectId = entity.objectID?.id {
+        if let entityManagedObjectId = entity._$id.objectID {
           try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
           cocoaSet.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
@@ -314,7 +314,7 @@ extension Property {
       let cocoaArray = NSMutableArray()
 
       try array.forEach { entity in
-        if let entityManagedObjectId = entity.objectID?.id {
+        if let entityManagedObjectId = entity._$id.objectID {
           try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
           cocoaArray.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
@@ -365,7 +365,7 @@ extension Property {
       let cocoaArray = NSMutableArray()
 
       try instance[keyPath: keyPath].forEach { entity in
-        if let entityManagedObjectId = entity.objectID?.id {
+        if let entityManagedObjectId = entity._$id.objectID {
           try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
           cocoaArray.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {

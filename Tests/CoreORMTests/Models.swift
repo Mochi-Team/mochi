@@ -24,25 +24,17 @@ struct TestSchema: Schema {
 // swiftlint:disable redundant_optional_initialization
 struct Parent: Entity {
   @Attribute var name = ""
-
   @Attribute var nameOptional: String?
-
   @Relation var child: Child = .init()
-
   @Relation var childOptional: Child? = nil
-
-//    @Relation
-//    var children = [Child]()
+  @Relation var children = [Child]()
 }
 
 // MARK: - Child
 
 // swiftlint:enable redundant_optional_initialization
-
 // swiftformat:disable:next redundantType
 struct Child: Entity, Equatable {
   @Attribute var name = ""
-
-//    @Relation
-//    var parent: Parent = .init()
+  @Relation var parent: Parent = .init()
 }

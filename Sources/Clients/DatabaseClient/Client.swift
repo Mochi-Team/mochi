@@ -6,6 +6,7 @@
 //  Copyright © 2023. All rights reserved.
 //
 
+import CoreDB
 import Dependencies
 import Foundation
 import XCTestDynamicOverlay

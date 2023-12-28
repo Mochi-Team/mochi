@@ -1,5 +1,5 @@
 //
-//  NSPersistentContainer+Ext.swift
+//  NSPersistentContainer+.swift
 //
 //
 //  Created by ErrorErrorError on 5/15/23.
@@ -11,7 +11,7 @@ import Foundation
 
 extension NSPersistentContainer {
   @discardableResult
-  func schedule<T>(
+  public func schedule<T>(
     _ action: @Sendable @escaping (NSManagedObjectContext) throws -> T
   ) async throws -> T {
     try Task.checkCancellation()
@@ -23,7 +23,7 @@ extension NSPersistentContainer {
   }
 
   @MainActor
-  func loadPersistentStores() async throws {
+  public func loadPersistentStores() async throws {
     try await withUnsafeThrowingContinuation { [unowned self] continuation in
       loadPersistentStores { _, error in
         if let error {

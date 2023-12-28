@@ -11,10 +11,24 @@ import Foundation
 
 // MARK: - Entity
 
-public protocol Entity {
+// @dynamicMemberLookup
+// public struct Model<T: Entity> {
+//   public var model: T
+//   var _$id: EntityID?
+
+//   subscript<Member>(dynamicMember keyPath: WritableKeyPath<T, Member>) -> Member {
+//     get { model[keyPath: keyPath] }
+//     set { model[keyPath: keyPath] = newValue }
+//   }
+// }
+
+// extension Model: Sendable where T: Sendable {}
+
+public protocol Entity: OpaqueEntity {
   static var entityName: String { get }
-  var objectID: ManagedObjectID? { get set }
   static var properties: Set<Property<Self>> { get }
+
+  var _$id: EntityID { get }
 
   init()
 }
@@ -32,7 +46,7 @@ public enum EntityError: Error {
 extension Entity {
   /// Decodes an NSManagedObject data to Entity type
   ///
-  init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
+  public init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
     guard !id.isTemporaryID else {
       throw EntityError.managedObjectIdIsNotPermanent
     }
@@ -40,10 +54,9 @@ extension Entity {
     try self.init(unmanagedId: id, context: context)
   }
 
-  init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+  public init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
     self.init()
-
-    self.objectID = .init(objectID: unmanagedId)
+//    self._$id = .init(objectID: unmanagedId)
 
     let managed = context.object(with: unmanagedId)
 
@@ -54,7 +67,7 @@ extension Entity {
 
   /// Copies Entity instance to managed object
   ///
-  func copy(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+  public func copy(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
     let managed = context.object(with: managedObjectId)
 
     try Self.properties.forEach { property in
@@ -62,3 +75,7 @@ extension Entity {
     }
   }
 }
+
+// MARK: - OpaqueEntity
+
+public protocol OpaqueEntity {}
