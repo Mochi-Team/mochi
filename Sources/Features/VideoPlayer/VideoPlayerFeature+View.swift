@@ -674,7 +674,7 @@ extension VideoPlayerFeature.View {
             ForEach(viewStore.state ?? [], id: \.`self`) { group in
               MoreListingRow(
                 title: group.displayName,
-                selected: { $0 == group.selected || $0 == group.defaultOption },
+                selected: { $0 == group.selected },
                 items: group.options,
                 itemTitle: \.displayName,
                 noneCallback: !group.allowsEmptySelection ? nil : {
@@ -684,6 +684,7 @@ extension VideoPlayerFeature.View {
                   viewStore.send(.view(.didTapGroupOption(option, for: group)))
                 }
               )
+              .animation(.easeInOut, value: group.selected)
             }
           }
         }

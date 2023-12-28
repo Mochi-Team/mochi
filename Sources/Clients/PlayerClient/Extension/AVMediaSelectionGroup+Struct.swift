@@ -50,7 +50,6 @@ public struct MediaSelectionGroup: Hashable, Sendable {
   }
 
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(_ref)
     hasher.combine(displayName)
     hasher.combine(selected)
     hasher.combine(options)
@@ -59,12 +58,11 @@ public struct MediaSelectionGroup: Hashable, Sendable {
   }
 
   public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs._ref.isEqual(rhs._ref) &&
-      lhs.displayName == rhs.displayName &&
-      lhs.selected == rhs.selected &&
-      lhs.options == rhs.options &&
-      lhs.defaultOption == rhs.defaultOption &&
-      lhs.allowsEmptySelection == rhs.allowsEmptySelection
+    lhs.displayName == rhs.displayName &&
+    lhs.selected == rhs.selected &&
+    lhs.options == rhs.options &&
+    lhs.defaultOption == rhs.defaultOption &&
+    lhs.allowsEmptySelection == rhs.allowsEmptySelection
   }
 }
 
@@ -96,15 +94,14 @@ public struct MediaSelectionOption: Hashable, Sendable {
   }
 
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(_ref)
+    hasher.combine(mediaType)
     hasher.combine(displayName)
     hasher.combine(isPlayable)
   }
 
   public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs._ref.isEqual(rhs._ref) &&
-      lhs.mediaType == rhs.mediaType &&
-      lhs.displayName == rhs.displayName &&
-      lhs.isPlayable == rhs.isPlayable
+    lhs.mediaType == rhs.mediaType &&
+    lhs.displayName == rhs.displayName &&
+    lhs.isPlayable == rhs.isPlayable
   }
 }
