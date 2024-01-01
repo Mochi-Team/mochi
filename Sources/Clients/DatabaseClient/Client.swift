@@ -18,8 +18,8 @@ public struct DatabaseClient: Sendable {
   public var insert: @Sendable (any Entity) async throws -> any Entity
   public var update: @Sendable (any Entity) async throws -> any Entity
   public var delete: @Sendable (any Entity) async throws -> Void
-  var fetch: @Sendable (any Entity.Type, any _Request) async throws -> [any Entity]
-  var observe: @Sendable (any Entity.Type, any _Request) -> AsyncStream<[any Entity]>
+  var fetch: @Sendable (any Entity.Type, Any) async throws -> [any Entity]
+  var observe: @Sendable (any Entity.Type, Any) -> AsyncStream<[any Entity]>
 }
 
 extension DatabaseClient {

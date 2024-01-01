@@ -1,5 +1,5 @@
 //
-//  OGProperty.swift
+//  Relation.swift
 //
 //
 //  Created by ErrorErrorError on 5/15/23.
@@ -9,138 +9,99 @@
 import CoreData
 import Foundation
 
-// MARK: - Property
+// MARK: - Error
 
-public struct Property<E: Entity> {
-  let name: String
-  let keyPath: AnyKeyPath
-  let encode: (E, NSManagedObject) throws -> Void
-  let decode: (inout E, NSManagedObject) throws -> Void
-  var isRelation = true
+private enum Error: Swift.Error {
+  case propertyNotAvailable(forEntity: String, key: String)
+  case contextIsNotAvailable
 }
 
-// MARK: Hashable
+// MARK: - Relation
 
-extension Property: Hashable {
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(name)
-  }
+public struct Relation<Model: Entity, DestinationEntity: Entity, Value>: OpaqueRelation, TransformableProperty {
+  public typealias Model = Model
 
-  public static func == (lhs: Property<E>, rhs: Property<E>) -> Bool {
-    lhs.name == rhs.name
-  }
+  public let name: String?
+  public let keyPath: WritableKeyPath<Model, Value>
+  public let traits: Set<PropertyTrait>
+
+  let deleteRule: NSDeleteRule
+  let isOrdered: Bool
+  let encode: (String, Model, NSManagedObject) throws -> Void
+  let decode: (String, inout Model, NSManagedObject) throws -> Void
 }
 
-extension Property {
-  static func verifyObjectNameAvailable(_ name: String, _ object: NSManagedObject) throws {
-    guard object.entity.propertiesByName[name] != nil else {
-      throw Error.propertyNotAvailable(forEntity: object.entity.name ?? "Unknown", key: name)
-    }
-  }
-}
-
-// Attributes - TransformableValue
-
-extension Property {
-  public init<Value: TransformableValue>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, Value?>
-  ) {
-    self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
-      object[primitiveValue: name] = try instance[keyPath: keyPath]?.encode()
-    }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
-
-      instance[keyPath: keyPath] = try Value.decode(object[primitiveValue: name])
-    }
-    self.keyPath = keyPath
-    self.isRelation = false
-  }
-
-  public init<Value: TransformableValue>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, Value>
-  ) {
-    self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
-      object[primitiveValue: name] = try instance[keyPath: keyPath].encode()
-    }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
-
-      instance[keyPath: keyPath] = try Value.decode(object[primitiveValue: name])
-    }
-    self.keyPath = keyPath
-    self.isRelation = false
-  }
-}
-
-// Relations
-
-extension Property {
+extension Relation {
   /// This represents an optional to one relationship
   ///
-  public init<DestinationEntity: Entity>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, DestinationEntity?>
-  ) {
+  public init(
+    name: String? = nil,
+    isTransient: Bool = false,
+    deleteRule: NSDeleteRule = .cascadeDeleteRule,
+    _ keyPath: WritableKeyPath<Model, Value>
+  ) where Value == DestinationEntity? {
     self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.traits = isTransient ? [.transient] : []
+    self.deleteRule = deleteRule
+    self.isOrdered = false
+    self.keyPath = keyPath
+    self.encode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
-      let entity = instance[keyPath: keyPath]
-
+      object.willChangeValue(forKey: name)
       defer { object.didChangeValue(forKey: name) }
 
-      object.willChangeValue(forKey: name)
-
-      guard let entity else {
+      guard let entity = instance[keyPath: keyPath] else {
         object.setValue(nil, forKey: name)
         return
       }
 
       if let entityManagedObjectId = entity._$id.objectID {
-        try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
+        try entity.encode(to: entityManagedObjectId, context: managedObjectContext)
       } else {
         let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
           forEntityName: DestinationEntity.entityName,
           into: managedObjectContext
         )
-        try entity.copy(to: managedObject.objectID, context: managedObjectContext)
+        try entity.encode(to: managedObject.objectID, context: managedObjectContext)
         object.setValue(managedObject, forKey: name)
       }
     }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.decode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
+      object.willAccessValue(forKey: name)
+      defer { object.didAccessValue(forKey: name) }
+
       let managed = try? cast(object.value(forKey: name), to: NSManagedObject.self)
 
       instance[keyPath: keyPath] = try managed.flatMap { try .init(id: $0.objectID, context: managedObjectContext) }
     }
-    self.keyPath = keyPath
   }
 
   /// This represents to one relationship
   ///
-  public init<DestinationEntity: Entity>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, DestinationEntity>
-  ) {
+  public init(
+    name: String? = nil,
+    isTransient: Bool = false,
+    deleteRule: NSDeleteRule = .cascadeDeleteRule,
+    _ keyPath: WritableKeyPath<Model, Value>
+  ) where Value == DestinationEntity {
     self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.traits = isTransient ? [.transient] : []
+    self.deleteRule = deleteRule
+    self.isOrdered = false
+    self.keyPath = keyPath
+    self.encode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
@@ -148,52 +109,59 @@ extension Property {
 
       let entity = instance[keyPath: keyPath]
 
+      object.willChangeValue(forKey: name)
       defer { object.didChangeValue(forKey: name) }
 
-      object.willChangeValue(forKey: name)
-
       if let entityManagedObjectId = entity._$id.objectID {
-        try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
+        try entity.encode(to: entityManagedObjectId, context: managedObjectContext)
       } else {
         let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
           forEntityName: DestinationEntity.entityName,
           into: managedObjectContext
         )
-        try entity.copy(to: managedObject.objectID, context: managedObjectContext)
+        try entity.encode(to: managedObject.objectID, context: managedObjectContext)
         object.setValue(managedObject, forKey: name)
       }
     }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.decode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
-      let managed = try cast(object.value(forKey: name), to: NSManagedObject.self)
+      object.willAccessValue(forKey: name)
+      defer { object.didAccessValue(forKey: name) }
 
+      let managed = try cast(object.value(forKey: name), to: NSManagedObject.self)
       instance[keyPath: keyPath] = try .init(id: managed.objectID, context: managedObjectContext)
     }
-    self.keyPath = keyPath
   }
 
   /// This represents an optional to-many relationship set
   ///
-  public init<DestinationEntity: Entity>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, Set<DestinationEntity>?>
-  ) {
+  public init(
+    name: String? = nil,
+    isTransient: Bool = false,
+    deleteRule: NSDeleteRule = .cascadeDeleteRule,
+    _ keyPath: WritableKeyPath<Model, Value>
+  ) where Value == Set<DestinationEntity>? {
     self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.traits = isTransient ? [.transient] : []
+    self.deleteRule = deleteRule
+    self.isOrdered = false
+    self.keyPath = keyPath
+    self.encode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
-      defer { object.didChangeValue(forKey: name) }
-
       let set = instance[keyPath: keyPath]
+
+      object.willChangeValue(forKey: name)
+      defer { object.didChangeValue(forKey: name) }
 
       guard let set else {
         object.setValue(nil, forKey: name)
@@ -204,26 +172,29 @@ extension Property {
 
       try set.forEach { entity in
         if let entityManagedObjectId = entity._$id.objectID {
-          try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
+          try entity.encode(to: entityManagedObjectId, context: managedObjectContext)
           cocoaSet.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
           let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
             forEntityName: DestinationEntity.entityName,
             into: managedObjectContext
           )
-          try entity.copy(to: managedObject.objectID, context: managedObjectContext)
+          try entity.encode(to: managedObject.objectID, context: managedObjectContext)
           cocoaSet.add(managedObject)
         }
       }
 
       object.setValue(cocoaSet, forKey: name)
     }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.decode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
+
+      object.willAccessValue(forKey: name)
+      defer { object.didAccessValue(forKey: name) }
 
       instance[keyPath: keyPath] = try Set(
         object.mutableSetValue(forKey: name).compactMap { element in
@@ -234,49 +205,57 @@ extension Property {
         }
       )
     }
-    self.keyPath = keyPath
   }
 
   /// This represents to-many relationship set
   ///
-  public init<DestinationEntity: Entity>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, Set<DestinationEntity>>
-  ) {
+  public init(
+    name: String? = nil,
+    isTransient: Bool = false,
+    deleteRule: NSDeleteRule = .cascadeDeleteRule,
+    _ keyPath: WritableKeyPath<Model, Value>
+  ) where Value == Set<DestinationEntity> {
     self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
-
+    self.traits = isTransient ? [.transient] : []
+    self.deleteRule = deleteRule
+    self.isOrdered = false
+    self.keyPath = keyPath
+    self.encode = { memberName, instance, object in
+      let name = name ?? memberName
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
+      object.willChangeValue(forKey: name)
       defer { object.didChangeValue(forKey: name) }
 
       let cocoaSet = NSMutableSet()
 
       try instance[keyPath: keyPath].forEach { entity in
         if let entityManagedObjectId = entity._$id.objectID {
-          try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
+          try entity.encode(to: entityManagedObjectId, context: managedObjectContext)
           cocoaSet.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
           let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
             forEntityName: DestinationEntity.entityName,
             into: managedObjectContext
           )
-          try entity.copy(to: managedObject.objectID, context: managedObjectContext)
+          try entity.encode(to: managedObject.objectID, context: managedObjectContext)
           cocoaSet.add(managedObject)
         }
       }
 
       object.setValue(cocoaSet, forKey: name)
     }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.decode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
+
+      object.willAccessValue(forKey: name)
+      defer { object.didAccessValue(forKey: name) }
 
       instance[keyPath: keyPath] = try Set(
         object.mutableSetValue(forKey: name).compactMap { element in
@@ -287,23 +266,29 @@ extension Property {
         }
       )
     }
-    self.keyPath = keyPath
   }
 
   /// This represents an optional to-many relationship ordered array
   ///
-  public init<DestinationEntity: Entity>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, [DestinationEntity]?>
-  ) {
+  public init(
+    name: String? = nil,
+    isTransient: Bool = false,
+    deleteRule: NSDeleteRule = .cascadeDeleteRule,
+    _ keyPath: WritableKeyPath<Model, Value>
+  ) where Value == [DestinationEntity]? {
     self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.traits = isTransient ? [.transient] : []
+    self.deleteRule = deleteRule
+    self.isOrdered = true
+    self.keyPath = keyPath
+    self.encode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
+      object.willChangeValue(forKey: name)
       defer { object.didChangeValue(forKey: name) }
 
       guard let array = instance[keyPath: keyPath] else {
@@ -311,26 +296,26 @@ extension Property {
         return
       }
 
-      let cocoaArray = NSMutableArray()
+      let cocoaArray = NSMutableOrderedSet()
 
       try array.forEach { entity in
         if let entityManagedObjectId = entity._$id.objectID {
-          try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
+          try entity.encode(to: entityManagedObjectId, context: managedObjectContext)
           cocoaArray.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
           let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
             forEntityName: DestinationEntity.entityName,
             into: managedObjectContext
           )
-          try entity.copy(to: managedObject.objectID, context: managedObjectContext)
+          try entity.encode(to: managedObject.objectID, context: managedObjectContext)
           cocoaArray.add(managedObject)
         }
       }
 
       object.setValue(cocoaArray, forKey: name)
     }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.decode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
@@ -343,49 +328,58 @@ extension Property {
         )
       }
     }
-    self.keyPath = keyPath
   }
 
   /// This represents to-many relationship ordered array
   ///
-  public init<DestinationEntity: Entity>(
-    _ name: String,
-    _ keyPath: WritableKeyPath<E, [DestinationEntity]>
-  ) {
+  public init(
+    name: String? = nil,
+    isTransient: Bool = false,
+    deleteRule: NSDeleteRule = .cascadeDeleteRule,
+    _ keyPath: WritableKeyPath<Model, Value>
+  ) where Value == [DestinationEntity] {
     self.name = name
-    self.encode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.traits = isTransient ? [.transient] : []
+    self.deleteRule = deleteRule
+    self.isOrdered = true
+    self.keyPath = keyPath
+    self.encode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
 
+      object.willChangeValue(forKey: name)
       defer { object.didChangeValue(forKey: name) }
 
-      let cocoaArray = NSMutableArray()
+      let cocoaArray = NSMutableOrderedSet()
 
       try instance[keyPath: keyPath].forEach { entity in
         if let entityManagedObjectId = entity._$id.objectID {
-          try entity.copy(to: entityManagedObjectId, context: managedObjectContext)
+          try entity.encode(to: entityManagedObjectId, context: managedObjectContext)
           cocoaArray.add(managedObjectContext.object(with: entityManagedObjectId))
         } else {
           let managedObject: NSManagedObject = NSEntityDescription.insertNewObject(
             forEntityName: DestinationEntity.entityName,
             into: managedObjectContext
           )
-          try entity.copy(to: managedObject.objectID, context: managedObjectContext)
+          try entity.encode(to: managedObject.objectID, context: managedObjectContext)
           cocoaArray.add(managedObject)
         }
       }
 
       object.setValue(cocoaArray, forKey: name)
     }
-    self.decode = { instance, object in
-      try Self.verifyObjectNameAvailable(name, object)
+    self.decode = { memberName, instance, object in
+      let name = name ?? memberName
 
       guard let managedObjectContext = object.managedObjectContext else {
         throw Error.contextIsNotAvailable
       }
+
+      object.willAccessValue(forKey: name)
+      defer { object.didAccessValue(forKey: name) }
 
       instance[keyPath: keyPath] = try object.mutableOrderedSetValue(forKey: name).map { element in
         try DestinationEntity(
@@ -394,15 +388,34 @@ extension Property {
         )
       }
     }
-    self.keyPath = keyPath
   }
 }
 
-// MARK: Property.Error
+// MARK: - OpaqueRelation
 
-extension Property {
-  enum Error: Swift.Error {
-    case propertyNotAvailable(forEntity: String, key: String)
-    case contextIsNotAvailable
+protocol OpaqueRelation: OpaqueProperty {
+  associatedtype DestinationEntity: Entity
+  var deleteRule: NSDeleteRule { get }
+  var isOrdered: Bool { get }
+}
+
+// MARK: - RelationType
+
+enum RelationType {
+  case toOne
+  case toMany
+}
+
+extension OpaqueRelation {
+  var destinationEntity: DestinationEntity.Type { DestinationEntity.self }
+
+  var relationType: RelationType {
+    if Value.self is DestinationEntity.Type {
+      .toOne
+    } else if Value.self is DestinationEntity?.Type {
+      .toOne
+    } else {
+      .toMany
+    }
   }
 }

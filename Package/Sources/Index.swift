@@ -23,6 +23,7 @@ let package = Package {
 
     MochiApp()
 } testTargets: {
+    CoreDB.Tests()
     ModuleClient.Tests()
     JSValueCoder.Tests()
 }

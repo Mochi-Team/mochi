@@ -18,11 +18,6 @@ protocol OpaqueOptional {
 // MARK: - Optional + OpaqueOptional
 
 extension Optional: OpaqueOptional {
-  func wrappedType() -> Any.Type {
-    Wrapped.self
-  }
-
-  var isNil: Bool {
-    self == nil
-  }
+  func wrappedType() -> Any.Type { Wrapped.self }
+  var isNil: Bool { self == nil }
 }

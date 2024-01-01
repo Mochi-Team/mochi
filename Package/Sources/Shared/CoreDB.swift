@@ -11,3 +11,14 @@ struct CoreDB: _Shared {
       CoreDBMacros()
     }
 }
+
+extension CoreDB: Testable {
+  struct Tests: TestTarget {
+    var name: String { "CoreDBTests" }
+
+    var dependencies: any Dependencies {
+      CoreDB()
+      CustomDump()
+    }
+  }
+}

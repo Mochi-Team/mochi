@@ -13,10 +13,20 @@ import Foundation
 
 @Entity
 @dynamicMemberLookup
-public struct Module: Entity, Hashable, Sendable {
-  @Attribute public var directory: URL = .init(string: "/").unsafelyUnwrapped
-  @Attribute public var installDate: Date = .init()
-  @Attribute public var manifest: Manifest = .init()
+public struct Module: Hashable, Sendable {
+  @Attribute public var directory = URL(string: "/").unsafelyUnwrapped
+  @Attribute public var installDate = Date()
+  @Attribute public var manifest = Manifest()
 
   public init() {}
+
+  public init(
+    directory: URL,
+    installDate: Date,
+    manifest: Self.Manifest
+  ) {
+    self.directory = directory
+    self.installDate = installDate
+    self.manifest = manifest
+  }
 }

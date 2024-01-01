@@ -9,9 +9,8 @@
 import CoreData
 import Foundation
 
-public struct EntityID: Hashable, @unchecked Sendable {
-  public private(set) var objectID: NSManagedObjectID?
-
+public struct EntityID<T: Entity>: Hashable, @unchecked Sendable {
+  var objectID: NSManagedObjectID?
   var hasSet: Bool { objectID != nil }
 
   public init() {
@@ -22,9 +21,7 @@ public struct EntityID: Hashable, @unchecked Sendable {
     self.objectID = objectID
   }
 
-  public func _$objectID(_ newId: NSManagedObjectID?) -> Self {
-    var copy = self
-    copy.objectID = newId
-    return copy
+  mutating func setObjectID(_ id: NSManagedObjectID?) {
+    objectID = id
   }
 }

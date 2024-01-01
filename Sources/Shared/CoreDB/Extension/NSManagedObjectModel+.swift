@@ -13,22 +13,18 @@ extension NSManagedObjectModel {
   convenience init<SomeSchema: Schema>(_: SomeSchema.Type = SomeSchema.self) {
     self.init()
 
-    var entitiesMap = [String: EntityDescriptor]()
-
-    for entity in SomeSchema.entities {
-      entitiesMap[entity.entityName] = EntityDescriptor(entity)
-    }
+    let entitiesMap = Dictionary(uniqueKeysWithValues: SomeSchema.entities.map { ($0.entityName, EntityDescription($0)) })
 
     self.entities = entitiesMap.map(\.value)
 
-//    for case let entity as EntityDescriptor in entities {
-//      for property in entity.properties {
-//        if let property = property as? NSRelationshipDescription {
-//          if let relationPropertyInfo = entity.opaquePropertyDescriptors[property.name] as? any OpaqueRelation {
-//            property.destinationEntity = entitiesMap[relationPropertyInfo.destinationEntity.entityName]
-//          }
-//        }
-//      }
-//    }
+    for entity in entitiesMap.values {
+      for property in entity.properties {
+        if let property = property as? NSRelationshipDescription {
+          if let relationPropertyInfo = entity.opaquePropertyDescriptors[property.name] as? any OpaqueRelation {
+            property.destinationEntity = entitiesMap[relationPropertyInfo.destinationEntity.entityName]
+          }
+        }
+      }
+    }
   }
 }

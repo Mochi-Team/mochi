@@ -11,7 +11,7 @@ import Foundation
 
 extension NSPersistentContainer {
   @discardableResult
-  public func schedule<T>(
+  func schedule<T>(
     _ action: @Sendable @escaping (NSManagedObjectContext) throws -> T
   ) async throws -> T {
     try Task.checkCancellation()
@@ -23,8 +23,8 @@ extension NSPersistentContainer {
   }
 
   @MainActor
-  public func loadPersistentStores() async throws {
-    try await withUnsafeThrowingContinuation { [unowned self] continuation in
+  func loadPersistentStores() async throws {
+    try await withUnsafeThrowingContinuation { continuation in
       loadPersistentStores { _, error in
         if let error {
           continuation.resume(throwing: error)

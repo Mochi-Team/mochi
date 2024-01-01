@@ -10,14 +10,21 @@ import SwiftDiagnostics
 import SwiftOperators
 import SwiftSyntax
 import SwiftSyntaxBuilder
+import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 
 // MARK: - EntityMacro
 
 public enum EntityMacro {
   static let packageName = "CoreDB"
-  static let protocolName = "Entity"
-  static let packageWithProtocol = "\(packageName).\(protocolName)"
+  static let entityType = "Entity"
+  static let qualifiedEntityName = "\(packageName).\(entityType)"
+
+  static let entityIdType = "EntityID<Self>"
+  static let qualifiedEntityIdName = "\(packageName).\(entityIdType)"
+
+  static let anyPropertyType = "AnyProperty<Self>"
+  static let qualifiedAnyPropertyType = "\(packageName).\(anyPropertyType)"
 }
 
 // MARK: ExtensionMacro
@@ -31,10 +38,10 @@ extension EntityMacro: ExtensionMacro {
     in _: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
     guard let inherited = declaration.inheritanceClause?.inheritedTypes else { return [] }
-    guard !inherited.contains(where: { [protocolName, packageWithProtocol].contains($0.type.trimmedDescription) }) else { return [] }
+    guard !inherited.contains(where: { [entityType, qualifiedEntityName].contains($0.type.trimmedDescription) }) else { return [] }
     let ext: DeclSyntax =
       """
-      extension \(type.trimmed): \(raw: packageWithProtocol) {}
+      extension \(raw: type.trimmed): \(raw: qualifiedEntityName) {}
       """
     return [ext.cast(ExtensionDeclSyntax.self)]
   }
@@ -49,35 +56,60 @@ extension EntityMacro: MemberMacro {
     in _: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.DeclSyntax] {
     let members = declaration.memberBlock.members
-    var props: [(name: String, type: String)] = []
+    var props: [MetaPropertyMember] = []
     for member in members {
       guard let v = member.decl.as(VariableDeclSyntax.self),
             let b = v.bindings.first,
-            let i = b.pattern.as(IdentifierPatternSyntax.self),
-            let t = b.typeAnnotation?.type else {
+            let i = b.pattern.as(IdentifierPatternSyntax.self) else {
+        continue
+      }
+
+      let attributes = v.attributes.compactMap { attr in
+        if case let .attribute(type) = attr {
+          return type
+        }
+        return nil
+      }
+
+      guard let attached = attributes.first(
+        where: { ["Attribute", "Relation"].contains($0.attributeName.trimmedDescription) }
+      ) else {
         continue
       }
 
       let n = i.identifier.text
-      let tv = t.description
-      props.append((name: n, type: tv))
+      let attachedProps = attached.arguments?.children(viewMode: .all).map(\.trimmedDescription) ?? []
+      props.append(.init(memberName: n, attrName: attached.attributeName.trimmedDescription, attrArgs: attachedProps))
     }
 
     let entityProperties = props
-      .map { prop in
+      .map { meta in
         """
-        \(Self.packageName).Property<Self>("\(prop.name)", \\.\(prop.name))
+        \(qualifiedAnyPropertyType)(name: "\(meta.memberName)", \(meta.description))
         """
       }
 
     return [
       """
-      public let _$id: \(raw: Self.packageName).EntityID = .init()
-      public static let properties: Set<\(raw: Self.packageName).Property<Self>> = [
-        // TODO: Add all properties labeled @Attribute and @Relation
+      public var _$id = \(raw: qualifiedEntityIdName)()
+
+      public static let _$properties: Set<\(raw: qualifiedAnyPropertyType)> = [
         \(raw: entityProperties.joined(separator: ",\n  "))
       ]
       """
     ]
+  }
+}
+
+// MARK: EntityMacro.MetaPropertyMember
+
+extension EntityMacro {
+  struct MetaPropertyMember: CustomStringConvertible {
+    let memberName: String
+    let attrName: String
+    let attrArgs: [String]
+
+    var propertyArgs: String { attrArgs.isEmpty ? "" : attrArgs.joined(separator: ", ") + ", " }
+    var description: String { "\(EntityMacro.packageName).\(attrName)(\(propertyArgs)\\Self.\(memberName))" }
   }
 }

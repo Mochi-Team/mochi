@@ -63,8 +63,7 @@ extension Request {
 
 extension Request {
   func makeFetchRequest<ResultType: NSFetchRequestResult>(ofType resultType: NSFetchRequestResultType = .managedObjectResultType) -> NSFetchRequest<ResultType> {
-    let properties = SomeEntity.properties.filter { !$0.isRelation }.map(\.name)
-
+    let properties = SomeEntity._$properties.filter { !$0.isRelation }.map(\.propertyName)
     let fetchRequest = NSFetchRequest<ResultType>(entityName: SomeEntity.entityName)
     fetchRequest.resultType = resultType
     fetchRequest.propertiesToFetch = properties
@@ -245,7 +244,7 @@ extension ComparisonPredicate {
     _ op: NSComparisonPredicate.Operator,
     _ value: Value?
   ) {
-    let keyPathName = Root.properties.first(where: { $0.keyPath == keyPath }).unsafelyUnwrapped.name
+    let keyPathName = Root._$properties.first { $0.property.keyPath == keyPath }.unsafelyUnwrapped.name
     let ex1 = NSExpression(forKeyPath: keyPathName)
     let ex2 = NSExpression(forConstantValue: value)
     self.init(leftExpression: ex1, rightExpression: ex2, modifier: .direct, type: op)

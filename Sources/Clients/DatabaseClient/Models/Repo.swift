@@ -8,15 +8,16 @@
 
 import CoreDB
 import Foundation
+import SwiftData
 
 // MARK: - Repo
 
 @Entity
 @dynamicMemberLookup
 public struct Repo: Equatable, Sendable {
-  @Attribute public var remoteURL: URL = .init(string: "/").unsafelyUnwrapped
-  @Attribute public var manifest: Manifest = .init()
-  @Relation public var modules: Set<Module> = []
+  @Attribute public var remoteURL = URL(string: "/").unsafelyUnwrapped
+  @Attribute public var manifest = Manifest()
+  @Relation public var modules = Set<Module>()
 
   public init() {}
 

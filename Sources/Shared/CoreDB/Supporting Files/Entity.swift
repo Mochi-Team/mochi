@@ -11,24 +11,11 @@ import Foundation
 
 // MARK: - Entity
 
-// @dynamicMemberLookup
-// public struct Model<T: Entity> {
-//   public var model: T
-//   var _$id: EntityID?
-
-//   subscript<Member>(dynamicMember keyPath: WritableKeyPath<T, Member>) -> Member {
-//     get { model[keyPath: keyPath] }
-//     set { model[keyPath: keyPath] = newValue }
-//   }
-// }
-
-// extension Model: Sendable where T: Sendable {}
-
-public protocol Entity: OpaqueEntity {
+public protocol Entity {
   static var entityName: String { get }
-  static var properties: Set<Property<Self>> { get }
 
-  var _$id: EntityID { get }
+  var _$id: EntityID<Self> { get set }
+  static var _$properties: Set<AnyProperty<Self>> { get }
 
   init()
 }
@@ -46,7 +33,7 @@ public enum EntityError: Error {
 extension Entity {
   /// Decodes an NSManagedObject data to Entity type
   ///
-  public init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
+  init(id: NSManagedObjectID, context: NSManagedObjectContext) throws {
     guard !id.isTemporaryID else {
       throw EntityError.managedObjectIdIsNotPermanent
     }
@@ -54,28 +41,24 @@ extension Entity {
     try self.init(unmanagedId: id, context: context)
   }
 
-  public init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+  init(unmanagedId: NSManagedObjectID, context: NSManagedObjectContext) throws {
     self.init()
-//    self._$id = .init(objectID: unmanagedId)
+    _$id.setObjectID(unmanagedId)
 
     let managed = context.object(with: unmanagedId)
 
-    for property in Self.properties {
+    for property in Self._$properties {
       try property.decode(&self, managed)
     }
   }
 
   /// Copies Entity instance to managed object
   ///
-  public func copy(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
+  func encode(to managedObjectId: NSManagedObjectID, context: NSManagedObjectContext) throws {
     let managed = context.object(with: managedObjectId)
 
-    try Self.properties.forEach { property in
+    try Self._$properties.forEach { property in
       try property.encode(self, managed)
     }
   }
 }
-
-// MARK: - OpaqueEntity
-
-public protocol OpaqueEntity {}

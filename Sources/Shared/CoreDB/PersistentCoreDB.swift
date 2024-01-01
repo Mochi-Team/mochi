@@ -1,18 +1,17 @@
 //
-//  CoreDB.swift
+//  PersistentCoreDB.swift
 //
 //
 //  Created by ErrorErrorError on 12/28/23.
 //
 //
 
-@preconcurrency
 import CoreData
 import Foundation
 
-// MARK: - CoreORM
+// MARK: - PersistentCoreDB
 
-public final class CoreORM<SomeSchema: Schema>: @unchecked Sendable {
+public final class PersistentCoreDB<SomeSchema: Schema>: @unchecked Sendable {
   private var pc: NSPersistentContainer
 
   public init() {
@@ -33,12 +32,12 @@ public final class CoreORM<SomeSchema: Schema>: @unchecked Sendable {
   }
 
   @discardableResult
-  public func transaction<R: Sendable>(_ body: @Sendable @escaping (CoreTransaction<SomeSchema>) async throws -> R) async rethrows -> R {
-    try await body(.init(persistenceContainer: pc))
+  public func transaction<R: Sendable>(_ body: @Sendable (CoreTransaction<SomeSchema>) async throws -> R) async rethrows -> R {
+    try await body(.init(container: pc))
   }
 
   public func observe<Instance: Entity>(_ request: Request<Instance>) -> AsyncStream<[Instance]> {
-    CoreTransaction<SomeSchema>(persistenceContainer: pc).observe(request: request)
+    CoreTransaction<SomeSchema>(container: pc).observe(request)
   }
 
   @MainActor
@@ -65,10 +64,10 @@ public final class CoreORM<SomeSchema: Schema>: @unchecked Sendable {
   }
 }
 
-extension CoreORM {
+extension PersistentCoreDB {
   @MainActor
   private func performMigrationCheck() async throws {
-    // TODO: Perform Migration
+    // TODO: Implement migration
   }
 
   private func loadPersistentStoreIfNeeded() async throws {
@@ -101,7 +100,7 @@ extension CoreORM {
 // MARK: - CoreTransaction
 
 public struct CoreTransaction<SomeSchema: Schema>: Sendable {
-  let persistenceContainer: NSPersistentContainer
+  let container: NSPersistentContainer
 
   public func create<Instance: Entity>(_: Instance.Type = Instance.self) async throws -> Instance {
     try await create(Instance())
@@ -109,9 +108,9 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
 
   @discardableResult
   public func create<Instance: Entity>(_ instance: Instance) async throws -> Instance {
-    let managed = try await persistenceContainer.schedule { context in
+    let managed = try await container.schedule { context in
       let managed = context.insert(entity: Instance.self)
-      try instance.copy(to: managed.objectID, context: context)
+      try instance.encode(to: managed.objectID, context: context)
       return managed
     }
 
@@ -121,14 +120,14 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
 
     let managedId = managed.objectID
 
-    return try await persistenceContainer.schedule { context in
-      try .init(id: managedId, context: context)
-    }
+    var instance = instance
+    instance._$id.setObjectID(managedId)
+    return instance
   }
 
   @discardableResult
   public func createOrUpdate<Instance: Entity>(_ instance: Instance) async throws -> Instance {
-    if instance._$id.objectID != nil {
+    if instance._$id.hasSet {
       try await update(instance)
     } else {
       try await create(instance)
@@ -137,35 +136,34 @@ public struct CoreTransaction<SomeSchema: Schema>: Sendable {
 
   @discardableResult
   public func update<Instance: Entity>(_ instance: Instance) async throws -> Instance {
-    try await persistenceContainer.schedule { context in
+    try await container.schedule { context in
       guard let objectId = instance._$id.objectID else {
         throw Error.managedContextNotAvailable
       }
 
-      try instance.copy(to: objectId, context: context)
+      try instance.encode(to: objectId, context: context)
       return instance
     }
   }
 
   public func delete(_ instance: some Entity) async throws {
-    try await persistenceContainer.schedule { context in
+    try await container.schedule { context in
       guard let objectId = instance._$id.objectID else {
         throw Error.managedContextNotAvailable
       }
 
       let managed = context.object(with: objectId)
       context.delete(managed)
-      // instance.properties.forEach { $0.managedObjectId.value = nil }
     }
   }
 
   public func fetch<Instance: Entity>(_ request: Request<Instance> = .all) async throws -> [Instance] {
-    try await persistenceContainer.schedule { context in
+    try await container.schedule { context in
       try context.fetch(request).compactMap { try .init(id: $0.objectID, context: context) }
     }
   }
 
-  public func observe<Instance: Entity>(request: Request<Instance>) -> AsyncStream<[Instance]> {
+  public func observe<Instance: Entity>(_ request: Request<Instance>) -> AsyncStream<[Instance]> {
     .init { continuation in
       let cancellable = Task.detached {
         let values = try? await fetch(request)
@@ -208,7 +206,7 @@ extension CoreTransaction {
   }
 }
 
-extension CoreORM {
+extension PersistentCoreDB {
   var sqliteStoreURL: URL? {
     pc.persistentStoreDescriptions.first?.url
   }

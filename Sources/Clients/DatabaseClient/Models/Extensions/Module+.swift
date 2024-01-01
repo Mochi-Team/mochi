@@ -27,23 +27,6 @@ extension Module: Identifiable {
   }
 }
 
-extension Module {
-  public init(
-    directory: URL,
-    installDate: Date,
-    manifest: Module.Manifest
-  ) {
-    self.directory = directory
-    self.installDate = installDate
-    self.manifest = manifest
-  }
-
-  public subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Manifest, Value>) -> Value {
-    get { manifest[keyPath: dynamicMember] }
-    set { manifest[keyPath: dynamicMember] = newValue }
-  }
-}
-
 // MARK: - Module.Manifest
 
 extension Module {
@@ -90,6 +73,11 @@ extension Module {
       case image
       case text
     }
+  }
+
+  public subscript<Value>(dynamicMember dynamicMember: WritableKeyPath<Manifest, Value>) -> Value {
+    get { manifest[keyPath: dynamicMember] }
+    set { manifest[keyPath: dynamicMember] = newValue }
   }
 }
 

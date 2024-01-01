@@ -10,16 +10,31 @@ import CoreData
 import Foundation
 
 extension NSManagedObject {
-  subscript(primitiveValue forKey: String) -> Any? {
+  subscript<V: PrimitiveValue>(primitiveValue key: String) -> V {
     get {
-      defer { didAccessValue(forKey: forKey) }
-      willAccessValue(forKey: forKey)
-      return primitiveValue(forKey: forKey)
+      willAccessValue(forKey: key)
+      defer { didAccessValue(forKey: key) }
+
+      let value = primitiveValue(forKey: key)
+      if let value = value as? V {
+        return value
+      } else {
+        if V.self is OpaqueOptional.Type {
+          return unsafeBitCast(value, to: V.self)
+        } else {
+          return unsafeBitCast(value, to: V.self)
+        }
+      }
     }
+
     set(newValue) {
-      defer { didChangeValue(forKey: forKey) }
-      willChangeValue(forKey: forKey)
-      setPrimitiveValue(newValue, forKey: forKey)
+      willChangeValue(forKey: key)
+      defer { didChangeValue(forKey: key) }
+      if let optional = newValue as? OpaqueOptional {
+        setPrimitiveValue(optional.isNil ? nil : newValue, forKey: key)
+      } else {
+        setPrimitiveValue(newValue, forKey: key)
+      }
     }
   }
 }

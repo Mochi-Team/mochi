@@ -16,6 +16,7 @@ enum TransformableValueError: Swift.Error {
   case failedToEncode(for: String, model: String)
   case failedToEncodeRelation(for: String, model: String)
   case invalidPrimitiveValueType(of: Any)
+  case mismatchValueType(expected: Any.Type, received: Any.Type)
   case badInput(Any? = nil)
 }
 
@@ -33,32 +34,48 @@ public protocol TransformableValue {
   static func decode(value: Primitive) throws -> Self
 }
 
-extension TransformableValue {
-  static func decode(_ value: Any?) throws -> Self {
-    guard let value = value as? Primitive else {
-      throw TransformableValueError.badInput(value)
-    }
-    return try Self.decode(value: value)
-  }
-}
-
-extension TransformableValue where Self: PrimitiveValue {
+extension TransformableValue where Self.Primitive == Self {
   public func encode() throws -> Self { self }
   public static func decode(value: Self) throws -> Self { value }
 }
 
-extension Optional where Wrapped: TransformableValue {
-  public typealias Primitive = Wrapped.Primitive
+extension TransformableValue {
+  static func decode(_ value: Any?) throws -> Self {
+    if let value = value as? Primitive {
+      return try decode(value: value)
+    } else if value == nil, Self.Primitive.self is OpaqueOptional.Type {
+      return try Self.decode(value: unsafeBitCast(value, to: Self.Primitive.self))
+    } else {
+      throw TransformableValueError.mismatchValueType(expected: Self.self, received: type(of: value))
+    }
+  }
+}
+
+// MARK: - Optional + PrimitiveValue
+
+extension Optional: PrimitiveValue where Wrapped: PrimitiveValue {
+  public static var attributeType: NSAttributeType { Wrapped.attributeType }
+}
+
+// MARK: - Optional + TransformableValue
+
+extension Optional: TransformableValue where Wrapped: TransformableValue {
+  public typealias Primitive = Wrapped.Primitive?
 
   public func encode() throws -> Primitive {
-    guard let value = self else {
-      throw TransformableValueError.badInput()
+    if case let .some(wrapped) = self {
+      try wrapped.encode()
+    } else {
+      nil
     }
-    return try value.encode()
   }
 
-  public static func decode(value: Primitive) throws -> Self {
-    try Wrapped.decode(value: value)
+  public static func decode(value: Primitive) throws -> Wrapped? {
+    if let value {
+      try Wrapped.decode(value: value)
+    } else {
+      nil
+    }
   }
 }
 
