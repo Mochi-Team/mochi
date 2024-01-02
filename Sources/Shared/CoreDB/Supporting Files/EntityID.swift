@@ -9,7 +9,9 @@
 import CoreData
 import Foundation
 
-public struct EntityID<T: Entity>: Hashable, @unchecked Sendable {
+// MARK: - EntityID
+
+public struct EntityID<T: Entity> {
   var objectID: NSManagedObjectID?
   var hasSet: Bool { objectID != nil }
 
@@ -25,3 +27,15 @@ public struct EntityID<T: Entity>: Hashable, @unchecked Sendable {
     objectID = id
   }
 }
+
+// MARK: Equatable
+
+extension EntityID: Equatable where T: Equatable {}
+
+// MARK: Hashable
+
+extension EntityID: Hashable where T: Hashable {}
+
+// MARK: Sendable
+
+extension EntityID: Sendable where T: Sendable {}

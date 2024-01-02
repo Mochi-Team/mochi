@@ -18,8 +18,6 @@ public struct Module: Hashable, Sendable {
   @Attribute public var installDate = Date()
   @Attribute public var manifest = Manifest()
 
-  public init() {}
-
   public init(
     directory: URL,
     installDate: Date,

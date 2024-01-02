@@ -37,7 +37,7 @@ extension EntityMacro: ExtensionMacro {
     conformingTo _: [SwiftSyntax.TypeSyntax],
     in _: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-    guard let inherited = declaration.inheritanceClause?.inheritedTypes else { return [] }
+    let inherited = declaration.inheritanceClause?.inheritedTypes ?? []
     guard !inherited.contains(where: { [entityType, qualifiedEntityName].contains($0.type.trimmedDescription) }) else { return [] }
     let ext: DeclSyntax =
       """
@@ -55,6 +55,17 @@ extension EntityMacro: MemberMacro {
     providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax,
     in _: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.DeclSyntax] {
+    let accessType = declaration.modifiers.map(\.name).first { name in
+      [.keyword(.public), .keyword(.internal), .keyword(.fileprivate), .keyword(.private)]
+        .contains(name.tokenKind)
+    }
+
+    let access = if let accessType {
+      TokenSyntax(accessType.tokenKind, trailingTrivia: [.spaces(1)], presence: .present)
+    } else {
+      TokenSyntax(.stringSegment(""), presence: .missing)
+    }
+
     let members = declaration.memberBlock.members
     var props: [MetaPropertyMember] = []
     for member in members {
@@ -91,10 +102,10 @@ extension EntityMacro: MemberMacro {
 
     return [
       """
-      public var _$id = \(raw: qualifiedEntityIdName)()
-
-      public static let _$properties: Set<\(raw: qualifiedAnyPropertyType)> = [
-        \(raw: entityProperties.joined(separator: ",\n  "))
+      \(raw: access)init() {}
+      \(raw: access)var _$id = \(raw: qualifiedEntityIdName)()
+      \(raw: access)static let _$properties: Set<\(raw: qualifiedAnyPropertyType)> = [\
+      \(raw: entityProperties.joined(separator: ",\n  "))\
       ]
       """
     ]

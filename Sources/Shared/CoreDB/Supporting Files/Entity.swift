@@ -18,10 +18,12 @@ public protocol Entity {
   static var _$properties: Set<AnyProperty<Self>> { get }
 
   init()
+  static var `default`: Self { get }
 }
 
 extension Entity {
   public static var entityName: String { .init(describing: Self.self) }
+  public static var `default`: Self { .init() }
 }
 
 // MARK: - EntityError

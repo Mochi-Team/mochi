@@ -11,6 +11,8 @@ import Foundation
 // MARK: - Schema
 
 public protocol Schema {
+  associatedtype Migrations: Migratable
+
   static var schemaName: String { get }
 
   typealias Entities = [any Entity.Type]
@@ -32,4 +34,12 @@ public enum SchemaBuilder {
   public static func buildBlock(_ element: Element) -> [Element] { [element] }
   public static func buildBlock(_ elements: Element...) -> [Element] { elements }
   public static func buildBlock(_ elements: [Element]) -> [Element] { elements }
+}
+
+// MARK: - Migratable
+
+public protocol Migratable: CaseIterable {
+  func nextVersion() -> Self?
+
+  static var current: Self { get }
 }

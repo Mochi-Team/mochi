@@ -39,6 +39,7 @@ extension RepoPackagesFeature {
         )
 
       case .view(.didTapToRefreshRepo):
+        state.repo._$id = .init()
         return state.fetchRemoteModules(forced: true)
 
       case let .view(.didTapAddModule(moduleId)):

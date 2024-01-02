@@ -8,7 +8,6 @@
 
 import CoreDB
 import Foundation
-import SwiftData
 
 // MARK: - Repo
 
@@ -19,11 +18,9 @@ public struct Repo: Equatable, Sendable {
   @Attribute public var manifest = Manifest()
   @Relation public var modules = Set<Module>()
 
-  public init() {}
-
   public init(
     remoteURL: URL,
-    manifest: Self.Manifest,
+    manifest: Manifest,
     modules: Set<Module> = []
   ) {
     self.remoteURL = remoteURL

@@ -14,4 +14,17 @@ struct MochiSchema: Schema {
     Repo.self
     Module.self
   }
+
+  enum Migrations: Migratable {
+    case version1
+
+    static let current = MochiSchema.Migrations.version1
+
+    func nextVersion() -> Self? {
+      switch self {
+      case .version1:
+        nil
+      }
+    }
+  }
 }
