@@ -31,6 +31,8 @@ extension DiscoverFeature.View: View {
       WithViewStore(store, observe: \.section) { viewStore in
         ZStack {
           switch viewStore.state {
+          case .empty:
+            VStack {}
           case .home:
             // TODO: Create home listing
             VStack {

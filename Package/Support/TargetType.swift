@@ -4,17 +4,17 @@
 // Licensed under MIT License
 //
 
-//typealias TargetType = Target.TargetType
+// typealias TargetType = Target.TargetType
 
 enum TargetType {
-  case regular
-  case executable
-  case test
-  case binary(BinaryTarget)
-  case macro
+    case regular
+    case executable
+    case test
+    case binary(BinaryTarget)
+    case macro
 
-  enum BinaryTarget {
-    case path(String)
-    case remote(url: String, checksum: String)
-  }
+    enum BinaryTarget {
+        case path(String)
+        case remote(url: String, checksum: String)
+    }
 }

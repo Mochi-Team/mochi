@@ -3,7 +3,7 @@
 //
 //
 //  Created by ErrorErrorError on 12/17/23.
-//  
+//
 //
 
 struct Parsing: PackageDependency {

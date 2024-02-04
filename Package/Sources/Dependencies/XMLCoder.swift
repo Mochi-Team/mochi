@@ -3,7 +3,7 @@
 //
 //
 //  Created by ErrorErrorError on 12/27/23.
-//  
+//
 //
 
 struct XMLCoder: PackageDependency {
@@ -11,4 +11,3 @@ struct XMLCoder: PackageDependency {
         .package(url: "https://github.com/CoreOffice/XMLCoder.git", exact: "0.17.1")
     }
 }
-

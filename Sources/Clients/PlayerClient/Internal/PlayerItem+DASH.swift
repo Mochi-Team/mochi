@@ -148,7 +148,9 @@ extension PlayerItem {
   static let dashCustomPlaylistScheme = "mochi-mpd"
 
   func handleDASHRequest(_ loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
-    guard let url = loadingRequest.request.url else { return false }
+    guard let url = loadingRequest.request.url else {
+      return false
+    }
     if url.pathExtension == "ts" {
       loadingRequest.redirect = URLRequest(url: url.recoveryScheme)
       loadingRequest.response = HTTPURLResponse(

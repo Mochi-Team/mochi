@@ -6,51 +6,65 @@
 // Licensed under MIT License
 //
 
-extension Array: Dependencies where Element == Dependency {
-  func appending(_ dependencies: any Dependencies) -> [Dependency] {
-    self + dependencies
-  }
+// MARK: - Array + Dependencies
+
+extension [Dependency]: Dependencies {
+    func appending(_ dependencies: any Dependencies) -> [Dependency] {
+        self + dependencies
+    }
 }
+
+// MARK: - Array + SupportedPlatforms
+
 //
 // Array+SupportedPlatforms.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
 
-extension Array: SupportedPlatforms where Element == SupportedPlatform {
-  func appending(_ platforms: any SupportedPlatforms) -> Self {
-    self + .init(platforms)
-  }
+extension [SupportedPlatform]: SupportedPlatforms {
+    func appending(_ platforms: any SupportedPlatforms) -> Self {
+        self + .init(platforms)
+    }
 }
+
+// MARK: - Array + TestTargets
+
 //
 // Array+TestTargets.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
 
-extension Array: TestTargets where Element == TestTarget {
-  func appending(_ testTargets: any TestTargets) -> [TestTarget] {
-    self + testTargets
-  }
+extension [TestTarget]: TestTargets {
+    func appending(_ testTargets: any TestTargets) -> [TestTarget] {
+        self + testTargets
+    }
 }
+
+// MARK: - CSettingsBuilder
+
 //
 //  CSettingsBuilder.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 @resultBuilder
 enum CSettingsBuilder {
-  static func buildPartialBlock(first: CSetting) -> [CSetting] {
-    [first]
-  }
+    static func buildPartialBlock(first: CSetting) -> [CSetting] {
+        [first]
+    }
 
-  static func buildPartialBlock(accumulated: [CSetting], next: CSetting) -> [CSetting] {
-    accumulated + [next]
-  }
+    static func buildPartialBlock(accumulated: [CSetting], next: CSetting) -> [CSetting] {
+        accumulated + [next]
+    }
 }
+
+// MARK: - Dependencies
+
 //
 // Dependencies.swift
 // Copyright (c) 2023 BrightDigit.
@@ -58,10 +72,13 @@ enum CSettingsBuilder {
 //
 
 protocol Dependencies: Sequence where Element == Dependency {
-  // swiftlint:disable:next identifier_name
-  init<S>(_ s: S) where S.Element == Dependency, S: Sequence
-  func appending(_ dependencies: any Dependencies) -> Self
+    // swiftlint:disable:next identifier_name
+    init<S>(_ s: S) where S.Element == Dependency, S: Sequence
+    func appending(_ dependencies: any Dependencies) -> Self
 }
+
+// MARK: - Dependency
+
 //
 // Dependency.swift
 // Copyright (c) 2023 BrightDigit.
@@ -69,8 +86,11 @@ protocol Dependencies: Sequence where Element == Dependency {
 //
 
 protocol Dependency {
-  var targetDepenency: _PackageDescription_TargetDependency { get }
+    var targetDepenency: _PackageDescription_TargetDependency { get }
 }
+
+// MARK: - DependencyBuilder
+
 //
 // DependencyBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -79,14 +99,15 @@ protocol Dependency {
 
 @resultBuilder
 enum DependencyBuilder {
-  static func buildPartialBlock(first: Dependency) -> any Dependencies {
-    [first]
-  }
+    static func buildPartialBlock(first: Dependency) -> any Dependencies {
+        [first]
+    }
 
-  static func buildPartialBlock(accumulated: any Dependencies, next: Dependency) -> any Dependencies {
-    accumulated + [next]
-  }
+    static func buildPartialBlock(accumulated: any Dependencies, next: Dependency) -> any Dependencies {
+        accumulated + [next]
+    }
 }
+
 //
 // LanguageTag.swift
 // Copyright (c) 2023 BrightDigit.
@@ -94,42 +115,46 @@ enum DependencyBuilder {
 //
 
 extension LanguageTag {
-  static let english: LanguageTag = "en"
+    static let english: LanguageTag = "en"
 }
+
 //
 //  Macro.swift
 //
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import CompilerPluginSupport
 import Foundation
 
+// MARK: - Macro
+
 protocol Macro: Target {}
 
 extension Macro {
-  var targetType: TargetType {
-    .macro
-  }
+    var targetType: TargetType {
+        .macro
+    }
 
-  var targetDepenency: _PackageDescription_TargetDependency {
-      .target(name: self.name)
-  }
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .target(name: name)
+    }
 
-  var cSettings: [CSetting] {
-    []
-  }
+    var cSettings: [CSetting] {
+        []
+    }
 
-  var swiftSettings: [SwiftSetting] {
-    []
-  }
+    var swiftSettings: [SwiftSetting] {
+        []
+    }
 
-  var resources: [Resource] {
-    []
-  }
+    var resources: [Resource] {
+        []
+    }
 }
+
 //
 // Package+Extensions.swift
 // Copyright (c) 2023 BrightDigit.
@@ -137,64 +162,66 @@ extension Macro {
 //
 
 extension Package {
-  convenience init(
-    name: String? = nil,
-    @ProductsBuilder entries: @escaping () -> [Product],
-    @TestTargetBuilder testTargets: @escaping () -> any TestTargets = { [TestTarget]() },
-    @SwiftSettingsBuilder swiftSettings: @escaping () -> [SwiftSetting] = { [SwiftSetting]() }
-  ) {
-    let packageName: String
-    if let name {
-      packageName = name
-    } else {
-      var pathComponents = #filePath.split(separator: "/")
-      pathComponents.removeLast()
-      // swiftlint:disable:next force_unwrapping
-      packageName = String(pathComponents.last!)
+    convenience init(
+        name: String? = nil,
+        @ProductsBuilder entries: @escaping () -> [Product],
+        @TestTargetBuilder testTargets: @escaping () -> any TestTargets = { [TestTarget]() },
+        @SwiftSettingsBuilder swiftSettings: @escaping () -> [SwiftSetting] = { [SwiftSetting]() }
+    ) {
+        let packageName: String
+        if let name {
+            packageName = name
+        } else {
+            var pathComponents = #filePath.split(separator: "/")
+            pathComponents.removeLast()
+            // swiftlint:disable:next force_unwrapping
+            packageName = String(pathComponents.last!)
+        }
+        let allTestTargets = testTargets()
+        let entries = entries()
+        let products = entries.map(_PackageDescription_Product.entry)
+        var targets = entries.flatMap(\.productTargets)
+        let allTargetsDependencies = targets.flatMap { $0.allDependencies() }
+        let allTestTargetsDependencies = allTestTargets.flatMap { $0.allDependencies() }
+        let dependencies = allTargetsDependencies + allTestTargetsDependencies
+        let targetDependencies = dependencies.compactMap { $0 as? Target }
+        let packageDependencies = dependencies.compactMap { $0 as? PackageDependency }
+        targets += targetDependencies
+        targets += allTestTargets.map { $0 as Target }
+//    assert(targetDependencies.count + packageDependencies.count == dependencies.count, "there was a miscount of target dependencies - target: \(targetDependencies.count), package:
+//    \(packageDependencies.count), expected: \(dependencies.count)")
+
+        let packgeTargets = Dictionary(
+            grouping: targets,
+            by: { $0.name }
+        )
+        .values
+        .compactMap(\.first)
+        .map { _PackageDescription_Target.entry($0, swiftSettings: swiftSettings()) }
+
+        let packageDeps = Dictionary(
+            grouping: packageDependencies,
+            by: { $0.productName }
+        ).values.compactMap(\.first).map(\.dependency)
+
+        self.init(name: packageName, products: products, dependencies: packageDeps, targets: packgeTargets)
     }
-    let allTestTargets = testTargets()
-    let entries = entries()
-    let products = entries.map(_PackageDescription_Product.entry)
-    var targets = entries.flatMap(\.productTargets)
-    let allTargetsDependencies = targets.flatMap { $0.allDependencies() }
-    let allTestTargetsDependencies = allTestTargets.flatMap { $0.allDependencies() }
-    let dependencies = allTargetsDependencies + allTestTargetsDependencies
-    let targetDependencies = dependencies.compactMap { $0 as? Target }
-    let packageDependencies = dependencies.compactMap { $0 as? PackageDependency }
-    targets += targetDependencies
-    targets += allTestTargets.map { $0 as Target }
-//    assert(targetDependencies.count + packageDependencies.count == dependencies.count, "there was a miscount of target dependencies - target: \(targetDependencies.count), package: \(packageDependencies.count), expected: \(dependencies.count)")
-
-    let packgeTargets = Dictionary(
-      grouping: targets,
-      by: { $0.name }
-    )
-    .values
-    .compactMap(\.first)
-    .map { _PackageDescription_Target.entry($0, swiftSettings: swiftSettings()) }
-
-    let packageDeps = Dictionary(
-      grouping: packageDependencies,
-      by: { $0.productName }
-    ).values.compactMap(\.first).map(\.dependency)
-
-    self.init(name: packageName, products: products, dependencies: packageDeps, targets: packgeTargets)
-  }
 }
 
 extension Package {
-  func supportedPlatforms(
-    @SupportedPlatformBuilder supportedPlatforms: @escaping () -> any SupportedPlatforms
-  ) -> Package {
-    self.platforms = .init(supportedPlatforms())
-    return self
-  }
+    func supportedPlatforms(
+        @SupportedPlatformBuilder supportedPlatforms: @escaping () -> any SupportedPlatforms
+    ) -> Package {
+        platforms = .init(supportedPlatforms())
+        return self
+    }
 
-  func defaultLocalization(_ defaultLocalization: LanguageTag) -> Package {
-    self.defaultLocalization = defaultLocalization
-    return self
-  }
+    func defaultLocalization(_ defaultLocalization: LanguageTag) -> Package {
+        self.defaultLocalization = defaultLocalization
+        return self
+    }
 }
+
 //
 // PackageDependency.swift
 // Copyright (c) 2023 BrightDigit.
@@ -203,42 +230,45 @@ extension Package {
 
 import PackageDescription
 
-protocol PackageDependency: Dependency {
-  init()
+// MARK: - PackageDependency
 
-  var packageName: String { get }
-  var dependency: _PackageDescription_PackageDependency { get }
+protocol PackageDependency: Dependency {
+    init()
+
+    var packageName: String { get }
+    var dependency: _PackageDescription_PackageDependency { get }
 }
 
 extension PackageDependency {
-  var productName: String {
-    "\(Self.self)"
-  }
-
-  var packageName : String {
-    switch self.dependency.kind {
-    case let .sourceControl(name: name, location: location, requirement: _):
-      return name ?? location.packageName ?? productName
-    case let .fileSystem(name: name, path: path):
-      return name ?? path.packageName ?? productName
-    case let .registry(id: id, requirement: _):
-      return id
-    @unknown default:
-      return productName
+    var productName: String {
+        "\(Self.self)"
     }
-  }
 
-  var targetDepenency: _PackageDescription_TargetDependency {
-    switch self.dependency.kind {
-    case let .sourceControl(name: name, location: location, requirement: _):
-      let packageName = name ?? location.packageName
-      return .product(name: productName, package: packageName)
-
-    default:
-      return .byName(name: productName)
+    var packageName: String {
+        switch dependency.kind {
+        case let .sourceControl(name: name, location: location, requirement: _):
+            return name ?? location.packageName ?? productName
+        case let .fileSystem(name: name, path: path):
+            return name ?? path.packageName ?? productName
+        case let .registry(id: id, requirement: _):
+            return id
+        @unknown default:
+            return productName
+        }
     }
-  }
+
+    var targetDepenency: _PackageDescription_TargetDependency {
+        switch dependency.kind {
+        case let .sourceControl(name: name, location: location, requirement: _):
+            let packageName = name ?? location.packageName
+            return .product(name: productName, package: packageName)
+
+        default:
+            return .byName(name: productName)
+        }
+    }
 }
+
 //
 // PackageDescription.swift
 // Copyright (c) 2023 BrightDigit.
@@ -253,6 +283,9 @@ typealias _PackageDescription_Product = PackageDescription.Product
 typealias _PackageDescription_Target = PackageDescription.Target
 typealias _PackageDescription_TargetDependency = PackageDescription.Target.Dependency
 typealias _PackageDescription_PackageDependency = PackageDescription.Package.Dependency
+
+// MARK: - PlatformSet
+
 //
 // PlatformSet.swift
 // Copyright (c) 2023 BrightDigit.
@@ -260,9 +293,10 @@ typealias _PackageDescription_PackageDependency = PackageDescription.Package.Dep
 //
 
 protocol PlatformSet {
-  @SupportedPlatformBuilder
-  var body: any SupportedPlatforms { get }
+    @SupportedPlatformBuilder
+    var body: any SupportedPlatforms { get }
 }
+
 //
 // Product+Target.swift
 // Copyright (c) 2023 BrightDigit.
@@ -270,20 +304,23 @@ protocol PlatformSet {
 //
 
 extension Product where Self: Target {
-  var productTargets: [Target] {
-    [self]
-  }
-
-  var targetType: TargetType {
-    switch self.productType {
-    case .library:
-      return .regular
-
-    case .executable:
-      return .executable
+    var productTargets: [Target] {
+        [self]
     }
-  }
+
+    var targetType: TargetType {
+        switch productType {
+        case .library:
+            .regular
+
+        case .executable:
+            .executable
+        }
+    }
 }
+
+// MARK: - Product
+
 //
 // Product.swift
 // Copyright (c) 2023 BrightDigit.
@@ -291,15 +328,18 @@ extension Product where Self: Target {
 //
 
 protocol Product: _Named {
-  var productTargets: [Target] { get }
-  var productType: ProductType { get }
+    var productTargets: [Target] { get }
+    var productType: ProductType { get }
 }
 
 extension Product {
-  var productType: ProductType {
-    .library
-  }
+    var productType: ProductType {
+        .library
+    }
 }
+
+// MARK: - ProductType
+
 //
 // ProductType.swift
 // Copyright (c) 2023 BrightDigit.
@@ -307,9 +347,12 @@ extension Product {
 //
 
 enum ProductType {
-  case library
-  case executable
+    case library
+    case executable
 }
+
+// MARK: - ProductsBuilder
+
 //
 // ProductsBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -318,14 +361,17 @@ enum ProductType {
 
 @resultBuilder
 enum ProductsBuilder {
-  static func buildPartialBlock(first: Product) -> [Product] {
-    [first]
-  }
+    static func buildPartialBlock(first: Product) -> [Product] {
+        [first]
+    }
 
-  static func buildPartialBlock(accumulated: [Product], next: Product) -> [Product] {
-    accumulated + [next]
-  }
+    static func buildPartialBlock(accumulated: [Product], next: Product) -> [Product] {
+        accumulated + [next]
+    }
 }
+
+// MARK: - ResourcesBuilder
+
 //
 // ResourcesBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -334,14 +380,15 @@ enum ProductsBuilder {
 
 @resultBuilder
 enum ResourcesBuilder {
-  static func buildPartialBlock(first: Resource) -> [Resource] {
-    [first]
-  }
+    static func buildPartialBlock(first: Resource) -> [Resource] {
+        [first]
+    }
 
-  static func buildPartialBlock(accumulated: [Resource], next: Resource) -> [Resource] {
-    accumulated + [next]
-  }
+    static func buildPartialBlock(accumulated: [Resource], next: Resource) -> [Resource] {
+        accumulated + [next]
+    }
 }
+
 //
 // String.swift
 // Copyright (c) 2023 BrightDigit.
@@ -349,10 +396,11 @@ enum ResourcesBuilder {
 //
 
 extension String {
-  var packageName: String? {
-    self.split(separator: "/").last?.split(separator: ".").first.map(String.init)
-  }
+    var packageName: String? {
+        split(separator: "/").last?.split(separator: ".").first.map(String.init)
+    }
 }
+
 //
 // SupportedPlatformBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -361,34 +409,39 @@ extension String {
 
 import PackageDescription
 
+// MARK: - SupportedPlatformBuilder
+
 @resultBuilder
 enum SupportedPlatformBuilder {
-  static func buildPartialBlock(first: SupportedPlatform) -> any SupportedPlatforms {
-    [first]
-  }
+    static func buildPartialBlock(first: SupportedPlatform) -> any SupportedPlatforms {
+        [first]
+    }
 
-  static func buildPartialBlock(first: PlatformSet) -> any SupportedPlatforms {
-    first.body
-  }
+    static func buildPartialBlock(first: PlatformSet) -> any SupportedPlatforms {
+        first.body
+    }
 
-  static func buildPartialBlock(first: any SupportedPlatforms) -> any SupportedPlatforms {
-    first
-  }
+    static func buildPartialBlock(first: any SupportedPlatforms) -> any SupportedPlatforms {
+        first
+    }
 
-  static func buildPartialBlock(
-    accumulated: any SupportedPlatforms,
-    next: any SupportedPlatforms
-  ) -> any SupportedPlatforms {
-    accumulated.appending(next)
-  }
+    static func buildPartialBlock(
+        accumulated: any SupportedPlatforms,
+        next: any SupportedPlatforms
+    ) -> any SupportedPlatforms {
+        accumulated.appending(next)
+    }
 
-  static func buildPartialBlock(
-    accumulated: any SupportedPlatforms,
-    next: SupportedPlatform
-  ) -> any SupportedPlatforms {
-    accumulated.appending([next])
-  }
+    static func buildPartialBlock(
+        accumulated: any SupportedPlatforms,
+        next: SupportedPlatform
+    ) -> any SupportedPlatforms {
+        accumulated.appending([next])
+    }
 }
+
+// MARK: - SupportedPlatforms
+
 //
 // SupportedPlatforms.swift
 // Copyright (c) 2023 BrightDigit.
@@ -396,10 +449,13 @@ enum SupportedPlatformBuilder {
 //
 
 protocol SupportedPlatforms: Sequence where Element == SupportedPlatform {
-  // swiftlint:disable:next identifier_name
-  init<S>(_ s: S) where S.Element == SupportedPlatform, S: Sequence
-  func appending(_ platforms: any SupportedPlatforms) -> Self
+    // swiftlint:disable:next identifier_name
+    init<S>(_ s: S) where S.Element == SupportedPlatform, S: Sequence
+    func appending(_ platforms: any SupportedPlatforms) -> Self
 }
+
+// MARK: - SwiftSettingsBuilder
+
 //
 // SwiftSettingsBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -408,14 +464,17 @@ protocol SupportedPlatforms: Sequence where Element == SupportedPlatform {
 
 @resultBuilder
 enum SwiftSettingsBuilder {
-  static func buildPartialBlock(first: SwiftSetting) -> [SwiftSetting] {
-    [first]
-  }
+    static func buildPartialBlock(first: SwiftSetting) -> [SwiftSetting] {
+        [first]
+    }
 
-  static func buildPartialBlock(accumulated: [SwiftSetting], next: SwiftSetting) -> [SwiftSetting] {
-    accumulated + [next]
-  }
+    static func buildPartialBlock(accumulated: [SwiftSetting], next: SwiftSetting) -> [SwiftSetting] {
+        accumulated + [next]
+    }
 }
+
+// MARK: - Target
+
 //
 // Target.swift
 // Copyright (c) 2023 BrightDigit.
@@ -423,59 +482,65 @@ enum SwiftSettingsBuilder {
 //
 
 protocol Target: _Depending, Dependency, _Named, _Path {
-  var targetType: TargetType { get }
+    var targetType: TargetType { get }
 
-  @CSettingsBuilder
-  var cSettings: [CSetting] { get }
+    @CSettingsBuilder
+    var cSettings: [CSetting] { get }
 
-  @SwiftSettingsBuilder
-  var swiftSettings: [SwiftSetting] { get }
+    @SwiftSettingsBuilder
+    var swiftSettings: [SwiftSetting] { get }
 
-  @ResourcesBuilder
-  var resources: [Resource] { get }
+    @ResourcesBuilder
+    var resources: [Resource] { get }
 }
 
 extension Target {
-  var targetType: TargetType {
-    .regular
-  }
+    var targetType: TargetType {
+        .regular
+    }
 
-  var targetDepenency: _PackageDescription_TargetDependency {
-    .target(name: self.name)
-  }
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .target(name: name)
+    }
 
-  var cSettings: [CSetting] {
-    []
-  }
+    var cSettings: [CSetting] {
+        []
+    }
 
-  var swiftSettings: [SwiftSetting] {
-    []
-  }
+    var swiftSettings: [SwiftSetting] {
+        []
+    }
 
-  var resources: [Resource] {
-    []
-  }
+    var resources: [Resource] {
+        []
+    }
 }
+
+// MARK: - TargetType
+
 //
 // TargetType.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
 
-//typealias TargetType = Target.TargetType
+// typealias TargetType = Target.TargetType
 
 enum TargetType {
-  case regular
-  case executable
-  case test
-  case binary(BinaryTarget)
-  case macro
+    case regular
+    case executable
+    case test
+    case binary(BinaryTarget)
+    case macro
 
-  enum BinaryTarget {
-    case path(String)
-    case remote(url: String, checksum: String)
-  }
+    enum BinaryTarget {
+        case path(String)
+        case remote(url: String, checksum: String)
+    }
 }
+
+// MARK: - TestTarget
+
 //
 // TestTarget.swift
 // Copyright (c) 2023 BrightDigit.
@@ -485,10 +550,13 @@ enum TargetType {
 protocol TestTarget: Target {}
 
 extension TestTarget {
-  var targetType: TargetType {
-    .test
-  }
+    var targetType: TargetType {
+        .test
+    }
 }
+
+// MARK: - TestTargetBuilder
+
 //
 // TestTargetBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -497,14 +565,17 @@ extension TestTarget {
 
 @resultBuilder
 enum TestTargetBuilder {
-  static func buildPartialBlock(first: TestTarget) -> any TestTargets {
-    [first]
-  }
+    static func buildPartialBlock(first: TestTarget) -> any TestTargets {
+        [first]
+    }
 
-  static func buildPartialBlock(accumulated: any TestTargets, next: TestTarget) -> any TestTargets {
-    accumulated + [next]
-  }
+    static func buildPartialBlock(accumulated: any TestTargets, next: TestTarget) -> any TestTargets {
+        accumulated + [next]
+    }
 }
+
+// MARK: - TestTargets
+
 //
 // TestTargets.swift
 // Copyright (c) 2023 BrightDigit.
@@ -512,10 +583,11 @@ enum TestTargetBuilder {
 //
 
 protocol TestTargets: Sequence where Element == TestTarget {
-  // swiftlint:disable:next identifier_name
-  init<S>(_ s: S) where S.Element == TestTarget, S: Sequence
-  func appending(_ testTargets: any TestTargets) -> Self
+    // swiftlint:disable:next identifier_name
+    init<S>(_ s: S) where S.Element == TestTarget, S: Sequence
+    func appending(_ testTargets: any TestTargets) -> Self
 }
+
 //
 //  Testable.swift
 //
@@ -526,9 +598,14 @@ protocol TestTargets: Sequence where Element == TestTarget {
 
 import Foundation
 
+// MARK: - Testable
+
 protocol Testable {
     associatedtype Tests: TestTarget
 }
+
+// MARK: - _Depending
+
 //
 // _Depending.swift
 // Copyright (c) 2023 BrightDigit.
@@ -536,27 +613,30 @@ protocol Testable {
 //
 
 protocol _Depending {
-  @DependencyBuilder
-  var dependencies: any Dependencies { get }
+    @DependencyBuilder
+    var dependencies: any Dependencies { get }
 }
 
 extension _Depending {
-  var dependencies: any Dependencies {
-    [Dependency]()
-  }
+    var dependencies: any Dependencies {
+        [Dependency]()
+    }
 }
 
 extension _Depending {
-  func allDependencies() -> [Dependency] {
-    self.dependencies.compactMap {
-      $0 as? _Depending
+    func allDependencies() -> [Dependency] {
+        dependencies.compactMap {
+            $0 as? _Depending
+        }
+        .flatMap {
+            $0.allDependencies()
+        }
+        .appending(dependencies)
     }
-    .flatMap {
-      $0.allDependencies()
-    }
-    .appending(self.dependencies)
-  }
 }
+
+// MARK: - _Named
+
 //
 // _Named.swift
 // Copyright (c) 2023 BrightDigit.
@@ -564,14 +644,15 @@ extension _Depending {
 //
 
 protocol _Named {
-  var name: String { get }
+    var name: String { get }
 }
 
 extension _Named {
-  var name: String {
-    "\(Self.self)"
-  }
+    var name: String {
+        "\(Self.self)"
+    }
 }
+
 //
 // _PackageDescription_Product.swift
 // Copyright (c) 2023 BrightDigit.
@@ -579,18 +660,19 @@ extension _Named {
 //
 
 extension _PackageDescription_Product {
-  static func entry(_ entry: Product) -> _PackageDescription_Product {
-    let targets = entry.productTargets.map(\.name)
+    static func entry(_ entry: Product) -> _PackageDescription_Product {
+        let targets = entry.productTargets.map(\.name)
 
-    switch entry.productType {
-    case .executable:
-      return Self.executable(name: entry.name, targets: targets)
+        switch entry.productType {
+        case .executable:
+            return Self.executable(name: entry.name, targets: targets)
 
-    case .library:
-      return Self.library(name: entry.name, targets: targets)
+        case .library:
+            return Self.library(name: entry.name, targets: targets)
+        }
     }
-  }
 }
+
 //
 // _PackageDescription_Target.swift
 // Copyright (c) 2023 BrightDigit.
@@ -598,103 +680,112 @@ extension _PackageDescription_Product {
 //
 
 extension _PackageDescription_Target {
-  static func entry(_ entry: Target, swiftSettings: [SwiftSetting] = []) -> _PackageDescription_Target {
-    let dependencies = entry.dependencies.map(\.targetDepenency)
-    switch entry.targetType {
-    case .executable:
-      return .executableTarget(
-        name: entry.name,
-        dependencies: dependencies,
-        path: entry.path,
-        resources: entry.resources,
-        cSettings: entry.cSettings,
-        swiftSettings: swiftSettings + entry.swiftSettings
-      )
+    static func entry(_ entry: Target, swiftSettings: [SwiftSetting] = []) -> _PackageDescription_Target {
+        let dependencies = entry.dependencies.map(\.targetDepenency)
+        switch entry.targetType {
+        case .executable:
+            return .executableTarget(
+                name: entry.name,
+                dependencies: dependencies,
+                path: entry.path,
+                resources: entry.resources,
+                cSettings: entry.cSettings,
+                swiftSettings: swiftSettings + entry.swiftSettings
+            )
 
-    case .regular:
-      return .target(
-        name: entry.name,
-        dependencies: dependencies,
-        path: entry.path,
-        resources: entry.resources,
-        cSettings: entry.cSettings,
-        swiftSettings: swiftSettings + entry.swiftSettings
-      )
+        case .regular:
+            return .target(
+                name: entry.name,
+                dependencies: dependencies,
+                path: entry.path,
+                resources: entry.resources,
+                cSettings: entry.cSettings,
+                swiftSettings: swiftSettings + entry.swiftSettings
+            )
 
-    case .test:
-      return .testTarget(
-        name: entry.name,
-        dependencies: dependencies,
-        path: entry.path,
-        resources: entry.resources,
-        cSettings: entry.cSettings,
-        swiftSettings: swiftSettings + entry.swiftSettings
-      )
+        case .test:
+            return .testTarget(
+                name: entry.name,
+                dependencies: dependencies,
+                path: entry.path,
+                resources: entry.resources,
+                cSettings: entry.cSettings,
+                swiftSettings: swiftSettings + entry.swiftSettings
+            )
 
-    case .binary(.path(let path)):
-      return .binaryTarget(
-        name: entry.name,
-        path: path
-      )
+        case let .binary(.path(path)):
+            return .binaryTarget(
+                name: entry.name,
+                path: path
+            )
 
-    case .binary(.remote(let url, let checksum)):
-      return .binaryTarget(
-        name: entry.name,
-        url: url,
-        checksum: checksum
-      )
+        case let .binary(.remote(url, checksum)):
+            return .binaryTarget(
+                name: entry.name,
+                url: url,
+                checksum: checksum
+            )
 
-    case .macro:
-      return .macro(
-        name: entry.name,
-        dependencies: dependencies,
-        path: entry.path,
-        swiftSettings: swiftSettings + entry.swiftSettings
-      )
+        case .macro:
+            return .macro(
+                name: entry.name,
+                dependencies: dependencies,
+                path: entry.path,
+                swiftSettings: swiftSettings + entry.swiftSettings
+            )
+        }
     }
-  }
 }
+
 //
 //  _Path.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
 
+// MARK: - _Path
+
 protocol _Path {
-  var path: String? { get }
+    var path: String? { get }
 }
 
 extension _Path {
-  var path: String? { nil }
+    var path: String? { nil }
 }
+
 //
 //  AnalyticsClient.swift
 //
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - AnalyticsClient
 
 struct AnalyticsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
 }
+
 //
 //  BuildClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - BuildClient
 
 struct BuildClient: _Client {
     var dependencies: any Dependencies {
@@ -702,30 +793,36 @@ struct BuildClient: _Client {
         ComposableArchitecture()
     }
 }
+
 //
 //  ClipboardClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 12/15/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - ClipboardClient
 
 struct ClipboardClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
 }
+
 //
 //  DatabaseClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - DatabaseClient
 
 struct DatabaseClient: _Client {
     var dependencies: any Dependencies {
@@ -739,12 +836,15 @@ struct DatabaseClient: _Client {
         Resource.copy("Resources/MochiSchema.xcdatamodeld")
     }
 }
+
+// MARK: - DeviceClient
+
 //
 //  DeviceClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 11/29/23.
-//  
+//
 //
 
 struct DeviceClient: _Client {
@@ -752,12 +852,15 @@ struct DeviceClient: _Client {
         ComposableArchitecture()
     }
 }
+
+// MARK: - FileClient
+
 //
 //  FileClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/6/23.
-//  
+//
 //
 
 struct FileClient: _Client {
@@ -765,6 +868,7 @@ struct FileClient: _Client {
         ComposableArchitecture()
     }
 }
+
 //
 //  LocalizableClient.swift
 //
@@ -775,6 +879,8 @@ struct FileClient: _Client {
 
 import Foundation
 
+// MARK: - LocalizableClient
+
 struct LocalizableClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
@@ -784,15 +890,18 @@ struct LocalizableClient: _Client {
         Resource.process("Resources")
     }
 }
+
 //
 //  LoggerClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - LoggerClient
 
 struct LoggerClient: _Client {
     var dependencies: any Dependencies {
@@ -800,15 +909,18 @@ struct LoggerClient: _Client {
         Logging()
     }
 }
+
 //
 //  ModuleClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - ModuleClient
 
 struct ModuleClient: _Client {
     var dependencies: any Dependencies {
@@ -825,6 +937,8 @@ struct ModuleClient: _Client {
     }
 }
 
+// MARK: Testable
+
 extension ModuleClient: Testable {
     struct Tests: TestTarget {
         var name: String { "ModuleClientTests" }
@@ -838,15 +952,18 @@ extension ModuleClient: Testable {
         }
     }
 }
+
 //
 //  PlayerClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - PlayerClient
 
 struct PlayerClient: _Client {
     var dependencies: any Dependencies {
@@ -860,15 +977,39 @@ struct PlayerClient: _Client {
         XMLCoder()
     }
 }
+
 //
-//  RepoClient.swift
-//  
+//  PlaylistHistoryClient.swift
 //
-//  Created by ErrorErrorError on 10/5/23.
-//  
+//
+//  Created by DeNeRr on 29.01.2024.
 //
 
 import Foundation
+
+// MARK: - PlaylistHistoryClient
+
+struct PlaylistHistoryClient: _Client {
+    var dependencies: any Dependencies {
+        DatabaseClient()
+        SharedModels()
+        Semaphore()
+        Tagged()
+        ComposableArchitecture()
+    }
+}
+
+//
+//  RepoClient.swift
+//
+//
+//  Created by ErrorErrorError on 10/5/23.
+//
+//
+
+import Foundation
+
+// MARK: - RepoClient
 
 struct RepoClient: _Client {
     var dependencies: any Dependencies {
@@ -880,30 +1021,36 @@ struct RepoClient: _Client {
         ComposableArchitecture()
     }
 }
+
 //
 //  UserDefaultsClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - UserDefaultsClient
 
 struct UserDefaultsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
 }
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - UserSettingsClient
 
 struct UserSettingsClient: _Client {
     var dependencies: any Dependencies {
@@ -912,29 +1059,35 @@ struct UserSettingsClient: _Client {
         ViewComponents()
     }
 }
+
 //
 //  _Client.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - _Client
 
 protocol _Client: Product, Target {}
 
 extension _Client {
     var path: String? {
-        "Sources/Clients/\(self.name)"
+        "Sources/Clients/\(name)"
     }
 }
+
+// MARK: - ComposableArchitecture
+
 //
 //  ComposableArchitecture.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 struct ComposableArchitecture: PackageDependency {
@@ -942,42 +1095,51 @@ struct ComposableArchitecture: PackageDependency {
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.5.6")
     }
 }
+
 //
 //  CustomDump.swift
 //
 //
 //  Created by ErrorErrorError on 1/1/24.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - CustomDump
 
 struct CustomDump: PackageDependency {
-  var dependency: Package.Dependency {
-    .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0")
-  }
+    var dependency: Package.Dependency {
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0")
+    }
 }
+
 //
 //  FluidGradient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - FluidGradient
 
 struct FluidGradient: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/Cindori/FluidGradient.git", exact: "1.0.0")
     }
 }
+
+// MARK: - Nuke
+
 //
 //  Nuke.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 struct Nuke: PackageDependency {
@@ -989,17 +1151,22 @@ struct Nuke: PackageDependency {
     }
 }
 
+// MARK: - NukeUI
+
 struct NukeUI: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: Nuke.nukeURL, exact: Nuke.nukeVersion)
     }
 }
+
+// MARK: - Parsing
+
 //
 //  Parsing.swift
 //
 //
 //  Created by ErrorErrorError on 12/17/23.
-//  
+//
 //
 
 struct Parsing: PackageDependency {
@@ -1007,12 +1174,15 @@ struct Parsing: PackageDependency {
         .package(url: "https://github.com/pointfreeco/swift-parsing", exact: "0.13.0")
     }
 }
+
+// MARK: - Semaphore
+
 //
 //  Semaphore.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 struct Semaphore: PackageDependency {
@@ -1020,12 +1190,15 @@ struct Semaphore: PackageDependency {
         .package(url: "https://github.com/groue/Semaphore", exact: "0.0.8")
     }
 }
+
+// MARK: - Semver
+
 //
 //  Semver.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 struct Semver: PackageDependency {
@@ -1033,12 +1206,15 @@ struct Semver: PackageDependency {
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0")
     }
 }
+
+// MARK: - SwiftLog
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 11/9/23.
-//  
+//
 //
 
 struct SwiftLog: PackageDependency {
@@ -1050,6 +1226,8 @@ struct SwiftLog: PackageDependency {
     }
 }
 
+// MARK: - Logging
+
 struct Logging: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
         .product(name: "\(Self.self)", package: SwiftLog().packageName)
@@ -1059,12 +1237,15 @@ struct Logging: _Depending, Dependency {
         SwiftLog()
     }
 }
+
+// MARK: - SwiftSoup
+
 //
 //  SwiftSoup.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 struct SwiftSoup: PackageDependency {
@@ -1072,21 +1253,26 @@ struct SwiftSoup: PackageDependency {
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0")
     }
 }
+
 //
 //  SwiftSyntax.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/11/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - SwiftSyntax
 
 struct SwiftSyntax: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/apple/swift-syntax", from: "509.0.1")
     }
 }
+
+// MARK: - SwiftSyntaxMacros
 
 struct SwiftSyntaxMacros: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
@@ -1098,6 +1284,8 @@ struct SwiftSyntaxMacros: _Depending, Dependency {
     }
 }
 
+// MARK: - SwiftCompilerPlugin
+
 struct SwiftCompilerPlugin: _Depending, Dependency {
     var targetDepenency: _PackageDescription_TargetDependency {
         .product(name: "\(Self.self)", package: SwiftSyntax().packageName)
@@ -1108,12 +1296,14 @@ struct SwiftCompilerPlugin: _Depending, Dependency {
     }
 }
 
+// MARK: - SwiftUIBackports
+
 //
 //  SwiftUIBackports.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 struct SwiftUIBackports: PackageDependency {
@@ -1121,27 +1311,33 @@ struct SwiftUIBackports: PackageDependency {
         .package(url: "https://github.com/shaps80/SwiftUIBackports.git", .upToNextMajor(from: "2.0.0"))
     }
 }
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Tagged
 
 struct Tagged: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0")
     }
 }
+
+// MARK: - XMLCoder
+
 //
 //  XMLCoder.swift
 //
 //
 //  Created by ErrorErrorError on 12/27/23.
-//  
+//
 //
 
 struct XMLCoder: PackageDependency {
@@ -1152,13 +1348,15 @@ struct XMLCoder: PackageDependency {
 
 //
 //  ContentCore.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - ContentCore
 
 struct ContentCore: _Feature {
     var dependencies: any Dependencies {
@@ -1171,15 +1369,18 @@ struct ContentCore: _Feature {
         Styling()
     }
 }
+
 //
 //  Discover.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Discover
 
 struct Discover: _Feature {
     var dependencies: any Dependencies {
@@ -1196,15 +1397,18 @@ struct Discover: _Feature {
         NukeUI()
     }
 }
+
 //
 //  MochiApp.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - MochiApp
 
 struct MochiApp: _Feature {
     var name: String { "App" }
@@ -1223,15 +1427,18 @@ struct MochiApp: _Feature {
         NukeUI()
     }
 }
+
 //
 //  ModuleLists.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - ModuleLists
 
 struct ModuleLists: _Feature {
     var dependencies: any Dependencies {
@@ -1243,15 +1450,18 @@ struct ModuleLists: _Feature {
         ComposableArchitecture()
     }
 }
+
 //
 //  PlaylistDetails.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - PlaylistDetails
 
 struct PlaylistDetails: _Feature {
     var dependencies: any Dependencies {
@@ -1260,6 +1470,7 @@ struct PlaylistDetails: _Feature {
         LoggerClient()
         ModuleClient()
         RepoClient()
+        PlaylistHistoryClient()
         Styling()
         SharedModels()
         ViewComponents()
@@ -1267,15 +1478,18 @@ struct PlaylistDetails: _Feature {
         NukeUI()
     }
 }
+
 //
 //  Repos.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Repos
 
 struct Repos: _Feature {
     var dependencies: any Dependencies {
@@ -1290,15 +1504,18 @@ struct Repos: _Feature {
         NukeUI()
     }
 }
+
 //
 //  Search.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Search
 
 struct Search: _Feature {
     var dependencies: any Dependencies {
@@ -1315,12 +1532,15 @@ struct Search: _Feature {
         NukeUI()
     }
 }
+
+// MARK: - Settings
+
 //
 //  Settings.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 struct Settings: _Feature {
@@ -1338,12 +1558,15 @@ struct Settings: _Feature {
         NukeUI()
     }
 }
+
+// MARK: - VideoPlayer
+
 //
 //  VideoPlayer.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 struct VideoPlayer: _Feature {
@@ -1360,63 +1583,75 @@ struct VideoPlayer: _Feature {
         NukeUI()
     }
 }
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - _Feature
 
 protocol _Feature: Product, Target {}
 
 extension _Feature {
     var path: String? {
-        "Sources/Features/\(self.name)"
+        "Sources/Features/\(name)"
     }
 }
+
+// MARK: - CoreDBMacros
+
 //
 //  CoreDBMacros.swift
 //
 //
 //  Created by ErrorErrorError on 12/28/23.
-//  
+//
 //
 
 struct CoreDBMacros: _Macro {
-  var dependencies: any Dependencies {
-    SwiftSyntaxMacros()
-    SwiftCompilerPlugin()
-  }
+    var dependencies: any Dependencies {
+        SwiftSyntaxMacros()
+        SwiftCompilerPlugin()
+    }
 }
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/27/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - _Macro
 
 protocol _Macro: Macro {}
 
 extension _Macro {
     var path: String? {
-        "Sources/Macros/\(self.name)"
+        "Sources/Macros/\(name)"
     }
 }
+
 //
 //  MochiPlatforms.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - MochiPlatforms
 
 struct MochiPlatforms: PlatformSet {
     var body: any SupportedPlatforms {
@@ -1424,12 +1659,15 @@ struct MochiPlatforms: PlatformSet {
         SupportedPlatform.iOS(.v15)
     }
 }
+
+// MARK: - Architecture
+
 //
 //  Architecture.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 struct Architecture: _Shared {
@@ -1440,36 +1678,44 @@ struct Architecture: _Shared {
         LoggerClient()
     }
 }
+
+// MARK: - CoreDB
+
 //
 //  CoreDB.swift
 //
 //
 //  Created by ErrorErrorError on 12/28/23.
-//  
+//
 //
 
 struct CoreDB: _Shared {
     var dependencies: any Dependencies {
-      CoreDBMacros()
+        CoreDBMacros()
     }
 }
+
+// MARK: Testable
 
 extension CoreDB: Testable {
-  struct Tests: TestTarget {
-    var name: String { "CoreDBTests" }
+    struct Tests: TestTarget {
+        var name: String { "CoreDBTests" }
 
-    var dependencies: any Dependencies {
-      CoreDB()
-      CustomDump()
+        var dependencies: any Dependencies {
+            CoreDB()
+            CustomDump()
+        }
     }
-  }
 }
+
+// MARK: - FoundationHelpers
+
 //
 //  FoundationHelpers.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 struct FoundationHelpers: _Shared {}
@@ -1478,12 +1724,16 @@ struct FoundationHelpers: _Shared {}
 //
 //
 //  Created by ErrorErrorError on 11/6/23.
-//  
+//
 //
 
 import Foundation
 
+// MARK: - JSValueCoder
+
 struct JSValueCoder: _Shared {}
+
+// MARK: Testable
 
 extension JSValueCoder: Testable {
     struct Tests: TestTarget {
@@ -1494,15 +1744,18 @@ extension JSValueCoder: Testable {
         }
     }
 }
+
 //
 //  SharedModels.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - SharedModels
 
 struct SharedModels: _Shared {
     var dependencies: any Dependencies {
@@ -1513,15 +1766,18 @@ struct SharedModels: _Shared {
         JSValueCoder()
     }
 }
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - Styling
 
 struct Styling: _Shared {
     var dependencies: any Dependencies {
@@ -1532,15 +1788,18 @@ struct Styling: _Shared {
         UserSettingsClient()
     }
 }
+
 //
 //  File.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - ViewComponents
 
 struct ViewComponents: _Shared {
     var dependencies: any Dependencies {
@@ -1549,29 +1808,33 @@ struct ViewComponents: _Shared {
         NukeUI()
     }
 }
+
 //
 //  Shared.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - _Shared
 
 protocol _Shared: Product, Target {}
 
 extension _Shared {
     var path: String? {
-        "Sources/Shared/\(self.name)"
+        "Sources/Shared/\(name)"
     }
 }
+
 //
 //  Index.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/4/23.
-//  
+//
 //
 
 import Foundation

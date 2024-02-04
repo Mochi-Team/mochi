@@ -4,37 +4,39 @@
 // Licensed under MIT License
 //
 
+// MARK: - Target
+
 protocol Target: _Depending, Dependency, _Named, _Path {
-  var targetType: TargetType { get }
+    var targetType: TargetType { get }
 
-  @CSettingsBuilder
-  var cSettings: [CSetting] { get }
+    @CSettingsBuilder
+    var cSettings: [CSetting] { get }
 
-  @SwiftSettingsBuilder
-  var swiftSettings: [SwiftSetting] { get }
+    @SwiftSettingsBuilder
+    var swiftSettings: [SwiftSetting] { get }
 
-  @ResourcesBuilder
-  var resources: [Resource] { get }
+    @ResourcesBuilder
+    var resources: [Resource] { get }
 }
 
 extension Target {
-  var targetType: TargetType {
-    .regular
-  }
+    var targetType: TargetType {
+        .regular
+    }
 
-  var targetDepenency: _PackageDescription_TargetDependency {
-    .target(name: self.name)
-  }
+    var targetDepenency: _PackageDescription_TargetDependency {
+        .target(name: name)
+    }
 
-  var cSettings: [CSetting] {
-    []
-  }
+    var cSettings: [CSetting] {
+        []
+    }
 
-  var swiftSettings: [SwiftSetting] {
-    []
-  }
+    var swiftSettings: [SwiftSetting] {
+        []
+    }
 
-  var resources: [Resource] {
-    []
-  }
+    var resources: [Resource] {
+        []
+    }
 }

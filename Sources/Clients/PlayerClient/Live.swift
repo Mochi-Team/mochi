@@ -113,6 +113,10 @@ private class InternalPlayer {
 
     let playerItem = PlayerItem(item)
     player.replaceCurrentItem(with: playerItem)
+    if let progress = item.progress {
+      let time = CMTime(seconds: progress * player.totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+      player.seek(to: time)
+    }
 
     #if os(iOS)
     try session.setActive(true)

@@ -12,6 +12,7 @@ import ContentCore
 import LoggerClient
 import ModuleClient
 import PlayerClient
+import PlaylistHistoryClient
 import SharedModels
 
 // MARK: - Cancellables
@@ -33,11 +34,17 @@ extension VideoPlayerFeature: Reducer {
     Reduce { state, action in
       switch action {
       case .view(.didAppear):
+        @Dependency(\.playlistHistoryClient) var playlistHistoryClient
+
+        let playlistID = state.playlist.id.rawValue
         return .merge(
           state.content.fetchContent(.page(state.selected.groupId, state.selected.variantId, state.selected.pageId))
             .map { .internal(.content($0)) },
           .run { send in
             for await status in playerClient.observe() {
+              if let progress = status.playback?.progress {
+                try? await playlistHistoryClient.updateTimestamp(playlistID, progress)
+              }
               await send(.internal(.playerStatusUpdate(status)))
             }
           }
@@ -139,7 +146,7 @@ extension VideoPlayerFeature: Reducer {
       case .internal(.hideToolsOverlay):
         state.overlay = state.overlay == .tools ? nil : state.overlay
 
-      case let .internal(.content(.didTapPlaylistItem(group, variant, page, itemId))):
+      case let .internal(.content(.didTapPlaylistItem(group, variant, page, itemId, _))):
         state.overlay = .tools
         return state.clearForNewEpisodeIfNeeded(group, variant, page, itemId)
 
@@ -284,6 +291,9 @@ extension VideoPlayerFeature.State {
     _ episodeId: Playlist.Item.ID
   ) -> Effect<VideoPlayerFeature.Action> {
     @Dependency(\.playerClient) var playerClient
+    @Dependency(\.playlistHistoryClient) var playlistHistoryClient
+
+    let playlistID = playlist.id.rawValue
 
     if selected.groupId != groupId ||
       selected.variantId != variantId ||
@@ -300,7 +310,10 @@ extension VideoPlayerFeature.State {
       loadables.playlistItemSourcesLoadables.removeAll()
       return .merge(
         fetchSourcesIfNecessary(),
-        .run { await playerClient.clear() }
+        .run { _ in
+          await playerClient.clear()
+          try? await playlistHistoryClient.updateTimestamp(playlistID, 0)
+        }
       )
     }
     return .none
@@ -357,6 +370,7 @@ extension VideoPlayerFeature.State {
 
       if let server = selected.serverId.flatMap({ loadables[serverId: $0] })?.value,
          let link = server.links[id: linkId] {
+        let progress = playlistHistory.value?.timestamp
         let playlist = playlist
         let episode = selectedItem.value.flatMap { $0 }
         let loadItem = PlayerClient.VideoCompositionItem(
@@ -376,7 +390,8 @@ extension VideoPlayerFeature.State {
             artworkImage: episode?.thumbnail ?? playlist.posterImage,
             author: playlist.title
           ),
-          format: link.format == .hls ? .hls : .dash
+          format: link.format == .hls ? .hls : .dash,
+          progress: progress
         )
 
         return .run { _ in
@@ -432,8 +447,12 @@ extension VideoPlayerFeature.State {
     let sourceId = selected.sourceId
     let serverId = selected.serverId
 
-    guard let sourceId else { return .none }
-    guard let serverId else { return .none }
+    guard let sourceId else {
+      return .none
+    }
+    guard let serverId else {
+      return .none
+    }
 
     if forced || !loadables[serverId: serverId].hasInitialized {
       loadables.update(with: serverId, response: .loading)

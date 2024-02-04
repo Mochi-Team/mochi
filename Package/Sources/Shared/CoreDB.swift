@@ -3,22 +3,26 @@
 //
 //
 //  Created by ErrorErrorError on 12/28/23.
-//  
 //
+//
+
+// MARK: - CoreDB
 
 struct CoreDB: _Shared {
     var dependencies: any Dependencies {
-      CoreDBMacros()
+        CoreDBMacros()
     }
 }
 
-extension CoreDB: Testable {
-  struct Tests: TestTarget {
-    var name: String { "CoreDBTests" }
+// MARK: Testable
 
-    var dependencies: any Dependencies {
-      CoreDB()
-      CustomDump()
+extension CoreDB: Testable {
+    struct Tests: TestTarget {
+        var name: String { "CoreDBTests" }
+
+        var dependencies: any Dependencies {
+            CoreDB()
+            CustomDump()
+        }
     }
-  }
 }

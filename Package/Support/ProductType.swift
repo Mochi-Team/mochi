@@ -5,6 +5,6 @@
 //
 
 enum ProductType {
-  case library
-  case executable
+    case library
+    case executable
 }

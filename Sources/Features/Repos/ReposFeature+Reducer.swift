@@ -60,7 +60,9 @@ extension ReposFeature {
         )
 
       case let .view(.didTapRepo(repoId)):
-        guard let repo = state.repos[id: repoId] else { break }
+        guard let repo = state.repos[id: repoId] else {
+          break
+        }
         state.path.append(RepoPackagesFeature.State(repo: repo))
 
       case .view(.binding(\.$url)):
@@ -116,7 +118,9 @@ extension URL {
 
     // Everything else is case sensitive, so check if there's a foward slash. If not, add it.
 
-    guard var string = components?.string else { return nil }
+    guard var string = components?.string else {
+      return nil
+    }
 
     // Remove trailing slash
     if string.hasSuffix("/") {

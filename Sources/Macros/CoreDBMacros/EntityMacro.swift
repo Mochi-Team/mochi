@@ -38,7 +38,9 @@ extension EntityMacro: ExtensionMacro {
     in _: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
     let inherited = declaration.inheritanceClause?.inheritedTypes ?? []
-    guard !inherited.contains(where: { [entityType, qualifiedEntityName].contains($0.type.trimmedDescription) }) else { return [] }
+    guard !inherited.contains(where: { [entityType, qualifiedEntityName].contains($0.type.trimmedDescription) }) else {
+      return []
+    }
     let ext: DeclSyntax =
       """
       extension \(raw: type.trimmed): \(raw: qualifiedEntityName) {}

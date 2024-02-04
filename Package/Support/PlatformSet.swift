@@ -5,6 +5,6 @@
 //
 
 protocol PlatformSet {
-  @SupportedPlatformBuilder
-  var body: any SupportedPlatforms { get }
+    @SupportedPlatformBuilder
+    var body: any SupportedPlatforms { get }
 }

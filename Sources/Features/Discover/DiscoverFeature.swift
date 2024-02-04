@@ -82,9 +82,12 @@ public struct DiscoverFeature: Feature {
   public enum Section: Equatable, Sendable {
     case home(HomeState = .init())
     case module(ModuleListingState)
+    case empty
 
     var title: String {
       switch self {
+      case .empty:
+        .init(localizable: "Loading...")
       case .home:
         .init(localizable: "Home")
       case let .module(moduleState):
@@ -94,6 +97,8 @@ public struct DiscoverFeature: Feature {
 
     var icon: URL? {
       switch self {
+      case .empty:
+        nil
       case .home:
         nil
       case let .module(moduleState):
@@ -126,7 +131,7 @@ public struct DiscoverFeature: Feature {
     @PresentationState public var moduleLists: ModuleListsFeature.State?
 
     public init(
-      section: DiscoverFeature.Section = .home(),
+      section: DiscoverFeature.Section = .empty,
       path: StackState<Path.State> = .init(),
       moduleLists: ModuleListsFeature.State? = nil
     ) {
@@ -190,6 +195,7 @@ public struct DiscoverFeature: Feature {
   }
 
   @Dependency(\.repoClient) var repoClient
+  @Dependency(\.databaseClient) var databaseClient
   @Dependency(\.moduleClient) var moduleClient
 
   public init() {}

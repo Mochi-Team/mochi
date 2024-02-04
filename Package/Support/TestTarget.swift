@@ -4,10 +4,12 @@
 // Licensed under MIT License
 //
 
+// MARK: - TestTarget
+
 protocol TestTarget: Target {}
 
 extension TestTarget {
-  var targetType: TargetType {
-    .test
-  }
+    var targetType: TargetType {
+        .test
+    }
 }

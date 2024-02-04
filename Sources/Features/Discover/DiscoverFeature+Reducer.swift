@@ -8,6 +8,8 @@
 
 import Architecture
 import ComposableArchitecture
+import DatabaseClient
+import Foundation
 import LoggerClient
 import ModuleClient
 import ModuleLists
@@ -15,6 +17,9 @@ import PlaylistDetails
 import RepoClient
 import Search
 import SharedModels
+import Tagged
+
+let defaults = UserDefaults.standard
 
 // MARK: - DiscoverFeature
 
@@ -27,8 +32,21 @@ extension DiscoverFeature {
     Reduce { state, action in
       switch action {
       case .view(.didAppear):
-        // TODO: Set default module to load or show home.
-        break
+        if state.section.module != nil {
+          break
+        }
+        guard let moduleId = defaults.string(forKey: "LastSelectedModuleId"),
+              let repoId = defaults.url(forKey: "LastSelectedRepoId") else {
+          state.section = .home()
+          break
+        }
+        return .run { send in
+          try await Task.sleep(nanoseconds: 50_000_000)
+          if let repo = try? await databaseClient.fetch(.all.where(\Repo.remoteURL == repoId)).first {
+            let module = repo.modules[id: Module.Manifest.ID(moduleId)]?.manifest
+            await send(.internal(.selectedModule(module == nil ? nil : .init(repoId: Tagged<Repo, URL>(repoId), module: module!))))
+          }
+        }
 
       case .view(.didTapOpenModules):
         state.moduleLists = .init()

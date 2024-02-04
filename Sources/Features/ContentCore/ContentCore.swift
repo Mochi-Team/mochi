@@ -13,6 +13,7 @@ import FoundationHelpers
 import LoggerClient
 import ModuleClient
 import OrderedCollections
+import PlaylistHistoryClient
 import SharedModels
 import Tagged
 
@@ -29,15 +30,18 @@ public struct ContentCore: Reducer {
     public var repoModuleId: RepoModuleID
     public var playlist: Playlist
     public var groups: Loadable<[Playlist.Group]>
+    public var playlistHistory: Loadable<PlaylistHistory>
 
     public init(
       repoModuleId: RepoModuleID,
       playlist: Playlist,
-      groups: Loadable<[Playlist.Group]> = .pending
+      groups: Loadable<[Playlist.Group]> = .pending,
+      playlistHistory: Loadable<PlaylistHistory> = .pending
     ) {
       self.repoModuleId = repoModuleId
       self.playlist = playlist
       self.groups = groups
+      self.playlistHistory = playlistHistory
     }
   }
 
@@ -47,11 +51,13 @@ public struct ContentCore: Reducer {
     case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
     case didRequestLoadingPendingContent(Playlist.ItemsRequestOptions?)
     case didTapContent(Playlist.ItemsRequestOptions)
+    case playlistHistoryResponse(Loadable<PlaylistHistory>)
     case didTapPlaylistItem(
       Playlist.Group.ID,
       Playlist.Group.Variant.ID,
       PagingID,
-      id: Playlist.Item.ID
+      id: Playlist.Item.ID,
+      shouldReset: Bool = false
     )
   }
 
@@ -67,8 +73,21 @@ public struct ContentCore: Reducer {
       case let .didTapContent(option):
         return state.fetchContent(option)
 
-      case .didTapPlaylistItem:
-        break
+      case let .didTapPlaylistItem(groupId, variantId, pageId, itemId, shouldReset):
+        @Dependency(\.playlistHistoryClient) var playlistHistoryClient
+        let playlistId = state.playlist.id
+        let item = state.item(groupId: groupId, variantId: variantId, pageId: pageId, itemId: itemId).value
+        return .run { _ in
+          if let epNumber = item?.number {
+            try? await playlistHistoryClient.updateLastWatchedEpisode(playlistId.rawValue, epNumber)
+            if shouldReset {
+              try? await playlistHistoryClient.updateTimestamp(playlistId.rawValue, 0)
+            }
+          }
+        }
+
+      case let .playlistHistoryResponse(response):
+        state.playlistHistory = response
 
       case let .didRequestLoadingPendingContent(options):
         return state.fetchContent(options)
@@ -92,6 +111,7 @@ extension ContentCore.State {
     forced: Bool = false
   ) -> Effect<ContentCore.Action> {
     @Dependency(\.moduleClient) var moduleClient
+    @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
     let playlistId = playlist.id
     let repoModuleId = repoModuleId
@@ -126,6 +146,11 @@ extension ContentCore.State {
         }
 
         await send(.update(option: option, .loaded(value)))
+        for await playlistHistoryItems in playlistHistoryClient.observe(playlistId.rawValue) {
+          if let playlistHistory = playlistHistoryItems.first {
+            await send(.playlistHistoryResponse(.loaded(playlistHistory)))
+          }
+        }
       }
     } catch: { error, send in
       logger.error("\(#function) - \(error)")
@@ -186,7 +211,8 @@ extension ContentCore.State {
         id: group.id,
         number: group.number,
         altTitle: group.altTitle,
-        variants: variantsResponse
+        variants: variantsResponse,
+        default: group.default
       )
     } else if let variantId = option.variantId {
       let pagingsResponse = variantsResponse
@@ -226,7 +252,8 @@ extension ContentCore.State {
               )
             }
             return variants
-          }
+          },
+          default: group.default
         )
       } else {
         group = .init(
@@ -240,7 +267,8 @@ extension ContentCore.State {
               .flatMap { .init(id: $0.id, title: $0.title, pagings: pagingsResponse) }
 
             return variants
-          }
+          },
+          default: group.default
         )
       }
     }
