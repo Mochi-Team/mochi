@@ -75,13 +75,12 @@ public struct ContentCore: Reducer {
 
       case let .didTapPlaylistItem(groupId, variantId, pageId, itemId, shouldReset):
         @Dependency(\.playlistHistoryClient) var playlistHistoryClient
-        let playlistId = state.playlist.id
         let item = state.item(groupId: groupId, variantId: variantId, pageId: pageId, itemId: itemId).value
         return .run { _ in
           if let epNumber = item?.number {
-            try? await playlistHistoryClient.updateLastWatchedEpisode(playlistId.rawValue, epNumber)
+            try? await playlistHistoryClient.updateLastWatchedEpisode(groupId.rawValue, epNumber)
             if shouldReset {
-              try? await playlistHistoryClient.updateTimestamp(playlistId.rawValue, 0)
+              try? await playlistHistoryClient.updateTimestamp(groupId.rawValue, 0)
             }
           }
         }

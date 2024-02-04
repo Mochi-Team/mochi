@@ -36,14 +36,14 @@ extension VideoPlayerFeature: Reducer {
       case .view(.didAppear):
         @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
-        let playlistID = state.playlist.id.rawValue
+        let groupId = state.selected.groupId.rawValue
         return .merge(
           state.content.fetchContent(.page(state.selected.groupId, state.selected.variantId, state.selected.pageId))
             .map { .internal(.content($0)) },
           .run { send in
             for await status in playerClient.observe() {
               if let progress = status.playback?.progress {
-                try? await playlistHistoryClient.updateTimestamp(playlistID, progress)
+                try? await playlistHistoryClient.updateTimestamp(groupId, progress)
               }
               await send(.internal(.playerStatusUpdate(status)))
             }
@@ -364,38 +364,40 @@ extension VideoPlayerFeature.State {
 
   public mutating func clearForChangedLinkIfNeeded(_ linkId: Playlist.EpisodeServer.Link.ID) -> Effect<VideoPlayerFeature.Action> {
     @Dependency(\.playerClient) var playerClient
+    @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
     if selected.linkId != linkId {
       selected.linkId = linkId
 
       if let server = selected.serverId.flatMap({ loadables[serverId: $0] })?.value,
          let link = server.links[id: linkId] {
-        let progress = playlistHistory.value?.timestamp
         let playlist = playlist
         let episode = selectedItem.value.flatMap { $0 }
-        let loadItem = PlayerClient.VideoCompositionItem(
-          link: link.url,
-          headers: server.headers,
-          subtitles: server.subtitles.map { subtitle in
-            .init(
-              name: subtitle.name,
-              default: subtitle.default,
-              autoselect: subtitle.autoselect,
-              forced: false,
-              link: subtitle.url
-            )
-          },
-          metadata: .init(
-            title: episode.flatMap { $0.title ?? "Episode \($0.number.withoutTrailingZeroes)" },
-            artworkImage: episode?.thumbnail ?? playlist.posterImage,
-            author: playlist.title
-          ),
-          format: link.format == .hls ? .hls : .dash,
-          progress: progress
-        )
+        let groupId = selected.groupId.rawValue
 
         return .run { _ in
           await playerClient.clear()
+          let playlistHistory = try? await playlistHistoryClient.fetch(groupId)
+          let loadItem = PlayerClient.VideoCompositionItem(
+            link: link.url,
+            headers: server.headers,
+            subtitles: server.subtitles.map { subtitle in
+              .init(
+                name: subtitle.name,
+                default: subtitle.default,
+                autoselect: subtitle.autoselect,
+                forced: false,
+                link: subtitle.url
+              )
+            },
+            metadata: .init(
+              title: episode.flatMap { $0.title ?? "Episode \($0.number.withoutTrailingZeroes)" },
+              artworkImage: episode?.thumbnail ?? playlist.posterImage,
+              author: playlist.title
+            ),
+            format: link.format == .hls ? .hls : .dash,
+            progress: playlistHistory?.timestamp ?? nil
+          )
           try await playerClient.load(loadItem)
           await playerClient.play()
         }
