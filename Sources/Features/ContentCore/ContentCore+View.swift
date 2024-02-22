@@ -50,7 +50,7 @@ extension ContentCore {
     private let selectedItemId: Playlist.Item.ID?
 
     private var groupLoadable: Loadable<Playlist.Group> {
-      viewStore.groups.map { groups in _selectedGroupId.flatMap { groups[id: $0] } ?? groups.first { $0.default } ?? groups.first }
+      viewStore.groups.map { groups in _selectedGroupId.flatMap { groups[id: $0] } ?? groups.first { $0.default ?? false } ?? groups.first }
         .flatMap(Loadable.init)
     }
 

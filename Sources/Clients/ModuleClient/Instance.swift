@@ -86,7 +86,11 @@ extension ModuleClient.Instance {
     do {
       return try await callback()
     } catch {
+      let err = error as? JSValueError
       logger.error("\(error)")
+      if err?.status == 403, let data = err?.data, let hostname = err?.hostname {
+        throw ModuleClient.Error.jsRuntime(.requestForbidden(data: data, hostname: hostname))
+      }
       throw error
     }
   }

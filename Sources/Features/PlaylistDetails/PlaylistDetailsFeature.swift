@@ -72,7 +72,7 @@ public struct PlaylistDetailsFeature: Feature {
       if playlist.status == .upcoming {
         return .upcoming
       }
-      if let group = content.groups.value?.first(where: { $0.default }) ?? content.groups.value?.first,
+      if let group = content.groups.value?.first(where: { $0.default ?? false }) ?? content.groups.value?.first,
          let variant = group.variants.value?.first {
         if let epNumber = playlistHistory.value?.lastWatchedEpisode {
           if let page = variant.pagings.value?.first(where: { $0.items.value!.contains(where: { $0.number == epNumber }) }),

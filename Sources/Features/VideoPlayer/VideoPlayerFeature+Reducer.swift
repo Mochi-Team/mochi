@@ -293,8 +293,6 @@ extension VideoPlayerFeature.State {
     @Dependency(\.playerClient) var playerClient
     @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
-    let playlistID = playlist.id.rawValue
-
     if selected.groupId != groupId ||
       selected.variantId != variantId ||
       selected.pageId != pageId ||
@@ -312,7 +310,7 @@ extension VideoPlayerFeature.State {
         fetchSourcesIfNecessary(),
         .run { _ in
           await playerClient.clear()
-          try? await playlistHistoryClient.updateTimestamp(playlistID, 0)
+          try? await playlistHistoryClient.updateTimestamp(groupId.rawValue, 0)
         }
       )
     }

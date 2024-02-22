@@ -142,6 +142,18 @@ extension DiscoverFeature.View: View {
         }
       }
     }
+    .sheet(
+        store: store.scope(
+          state: \.$solveCaptcha,
+          action: \.internal.solveCaptcha
+        ),
+        state: /DiscoverFeature.Captcha.State.solveCaptcha,
+        action: DiscoverFeature.Captcha.Action.solveCaptcha
+      ) { store in
+        WithViewStore(store, observe: \.`self`) { viewStore in
+          WebView(html: viewStore.html, hostname: viewStore.hostname)
+        }
+      }
   }
 }
 

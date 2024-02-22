@@ -119,6 +119,13 @@ extension DiscoverFeature {
 
       case .internal(.moduleLists):
         break
+       
+      case let .internal(.showCaptcha(html, hostname)):
+        state.solveCaptcha = .solveCaptcha(.init(html: html, hostname: hostname))
+        break
+        
+      case .internal(.solveCaptcha):
+        break
 
       case .internal(.path):
         break
@@ -130,6 +137,9 @@ extension DiscoverFeature {
     }
     .ifLet(\.$moduleLists, action: \.internal.moduleLists) {
       ModuleListsFeature()
+    }
+    .ifLet(\.$solveCaptcha, action: \.internal.solveCaptcha) {
+      DiscoverFeature.Captcha()
     }
     .forEach(\.path, action: \.internal.path) {
       Path()
@@ -160,6 +170,9 @@ extension DiscoverFeature.State {
       }
     } catch: { error, send in
       if let error = error as? ModuleClient.Error {
+        if case let .jsRuntime(.requestForbidden(data, hostmame)) = error {
+          await send(.internal(.showCaptcha(data, hostmame)))
+        }
         await send(.internal(.loadedListings(id, .failed(DiscoverFeature.Error.module(error)))))
       } else {
         await send(.internal(.loadedListings(id, .failed(DiscoverFeature.Error.system(.unknown)))))

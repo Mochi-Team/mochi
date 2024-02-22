@@ -211,7 +211,7 @@ extension ContentCore.State {
         number: group.number,
         altTitle: group.altTitle,
         variants: variantsResponse,
-        default: group.default
+        default: group.default ?? false
       )
     } else if let variantId = option.variantId {
       let pagingsResponse = variantsResponse
@@ -252,7 +252,7 @@ extension ContentCore.State {
             }
             return variants
           },
-          default: group.default
+          default: group.default ?? false
         )
       } else {
         group = .init(
@@ -267,7 +267,7 @@ extension ContentCore.State {
 
             return variants
           },
-          default: group.default
+          default: group.default ?? false
         )
       }
     }

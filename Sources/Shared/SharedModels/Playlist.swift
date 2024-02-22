@@ -214,7 +214,7 @@ extension Playlist {
     public let number: Double
     public let altTitle: String?
     public let variants: Loadable<Variants>
-    public let `default`: Bool
+    public let `default`: Bool?
 
     public typealias Variants = [Variant]
 
@@ -223,7 +223,7 @@ extension Playlist {
       number: Double,
       altTitle: String? = nil,
       variants: Loadable<Variants> = .pending,
-      default: Bool = false
+      default: Bool? = nil
     ) {
       self.id = id
       self.number = number
