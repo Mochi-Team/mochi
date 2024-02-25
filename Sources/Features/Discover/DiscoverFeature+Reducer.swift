@@ -48,16 +48,6 @@ extension DiscoverFeature {
           }
         }
         
-      case .view(.onLastWatchedAppear):
-        guard let id = state.section.module?.module.id.moduleId else {
-          break
-        }
-        return .run { send in
-          for await history in playlistHistoryClient.observeModule(id.rawValue) {
-            await send(.internal(.updateLastWatched(history.sorted(by: { $0.dateWatched > $1.dateWatched } ))))
-          }
-        }
-        
       case let .view(.didTapContinueWatching(item)):
         let blankUrl = URL(string: "_blank")!
         return .run { send in
@@ -150,6 +140,16 @@ extension DiscoverFeature {
           )
         )
         
+      case .internal(.onLastWatchedAppear):
+        guard let id = state.section.module?.module.id.moduleId else {
+          break
+        }
+        return .run { send in
+          for await history in playlistHistoryClient.observeModule(id.rawValue) {
+            await send(.internal(.updateLastWatched(history.sorted(by: { $0.dateWatched > $1.dateWatched } ))))
+          }
+        }
+        
       case let .internal(.updateLastWatched(history)):
         state.lastWatched = history
 
@@ -202,7 +202,7 @@ extension DiscoverFeature.State {
           try await module.discoverListings()
         }
         
-        await send(.view(.onLastWatchedAppear))
+        await send(.internal(.onLastWatchedAppear))
 
         await send(.internal(.loadedListings(id, .loaded(value))))
       }

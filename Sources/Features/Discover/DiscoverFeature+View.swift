@@ -359,9 +359,6 @@ extension DiscoverFeature.View {
       }
       .frame(maxWidth: .infinity)
     }
-    .onAppear {
-//      store.send(.view(.onLastWatchedAppear))
-    }
   }
   
   @MainActor
