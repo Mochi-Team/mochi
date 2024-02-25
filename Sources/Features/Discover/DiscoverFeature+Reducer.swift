@@ -47,6 +47,39 @@ extension DiscoverFeature {
             await send(.internal(.selectedModule(module == nil ? nil : .init(repoId: Tagged<Repo, URL>(repoId), module: module!))))
           }
         }
+        
+      case .view(.onLastWatchedAppear):
+        guard let id = state.section.module?.module.id.moduleId else {
+          break
+        }
+        return .run { send in
+          for await history in playlistHistoryClient.observeModule(id.rawValue) {
+            await send(.internal(.updateLastWatched(history.sorted(by: { $0.dateWatched > $1.dateWatched } ))))
+          }
+        }
+        
+      case let .view(.didTapContinueWatching(item)):
+        let blankUrl = URL(string: "_blank")!
+        return .run { send in
+          try? await moduleClient.withModule(id: .init(repoId: Repo.ID(URL(string: item.lastRepoId)!), moduleId: Module.ID(item.lastModuleId))) { module in
+            let options = Playlist.ItemsRequestOptions.page(.init(item.groupId), .init(item.variantId), .init(item.pageId))
+            let eps = try? await module.playlistEpisodes(Playlist.ID(rawValue: item.playlistID), options)
+            let playlist = Playlist(id: Playlist.ID(rawValue: item.playlistID), title: item.playlistName, posterImage: nil, bannerImage: nil, url: blankUrl, status: .unknown, type: .video)
+            await send(
+              .delegate(
+                .playbackVideoItem(
+                  eps ?? [],
+                  repoModuleId: .init(repoId: Repo.ID(URL(string: item.lastRepoId)!), moduleId: Module.ID(item.lastModuleId)),
+                  playlist: playlist,
+                  group: .init(item.groupId),
+                  variant: .init(item.variantId),
+                  paging: .init(item.pageId),
+                  itemId: .init(item.epId)
+                )
+              )
+            )
+          }
+        }
 
       case .view(.didTapOpenModules):
         state.moduleLists = .init()
@@ -116,6 +149,9 @@ extension DiscoverFeature {
             )
           )
         )
+        
+      case let .internal(.updateLastWatched(history)):
+        state.lastWatched = history
 
       case .internal(.moduleLists):
         break
@@ -165,6 +201,8 @@ extension DiscoverFeature.State {
         let value = try await moduleClient.withModule(id: id) { module in
           try await module.discoverListings()
         }
+        
+        await send(.view(.onLastWatchedAppear))
 
         await send(.internal(.loadedListings(id, .loaded(value))))
       }

@@ -6,16 +6,11 @@
 // Licensed under MIT License
 //
 
-// MARK: - Array + Dependencies
-
 extension [Dependency]: Dependencies {
     func appending(_ dependencies: any Dependencies) -> [Dependency] {
         self + dependencies
     }
 }
-
-// MARK: - Array + SupportedPlatforms
-
 //
 // Array+SupportedPlatforms.swift
 // Copyright (c) 2023 BrightDigit.
@@ -27,9 +22,6 @@ extension [SupportedPlatform]: SupportedPlatforms {
         self + .init(platforms)
     }
 }
-
-// MARK: - Array + TestTargets
-
 //
 // Array+TestTargets.swift
 // Copyright (c) 2023 BrightDigit.
@@ -41,9 +33,6 @@ extension [TestTarget]: TestTargets {
         self + testTargets
     }
 }
-
-// MARK: - CSettingsBuilder
-
 //
 //  CSettingsBuilder.swift
 //
@@ -62,9 +51,6 @@ enum CSettingsBuilder {
         accumulated + [next]
     }
 }
-
-// MARK: - Dependencies
-
 //
 // Dependencies.swift
 // Copyright (c) 2023 BrightDigit.
@@ -76,9 +62,6 @@ protocol Dependencies: Sequence where Element == Dependency {
     init<S>(_ s: S) where S.Element == Dependency, S: Sequence
     func appending(_ dependencies: any Dependencies) -> Self
 }
-
-// MARK: - Dependency
-
 //
 // Dependency.swift
 // Copyright (c) 2023 BrightDigit.
@@ -88,9 +71,6 @@ protocol Dependencies: Sequence where Element == Dependency {
 protocol Dependency {
     var targetDepenency: _PackageDescription_TargetDependency { get }
 }
-
-// MARK: - DependencyBuilder
-
 //
 // DependencyBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -107,7 +87,6 @@ enum DependencyBuilder {
         accumulated + [next]
     }
 }
-
 //
 // LanguageTag.swift
 // Copyright (c) 2023 BrightDigit.
@@ -117,7 +96,6 @@ enum DependencyBuilder {
 extension LanguageTag {
     static let english: LanguageTag = "en"
 }
-
 //
 //  Macro.swift
 //
@@ -154,7 +132,6 @@ extension Macro {
         []
     }
 }
-
 //
 // Package+Extensions.swift
 // Copyright (c) 2023 BrightDigit.
@@ -221,7 +198,6 @@ extension Package {
         return self
     }
 }
-
 //
 // PackageDependency.swift
 // Copyright (c) 2023 BrightDigit.
@@ -268,7 +244,6 @@ extension PackageDependency {
         }
     }
 }
-
 //
 // PackageDescription.swift
 // Copyright (c) 2023 BrightDigit.
@@ -283,9 +258,6 @@ typealias _PackageDescription_Product = PackageDescription.Product
 typealias _PackageDescription_Target = PackageDescription.Target
 typealias _PackageDescription_TargetDependency = PackageDescription.Target.Dependency
 typealias _PackageDescription_PackageDependency = PackageDescription.Package.Dependency
-
-// MARK: - PlatformSet
-
 //
 // PlatformSet.swift
 // Copyright (c) 2023 BrightDigit.
@@ -296,7 +268,6 @@ protocol PlatformSet {
     @SupportedPlatformBuilder
     var body: any SupportedPlatforms { get }
 }
-
 //
 // Product+Target.swift
 // Copyright (c) 2023 BrightDigit.
@@ -318,14 +289,13 @@ extension Product where Self: Target {
         }
     }
 }
-
-// MARK: - Product
-
 //
 // Product.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
+
+// MARK: - Product
 
 protocol Product: _Named {
     var productTargets: [Target] { get }
@@ -337,9 +307,6 @@ extension Product {
         .library
     }
 }
-
-// MARK: - ProductType
-
 //
 // ProductType.swift
 // Copyright (c) 2023 BrightDigit.
@@ -350,9 +317,6 @@ enum ProductType {
     case library
     case executable
 }
-
-// MARK: - ProductsBuilder
-
 //
 // ProductsBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -369,9 +333,6 @@ enum ProductsBuilder {
         accumulated + [next]
     }
 }
-
-// MARK: - ResourcesBuilder
-
 //
 // ResourcesBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -388,7 +349,6 @@ enum ResourcesBuilder {
         accumulated + [next]
     }
 }
-
 //
 // String.swift
 // Copyright (c) 2023 BrightDigit.
@@ -400,7 +360,6 @@ extension String {
         split(separator: "/").last?.split(separator: ".").first.map(String.init)
     }
 }
-
 //
 // SupportedPlatformBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -408,8 +367,6 @@ extension String {
 //
 
 import PackageDescription
-
-// MARK: - SupportedPlatformBuilder
 
 @resultBuilder
 enum SupportedPlatformBuilder {
@@ -439,9 +396,6 @@ enum SupportedPlatformBuilder {
         accumulated.appending([next])
     }
 }
-
-// MARK: - SupportedPlatforms
-
 //
 // SupportedPlatforms.swift
 // Copyright (c) 2023 BrightDigit.
@@ -453,9 +407,6 @@ protocol SupportedPlatforms: Sequence where Element == SupportedPlatform {
     init<S>(_ s: S) where S.Element == SupportedPlatform, S: Sequence
     func appending(_ platforms: any SupportedPlatforms) -> Self
 }
-
-// MARK: - SwiftSettingsBuilder
-
 //
 // SwiftSettingsBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -472,14 +423,13 @@ enum SwiftSettingsBuilder {
         accumulated + [next]
     }
 }
-
-// MARK: - Target
-
 //
 // Target.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
+
+// MARK: - Target
 
 protocol Target: _Depending, Dependency, _Named, _Path {
     var targetType: TargetType { get }
@@ -515,9 +465,6 @@ extension Target {
         []
     }
 }
-
-// MARK: - TargetType
-
 //
 // TargetType.swift
 // Copyright (c) 2023 BrightDigit.
@@ -538,14 +485,13 @@ enum TargetType {
         case remote(url: String, checksum: String)
     }
 }
-
-// MARK: - TestTarget
-
 //
 // TestTarget.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
+
+// MARK: - TestTarget
 
 protocol TestTarget: Target {}
 
@@ -554,9 +500,6 @@ extension TestTarget {
         .test
     }
 }
-
-// MARK: - TestTargetBuilder
-
 //
 // TestTargetBuilder.swift
 // Copyright (c) 2023 BrightDigit.
@@ -573,9 +516,6 @@ enum TestTargetBuilder {
         accumulated + [next]
     }
 }
-
-// MARK: - TestTargets
-
 //
 // TestTargets.swift
 // Copyright (c) 2023 BrightDigit.
@@ -587,7 +527,6 @@ protocol TestTargets: Sequence where Element == TestTarget {
     init<S>(_ s: S) where S.Element == TestTarget, S: Sequence
     func appending(_ testTargets: any TestTargets) -> Self
 }
-
 //
 //  Testable.swift
 //
@@ -598,19 +537,16 @@ protocol TestTargets: Sequence where Element == TestTarget {
 
 import Foundation
 
-// MARK: - Testable
-
 protocol Testable {
     associatedtype Tests: TestTarget
 }
-
-// MARK: - _Depending
-
 //
 // _Depending.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
+
+// MARK: - _Depending
 
 protocol _Depending {
     @DependencyBuilder
@@ -634,14 +570,13 @@ extension _Depending {
         .appending(dependencies)
     }
 }
-
-// MARK: - _Named
-
 //
 // _Named.swift
 // Copyright (c) 2023 BrightDigit.
 // Licensed under MIT License
 //
+
+// MARK: - _Named
 
 protocol _Named {
     var name: String { get }
@@ -652,7 +587,6 @@ extension _Named {
         "\(Self.self)"
     }
 }
-
 //
 // _PackageDescription_Product.swift
 // Copyright (c) 2023 BrightDigit.
@@ -672,7 +606,6 @@ extension _PackageDescription_Product {
         }
     }
 }
-
 //
 // _PackageDescription_Target.swift
 // Copyright (c) 2023 BrightDigit.
@@ -736,7 +669,6 @@ extension _PackageDescription_Target {
         }
     }
 }
-
 //
 //  _Path.swift
 //
@@ -756,7 +688,6 @@ protocol _Path {
 extension _Path {
     var path: String? { nil }
 }
-
 //
 //  AnalyticsClient.swift
 //
@@ -767,14 +698,11 @@ extension _Path {
 
 import Foundation
 
-// MARK: - AnalyticsClient
-
 struct AnalyticsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
 }
-
 //
 //  BuildClient.swift
 //
@@ -785,15 +713,12 @@ struct AnalyticsClient: _Client {
 
 import Foundation
 
-// MARK: - BuildClient
-
 struct BuildClient: _Client {
     var dependencies: any Dependencies {
         Semver()
         ComposableArchitecture()
     }
 }
-
 //
 //  ClipboardClient.swift
 //
@@ -804,14 +729,11 @@ struct BuildClient: _Client {
 
 import Foundation
 
-// MARK: - ClipboardClient
-
 struct ClipboardClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
 }
-
 //
 //  DatabaseClient.swift
 //
@@ -821,8 +743,6 @@ struct ClipboardClient: _Client {
 //
 
 import Foundation
-
-// MARK: - DatabaseClient
 
 struct DatabaseClient: _Client {
     var dependencies: any Dependencies {
@@ -836,9 +756,6 @@ struct DatabaseClient: _Client {
         Resource.copy("Resources/MochiSchema.xcdatamodeld")
     }
 }
-
-// MARK: - DeviceClient
-
 //
 //  DeviceClient.swift
 //
@@ -852,9 +769,6 @@ struct DeviceClient: _Client {
         ComposableArchitecture()
     }
 }
-
-// MARK: - FileClient
-
 //
 //  FileClient.swift
 //
@@ -868,7 +782,6 @@ struct FileClient: _Client {
         ComposableArchitecture()
     }
 }
-
 //
 //  LocalizableClient.swift
 //
@@ -879,8 +792,6 @@ struct FileClient: _Client {
 
 import Foundation
 
-// MARK: - LocalizableClient
-
 struct LocalizableClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
@@ -890,7 +801,6 @@ struct LocalizableClient: _Client {
         Resource.process("Resources")
     }
 }
-
 //
 //  LoggerClient.swift
 //
@@ -901,15 +811,12 @@ struct LocalizableClient: _Client {
 
 import Foundation
 
-// MARK: - LoggerClient
-
 struct LoggerClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
         Logging()
     }
 }
-
 //
 //  ModuleClient.swift
 //
@@ -952,7 +859,6 @@ extension ModuleClient: Testable {
         }
     }
 }
-
 //
 //  PlayerClient.swift
 //
@@ -962,8 +868,6 @@ extension ModuleClient: Testable {
 //
 
 import Foundation
-
-// MARK: - PlayerClient
 
 struct PlayerClient: _Client {
     var dependencies: any Dependencies {
@@ -977,7 +881,6 @@ struct PlayerClient: _Client {
         XMLCoder()
     }
 }
-
 //
 //  PlaylistHistoryClient.swift
 //
@@ -986,8 +889,6 @@ struct PlayerClient: _Client {
 //
 
 import Foundation
-
-// MARK: - PlaylistHistoryClient
 
 struct PlaylistHistoryClient: _Client {
     var dependencies: any Dependencies {
@@ -998,7 +899,6 @@ struct PlaylistHistoryClient: _Client {
         ComposableArchitecture()
     }
 }
-
 //
 //  RepoClient.swift
 //
@@ -1008,8 +908,6 @@ struct PlaylistHistoryClient: _Client {
 //
 
 import Foundation
-
-// MARK: - RepoClient
 
 struct RepoClient: _Client {
     var dependencies: any Dependencies {
@@ -1021,7 +919,6 @@ struct RepoClient: _Client {
         ComposableArchitecture()
     }
 }
-
 //
 //  UserDefaultsClient.swift
 //
@@ -1032,16 +929,13 @@ struct RepoClient: _Client {
 
 import Foundation
 
-// MARK: - UserDefaultsClient
-
 struct UserDefaultsClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
     }
 }
-
 //
-//  File.swift
+//  UserSettingsClient.swift
 //
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1050,8 +944,6 @@ struct UserDefaultsClient: _Client {
 
 import Foundation
 
-// MARK: - UserSettingsClient
-
 struct UserSettingsClient: _Client {
     var dependencies: any Dependencies {
         UserDefaultsClient()
@@ -1059,7 +951,6 @@ struct UserSettingsClient: _Client {
         ViewComponents()
     }
 }
-
 //
 //  _Client.swift
 //
@@ -1079,9 +970,6 @@ extension _Client {
         "Sources/Clients/\(name)"
     }
 }
-
-// MARK: - ComposableArchitecture
-
 //
 //  ComposableArchitecture.swift
 //
@@ -1095,7 +983,6 @@ struct ComposableArchitecture: PackageDependency {
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.5.6")
     }
 }
-
 //
 //  CustomDump.swift
 //
@@ -1106,14 +993,11 @@ struct ComposableArchitecture: PackageDependency {
 
 import Foundation
 
-// MARK: - CustomDump
-
 struct CustomDump: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0")
     }
 }
-
 //
 //  FluidGradient.swift
 //
@@ -1124,16 +1008,11 @@ struct CustomDump: PackageDependency {
 
 import Foundation
 
-// MARK: - FluidGradient
-
 struct FluidGradient: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/Cindori/FluidGradient.git", exact: "1.0.0")
     }
 }
-
-// MARK: - Nuke
-
 //
 //  Nuke.swift
 //
@@ -1141,6 +1020,8 @@ struct FluidGradient: PackageDependency {
 //  Created by ErrorErrorError on 10/4/23.
 //
 //
+
+// MARK: - Nuke
 
 struct Nuke: PackageDependency {
     static let nukeURL = "https://github.com/kean/Nuke.git"
@@ -1158,9 +1039,6 @@ struct NukeUI: PackageDependency {
         .package(url: Nuke.nukeURL, exact: Nuke.nukeVersion)
     }
 }
-
-// MARK: - Parsing
-
 //
 //  Parsing.swift
 //
@@ -1174,9 +1052,6 @@ struct Parsing: PackageDependency {
         .package(url: "https://github.com/pointfreeco/swift-parsing", exact: "0.13.0")
     }
 }
-
-// MARK: - Semaphore
-
 //
 //  Semaphore.swift
 //
@@ -1190,9 +1065,6 @@ struct Semaphore: PackageDependency {
         .package(url: "https://github.com/groue/Semaphore", exact: "0.0.8")
     }
 }
-
-// MARK: - Semver
-
 //
 //  Semver.swift
 //
@@ -1206,16 +1078,15 @@ struct Semver: PackageDependency {
         .package(url: "https://github.com/kutchie-pelaez/Semver.git", exact: "1.0.0")
     }
 }
-
-// MARK: - SwiftLog
-
 //
-//  File.swift
+//  SwiftLog.swift
 //
 //
 //  Created by ErrorErrorError on 11/9/23.
 //
 //
+
+// MARK: - SwiftLog
 
 struct SwiftLog: PackageDependency {
     var name: String { "swift-log" }
@@ -1237,9 +1108,6 @@ struct Logging: _Depending, Dependency {
         SwiftLog()
     }
 }
-
-// MARK: - SwiftSoup
-
 //
 //  SwiftSoup.swift
 //
@@ -1253,7 +1121,6 @@ struct SwiftSoup: PackageDependency {
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0")
     }
 }
-
 //
 //  SwiftSyntax.swift
 //
@@ -1295,9 +1162,6 @@ struct SwiftCompilerPlugin: _Depending, Dependency {
         SwiftSyntax()
     }
 }
-
-// MARK: - SwiftUIBackports
-
 //
 //  SwiftUIBackports.swift
 //
@@ -1311,9 +1175,8 @@ struct SwiftUIBackports: PackageDependency {
         .package(url: "https://github.com/shaps80/SwiftUIBackports.git", .upToNextMajor(from: "2.0.0"))
     }
 }
-
 //
-//  File.swift
+//  Tagged.swift
 //
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1322,16 +1185,11 @@ struct SwiftUIBackports: PackageDependency {
 
 import Foundation
 
-// MARK: - Tagged
-
 struct Tagged: PackageDependency {
     var dependency: Package.Dependency {
         .package(url: "https://github.com/pointfreeco/swift-tagged", exact: "0.10.0")
     }
 }
-
-// MARK: - XMLCoder
-
 //
 //  XMLCoder.swift
 //
@@ -1345,7 +1203,6 @@ struct XMLCoder: PackageDependency {
         .package(url: "https://github.com/CoreOffice/XMLCoder.git", exact: "0.17.1")
     }
 }
-
 //
 //  ContentCore.swift
 //
@@ -1355,8 +1212,6 @@ struct XMLCoder: PackageDependency {
 //
 
 import Foundation
-
-// MARK: - ContentCore
 
 struct ContentCore: _Feature {
     var dependencies: any Dependencies {
@@ -1369,7 +1224,6 @@ struct ContentCore: _Feature {
         Styling()
     }
 }
-
 //
 //  Discover.swift
 //
@@ -1379,8 +1233,6 @@ struct ContentCore: _Feature {
 //
 
 import Foundation
-
-// MARK: - Discover
 
 struct Discover: _Feature {
     var dependencies: any Dependencies {
@@ -1397,7 +1249,6 @@ struct Discover: _Feature {
         NukeUI()
     }
 }
-
 //
 //  MochiApp.swift
 //
@@ -1407,8 +1258,6 @@ struct Discover: _Feature {
 //
 
 import Foundation
-
-// MARK: - MochiApp
 
 struct MochiApp: _Feature {
     var name: String { "App" }
@@ -1427,7 +1276,6 @@ struct MochiApp: _Feature {
         NukeUI()
     }
 }
-
 //
 //  ModuleLists.swift
 //
@@ -1437,8 +1285,6 @@ struct MochiApp: _Feature {
 //
 
 import Foundation
-
-// MARK: - ModuleLists
 
 struct ModuleLists: _Feature {
     var dependencies: any Dependencies {
@@ -1450,7 +1296,6 @@ struct ModuleLists: _Feature {
         ComposableArchitecture()
     }
 }
-
 //
 //  PlaylistDetails.swift
 //
@@ -1460,8 +1305,6 @@ struct ModuleLists: _Feature {
 //
 
 import Foundation
-
-// MARK: - PlaylistDetails
 
 struct PlaylistDetails: _Feature {
     var dependencies: any Dependencies {
@@ -1478,7 +1321,6 @@ struct PlaylistDetails: _Feature {
         NukeUI()
     }
 }
-
 //
 //  Repos.swift
 //
@@ -1488,8 +1330,6 @@ struct PlaylistDetails: _Feature {
 //
 
 import Foundation
-
-// MARK: - Repos
 
 struct Repos: _Feature {
     var dependencies: any Dependencies {
@@ -1504,7 +1344,6 @@ struct Repos: _Feature {
         NukeUI()
     }
 }
-
 //
 //  Search.swift
 //
@@ -1514,8 +1353,6 @@ struct Repos: _Feature {
 //
 
 import Foundation
-
-// MARK: - Search
 
 struct Search: _Feature {
     var dependencies: any Dependencies {
@@ -1532,9 +1369,6 @@ struct Search: _Feature {
         NukeUI()
     }
 }
-
-// MARK: - Settings
-
 //
 //  Settings.swift
 //
@@ -1558,9 +1392,6 @@ struct Settings: _Feature {
         NukeUI()
     }
 }
-
-// MARK: - VideoPlayer
-
 //
 //  VideoPlayer.swift
 //
@@ -1583,9 +1414,8 @@ struct VideoPlayer: _Feature {
         NukeUI()
     }
 }
-
 //
-//  File.swift
+//  _Feature.swift
 //
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1603,9 +1433,6 @@ extension _Feature {
         "Sources/Features/\(name)"
     }
 }
-
-// MARK: - CoreDBMacros
-
 //
 //  CoreDBMacros.swift
 //
@@ -1620,9 +1447,8 @@ struct CoreDBMacros: _Macro {
         SwiftCompilerPlugin()
     }
 }
-
 //
-//  File.swift
+//  _Macro.swift
 //
 //
 //  Created by ErrorErrorError on 10/27/23.
@@ -1640,7 +1466,6 @@ extension _Macro {
         "Sources/Macros/\(name)"
     }
 }
-
 //
 //  MochiPlatforms.swift
 //
@@ -1651,17 +1476,12 @@ extension _Macro {
 
 import Foundation
 
-// MARK: - MochiPlatforms
-
 struct MochiPlatforms: PlatformSet {
     var body: any SupportedPlatforms {
         SupportedPlatform.macOS(.v12)
         SupportedPlatform.iOS(.v15)
     }
 }
-
-// MARK: - Architecture
-
 //
 //  Architecture.swift
 //
@@ -1678,9 +1498,6 @@ struct Architecture: _Shared {
         LoggerClient()
     }
 }
-
-// MARK: - CoreDB
-
 //
 //  CoreDB.swift
 //
@@ -1688,6 +1505,8 @@ struct Architecture: _Shared {
 //  Created by ErrorErrorError on 12/28/23.
 //
 //
+
+// MARK: - CoreDB
 
 struct CoreDB: _Shared {
     var dependencies: any Dependencies {
@@ -1707,9 +1526,6 @@ extension CoreDB: Testable {
         }
     }
 }
-
-// MARK: - FoundationHelpers
-
 //
 //  FoundationHelpers.swift
 //
@@ -1744,7 +1560,6 @@ extension JSValueCoder: Testable {
         }
     }
 }
-
 //
 //  SharedModels.swift
 //
@@ -1755,8 +1570,6 @@ extension JSValueCoder: Testable {
 
 import Foundation
 
-// MARK: - SharedModels
-
 struct SharedModels: _Shared {
     var dependencies: any Dependencies {
         DatabaseClient()
@@ -1766,9 +1579,8 @@ struct SharedModels: _Shared {
         JSValueCoder()
     }
 }
-
 //
-//  File.swift
+//  Styling.swift
 //
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1776,8 +1588,6 @@ struct SharedModels: _Shared {
 //
 
 import Foundation
-
-// MARK: - Styling
 
 struct Styling: _Shared {
     var dependencies: any Dependencies {
@@ -1788,9 +1598,8 @@ struct Styling: _Shared {
         UserSettingsClient()
     }
 }
-
 //
-//  File.swift
+//  ViewComponents.swift
 //
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1799,8 +1608,6 @@ struct Styling: _Shared {
 
 import Foundation
 
-// MARK: - ViewComponents
-
 struct ViewComponents: _Shared {
     var dependencies: any Dependencies {
         SharedModels()
@@ -1808,9 +1615,8 @@ struct ViewComponents: _Shared {
         NukeUI()
     }
 }
-
 //
-//  Shared.swift
+//  _Shared.swift
 //
 //
 //  Created by ErrorErrorError on 10/5/23.
@@ -1828,7 +1634,6 @@ extension _Shared {
         "Sources/Shared/\(name)"
     }
 }
-
 //
 //  Index.swift
 //

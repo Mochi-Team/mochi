@@ -74,9 +74,9 @@ public struct PlaylistDetailsFeature: Feature {
       }
       if let group = content.groups.value?.first(where: { $0.default ?? false }) ?? content.groups.value?.first,
          let variant = group.variants.value?.first {
-        if let epNumber = playlistHistory.value?.lastWatchedEpisode {
-          if let page = variant.pagings.value?.first(where: { $0.items.value!.contains(where: { $0.number == epNumber }) }),
-             let item = page.items.value?.first(where: { $0.number == epNumber }) {
+        if let epId = playlistHistory.value?.epId {
+          if let page = variant.pagings.value?.first(where: { $0.items.value!.contains(where: { $0.id.rawValue == epId }) }),
+             let item = page.items.value?.first(where: { $0.id.rawValue == epId }) {
             return .resume(group.id, variant.id, page.id, item.id, item.title ?? "", playlistHistory.value?.timestamp ?? 0.0)
           }
         }

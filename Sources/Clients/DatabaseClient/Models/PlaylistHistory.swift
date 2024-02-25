@@ -11,18 +11,51 @@ import Foundation
 // MARK: PlaylistHistory
 
 @Entity
-public struct PlaylistHistory: Equatable, Sendable {
-  @Attribute public var playlistID = String?.none
-  @Attribute public var lastWatchedEpisode = 1.0
-  @Attribute public var timestamp: Double = 0.0
+public struct PlaylistHistory: Equatable, Sendable, Hashable {
+  @Attribute public var playlistID = ""
+  @Attribute public var playlistName = String?.none
+  
+  @Attribute public var dateWatched = Date.now
+  @Attribute public var playlist = Date.now
+  @Attribute public var lastModuleId = ""
+  @Attribute public var lastRepoId = ""
+  @Attribute public var timestamp = 0.0
+  
+  @Attribute public var thumbnail = URL?.none
+  @Attribute public var epId = ""
+  @Attribute public var epName = String?.none
+  
+  @Attribute public var pageId = ""
+  @Attribute public var groupId = ""
+  @Attribute public var variantId = ""
 
   public init(
-    playlistID: String?,
+    playlistID: String,
     timestamp: Double = 0.0,
-    lastWatchedEpisode: Double
+    epId: String,
+    playlistName: String?,
+    lastModuleId: String,
+    lastRepoId: String,
+    thumbnail: URL? = nil,
+    epName: String?,
+    pageId: String,
+    groupId: String,
+    variantId: String
   ) {
     self.playlistID = playlistID
     self.timestamp = timestamp
-    self.lastWatchedEpisode = lastWatchedEpisode
+    self.epId = epId
+    self.playlistName = playlistName
+    self.thumbnail = thumbnail
+    self.dateWatched = Date.now
+    self.lastModuleId = lastModuleId
+    self.lastRepoId = lastRepoId
+    self.epName = epName
+    self.pageId = pageId
+    self.groupId = groupId
+    self.variantId = variantId
   }
 }
+
+
+

@@ -161,7 +161,8 @@ public struct DiscoverFeature: Feature {
   public struct State: FeatureState {
     public var section: Section
     public var path: StackState<Path.State>
-
+    
+    @PresentationState public var lastWatched: [PlaylistHistory]?
     @PresentationState public var moduleLists: ModuleListsFeature.State?
     @PresentationState public var solveCaptcha: DiscoverFeature.Captcha.State?
 
@@ -169,12 +170,14 @@ public struct DiscoverFeature: Feature {
       section: DiscoverFeature.Section = .empty,
       path: StackState<Path.State> = .init(),
       moduleLists: ModuleListsFeature.State? = nil,
-      solveCaptcha: DiscoverFeature.Captcha.State? = nil
+      solveCaptcha: DiscoverFeature.Captcha.State? = nil,
+      lastWatched: [PlaylistHistory]? = []
     ) {
       self.section = section
       self.path = path
       self.moduleLists = moduleLists
       self.solveCaptcha = solveCaptcha
+      self.lastWatched = lastWatched
     }
   }
 
@@ -186,6 +189,8 @@ public struct DiscoverFeature: Feature {
     public enum ViewAction: SendableAction {
       case didAppear
       case didTapOpenModules
+      case didTapContinueWatching(PlaylistHistory)
+      case onLastWatchedAppear
       case didTapPlaylist(Playlist)
       case didTapSearchButton
       case didTapViewMoreListing(DiscoverListing.ID)
@@ -213,6 +218,7 @@ public struct DiscoverFeature: Feature {
       case solveCaptcha(PresentationAction<Captcha.Action>)
       case showCaptcha(String, String)
       case path(StackAction<Path.State, Path.Action>)
+      case updateLastWatched([PlaylistHistory])
     }
 
     case view(ViewAction)
@@ -236,6 +242,7 @@ public struct DiscoverFeature: Feature {
   @Dependency(\.repoClient) var repoClient
   @Dependency(\.databaseClient) var databaseClient
   @Dependency(\.moduleClient) var moduleClient
+  @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
   public init() {}
 }
