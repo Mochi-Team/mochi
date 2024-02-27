@@ -37,13 +37,14 @@ extension VideoPlayerFeature: Reducer {
         @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
         let groupId = state.selected.groupId.rawValue
+        let repoModule = state.content.repoModuleId
         return .merge(
           state.content.fetchContent(.page(state.selected.groupId, state.selected.variantId, state.selected.pageId))
             .map { .internal(.content($0)) },
           .run { send in
             for await status in playerClient.observe() {
               if let progress = status.playback?.progress {
-                try? await playlistHistoryClient.updateTimestamp(groupId, progress)
+                try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModule.repoId.absoluteString, moduleId: repoModule.moduleId.rawValue, playlistId: groupId), progress)
               }
               await send(.internal(.playerStatusUpdate(status)))
             }
@@ -293,6 +294,7 @@ extension VideoPlayerFeature.State {
     @Dependency(\.playerClient) var playerClient
     @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
+    let repoModule = content.repoModuleId
     if selected.groupId != groupId ||
       selected.variantId != variantId ||
       selected.pageId != pageId ||
@@ -310,7 +312,7 @@ extension VideoPlayerFeature.State {
         fetchSourcesIfNecessary(),
         .run { _ in
           await playerClient.clear()
-          try? await playlistHistoryClient.updateTimestamp(groupId.rawValue, 0)
+          try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModule.repoId.absoluteString, moduleId: repoModule.moduleId.rawValue, playlistId: groupId.rawValue), 0)
         }
       )
     }
@@ -372,10 +374,11 @@ extension VideoPlayerFeature.State {
         let playlist = playlist
         let episode = selectedItem.value.flatMap { $0 }
         let groupId = selected.groupId.rawValue
+        let repoModule = content.repoModuleId
 
         return .run { _ in
           await playerClient.clear()
-          let playlistHistory = try? await playlistHistoryClient.fetch(groupId)
+          let playlistHistory = try? await playlistHistoryClient.fetch(.init(repoId: repoModule.repoId.absoluteString, moduleId: repoModule.moduleId.rawValue, playlistId: groupId))
           let loadItem = PlayerClient.VideoCompositionItem(
             link: link.url,
             headers: server.headers,

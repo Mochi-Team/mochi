@@ -207,6 +207,7 @@ public struct DiscoverFeature: Feature {
         paging: PagingID,
         itemId: Playlist.Item.ID
       )
+      case playbackDismissed
     }
 
     @CasePathable

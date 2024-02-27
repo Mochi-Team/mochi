@@ -17,10 +17,11 @@ import XCTestDynamicOverlay
 
 public struct PlaylistHistoryClient: Sendable {
   public var updateEpId: @Sendable (EpIdPayload) async throws -> Void
-  public var fetch: @Sendable (String) async throws -> PlaylistHistory
-  public var observeModule: @Sendable (String) -> AsyncStream<[PlaylistHistory]>
-  public var updateTimestamp: @Sendable (String, Double) async throws -> Void
-  public var observe: @Sendable (String) -> AsyncStream<[PlaylistHistory]>
+  public var fetch: @Sendable (RMP) async throws -> PlaylistHistory
+  public var fetchForModule: @Sendable (String, String) async throws -> [PlaylistHistory]
+  public var updateTimestamp: @Sendable (RMP, Double) async throws -> Void
+  public var updateDateWatched: @Sendable (RMP) async throws -> Void
+  public var observe: @Sendable (RMP) -> AsyncStream<[PlaylistHistory]>
 }
 
 // MARK: TestDependencyKey
@@ -29,8 +30,9 @@ extension PlaylistHistoryClient: TestDependencyKey {
   public static let testValue = Self(
     updateEpId: unimplemented("\(Self.self).updateEpId"),
     fetch: unimplemented("\(Self.self).fetch"),
-    observeModule: unimplemented("\(Self.self).observeModule"),
+    fetchForModule: unimplemented("\(Self.self).fetchForModule"),
     updateTimestamp: unimplemented("\(Self.self).updateTimestamp"),
+    updateDateWatched: unimplemented("\(Self.self).updateDateWatched"),
     observe: unimplemented("\(Self.self).observe")
   )
 }

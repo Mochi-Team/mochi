@@ -17,38 +17,44 @@ extension PlaylistHistoryClient: DependencyKey {
 
   public static let liveValue = Self(
     updateEpId: { payload in
-      if var playlist = try? await databaseClient.fetch(.all.where(\PlaylistHistory.playlistID == payload.playlistID)).first {
+      if var playlist = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == payload.rmp.repoId).where(\PlaylistHistory.moduleId == payload.rmp.moduleId).where(\PlaylistHistory.playlistID == payload.rmp.playlistId)).first {
         playlist.epId = payload.episode.id.rawValue
-        playlist.lastModuleId = payload.moduleId.rawValue
         playlist.dateWatched = Date.now
         playlist.epName = payload.episode.title
-        playlist.lastRepoId = payload.repoId.absoluteString
         playlist.groupId = payload.groupId
         playlist.variantId = payload.variantId
         playlist.pageId = payload.pageId
         playlist.thumbnail = payload.episode.thumbnail
         try await databaseClient.update(playlist)
       } else {
-        try await databaseClient.insert(PlaylistHistory(playlistID: payload.playlistID, epId: payload.episode.id.rawValue, playlistName: payload.playlistName, lastModuleId: payload.moduleId.rawValue, lastRepoId: payload.repoId.absoluteString, thumbnail: payload.episode.thumbnail, epName: payload.episode.title, pageId: payload.pageId, groupId: payload.groupId, variantId: payload.variantId))
+        try await databaseClient.insert(PlaylistHistory(playlistID: payload.rmp.playlistId, epId: payload.episode.id.rawValue, playlistName: payload.playlistName, moduleId: payload.rmp.moduleId, repoId: payload.rmp.repoId, thumbnail: payload.episode.thumbnail, epName: payload.episode.title, pageId: payload.pageId, groupId: payload.groupId, variantId: payload.variantId))
       }
     },
-    fetch: { playlistID in
-      guard let playlistHistory = try? await databaseClient.fetch(.all.where(\PlaylistHistory.playlistID == playlistID)).first else {
+    fetch: { rmp in
+      guard let playlistHistory = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == rmp.repoId).where(\PlaylistHistory.moduleId == rmp.moduleId).where(\PlaylistHistory.playlistID == rmp.playlistId)).first else {
         throw PlaylistHistoryClient.Error.failedToFindPlaylisthistory
       }
       return playlistHistory
     },
-    observeModule: { moduleId in
-      databaseClient.observe(.all.where(\PlaylistHistory.lastModuleId == moduleId))
+    fetchForModule: { repoId, moduleId in
+      let history = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == repoId).where(\PlaylistHistory.moduleId == moduleId))
+      
+      return history?.sorted(by: { $0.dateWatched > $1.dateWatched } ) ?? []
     },
-    updateTimestamp: { playlistID, timestamp in
-      if var playlist = try? await databaseClient.fetch(.all.where(\PlaylistHistory.playlistID == playlistID)).first {
+    updateTimestamp: { rmp, timestamp in
+      if var playlist = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == rmp.repoId).where(\PlaylistHistory.moduleId == rmp.moduleId).where(\PlaylistHistory.playlistID == rmp.playlistId)).first {
         playlist.timestamp = timestamp
         _ = try await databaseClient.update(playlist)
       }
     },
-    observe: { playlistID in
-      databaseClient.observe(.all.where(\PlaylistHistory.playlistID == playlistID))
+    updateDateWatched: { rmp in
+      if var playlist = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == rmp.repoId).where(\PlaylistHistory.moduleId == rmp.moduleId).where(\PlaylistHistory.playlistID == rmp.playlistId)).first {
+        playlist.dateWatched = Date.now
+        _ = try await databaseClient.update(playlist)
+      }
+    },
+    observe: { rmp in
+      databaseClient.observe(.all.where(\PlaylistHistory.repoId == rmp.repoId).where(\PlaylistHistory.moduleId == rmp.moduleId).where(\PlaylistHistory.playlistID == rmp.playlistId))
     }
   )
 }

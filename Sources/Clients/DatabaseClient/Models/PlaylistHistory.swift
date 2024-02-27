@@ -17,8 +17,8 @@ public struct PlaylistHistory: Equatable, Sendable, Hashable {
   
   @Attribute public var dateWatched = Date.now
   @Attribute public var playlist = Date.now
-  @Attribute public var lastModuleId = ""
-  @Attribute public var lastRepoId = ""
+  @Attribute public var moduleId = ""
+  @Attribute public var repoId = ""
   @Attribute public var timestamp = 0.0
   
   @Attribute public var thumbnail = URL?.none
@@ -34,8 +34,8 @@ public struct PlaylistHistory: Equatable, Sendable, Hashable {
     timestamp: Double = 0.0,
     epId: String,
     playlistName: String?,
-    lastModuleId: String,
-    lastRepoId: String,
+    moduleId: String,
+    repoId: String,
     thumbnail: URL? = nil,
     epName: String?,
     pageId: String,
@@ -48,8 +48,8 @@ public struct PlaylistHistory: Equatable, Sendable, Hashable {
     self.playlistName = playlistName
     self.thumbnail = thumbnail
     self.dateWatched = Date.now
-    self.lastModuleId = lastModuleId
-    self.lastRepoId = lastRepoId
+    self.moduleId = moduleId
+    self.repoId = repoId
     self.epName = epName
     self.pageId = pageId
     self.groupId = groupId

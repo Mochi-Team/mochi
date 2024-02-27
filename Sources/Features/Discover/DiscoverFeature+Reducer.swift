@@ -42,24 +42,30 @@ extension DiscoverFeature {
         }
         return .run { send in
           try await Task.sleep(nanoseconds: 50_000_000)
-          if let repo = try? await databaseClient.fetch(.all.where(\Repo.remoteURL == repoId)).first {
-            let module = repo.modules[id: Module.Manifest.ID(moduleId)]?.manifest
-            await send(.internal(.selectedModule(module == nil ? nil : .init(repoId: Tagged<Repo, URL>(repoId), module: module!))))
+          if let repo = try? await databaseClient.fetch(.all.where(\Repo.remoteURL == repoId)).first, let module = repo.modules[id: Module.Manifest.ID(moduleId)]?.manifest {
+            await send(.internal(.selectedModule(.init(repoId: Tagged<Repo, URL>(repoId), module: module))))
+          } else {
+            await send(.internal(.selectedModule(nil)))
           }
         }
         
       case let .view(.didTapContinueWatching(item)):
         let blankUrl = URL(string: "_blank")!
         return .run { send in
-          try? await moduleClient.withModule(id: .init(repoId: Repo.ID(URL(string: item.lastRepoId)!), moduleId: Module.ID(item.lastModuleId))) { module in
+          try? await moduleClient.withModule(id: .init(repoId: Repo.ID(URL(string: item.repoId)!), moduleId: Module.ID(item.moduleId))) { module in
+          
             let options = Playlist.ItemsRequestOptions.page(.init(item.groupId), .init(item.variantId), .init(item.pageId))
+            
             let eps = try? await module.playlistEpisodes(Playlist.ID(rawValue: item.playlistID), options)
+            
             let playlist = Playlist(id: Playlist.ID(rawValue: item.playlistID), title: item.playlistName, posterImage: nil, bannerImage: nil, url: blankUrl, status: .unknown, type: .video)
+            
+            try? await playlistHistoryClient.updateDateWatched(.init(repoId: item.repoId, moduleId: item.moduleId, playlistId: playlist.id.rawValue))
             await send(
               .delegate(
                 .playbackVideoItem(
                   eps ?? [],
-                  repoModuleId: .init(repoId: Repo.ID(URL(string: item.lastRepoId)!), moduleId: Module.ID(item.lastModuleId)),
+                  repoModuleId: .init(repoId: Repo.ID(URL(string: item.repoId)!), moduleId: Module.ID(item.moduleId)),
                   playlist: playlist,
                   group: .init(item.groupId),
                   variant: .init(item.variantId),
@@ -141,12 +147,13 @@ extension DiscoverFeature {
         )
         
       case .internal(.onLastWatchedAppear):
-        guard let id = state.section.module?.module.id.moduleId else {
+        guard let repoModule = state.section.module?.module.id else {
           break
         }
+        
         return .run { send in
-          for await history in playlistHistoryClient.observeModule(id.rawValue) {
-            await send(.internal(.updateLastWatched(history.sorted(by: { $0.dateWatched > $1.dateWatched } ))))
+          if let history = try? await playlistHistoryClient.fetchForModule(repoModule.repoId.absoluteString, repoModule.moduleId.rawValue) {
+            await send(.internal(.updateLastWatched(history)))
           }
         }
         
@@ -165,6 +172,9 @@ extension DiscoverFeature {
 
       case .internal(.path):
         break
+        
+      case .delegate(.playbackDismissed):
+        return .send(.internal(.onLastWatchedAppear))
 
       case .delegate:
         break

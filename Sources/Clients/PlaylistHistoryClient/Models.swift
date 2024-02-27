@@ -13,22 +13,30 @@ extension PlaylistHistoryClient {
     case failedToFindPlaylisthistory
   }
   
+  public struct RMP: Equatable, Sendable {
+    public let repoId: String
+    public let moduleId: String
+    public let playlistId: String
+    
+    public init(repoId: String, moduleId: String, playlistId: String) {
+      self.repoId = repoId
+      self.moduleId = moduleId
+      self.playlistId = playlistId
+    }
+  }
+  
   public struct EpIdPayload: Equatable, Sendable {
-    public let playlistID: String
+    public let rmp: RMP
     public let episode: Playlist.Item
     public let playlistName: String?
-    public let moduleId: Module.ID
-    public let repoId: Repo.ID
     public let pageId: String
     public let groupId: String
     public let variantId: String
     
-    public init(playlistID: String, episode: Playlist.Item, playlistName: String?, moduleId: Module.ID, repoId: Repo.ID, pageId: String, groupId: String, variantId: String) {
-      self.playlistID = playlistID
+    public init(rmp: RMP, episode: Playlist.Item, playlistName: String?, pageId: String, groupId: String, variantId: String) {
+      self.rmp = rmp
       self.episode = episode
       self.playlistName = playlistName
-      self.moduleId = moduleId
-      self.repoId = repoId
       self.pageId = pageId
       self.groupId = groupId
       self.variantId = variantId

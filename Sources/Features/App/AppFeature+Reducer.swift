@@ -77,7 +77,10 @@ extension AppFeature: Reducer {
         break
 
       case .internal(.videoPlayer(.dismiss)):
-        return .run { _ in await playerClient.clear() }
+        return .run { send in
+          await send(.internal(.discover(.delegate(.playbackDismissed))))
+          await playerClient.clear()
+        }
 
       case .internal(.videoPlayer):
         break

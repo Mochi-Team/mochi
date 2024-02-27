@@ -81,17 +81,15 @@ public struct ContentCore: Reducer {
         return .run { _ in
         if let item = item {
           try? await playlistHistoryClient.updateEpId(.init(
-          playlistID: playlist.id.rawValue,
+          rmp: .init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue),
           episode: item,
           playlistName: playlist.title,
-          moduleId: repoModuleId.moduleId,
-          repoId: repoModuleId.repoId,
           pageId: pageId.rawValue,
           groupId: groupId.rawValue,
           variantId: variantId.rawValue
           ))
               if shouldReset {
-                try? await playlistHistoryClient.updateTimestamp(groupId.rawValue, 0)
+                try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue), 0)
               }
           }
         }
@@ -156,7 +154,7 @@ extension ContentCore.State {
         }
 
         await send(.update(option: option, .loaded(value)))
-        for await playlistHistoryItems in playlistHistoryClient.observe(playlistId.rawValue) {
+        for await playlistHistoryItems in playlistHistoryClient.observe(.init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlistId.rawValue)) {
           if let playlistHistory = playlistHistoryItems.first {
             await send(.playlistHistoryResponse(.loaded(playlistHistory)))
           }
