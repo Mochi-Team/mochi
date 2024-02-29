@@ -22,6 +22,7 @@ public struct PlaylistHistoryClient: Sendable {
   public var updateTimestamp: @Sendable (RMP, Double) async throws -> Void
   public var updateDateWatched: @Sendable (RMP) async throws -> Void
   public var observe: @Sendable (RMP) -> AsyncStream<[PlaylistHistory]>
+  public var clearHistory: @Sendable () async throws -> Void
 }
 
 // MARK: TestDependencyKey
@@ -32,8 +33,9 @@ extension PlaylistHistoryClient: TestDependencyKey {
     fetch: unimplemented("\(Self.self).fetch"),
     fetchForModule: unimplemented("\(Self.self).fetchForModule"),
     updateTimestamp: unimplemented("\(Self.self).updateTimestamp"),
-    updateDateWatched: unimplemented("\(Self.self).updateDateWatched"),
-    observe: unimplemented("\(Self.self).observe")
+    updateDateWatched: unimplemented("\(Self.self).clearHistory"),
+    observe: unimplemented("\(Self.self).updateDateWatched"),
+    clearHistory: unimplemented("\(Self.self).observe")
   )
 }
 

@@ -24,6 +24,8 @@ extension SettingsFeature.View {
             AppearanceView(store: store)
           case .developer:
             DeveloperView(store: store)
+          case .history:
+            HistoryView(store: store)
           }
         }
 

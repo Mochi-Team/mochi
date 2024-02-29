@@ -55,6 +55,11 @@ extension PlaylistHistoryClient: DependencyKey {
     },
     observe: { rmp in
       databaseClient.observe(.all.where(\PlaylistHistory.repoId == rmp.repoId).where(\PlaylistHistory.moduleId == rmp.moduleId).where(\PlaylistHistory.playlistID == rmp.playlistId))
+    },
+    clearHistory: {
+      for playlistHistory in try await databaseClient.fetch(.all.where(\PlaylistHistory.playlistID != nil)) {
+        try await databaseClient.delete(playlistHistory)
+      };
     }
   )
 }
