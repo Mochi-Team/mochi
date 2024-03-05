@@ -60,6 +60,13 @@ extension PlaylistHistoryClient: DependencyKey {
       for playlistHistory in try await databaseClient.fetch(.all.where(\PlaylistHistory.playlistID != nil)) {
         try await databaseClient.delete(playlistHistory)
       };
+    },
+    removePlaylistHistory: { rmp in
+      guard let playlistHistory = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == rmp.repoId).where(\PlaylistHistory.moduleId == rmp.moduleId).where(\PlaylistHistory.playlistID == rmp.playlistId)).first else {
+        throw PlaylistHistoryClient.Error.failedToFindPlaylisthistory
+      }
+      
+      try await databaseClient.delete(playlistHistory)
     }
   )
 }

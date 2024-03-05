@@ -300,8 +300,8 @@ extension DiscoverFeature.View {
 
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(alignment: .top, spacing: 12) {
-          WithViewStore(store, observe: \.`self`) { state in
-            ForEach(state.lastWatched ?? [], id: \.self) { item in
+          WithViewStore(store, observe: \.`self`) { viewStore in
+            ForEach(viewStore.lastWatched ?? [], id: \.self) { item in
               VStack(alignment: .leading, spacing: 8) {
                 ZStack(alignment: .bottom) {
                   FillAspectImage(url: item.thumbnail ?? URL(string: ""))
@@ -340,6 +340,14 @@ extension DiscoverFeature.View {
                   }
                 }
                 .cornerRadius(12)
+                .contextMenu {
+                  Button(role: .destructive) {
+                    viewStore.send(.view(.didTapRemovePlaylistHistory(item.repoId, item.moduleId, item.playlistID)))
+                  } label: {
+                    Label("Remove from history", systemImage: "trash.fill")
+                  }
+                  .buttonStyle(.plain)
+                }
                 
                 Text(item.epName ?? "No Title")
                   .lineLimit(3)
@@ -352,6 +360,7 @@ extension DiscoverFeature.View {
             .onTapGesture {
                 store.send(.view(.didTapContinueWatching(item)))
               }
+            .animation(.easeInOut, value: viewStore.lastWatched)
             }
           }
         }

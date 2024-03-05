@@ -76,6 +76,13 @@ extension DiscoverFeature {
             )
           }
         }
+        
+      case let .view(.didTapRemovePlaylistHistory(repoId, moduleId, playlistId)):
+        return .run { send in
+          if let _ = try? await playlistHistoryClient.removePlaylistHistory(.init(repoId: repoId, moduleId: moduleId, playlistId: playlistId)) {
+            await send(.internal(.removeLastWatchedPlaylist(playlistId)))
+          }
+        }
 
       case .view(.didTapOpenModules):
         state.moduleLists = .init()
@@ -156,6 +163,9 @@ extension DiscoverFeature {
             await send(.internal(.updateLastWatched(history)))
           }
         }
+        
+      case let .internal(.removeLastWatchedPlaylist(playlistId)):
+        state.lastWatched?.removeAll { $0.playlistID == playlistId }
         
       case let .internal(.updateLastWatched(history)):
         state.lastWatched = history

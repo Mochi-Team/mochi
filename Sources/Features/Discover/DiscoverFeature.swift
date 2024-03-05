@@ -190,6 +190,7 @@ public struct DiscoverFeature: Feature {
       case didAppear
       case didTapOpenModules
       case didTapContinueWatching(PlaylistHistory)
+      case didTapRemovePlaylistHistory(String, String, String)
       case didTapPlaylist(Playlist)
       case didTapSearchButton
       case didTapViewMoreListing(DiscoverListing.ID)
@@ -219,6 +220,7 @@ public struct DiscoverFeature: Feature {
       case showCaptcha(String, String)
       case path(StackAction<Path.State, Path.Action>)
       case updateLastWatched([PlaylistHistory])
+      case removeLastWatchedPlaylist(String)
       case onLastWatchedAppear
     }
 
