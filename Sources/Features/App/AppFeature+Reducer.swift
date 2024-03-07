@@ -14,6 +14,8 @@ import ModuleLists
 import Repos
 import Settings
 import VideoPlayer
+import Darwin
+import Foundation
 
 extension AppFeature: Reducer {
   public var body: some ReducerOf<Self> {
@@ -24,6 +26,16 @@ extension AppFeature: Reducer {
     Reduce { state, action in
       switch action {
       case .view(.didAppear):
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let dv = String(bytes: Data(bytes: &sysinfo.release, count: Int(_SYS_NAMELEN)), encoding: .ascii)!.trimmingCharacters(in: .controlCharacters)
+        let dictionary = Bundle(identifier: "com.apple.CFNetwork")?.infoDictionary!
+        let cfVersion = dictionary?["CFBundleVersion"] as! String
+        if let infoDict = Bundle.main.infoDictionary {
+          let version = infoDict["CFBundleVersion"] as! String
+          let name = infoDict["CFBundleName"] as! String
+          UserDefaults.standard.setValue("\(name)/\(version) CFNetwork/\(cfVersion) Darwin/\(dv)", forKey: "userAgent")
+        }
         break
 
       case let .view(.didSelectTab(tab)):

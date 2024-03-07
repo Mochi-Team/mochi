@@ -21,6 +21,9 @@ struct WebView: UIViewRepresentable {
     WKWebsiteDataStore.default().httpCookieStore.getAllCookies { cookies in
       HTTPCookieStorage.shared.setCookies(cookies, for: url, mainDocumentURL: url)
     }
+    if let ua = UserDefaults.standard.string(forKey: "userAgent") {
+      webView.customUserAgent = ua
+    }
     webView.loadHTMLString(html, baseURL: URL(string: hostname))
   }
 }

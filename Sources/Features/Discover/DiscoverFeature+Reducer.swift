@@ -19,8 +19,6 @@ import Search
 import SharedModels
 import Tagged
 
-let defaults = UserDefaults.standard
-
 // MARK: - DiscoverFeature
 
 extension DiscoverFeature {
@@ -35,8 +33,8 @@ extension DiscoverFeature {
         if state.section.module != nil {
           break
         }
-        guard let moduleId = defaults.string(forKey: "LastSelectedModuleId"),
-              let repoId = defaults.url(forKey: "LastSelectedRepoId") else {
+        guard let moduleId = UserDefaults.standard.string(forKey: "LastSelectedModuleId"),
+              let repoId = UserDefaults.standard.url(forKey: "LastSelectedRepoId") else {
           state.section = .home()
           break
         }
