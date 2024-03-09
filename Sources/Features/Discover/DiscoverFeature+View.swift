@@ -150,8 +150,15 @@ extension DiscoverFeature.View: View {
         state: /DiscoverFeature.Captcha.State.solveCaptcha,
         action: DiscoverFeature.Captcha.Action.solveCaptcha
       ) { store in
-        WithViewStore(store, observe: \.`self`) { viewStore in
-          WebView(html: viewStore.html, hostname: viewStore.hostname)
+        VStack {
+          Capsule()
+              .frame(width: 48, height: 4)
+              .foregroundColor(.gray.opacity(0.26))
+              .padding(.top, 8)
+              
+          WithViewStore(store, observe: \.`self`) { viewStore in
+            WebView(html: viewStore.html, hostname: viewStore.hostname)
+          }
         }
       }
   }
