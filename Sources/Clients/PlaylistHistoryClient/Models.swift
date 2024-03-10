@@ -12,19 +12,19 @@ extension PlaylistHistoryClient {
   public enum Error: Swift.Error, Equatable, Sendable {
     case failedToFindPlaylisthistory
   }
-  
+
   public struct RMP: Equatable, Sendable {
     public let repoId: String
     public let moduleId: String
     public let playlistId: String
-    
+
     public init(repoId: String, moduleId: String, playlistId: String) {
       self.repoId = repoId
       self.moduleId = moduleId
       self.playlistId = playlistId
     }
   }
-  
+
   public struct EpIdPayload: Equatable, Sendable {
     public let rmp: RMP
     public let episode: Playlist.Item
@@ -32,7 +32,7 @@ extension PlaylistHistoryClient {
     public let pageId: String
     public let groupId: String
     public let variantId: String
-    
+
     public init(rmp: RMP, episode: Playlist.Item, playlistName: String?, pageId: String, groupId: String, variantId: String) {
       self.rmp = rmp
       self.episode = episode

@@ -143,24 +143,24 @@ extension DiscoverFeature.View: View {
       }
     }
     .sheet(
-        store: store.scope(
-          state: \.$solveCaptcha,
-          action: \.internal.solveCaptcha
-        ),
-        state: /DiscoverFeature.Captcha.State.solveCaptcha,
-        action: DiscoverFeature.Captcha.Action.solveCaptcha
-      ) { store in
-        VStack {
-          Capsule()
-              .frame(width: 48, height: 4)
-              .foregroundColor(.gray.opacity(0.26))
-              .padding(.top, 8)
-              
-          WithViewStore(store, observe: \.`self`) { viewStore in
-            WebView(html: viewStore.html, hostname: viewStore.hostname)
-          }
+      store: store.scope(
+        state: \.$solveCaptcha,
+        action: \.internal.solveCaptcha
+      ),
+      state: /DiscoverFeature.Captcha.State.solveCaptcha,
+      action: DiscoverFeature.Captcha.Action.solveCaptcha
+    ) { store in
+      VStack {
+        Capsule()
+          .frame(width: 48, height: 4)
+          .foregroundColor(.gray.opacity(0.26))
+          .padding(.top, 8)
+
+        WithViewStore(store, observe: \.`self`) { viewStore in
+          WebView(html: viewStore.html, hostname: viewStore.hostname)
         }
       }
+    }
   }
 }
 
@@ -191,7 +191,7 @@ extension DiscoverFeature.View {
           .font(.title2.weight(.medium))
         Text(String(localizable: "There was an error retrieving content"))
         Button {
-          // TODO: Allow retrying
+          store.send(.view(.didTapRetryLoadingModule))
         } label: {
           Text(localizable: "Retry")
             .padding(.horizontal, 12)
@@ -284,10 +284,10 @@ extension DiscoverFeature.View {
 extension DiscoverFeature.View {
   @MainActor
   func lastWatchedListing() -> some View {
-  LazyVStack(alignment: .leading) {
+    LazyVStack(alignment: .leading) {
       HStack {
         Text("Last Watched")
-        .font(.title3.weight(.semibold))
+          .font(.title3.weight(.semibold))
 
         Spacer()
 
@@ -335,7 +335,7 @@ extension DiscoverFeature.View {
                       .fixedSize(horizontal: false, vertical: true)
                       .foregroundColor(.white)
                       .padding(.horizontal)
-                      
+
                     GeometryReader { proxy in
                       Color(.white)
                         .opacity(0.8)
@@ -355,19 +355,19 @@ extension DiscoverFeature.View {
                   }
                   .buttonStyle(.plain)
                 }
-                
+
                 Text(item.epName ?? "No Title")
                   .lineLimit(3)
                   .font(.subheadline.weight(.medium))
                   .multilineTextAlignment(.leading)
                   .fixedSize(horizontal: false, vertical: true)
               }
-            .frame(width: 248)
-            .contentShape(Rectangle())
-            .onTapGesture {
+              .frame(width: 248)
+              .contentShape(Rectangle())
+              .onTapGesture {
                 store.send(.view(.didTapContinueWatching(item)))
               }
-            .animation(.easeInOut, value: viewStore.lastWatched)
+              .animation(.easeInOut, value: viewStore.lastWatched)
             }
           }
         }
@@ -376,7 +376,7 @@ extension DiscoverFeature.View {
       .frame(maxWidth: .infinity)
     }
   }
-  
+
   @MainActor
   func rowListing(_ listing: DiscoverListing) -> some View {
     listingViewContainer(listing) {

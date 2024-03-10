@@ -8,14 +8,14 @@
 
 import Architecture
 import ComposableArchitecture
+import Darwin
 import DatabaseClient
 import Discover
+import Foundation
 import ModuleLists
 import Repos
 import Settings
 import VideoPlayer
-import Darwin
-import Foundation
 
 extension AppFeature: Reducer {
   public var body: some ReducerOf<Self> {
@@ -36,7 +36,6 @@ extension AppFeature: Reducer {
           let name = infoDict["CFBundleName"] as! String
           UserDefaults.standard.setValue("\(name)/\(version) CFNetwork/\(cfVersion) Darwin/\(dv)", forKey: "userAgent")
         }
-        break
 
       case let .view(.didSelectTab(tab)):
         if state.selected == tab {

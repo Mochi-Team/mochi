@@ -14,17 +14,17 @@ import Foundation
 public struct PlaylistHistory: Equatable, Sendable, Hashable {
   @Attribute public var playlistID = ""
   @Attribute public var playlistName = String?.none
-  
+
   @Attribute public var dateWatched = Date.now
   @Attribute public var playlist = Date.now
   @Attribute public var moduleId = ""
   @Attribute public var repoId = ""
   @Attribute public var timestamp = 0.0
-  
+
   @Attribute public var thumbnail = URL?.none
   @Attribute public var epId = ""
   @Attribute public var epName = String?.none
-  
+
   @Attribute public var pageId = ""
   @Attribute public var groupId = ""
   @Attribute public var variantId = ""
@@ -56,6 +56,3 @@ public struct PlaylistHistory: Equatable, Sendable, Hashable {
     self.variantId = variantId
   }
 }
-
-
-

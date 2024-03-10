@@ -46,18 +46,18 @@ extension DiscoverFeature {
             await send(.internal(.selectedModule(nil)))
           }
         }
-        
+
       case let .view(.didTapContinueWatching(item)):
         let blankUrl = URL(string: "_blank")!
         return .run { send in
           try? await moduleClient.withModule(id: .init(repoId: Repo.ID(URL(string: item.repoId)!), moduleId: Module.ID(item.moduleId))) { module in
-          
+
             let options = Playlist.ItemsRequestOptions.page(.init(item.groupId), .init(item.variantId), .init(item.pageId))
-            
+
             let eps = try? await module.playlistEpisodes(Playlist.ID(rawValue: item.playlistID), options)
-            
+
             let playlist = Playlist(id: Playlist.ID(rawValue: item.playlistID), title: item.playlistName, posterImage: nil, bannerImage: nil, url: blankUrl, status: .unknown, type: .video)
-            
+
             try? await playlistHistoryClient.updateDateWatched(.init(repoId: item.repoId, moduleId: item.moduleId, playlistId: playlist.id.rawValue))
             await send(
               .delegate(
@@ -74,13 +74,16 @@ extension DiscoverFeature {
             )
           }
         }
-        
+
       case let .view(.didTapRemovePlaylistHistory(repoId, moduleId, playlistId)):
         return .run { send in
           if let _ = try? await playlistHistoryClient.removePlaylistHistory(.init(repoId: repoId, moduleId: moduleId, playlistId: playlistId)) {
             await send(.internal(.removeLastWatchedPlaylist(playlistId)))
           }
         }
+        
+      case .view(.didTapRetryLoadingModule):
+        return state.fetchLatestListings(state.section.module?.module)
 
       case .view(.didTapOpenModules):
         state.moduleLists = .init()
@@ -150,37 +153,36 @@ extension DiscoverFeature {
             )
           )
         )
-        
+
       case .internal(.onLastWatchedAppear):
         guard let repoModule = state.section.module?.module.id else {
           break
         }
-        
+
         return .run { send in
           if let history = try? await playlistHistoryClient.fetchForModule(repoModule.repoId.absoluteString, repoModule.moduleId.rawValue) {
             await send(.internal(.updateLastWatched(history)))
           }
         }
-        
+
       case let .internal(.removeLastWatchedPlaylist(playlistId)):
         state.lastWatched?.removeAll { $0.playlistID == playlistId }
-        
+
       case let .internal(.updateLastWatched(history)):
         state.lastWatched = history
 
       case .internal(.moduleLists):
         break
-       
+
       case let .internal(.showCaptcha(html, hostname)):
         state.solveCaptcha = .solveCaptcha(.init(html: html, hostname: hostname))
-        break
-        
+
       case .internal(.solveCaptcha):
         break
 
       case .internal(.path):
         break
-        
+
       case .delegate(.playbackDismissed):
         return .send(.internal(.onLastWatchedAppear))
 
@@ -219,7 +221,7 @@ extension DiscoverFeature.State {
         let value = try await moduleClient.withModule(id: id) { module in
           try await module.discoverListings()
         }
-        
+
         await send(.internal(.onLastWatchedAppear))
 
         await send(.internal(.loadedListings(id, .loaded(value))))

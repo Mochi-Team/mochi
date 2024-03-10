@@ -79,18 +79,18 @@ public struct ContentCore: Reducer {
         let repoModuleId = state.repoModuleId
         let item = state.item(groupId: groupId, variantId: variantId, pageId: pageId, itemId: itemId).value
         return .run { _ in
-        if let item = item {
-          try? await playlistHistoryClient.updateEpId(.init(
-          rmp: .init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue),
-          episode: item,
-          playlistName: playlist.title,
-          pageId: pageId.rawValue,
-          groupId: groupId.rawValue,
-          variantId: variantId.rawValue
-          ))
-              if shouldReset {
-                try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue), 0)
-              }
+          if let item {
+            try? await playlistHistoryClient.updateEpId(.init(
+              rmp: .init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue),
+              episode: item,
+              playlistName: playlist.title,
+              pageId: pageId.rawValue,
+              groupId: groupId.rawValue,
+              variantId: variantId.rawValue
+            ))
+            if shouldReset {
+              try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue), 0)
+            }
           }
         }
 

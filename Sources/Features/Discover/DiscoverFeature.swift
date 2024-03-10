@@ -25,39 +25,40 @@ import ViewComponents
 
 public struct DiscoverFeature: Feature {
   public struct Captcha: ComposableArchitecture.Reducer {
-      public enum State: Equatable, Sendable {
-        case solveCaptcha(SolveCaptcha.State)
-      }
+    public enum State: Equatable, Sendable {
+      case solveCaptcha(SolveCaptcha.State)
+    }
 
-      public enum Action: Equatable, Sendable {
-        case solveCaptcha(SolveCaptcha.Action)
-      }
+    public enum Action: Equatable, Sendable {
+      case solveCaptcha(SolveCaptcha.Action)
+    }
 
-      public var body: some ReducerOf<Self> {
-        Scope(state: /State.solveCaptcha, action: /Action.solveCaptcha) {
-          SolveCaptcha()
-        }
-      }
-
-      public struct SolveCaptcha: ComposableArchitecture.Reducer {
-        public struct State: Equatable, Sendable {
-          public let html: String
-          public let hostname: String
-
-          public init(
-            html: String,
-            hostname: String
-          ) {
-            self.html = html
-            self.hostname = hostname
-          }
-        }
-
-        public enum Action: Equatable, Sendable {}
-
-        public var body: some ReducerOf<Self> { EmptyReducer() }
+    public var body: some ReducerOf<Self> {
+      Scope(state: /State.solveCaptcha, action: /Action.solveCaptcha) {
+        SolveCaptcha()
       }
     }
+
+    public struct SolveCaptcha: ComposableArchitecture.Reducer {
+      public struct State: Equatable, Sendable {
+        public let html: String
+        public let hostname: String
+
+        public init(
+          html: String,
+          hostname: String
+        ) {
+          self.html = html
+          self.hostname = hostname
+        }
+      }
+
+      public enum Action: Equatable, Sendable {}
+
+      public var body: some ReducerOf<Self> { EmptyReducer() }
+    }
+  }
+
   public enum Error: Swift.Error, Equatable, Sendable, Localizable {
     case system(System)
     case module(ModuleClient.Error)
@@ -161,7 +162,7 @@ public struct DiscoverFeature: Feature {
   public struct State: FeatureState {
     public var section: Section
     public var path: StackState<Path.State>
-    
+
     @PresentationState public var lastWatched: [PlaylistHistory]?
     @PresentationState public var moduleLists: ModuleListsFeature.State?
     @PresentationState public var solveCaptcha: DiscoverFeature.Captcha.State?
@@ -194,6 +195,7 @@ public struct DiscoverFeature: Feature {
       case didTapPlaylist(Playlist)
       case didTapSearchButton
       case didTapViewMoreListing(DiscoverListing.ID)
+      case didTapRetryLoadingModule
     }
 
     @CasePathable

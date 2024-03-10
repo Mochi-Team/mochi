@@ -8,8 +8,8 @@
 
 import Architecture
 import ComposableArchitecture
-import UserSettingsClient
 import PlaylistHistoryClient
+import UserSettingsClient
 
 extension SettingsFeature {
   @ReducerBuilder<State, Action> public var body: some ReducerOf<Self> {
@@ -28,9 +28,9 @@ extension SettingsFeature {
         state.path.append(.logs(.init()))
       case .view(.clearHistory):
         @Dependency(\.playlistHistoryClient) var playlistHistoryClient
-          return .run {
-            try? await playlistHistoryClient.clearHistory()
-          }
+        return .run {
+          try? await playlistHistoryClient.clearHistory()
+        }
       case .view(.onTask):
         break
       case .view(.binding):

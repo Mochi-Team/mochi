@@ -195,9 +195,9 @@ struct ThemePicker: View {
 struct HistoryView: View {
   var showTitle = true
   let store: StoreOf<SettingsFeature>
-  
+
   @SwiftUI.State private var confirmRemoval: Bool = false
-  
+
   @Environment(\.theme) var theme
 
   var body: some View {
@@ -207,10 +207,12 @@ struct HistoryView: View {
           confirmRemoval.toggle()
         } label: {
           Text("Clear Watch History").foregroundColor(.red)
-          .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity)
         }
-        .confirmationDialog("Are you sure?",
-          isPresented: $confirmRemoval) {
+        .confirmationDialog(
+          "Are you sure?",
+          isPresented: $confirmRemoval
+        ) {
           Button("Remove all watch history", role: .destructive) {
             viewStore.send(.view(.clearHistory))
           }
