@@ -81,7 +81,7 @@ extension DiscoverFeature {
             await send(.internal(.removeLastWatchedPlaylist(playlistId)))
           }
         }
-        
+
       case .view(.didTapRetryLoadingModule):
         return state.fetchLatestListings(state.section.module?.module)
 
