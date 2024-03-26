@@ -65,6 +65,9 @@ extension JSContext {
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
       }
 
+      let cookies = HTTPCookieStorage.shared.cookies(for: url).map { $0.map { "\($0.name)=\($0.value)" } }?.joined(separator: "; ")
+      request.setValue(cookies, forHTTPHeaderField: "Cookie")
+
       return .init(newPromiseIn: self) { resolved, rejected in
         let task = session.dataTask(with: request) { data, response, error in
           guard let resolved, let rejected else {

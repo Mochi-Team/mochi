@@ -22,6 +22,7 @@ public struct DiscoverListing: Sendable, Hashable, Identifiable, Codable {
     case `default`
     case rank
     case featured
+    case lastWatched
   }
 
   public enum OrientationType: Int, Sendable, Hashable, Codable {

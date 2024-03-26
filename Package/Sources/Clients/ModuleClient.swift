@@ -1,12 +1,14 @@
 //
 //  ModuleClient.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
+
+// MARK: - ModuleClient
 
 struct ModuleClient: _Client {
     var dependencies: any Dependencies {
@@ -22,6 +24,8 @@ struct ModuleClient: _Client {
         Parsing()
     }
 }
+
+// MARK: Testable
 
 extension ModuleClient: Testable {
     struct Tests: TestTarget {

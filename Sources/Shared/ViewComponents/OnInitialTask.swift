@@ -21,7 +21,9 @@ private struct OnInitialTask: ViewModifier {
   @MainActor
   func body(content: Content) -> some View {
     content.task(priority: priority) {
-      guard !appeared else { return }
+      guard !appeared else {
+        return
+      }
       appeared = true
       await callback()
     }

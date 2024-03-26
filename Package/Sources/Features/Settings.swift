@@ -1,9 +1,9 @@
 //
 //  Settings.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 struct Settings: _Feature {

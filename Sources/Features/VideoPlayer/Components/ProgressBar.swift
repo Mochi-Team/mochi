@@ -19,7 +19,7 @@ private struct DragOffset: Equatable {
   private let initialProgress: Double
   private var initialDrag: Double
   private var lastDrag: Double
-  private var offset: Double { lastDrag - initialDrag }
+  var offset: Double { lastDrag - initialDrag }
 
   var progress: Double { initialProgress + offset }
 
@@ -102,7 +102,12 @@ struct ProgressBar: View {
               viewState.send(.didSeekTo(time: dragged?.progress ?? .zero))
               dragged?(percentageX)
             }
-            .onEnded { _ in
+            .onEnded { value in
+              if dragged?.offset == 0 {
+                let percentageX = value.location.x / proxy.size.width
+
+                viewState.send(.didSeekTo(time: percentageX))
+              }
               dragged = nil
             }
         )

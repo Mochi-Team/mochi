@@ -9,7 +9,10 @@
 import Architecture
 import ComposableArchitecture
 import DatabaseClient
+import Foundation
 import RepoClient
+
+let defaults = UserDefaults.standard
 
 extension ModuleListsFeature {
   public var body: some ReducerOf<Self> {
@@ -31,6 +34,8 @@ extension ModuleListsFeature {
         guard let module = state.repos[id: repoId]?.modules[id: moduleId]?.manifest else {
           break
         }
+        defaults.set(moduleId.rawValue, forKey: "LastSelectedModuleId")
+        defaults.set(repoId.rawValue, forKey: "LastSelectedRepoId")
         return .concatenate(.send(.delegate(.selectedModule(.init(repoId: repoId, module: module)))))
 
       case let .internal(.fetchRepos(.success(repos))):

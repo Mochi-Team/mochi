@@ -13,6 +13,7 @@ struct MochiSchema: Schema {
   static var entities: Entities {
     Repo.self
     Module.self
+    PlaylistHistory.self
   }
 
   enum Migrations: Migratable {

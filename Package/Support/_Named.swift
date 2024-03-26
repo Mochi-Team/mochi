@@ -4,12 +4,14 @@
 // Licensed under MIT License
 //
 
+// MARK: - _Named
+
 protocol _Named {
-  var name: String { get }
+    var name: String { get }
 }
 
 extension _Named {
-  var name: String {
-    "\(Self.self)"
-  }
+    var name: String {
+        "\(Self.self)"
+    }
 }

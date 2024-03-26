@@ -13,6 +13,7 @@ import DatabaseClient
 import Foundation
 import LoggerClient
 import ModuleClient
+import PlaylistHistoryClient
 import RepoClient
 import SharedModels
 import Tagged
@@ -61,8 +62,10 @@ extension PlaylistDetailsFeature {
       case let .internal(.playlistDetailsResponse(loadable)):
         state.details = loadable
 
-      case let .internal(.content(.didTapPlaylistItem(groupId, variantId, pageId, itemId))):
-        guard state.content.groups.value != nil else { break }
+      case let .internal(.content(.didTapPlaylistItem(groupId, variantId, pageId, itemId, _))):
+        guard state.content.groups.value != nil else {
+          break
+        }
 
         switch state.content.playlist.type {
         case .video:

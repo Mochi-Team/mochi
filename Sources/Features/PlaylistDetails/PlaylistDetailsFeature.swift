@@ -61,19 +61,32 @@ public struct PlaylistDetailsFeature: Feature {
 
     @PresentationState public var destination: Destination.State?
 
+    public var playlistHistory: Loadable<PlaylistHistory> { content.playlistHistory }
+
     var playlistInfo: Loadable<PlaylistInfo> {
       details.map { .init(playlist: playlist, details: $0) }
     }
 
     public var resumableState: Resumable {
       // TODO: Show start based on last resumed or selected content?
-      if let group = content.groups.value?.first,
-         let variant = group.variants.value?.first,
-         let page = variant.pagings.value?.first,
-         let item = page.items.value?.first {
-        .start(group.id, variant.id, page.id, item.id)
+      if playlist.status == .upcoming {
+        return .upcoming
+      }
+      if let group = content.groups.value?.first(where: { $0.default ?? false }) ?? content.groups.value?.first,
+         let variant = group.variants.value?.first {
+        if let epId = playlistHistory.value?.epId {
+          if let page = variant.pagings.value?.first(where: { $0.items.value!.contains(where: { $0.id.rawValue == epId }) }),
+             let item = page.items.value?.first(where: { $0.id.rawValue == epId }) {
+            return .resume(group.id, variant.id, page.id, item.id, item.title ?? "", playlistHistory.value?.timestamp ?? 0.0)
+          }
+        }
+        if let page = variant.pagings.value?.first,
+           let item = page.items.value?.first {
+          return .start(group.id, variant.id, page.id, item.id)
+        }
+        return content.groups.didFinish ? .unavailable : .loading
       } else {
-        content.groups.didFinish ? .unavailable : .loading
+        return content.groups.didFinish ? .unavailable : .loading
       }
     }
 
@@ -88,21 +101,33 @@ public struct PlaylistDetailsFeature: Feature {
     }
 
     public enum Resumable: Equatable, Sendable {
+      case upcoming
       case loading
       case start(Playlist.Group.ID, Playlist.Group.Variant.ID, PagingID, Playlist.Item.ID)
-      case `continue`(String, Double)
+      case resume(Playlist.Group.ID, Playlist.Group.Variant.ID, PagingID, Playlist.Item.ID, String, Double)
       case unavailable
 
       var image: Image? {
-        self != .unavailable ? .init(systemName: "play.fill") : nil
+        switch self {
+        case .upcoming:
+          .init(systemName: "calendar")
+        case .loading:
+          nil
+        case .start:
+          .init(systemName: "play.fill")
+        case .resume:
+          .init(systemName: "play.fill")
+        case .unavailable:
+          nil
+        }
       }
 
       var action: Action? {
         switch self {
         case let .start(groupId, variantId, pagingId, itemId):
           .internal(.content(.didTapPlaylistItem(groupId, variantId, pagingId, id: itemId)))
-        case .continue:
-          nil
+        case let .resume(groupId, variantId, pagingId, itemId, _, _):
+          .internal(.content(.didTapPlaylistItem(groupId, variantId, pagingId, id: itemId)))
         default:
           nil
         }
@@ -110,12 +135,14 @@ public struct PlaylistDetailsFeature: Feature {
 
       var description: String {
         switch self {
+        case .upcoming:
+          "Upcoming"
         case .loading:
           "Loading..."
         case .start:
           "Start"
-        case .continue:
-          "Continue"
+        case .resume:
+          "Resume"
         case .unavailable:
           "Unavailable"
         }

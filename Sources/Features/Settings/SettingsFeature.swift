@@ -18,10 +18,13 @@ public struct SettingsFeature: Feature {
   public enum Section: String, Sendable, Hashable, Localizable, CaseIterable {
     case general = "General"
     case appearance = "Appearance"
+    case history = "History"
     case developer = "Developer"
 
     var systemImage: String {
       switch self {
+      case .history:
+        "clock.arrow.circlepath"
       case .general:
         "gearshape.fill"
       case .appearance:
@@ -68,6 +71,7 @@ public struct SettingsFeature: Feature {
     public enum ViewAction: SendableAction, BindableAction {
       case onTask
       case didTapViewLogs
+      case clearHistory
       case binding(BindingAction<State>)
     }
 

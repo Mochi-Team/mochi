@@ -1,9 +1,9 @@
 //
 //  PlaylistDetails.swift
-//  
+//
 //
 //  Created by ErrorErrorError on 10/5/23.
-//  
+//
 //
 
 import Foundation
@@ -15,6 +15,7 @@ struct PlaylistDetails: _Feature {
         LoggerClient()
         ModuleClient()
         RepoClient()
+        PlaylistHistoryClient()
         Styling()
         SharedModels()
         ViewComponents()

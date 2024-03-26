@@ -8,8 +8,10 @@
 
 import Architecture
 import ComposableArchitecture
+import Darwin
 import DatabaseClient
 import Discover
+import Foundation
 import ModuleLists
 import Repos
 import Settings
@@ -24,7 +26,16 @@ extension AppFeature: Reducer {
     Reduce { state, action in
       switch action {
       case .view(.didAppear):
-        break
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let dv = String(bytes: Data(bytes: &sysinfo.release, count: Int(_SYS_NAMELEN)), encoding: .ascii)!.trimmingCharacters(in: .controlCharacters)
+        let dictionary = Bundle(identifier: "com.apple.CFNetwork")?.infoDictionary!
+        let cfVersion = dictionary?["CFBundleVersion"] as! String
+        if let infoDict = Bundle.main.infoDictionary {
+          let version = infoDict["CFBundleVersion"] as! String
+          let name = infoDict["CFBundleName"] as! String
+          UserDefaults.standard.setValue("\(name)/\(version) CFNetwork/\(cfVersion) Darwin/\(dv)", forKey: "userAgent")
+        }
 
       case let .view(.didSelectTab(tab)):
         if state.selected == tab {
@@ -77,7 +88,10 @@ extension AppFeature: Reducer {
         break
 
       case .internal(.videoPlayer(.dismiss)):
-        return .run { _ in await playerClient.clear() }
+        return .run { send in
+          await send(.internal(.discover(.delegate(.playbackDismissed))))
+          await playerClient.clear()
+        }
 
       case .internal(.videoPlayer):
         break

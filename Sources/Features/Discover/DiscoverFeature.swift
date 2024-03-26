@@ -24,6 +24,41 @@ import ViewComponents
 // MARK: - DiscoverFeature
 
 public struct DiscoverFeature: Feature {
+  public struct Captcha: ComposableArchitecture.Reducer {
+    public enum State: Equatable, Sendable {
+      case solveCaptcha(SolveCaptcha.State)
+    }
+
+    public enum Action: Equatable, Sendable {
+      case solveCaptcha(SolveCaptcha.Action)
+    }
+
+    public var body: some ReducerOf<Self> {
+      Scope(state: /State.solveCaptcha, action: /Action.solveCaptcha) {
+        SolveCaptcha()
+      }
+    }
+
+    public struct SolveCaptcha: ComposableArchitecture.Reducer {
+      public struct State: Equatable, Sendable {
+        public let html: String
+        public let hostname: String
+
+        public init(
+          html: String,
+          hostname: String
+        ) {
+          self.html = html
+          self.hostname = hostname
+        }
+      }
+
+      public enum Action: Equatable, Sendable {}
+
+      public var body: some ReducerOf<Self> { EmptyReducer() }
+    }
+  }
+
   public enum Error: Swift.Error, Equatable, Sendable, Localizable {
     case system(System)
     case module(ModuleClient.Error)
@@ -82,9 +117,12 @@ public struct DiscoverFeature: Feature {
   public enum Section: Equatable, Sendable {
     case home(HomeState = .init())
     case module(ModuleListingState)
+    case empty
 
     var title: String {
       switch self {
+      case .empty:
+        .init(localizable: "Loading...")
       case .home:
         .init(localizable: "Home")
       case let .module(moduleState):
@@ -94,6 +132,8 @@ public struct DiscoverFeature: Feature {
 
     var icon: URL? {
       switch self {
+      case .empty:
+        nil
       case .home:
         nil
       case let .module(moduleState):
@@ -123,16 +163,22 @@ public struct DiscoverFeature: Feature {
     public var section: Section
     public var path: StackState<Path.State>
 
+    @PresentationState public var lastWatched: [PlaylistHistory]?
     @PresentationState public var moduleLists: ModuleListsFeature.State?
+    @PresentationState public var solveCaptcha: DiscoverFeature.Captcha.State?
 
     public init(
-      section: DiscoverFeature.Section = .home(),
+      section: DiscoverFeature.Section = .empty,
       path: StackState<Path.State> = .init(),
-      moduleLists: ModuleListsFeature.State? = nil
+      moduleLists: ModuleListsFeature.State? = nil,
+      solveCaptcha: DiscoverFeature.Captcha.State? = nil,
+      lastWatched: [PlaylistHistory]? = []
     ) {
       self.section = section
       self.path = path
       self.moduleLists = moduleLists
+      self.solveCaptcha = solveCaptcha
+      self.lastWatched = lastWatched
     }
   }
 
@@ -144,9 +190,12 @@ public struct DiscoverFeature: Feature {
     public enum ViewAction: SendableAction {
       case didAppear
       case didTapOpenModules
+      case didTapContinueWatching(PlaylistHistory)
+      case didTapRemovePlaylistHistory(String, String, String)
       case didTapPlaylist(Playlist)
       case didTapSearchButton
       case didTapViewMoreListing(DiscoverListing.ID)
+      case didTapRetryLoadingModule
     }
 
     @CasePathable
@@ -161,6 +210,7 @@ public struct DiscoverFeature: Feature {
         paging: PagingID,
         itemId: Playlist.Item.ID
       )
+      case playbackDismissed
     }
 
     @CasePathable
@@ -168,7 +218,12 @@ public struct DiscoverFeature: Feature {
       case selectedModule(RepoClient.SelectedModule?)
       case loadedListings(RepoModuleID, Loadable<[DiscoverListing]>)
       case moduleLists(PresentationAction<ModuleListsFeature.Action>)
+      case solveCaptcha(PresentationAction<Captcha.Action>)
+      case showCaptcha(String, String)
       case path(StackAction<Path.State, Path.Action>)
+      case updateLastWatched([PlaylistHistory])
+      case removeLastWatchedPlaylist(String)
+      case onLastWatchedAppear
     }
 
     case view(ViewAction)
@@ -190,7 +245,9 @@ public struct DiscoverFeature: Feature {
   }
 
   @Dependency(\.repoClient) var repoClient
+  @Dependency(\.databaseClient) var databaseClient
   @Dependency(\.moduleClient) var moduleClient
+  @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
   public init() {}
 }

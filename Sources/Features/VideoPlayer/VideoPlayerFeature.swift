@@ -59,6 +59,8 @@ public struct VideoPlayerFeature: Feature {
       set { content.playlist = newValue }
     }
 
+    public var playlistHistory: Loadable<PlaylistHistory> { content.playlistHistory }
+
     public var content: ContentCore.State
     public var loadables: Loadables
     public var selected: SelectedContent
@@ -330,7 +332,7 @@ extension VideoPlayerFeature.View {
       var action: VideoPlayerFeature.Action {
         switch self {
         case let .next(_, group, variant, paging, itemId):
-          .internal(.content(.didTapPlaylistItem(group, variant, paging, id: itemId)))
+          .internal(.content(.didTapPlaylistItem(group, variant, paging, id: itemId, shouldReset: true)))
         case let .times(time):
           .view(.didSkipTo(time: time.endTime))
         }

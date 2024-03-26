@@ -8,6 +8,7 @@
 
 import Architecture
 import ComposableArchitecture
+import PlaylistHistoryClient
 import UserSettingsClient
 
 extension SettingsFeature {
@@ -25,6 +26,11 @@ extension SettingsFeature {
       switch action {
       case .view(.didTapViewLogs):
         state.path.append(.logs(.init()))
+      case .view(.clearHistory):
+        @Dependency(\.playlistHistoryClient) var playlistHistoryClient
+        return .run {
+          try? await playlistHistoryClient.clearHistory()
+        }
       case .view(.onTask):
         break
       case .view(.binding):

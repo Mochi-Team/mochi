@@ -54,6 +54,9 @@ struct JSValueError: Error, LocalizedError, CustomStringConvertible {
   var errorDescription: String?
   var failureReason: String?
   var stackTrace: String?
+  var data: String?
+  var status: Double?
+  var hostname: String?
 
   init(_ value: JSValue, _ functionName: String? = nil, stackTrace: Bool = true) {
     self.functionName = functionName
@@ -63,6 +66,9 @@ struct JSValueError: Error, LocalizedError, CustomStringConvertible {
     if stackTrace {
       self.stackTrace = value["stack"]?.toString()
     }
+    self.data = value["data"]?.toString()
+    self.status = value["status"]?.toDouble()
+    self.hostname = value["hostname"]?.toString()
   }
 
   // TODO: Allow stack trace

@@ -1,19 +1,18 @@
 //
-//  SharedModels.swift
+//  PlaylistHistoryClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
-//
+//  Created by DeNeRr on 29.01.2024.
 //
 
 import Foundation
 
-struct SharedModels: _Shared {
+struct PlaylistHistoryClient: _Client {
     var dependencies: any Dependencies {
         DatabaseClient()
+        SharedModels()
+        Semaphore()
         Tagged()
         ComposableArchitecture()
-        Semver()
-        JSValueCoder()
     }
 }

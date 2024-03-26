@@ -91,7 +91,9 @@ public struct ViewMoreListing: Reducer {
         return .run { await dismiss() }
 
       case let .didShowNextPageIndicator(pageId):
-        guard !(state.items[pageId]?.hasInitialized ?? false) else { break }
+        guard !(state.items[pageId]?.hasInitialized ?? false) else {
+          break
+        }
         return state.fetchPage(pageId: pageId)
 
       case let .didTapRetryLoadingPage(pageId):

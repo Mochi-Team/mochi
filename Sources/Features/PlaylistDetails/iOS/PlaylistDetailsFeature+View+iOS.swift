@@ -228,7 +228,7 @@ extension PlaylistDetailsFeature.View {
             .frame(height: 16)
 
           WithViewStore(store, observe: \.resumableState) { viewStore in
-            if case let .continue(title, progress) = viewStore.state {
+            if case let .resume(_, _, _, _, title, progress) = viewStore.state {
               VStack(spacing: 4) {
                 HStack {
                   Text(title)
@@ -360,13 +360,15 @@ extension PlaylistDetailsFeature.View {
         }
       }
 
-      ContentCore.View(
-        store: store.scope(
-          state: \.content,
-          action: \.internal.content
-        ),
-        contentType: playlistInfo.type
-      )
+      if playlistInfo.status != .upcoming {
+        ContentCore.View(
+          store: store.scope(
+            state: \.content,
+            action: \.internal.content
+          ),
+          contentType: playlistInfo.type
+        )
+      }
     }
   }
 }

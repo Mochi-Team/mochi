@@ -16,6 +16,11 @@ import Tagged
 public struct RepoModuleID: Hashable, Sendable {
   public let repoId: Repo.ID
   public let moduleId: Module.ID
+
+  public init(repoId: Repo.ID, moduleId: Module.ID) {
+    self.repoId = repoId
+    self.moduleId = moduleId
+  }
 }
 
 extension Repo.ID {

@@ -60,6 +60,7 @@ extension PlayerClient {
     let subtitles: [Subtitle]
     let metadata: SourceMetadata
     let format: Format
+    let progress: Double?
 
     public enum Format {
       case hls
@@ -71,13 +72,15 @@ extension PlayerClient {
       headers: [String: String] = [:],
       subtitles: [Subtitle] = [],
       metadata: SourceMetadata,
-      format: Format
+      format: Format,
+      progress: Double?
     ) {
       self.link = link
       self.headers = headers
       self.subtitles = subtitles
       self.metadata = metadata
       self.format = format
+      self.progress = progress
     }
 
     public struct Subtitle {
@@ -89,7 +92,7 @@ extension PlayerClient {
 
       public init(
         name: String,
-        default: Bool,
+        default: Bool = false,
         autoselect: Bool,
         forced: Bool = false,
         link: URL

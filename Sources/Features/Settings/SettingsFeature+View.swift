@@ -189,6 +189,42 @@ struct ThemePicker: View {
   }
 }
 
+// MARK: - HistoryView
+
+@MainActor
+struct HistoryView: View {
+  var showTitle = true
+  let store: StoreOf<SettingsFeature>
+
+  @SwiftUI.State private var confirmRemoval: Bool = false
+
+  @Environment(\.theme) var theme
+
+  var body: some View {
+    WithViewStore(store, observe: \.`self`) { viewStore in
+      SettingsGroup(title: showTitle ? SettingsFeature.Section.history.localized : "") {
+        Button {
+          confirmRemoval.toggle()
+        } label: {
+          Text("Clear Watch History").foregroundColor(.red)
+            .frame(maxWidth: .infinity)
+        }
+        .confirmationDialog(
+          "Are you sure?",
+          isPresented: $confirmRemoval
+        ) {
+          Button("Remove all watch history", role: .destructive) {
+            viewStore.send(.view(.clearHistory))
+          }
+        } message: {
+          Text("You cannot undo this action")
+        }
+        .padding()
+      }
+    }
+  }
+}
+
 // MARK: - SettingsFeatureView_Previews
 
 #Preview {

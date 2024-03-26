@@ -5,5 +5,5 @@
 //
 
 protocol Dependency {
-  var targetDepenency: _PackageDescription_TargetDependency { get }
+    var targetDepenency: _PackageDescription_TargetDependency { get }
 }

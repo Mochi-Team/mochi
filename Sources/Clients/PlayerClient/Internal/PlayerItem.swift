@@ -88,7 +88,8 @@ extension URL {
 
   var recoveryScheme: URL {
     var component = URLComponents(url: self, resolvingAgainstBaseURL: false)
-    component?.scheme = "https"
+    let isDataScheme = component?.path.starts(with: "application/x-mpegURL") ?? false
+    component?.scheme = isDataScheme ? "data" : "https"
     return component?.url ?? self
   }
 }

@@ -52,6 +52,7 @@ extension ModuleClient.Error {
     case retrievingInstanceFailed
     case instanceCreationFailed
     case instanceCall(function: String, msg: String)
+    case requestForbidden(data: String, hostname: String)
   }
 }
 

@@ -50,7 +50,7 @@ extension ContentCore {
     private let selectedItemId: Playlist.Item.ID?
 
     private var groupLoadable: Loadable<Playlist.Group> {
-      viewStore.groups.map { groups in _selectedGroupId.flatMap { groups[id: $0] } ?? groups.first }
+      viewStore.groups.map { groups in _selectedGroupId.flatMap { groups[id: $0] } ?? groups.first { $0.default ?? false } ?? groups.first }
         .flatMap(Loadable.init)
     }
 
@@ -152,34 +152,36 @@ extension ContentCore {
           .padding(.horizontal)
 
           // TODO: Allow variations to also be a menu?
-          ScrollView(.horizontal) {
-            HStack(spacing: 6) {
-              if let selectedVariant = variantLoadable.value {
-                ChipView(text: selectedVariant.title)
-                  .background(Color.blue)
-                  .foregroundColor(.white)
-              }
+          if groupLoadable.value?.variants.value?.count != 1 {
+            ScrollView(.horizontal) {
+              HStack(spacing: 6) {
+                if let selectedVariant = variantLoadable.value {
+                  ChipView(text: selectedVariant.title)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                }
 
-              if let variants = groupLoadable.value?.variants.value {
-                ForEach(variants, id: \.id) { variant in
-                  if variant.id != variantLoadable.value?.id {
-                    ChipView(text: variant.title)
-                      .onTapGesture {
-                        if let groupId = groupLoadable.value?.id {
-                          _selectedVariantId = variant.id
-                          store.send(.didTapContent(.variant(groupId, variant.id)))
+                if let variants = groupLoadable.value?.variants.value {
+                  ForEach(variants, id: \.id) { variant in
+                    if variant.id != variantLoadable.value?.id {
+                      ChipView(text: variant.title)
+                        .onTapGesture {
+                          if let groupId = groupLoadable.value?.id {
+                            _selectedVariantId = variant.id
+                            store.send(.didTapContent(.variant(groupId, variant.id)))
+                          }
                         }
-                      }
+                    }
                   }
                 }
               }
+              .padding(.horizontal)
             }
-            .padding(.horizontal)
+            .font(.footnote.weight(.semibold))
+            .frame(maxWidth: .infinity)
+            .shimmering(active: !groupLoadable.didFinish)
+            .animation(.easeInOut, value: _selectedVariantId)
           }
-          .font(.footnote.weight(.semibold))
-          .frame(maxWidth: .infinity)
-          .shimmering(active: !groupLoadable.didFinish)
-          .animation(.easeInOut, value: _selectedVariantId)
         }
         .frame(maxWidth: .infinity)
         .foregroundColor(theme.textColor)
@@ -226,7 +228,7 @@ extension ContentCore {
                       if let groupId = groupLoadable.value?.id,
                          let variantId = variantLoadable.value?.id,
                          let pageId = pageLoadable.value?.id {
-                        store.send(.didTapPlaylistItem(groupId, variantId, pageId, id: item.id))
+                        store.send(.didTapPlaylistItem(groupId, variantId, pageId, id: item.id, shouldReset: true))
                       }
                     }
                     .id(item.id)
@@ -240,7 +242,9 @@ extension ContentCore {
               .onAppear {
                 proxy.scrollTo(selectedItemId, anchor: .center)
                 if items == .pending {
-                  guard let groupId = groupLoadable.value?.id else { return }
+                  guard let groupId = groupLoadable.value?.id else {
+                    return
+                  }
 
                   guard let variantId = variantLoadable.value?.id else {
                     viewStore.send(.didRequestLoadingPendingContent(.group(groupId)))

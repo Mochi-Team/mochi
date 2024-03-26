@@ -214,6 +214,7 @@ extension Playlist {
     public let number: Double
     public let altTitle: String?
     public let variants: Loadable<Variants>
+    public let `default`: Bool?
 
     public typealias Variants = [Variant]
 
@@ -221,12 +222,14 @@ extension Playlist {
       id: Self.ID,
       number: Double,
       altTitle: String? = nil,
-      variants: Loadable<Variants> = .pending
+      variants: Loadable<Variants> = .pending,
+      default: Bool? = nil
     ) {
       self.id = id
       self.number = number
       self.altTitle = altTitle
       self.variants = variants
+      self.default = `default`
     }
 
     public struct Variant: Sendable, Equatable, Identifiable, Decodable {
