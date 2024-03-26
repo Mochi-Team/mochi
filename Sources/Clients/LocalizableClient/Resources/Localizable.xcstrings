@@ -3,45 +3,141 @@
   "strings" : {
     "Discover" : {
       "comment" : "Bottom Navigation",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "探す"
+          }
+        }
+      }
     },
     "Home" : {
       "comment" : "DiscoverFeature",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホーム"
+          }
+        }
+      }
     },
     "Module Error" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moduleエラー"
+          }
+        }
+      }
     },
     "No content available" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ご視聴いただけるコンテンツがありません"
+          }
+        }
+      }
     },
     "Repos" : {
       "comment" : "Bottom Navigation",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repos"
+          }
+        }
+      }
     },
     "Retry" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再試行する"
+          }
+        }
+      }
     },
     "Settings" : {
       "comment" : "Bottom Navigation",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        }
+      }
     },
     "There are no listings for this module" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このModuleには一覧表がありません"
+          }
+        }
+      }
     },
     "There is no module selected" : {
       "comment" : "DiscoverFeature.Error",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moduleが選択されていません"
+          }
+        }
+      }
     },
     "There was an error retrieving content" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コンテンツを取得する際にエラーが発生しました"
+          }
+        }
+      }
     },
     "Unknown system error has occurred" : {
       "comment" : "DiscoverFeature.Error",
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不明なシステムエラーが発生しました"
+          }
+        }
+      }
     },
     "View All" : {
-      "extractionState" : "manual"
+      "extractionState" : "manual",
+      "localizations" : {
+        "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべて見る"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
