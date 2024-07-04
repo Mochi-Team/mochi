@@ -2,7 +2,7 @@
 //  SettingsFeature+macOS.swift
 //
 //
-//  Created by ErrorErrorError on 11/27/23.
+//  Created by MochiTeam on 11/27/23.
 //
 //
 

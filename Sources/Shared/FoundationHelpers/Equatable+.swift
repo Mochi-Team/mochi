@@ -2,7 +2,7 @@
 //  Equatable+.swift
 //
 //
-//  Created by ErrorErrorError on 8/14/23.
+//  Created by MochiTeam on 8/14/23.
 //
 //
 

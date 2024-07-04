@@ -2,13 +2,14 @@
 //  AppFeature.swift
 //
 //
-//  Created by ErrorErrorError on 4/6/23.
+//  Created by MochiTeam on 4/6/23.
 //
 //
 
 import Architecture
 import DatabaseClient
 import Discover
+import Library
 import Foundation
 import ModuleLists
 import Repos
@@ -23,6 +24,7 @@ public struct AppFeature: Feature {
   public struct State: FeatureState {
     public var appDelegate = AppDelegateFeature.State()
     public var discover = DiscoverFeature.State()
+    public var library = LibraryFeature.State()
     public var repos = ReposFeature.State()
     public var settings = SettingsFeature.State()
 
@@ -34,16 +36,19 @@ public struct AppFeature: Feature {
       discover: DiscoverFeature.State = .init(),
       repos: ReposFeature.State = .init(),
       settings: SettingsFeature.State = .init(),
-      selected: AppFeature.State.Tab = Tab.discover
+      selected: AppFeature.State.Tab = Tab.discover,
+      library: LibraryFeature.State = .init()
     ) {
       self.discover = discover
       self.repos = repos
       self.settings = settings
       self.selected = selected
+      self.library = library
     }
 
     public enum Tab: String, CaseIterable, Sendable, Localizable, Hashable {
       case discover = "Discover"
+      case library = "Library"
       case repos = "Repos"
       case settings = "Settings"
 
@@ -51,6 +56,8 @@ public struct AppFeature: Feature {
         switch self {
         case .discover:
           "doc.text.image"
+        case .library:
+          "rectangle.stack"
         case .repos:
           "globe"
         case .settings:
@@ -58,21 +65,12 @@ public struct AppFeature: Feature {
         }
       }
 
-      var selected: String {
-        switch self {
-        case .discover:
-          "doc.text.image.fill"
-        case .repos:
-          image
-        case .settings:
-          "gearshape.fill"
-        }
-      }
-
       var colorAccent: Color {
         switch self {
         case .discover:
           Theme.pastelGreen
+        case .library:
+          Theme.pastelRed
         case .repos:
           Theme.pastelBlue
         case .settings:
@@ -98,6 +96,7 @@ public struct AppFeature: Feature {
     public enum InternalAction: SendableAction {
       case appDelegate(AppDelegateFeature.Action)
       case discover(DiscoverFeature.Action)
+      case library(LibraryFeature.Action)
       case repos(ReposFeature.Action)
       case settings(SettingsFeature.Action)
       case videoPlayer(PresentationAction<VideoPlayerFeature.Action>)

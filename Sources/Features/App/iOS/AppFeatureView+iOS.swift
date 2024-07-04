@@ -2,7 +2,7 @@
 //  AppFeatureView+iOS.swift
 //
 //
-//  Created by ErrorErrorError on 11/23/23.
+//  Created by MochiTeam on 11/23/23.
 //
 //
 
@@ -13,6 +13,7 @@ import Foundation
 import FoundationHelpers
 import ModuleLists
 import Repos
+import Library
 import Settings
 import Styling
 import SwiftUI
@@ -48,6 +49,14 @@ extension AppFeature.View: View {
                 )
               )
               .accentColor(nil)
+            case .library:
+              LibraryFeature.View(
+                store: store.scope(
+                  state: \.library,
+                  action: \.internal.library
+                )
+              )
+              .accentColor(nil)
             case .settings:
               SettingsFeature.View(
                 store: store.scope(
@@ -59,7 +68,7 @@ extension AppFeature.View: View {
             }
           }
           .tabItem {
-            Label(tab.localized, systemImage: viewStore.state == tab ? tab.selected : tab.image)
+            Label(tab.localized, systemImage: tab.image)
           }
           .tag(tab)
         }

@@ -37,7 +37,7 @@ extension [TestTarget]: TestTargets {
 //  CSettingsBuilder.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -100,7 +100,7 @@ extension LanguageTag {
 //  Macro.swift
 //
 //
-//  Created by ErrorErrorError on 10/11/23.
+//  Created by MochiTeam on 10/11/23.
 //
 //
 
@@ -531,7 +531,7 @@ protocol TestTargets: Sequence where Element == TestTarget {
 //  Testable.swift
 //
 //
-//  Created by ErrorErrorError on 10/13/23.
+//  Created by MochiTeam on 10/13/23.
 //
 //
 
@@ -673,7 +673,7 @@ extension _PackageDescription_Target {
 //  _Path.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -692,7 +692,7 @@ extension _Path {
 //  AnalyticsClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -707,7 +707,7 @@ struct AnalyticsClient: _Client {
 //  BuildClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -723,7 +723,7 @@ struct BuildClient: _Client {
 //  ClipboardClient.swift
 //
 //
-//  Created by ErrorErrorError on 12/15/23.
+//  Created by MochiTeam on 12/15/23.
 //
 //
 
@@ -738,7 +738,7 @@ struct ClipboardClient: _Client {
 //  DatabaseClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -760,7 +760,7 @@ struct DatabaseClient: _Client {
 //  DeviceClient.swift
 //
 //
-//  Created by ErrorErrorError on 11/29/23.
+//  Created by MochiTeam on 11/29/23.
 //
 //
 
@@ -773,20 +773,21 @@ struct DeviceClient: _Client {
 //  FileClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/6/23.
+//  Created by MochiTeam on 10/6/23.
 //
 //
 
 struct FileClient: _Client {
     var dependencies: any Dependencies {
         ComposableArchitecture()
+        SharedModels()
     }
 }
 //
 //  LocalizableClient.swift
 //
 //
-//  Created by ErrorErrorError on 12/1/23.
+//  Created by MochiTeam on 12/1/23.
 //
 //
 
@@ -805,7 +806,7 @@ struct LocalizableClient: _Client {
 //  LoggerClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -821,7 +822,7 @@ struct LoggerClient: _Client {
 //  ModuleClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -860,10 +861,27 @@ extension ModuleClient: Testable {
     }
 }
 //
+//  OfflineManagerClient.swift
+//
+//
+//  Created by MochiTeam on 06.04.2024.
+//
+
+import Foundation
+
+struct OfflineManagerClient: _Client {
+  var dependencies: any Dependencies {
+    FileClient()
+    SharedModels()
+    ComposableArchitecture()
+    FlyingFox()
+  }
+}
+//
 //  PlayerClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -885,7 +903,7 @@ struct PlayerClient: _Client {
 //  PlaylistHistoryClient.swift
 //
 //
-//  Created by DeNeRr on 29.01.2024.
+//  Created by MochiTeam on 29.01.2024.
 //
 
 import Foundation
@@ -903,7 +921,7 @@ struct PlaylistHistoryClient: _Client {
 //  RepoClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -923,7 +941,7 @@ struct RepoClient: _Client {
 //  UserDefaultsClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -938,7 +956,7 @@ struct UserDefaultsClient: _Client {
 //  UserSettingsClient.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -955,7 +973,7 @@ struct UserSettingsClient: _Client {
 //  _Client.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -974,7 +992,7 @@ extension _Client {
 //  ComposableArchitecture.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -987,7 +1005,7 @@ struct ComposableArchitecture: PackageDependency {
 //  CustomDump.swift
 //
 //
-//  Created by ErrorErrorError on 1/1/24.
+//  Created by MochiTeam on 1/1/24.
 //
 //
 
@@ -995,14 +1013,14 @@ import Foundation
 
 struct CustomDump: PackageDependency {
     var dependency: Package.Dependency {
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0")
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.2.1")
     }
 }
 //
 //  FluidGradient.swift
 //
 //
-//  Created by ErrorErrorError on 10/11/23.
+//  Created by MochiTeam on 10/11/23.
 //
 //
 
@@ -1014,10 +1032,24 @@ struct FluidGradient: PackageDependency {
     }
 }
 //
+//  FlyingFox.swift
+//  
+//
+//  Created by MochiTeam on 09.05.2024.
+//
+
+import Foundation
+
+struct FlyingFox: PackageDependency {
+    var dependency: Package.Dependency {
+        .package(url: "https://github.com/swhitty/FlyingFox.git", .upToNextMajor(from: "0.14.0"))
+    }
+}
+//
 //  Nuke.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1043,7 +1075,7 @@ struct NukeUI: PackageDependency {
 //  Parsing.swift
 //
 //
-//  Created by ErrorErrorError on 12/17/23.
+//  Created by MochiTeam on 12/17/23.
 //
 //
 
@@ -1056,7 +1088,7 @@ struct Parsing: PackageDependency {
 //  Semaphore.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1069,7 +1101,7 @@ struct Semaphore: PackageDependency {
 //  Semver.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1082,7 +1114,7 @@ struct Semver: PackageDependency {
 //  SwiftLog.swift
 //
 //
-//  Created by ErrorErrorError on 11/9/23.
+//  Created by MochiTeam on 11/9/23.
 //
 //
 
@@ -1112,7 +1144,7 @@ struct Logging: _Depending, Dependency {
 //  SwiftSoup.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1125,7 +1157,7 @@ struct SwiftSoup: PackageDependency {
 //  SwiftSyntax.swift
 //
 //
-//  Created by ErrorErrorError on 10/11/23.
+//  Created by MochiTeam on 10/11/23.
 //
 //
 
@@ -1166,7 +1198,7 @@ struct SwiftCompilerPlugin: _Depending, Dependency {
 //  SwiftUIBackports.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1179,7 +1211,7 @@ struct SwiftUIBackports: PackageDependency {
 //  Tagged.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1194,7 +1226,7 @@ struct Tagged: PackageDependency {
 //  XMLCoder.swift
 //
 //
-//  Created by ErrorErrorError on 12/27/23.
+//  Created by MochiTeam on 12/27/23.
 //
 //
 
@@ -1207,7 +1239,7 @@ struct XMLCoder: PackageDependency {
 //  ContentCore.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1218,6 +1250,8 @@ struct ContentCore: _Feature {
         Architecture()
         FoundationHelpers()
         ModuleClient()
+        PlaylistHistoryClient()
+        OfflineManagerClient()
         LoggerClient()
         Tagged()
         ComposableArchitecture()
@@ -1228,7 +1262,7 @@ struct ContentCore: _Feature {
 //  Discover.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1247,13 +1281,57 @@ struct Discover: _Feature {
         ViewComponents()
         ComposableArchitecture()
         NukeUI()
+        OfflineManagerClient()
+        FileClient()
+    }
+}
+//
+//  DownloadQueue.swift
+//  
+//
+//  Created by MochiTeam on 16.05.2024.
+//
+
+import Foundation
+
+struct DownloadQueue: _Feature {
+  var dependencies: any Dependencies {
+    Architecture()
+    FileClient()
+    ViewComponents()
+    ComposableArchitecture()
+    OfflineManagerClient()
+    Styling()
+  }
+}
+//
+//  Library.swift
+//
+//
+//  Created by MochiTeam on 09.04.2024.
+//
+
+import Foundation
+
+struct Library: _Feature {
+    var dependencies: any Dependencies {
+        Architecture()
+        FileClient()
+        ViewComponents()
+        ComposableArchitecture()
+        OfflineManagerClient()
+        Styling()
+        PlaylistDetails()
+        DownloadQueue()
+        NukeUI()
+        SharedModels()
     }
 }
 //
 //  MochiApp.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1265,6 +1343,8 @@ struct MochiApp: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         Discover()
+        Library()
+        DownloadQueue()
         Repos()
         Settings()
         SharedModels()
@@ -1280,7 +1360,7 @@ struct MochiApp: _Feature {
 //  ModuleLists.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1300,7 +1380,7 @@ struct ModuleLists: _Feature {
 //  PlaylistDetails.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1313,6 +1393,7 @@ struct PlaylistDetails: _Feature {
         LoggerClient()
         ModuleClient()
         RepoClient()
+        OfflineManagerClient()
         PlaylistHistoryClient()
         Styling()
         SharedModels()
@@ -1325,7 +1406,7 @@ struct PlaylistDetails: _Feature {
 //  Repos.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1348,7 +1429,7 @@ struct Repos: _Feature {
 //  Search.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1373,7 +1454,7 @@ struct Search: _Feature {
 //  Settings.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1387,6 +1468,7 @@ struct Settings: _Feature {
         SharedModels()
         Styling()
         ViewComponents()
+        PlaylistHistoryClient()
         UserSettingsClient()
         ComposableArchitecture()
         NukeUI()
@@ -1396,7 +1478,7 @@ struct Settings: _Feature {
 //  VideoPlayer.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1418,7 +1500,7 @@ struct VideoPlayer: _Feature {
 //  _Feature.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1437,7 +1519,7 @@ extension _Feature {
 //  CoreDBMacros.swift
 //
 //
-//  Created by ErrorErrorError on 12/28/23.
+//  Created by MochiTeam on 12/28/23.
 //
 //
 
@@ -1451,7 +1533,7 @@ struct CoreDBMacros: _Macro {
 //  _Macro.swift
 //
 //
-//  Created by ErrorErrorError on 10/27/23.
+//  Created by MochiTeam on 10/27/23.
 //
 //
 
@@ -1470,7 +1552,7 @@ extension _Macro {
 //  MochiPlatforms.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1486,7 +1568,7 @@ struct MochiPlatforms: PlatformSet {
 //  Architecture.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1502,7 +1584,7 @@ struct Architecture: _Shared {
 //  CoreDB.swift
 //
 //
-//  Created by ErrorErrorError on 12/28/23.
+//  Created by MochiTeam on 12/28/23.
 //
 //
 
@@ -1530,7 +1612,7 @@ extension CoreDB: Testable {
 //  FoundationHelpers.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1539,7 +1621,7 @@ struct FoundationHelpers: _Shared {}
 //  JSValueCoder.swift
 //
 //
-//  Created by ErrorErrorError on 11/6/23.
+//  Created by MochiTeam on 11/6/23.
 //
 //
 
@@ -1564,7 +1646,7 @@ extension JSValueCoder: Testable {
 //  SharedModels.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1583,7 +1665,7 @@ struct SharedModels: _Shared {
 //  Styling.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1602,7 +1684,7 @@ struct Styling: _Shared {
 //  ViewComponents.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1619,7 +1701,7 @@ struct ViewComponents: _Shared {
 //  _Shared.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -1638,7 +1720,7 @@ extension _Shared {
 //  Index.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -1651,6 +1733,8 @@ let package = Package {
     ModuleLists()
     PlaylistDetails()
     Discover()
+    Library()
+    DownloadQueue()
     Repos()
     Search()
     Settings()

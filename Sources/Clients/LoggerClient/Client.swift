@@ -2,7 +2,7 @@
 //  Client.swift
 //
 //
-//  Created ErrorErrorError on 5/30/23.
+//  Created MochiTeam on 5/30/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -13,7 +13,7 @@ import Logging
 import XCTestDynamicOverlay
 
 // Global App Logger
-public let logger = Logger(label: "dev.errorerrorerror.mochi.app") { label in
+public let logger = Logger(label: "dev.MochiTeam.mochi.app") { label in
   MultiplexLogHandler([
     StreamLogHandler.standardOutput(label: label),
     ConsumableLogsHandler()

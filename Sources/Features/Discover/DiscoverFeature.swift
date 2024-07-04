@@ -2,7 +2,7 @@
 //  DiscoverFeature.swift
 //
 //
-//  Created by ErrorErrorError on 4/5/23.
+//  Created by MochiTeam on 4/5/23.
 //
 //
 
@@ -20,6 +20,9 @@ import SharedModels
 import Styling
 import SwiftUI
 import ViewComponents
+import Tagged
+import OfflineManagerClient
+import FileClient
 
 // MARK: - DiscoverFeature
 
@@ -115,7 +118,7 @@ public struct DiscoverFeature: Feature {
   @CasePathable
   @dynamicMemberLookup
   public enum Section: Equatable, Sendable {
-    case home(HomeState = .init())
+    case home(HomeState)
     case module(ModuleListingState)
     case empty
 
@@ -140,9 +143,20 @@ public struct DiscoverFeature: Feature {
         moduleState.module.module.icon.flatMap { URL(string: $0) }
       }
     }
+    
+    public struct HistoryListings: Equatable, Sendable, Identifiable {
+      public let id: Module.ID
+      public let history: [PlaylistHistory]
+      public let title: String?
+      public let icon: String?
+    }
 
     public struct HomeState: Equatable, Sendable {
-      public init() {}
+      public var listings: Loadable<[HistoryListings]>
+      
+      init(listings: Loadable<[HistoryListings]>) {
+        self.listings = listings
+      }
     }
 
     public struct ModuleListingState: Equatable, Sendable {
@@ -162,8 +176,9 @@ public struct DiscoverFeature: Feature {
   public struct State: FeatureState {
     public var section: Section
     public var path: StackState<Path.State>
+    public var playlistLoading = String?.none
 
-    @PresentationState public var lastWatched: [PlaylistHistory]?
+    public var lastWatched: [PlaylistHistory]? = []
     @PresentationState public var moduleLists: ModuleListsFeature.State?
     @PresentationState public var solveCaptcha: DiscoverFeature.Captcha.State?
 
@@ -171,14 +186,12 @@ public struct DiscoverFeature: Feature {
       section: DiscoverFeature.Section = .empty,
       path: StackState<Path.State> = .init(),
       moduleLists: ModuleListsFeature.State? = nil,
-      solveCaptcha: DiscoverFeature.Captcha.State? = nil,
-      lastWatched: [PlaylistHistory]? = []
+      solveCaptcha: DiscoverFeature.Captcha.State? = nil
     ) {
       self.section = section
       self.path = path
       self.moduleLists = moduleLists
       self.solveCaptcha = solveCaptcha
-      self.lastWatched = lastWatched
     }
   }
 
@@ -189,6 +202,7 @@ public struct DiscoverFeature: Feature {
     @dynamicMemberLookup
     public enum ViewAction: SendableAction {
       case didAppear
+      case didHomeAppear
       case didTapOpenModules
       case didTapContinueWatching(PlaylistHistory)
       case didTapRemovePlaylistHistory(String, String, String)
@@ -196,6 +210,7 @@ public struct DiscoverFeature: Feature {
       case didTapSearchButton
       case didTapViewMoreListing(DiscoverListing.ID)
       case didTapRetryLoadingModule
+      case onLastWatchedAppear
     }
 
     @CasePathable
@@ -223,7 +238,9 @@ public struct DiscoverFeature: Feature {
       case path(StackAction<Path.State, Path.Action>)
       case updateLastWatched([PlaylistHistory])
       case removeLastWatchedPlaylist(String)
-      case onLastWatchedAppear
+      case setPlaylistLoading(String?)
+      case fetchLastWatchedListing
+      case setHomeListings(Loadable<[DiscoverFeature.Section.HistoryListings]>)
     }
 
     case view(ViewAction)
@@ -234,7 +251,8 @@ public struct DiscoverFeature: Feature {
   @MainActor
   public struct View: FeatureView {
     public let store: StoreOf<DiscoverFeature>
-
+    
+    @Dependency(\.fileClient) var fileClient
     @Dependency(\.localizableClient.localize) var localize
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
@@ -247,6 +265,8 @@ public struct DiscoverFeature: Feature {
   @Dependency(\.repoClient) var repoClient
   @Dependency(\.databaseClient) var databaseClient
   @Dependency(\.moduleClient) var moduleClient
+  @Dependency(\.fileClient) var fileClient
+  @Dependency(\.offlineManagerClient) var offlineManagerClient
   @Dependency(\.playlistHistoryClient) var playlistHistoryClient
 
   public init() {}

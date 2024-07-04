@@ -2,7 +2,7 @@
 //  Logs.swift
 //
 //
-//  Created by ErrorErrorError on 11/29/23.
+//  Created by MochiTeam on 11/29/23.
 //
 //
 
@@ -155,6 +155,8 @@ extension Logs {
     public let store: StoreOf<Logs>
 
     @Dependency(\.dateFormatter) var dateFormatter
+    
+    @SwiftUI.State var showCopyAlert = false
 
     @MainActor
     public init(store: StoreOf<Logs>) {
@@ -162,38 +164,52 @@ extension Logs {
     }
 
     @MainActor public var body: some SwiftUI.View {
-      ScrollView(.vertical) {
-        LazyVStack(spacing: 12) {
-          WithViewStore(store, observe: \.selected) { viewStore in
-            if viewStore.logsEmpty {
-              Text("No logs available.")
-            } else {
-              _VariadicView.Tree(Layout()) {
-                switch viewStore.state {
-                case let .system(events):
-                  ForEach(events, id: \.timestamp) { event in
-                    eventRow(
-                      level: event.level.rawValue,
-                      levelColor: event.level.color,
-                      timeStamp: event.timestamp,
-                      message: event.message
-                    )
-                  }
-                case let .module(_, _, events):
-                  ForEach(events, id: \.timestamp) { event in
-                    eventRow(
-                      level: event.level.rawValue,
-                      levelColor: event.level.color,
-                      timeStamp: event.timestamp,
-                      message: event.body
-                    )
+      ZStack(alignment: .bottom) {
+        ScrollView(.vertical) {
+          LazyVStack(spacing: 12) {
+            WithViewStore(store, observe: \.selected) { viewStore in
+              if viewStore.logsEmpty {
+                Text("No logs available.")
+              } else {
+                _VariadicView.Tree(Layout()) {
+                  switch viewStore.state {
+                    case let .system(events):
+                      ForEach(events, id: \.timestamp) { event in
+                        eventRow(
+                          level: event.level.rawValue,
+                          levelColor: event.level.color,
+                          timeStamp: event.timestamp,
+                          message: event.message
+                        )
+                      }
+                    case let .module(_, _, events):
+                      ForEach(events, id: \.timestamp) { event in
+                        eventRow(
+                          level: event.level.rawValue,
+                          levelColor: event.level.color,
+                          timeStamp: event.timestamp,
+                          message: event.body
+                        )
+                      }
                   }
                 }
               }
             }
           }
+          .padding()
         }
-        .padding()
+        if showCopyAlert {
+          VStack {
+            Text("Copied to clipboard!")
+          }
+          .transition(.opacity)
+          .padding()
+          .background(Theme.pastelOrange)
+          .foregroundColor(.white)
+          .clipShape(RoundedCorners(12))
+          .shadow(radius: 10)
+          .offset(y: -20)
+        }
       }
       .moduleListsSheet(
         store.scope(
@@ -300,6 +316,17 @@ extension Logs {
         Text(message)
           .font(.footnote)
           .frame(maxWidth: .infinity, alignment: .leading)
+          .onLongPressGesture {
+            UIPasteboard.general.setValue(message, forPasteboardType: "public.plain-text")
+            withAnimation {
+              showCopyAlert = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+              withAnimation {
+                self.showCopyAlert = false
+              }
+            }
+          }
       }
       .frame(maxWidth: .infinity)
     }

@@ -2,7 +2,7 @@
 //  RepoPackagesFeature+View.swift
 //
 //
-//  Created ErrorErrorError on 5/4/23.
+//  Created MochiTeam on 5/4/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -357,7 +357,7 @@ extension StatusView {
         initialState: .init(
           repo: .init(
             remoteURL: .init(string: "/").unsafelyUnwrapped,
-            manifest: .init(name: "Repo 1", author: "errorerrorerror")
+            manifest: .init(name: "Repo 1", author: "MochiTeam")
           )
         ),
         reducer: { EmptyReducer() }

@@ -2,7 +2,7 @@
 //  Client.swift
 //
 //
-//  Created by DeNeRr on 28.01.2024.
+//  Created by MochiTeam on 28.01.2024.
 //
 
 import DatabaseClient
@@ -19,6 +19,8 @@ public struct PlaylistHistoryClient: Sendable {
   public var updateEpId: @Sendable (EpIdPayload) async throws -> Void
   public var fetch: @Sendable (RMP) async throws -> PlaylistHistory
   public var fetchForModule: @Sendable (String, String) async throws -> [PlaylistHistory]
+  public var observeAll: @Sendable () -> AsyncStream<[PlaylistHistory]>
+  public var observeRepoModule: @Sendable (String, String) -> AsyncStream<[PlaylistHistory]>
   public var updateTimestamp: @Sendable (RMP, Double) async throws -> Void
   public var updateDateWatched: @Sendable (RMP) async throws -> Void
   public var observe: @Sendable (RMP) -> AsyncStream<[PlaylistHistory]>
@@ -33,6 +35,8 @@ extension PlaylistHistoryClient: TestDependencyKey {
     updateEpId: unimplemented("\(Self.self).updateEpId"),
     fetch: unimplemented("\(Self.self).fetch"),
     fetchForModule: unimplemented("\(Self.self).fetchForModule"),
+    observeAll: unimplemented("\(Self.self).observeAll"),
+    observeRepoModule: unimplemented("\(Self.self).fetchForModule"),
     updateTimestamp: unimplemented("\(Self.self).updateTimestamp"),
     updateDateWatched: unimplemented("\(Self.self).updateDateWatched"),
     observe: unimplemented("\(Self.self).observe"),

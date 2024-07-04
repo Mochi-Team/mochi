@@ -2,7 +2,7 @@
 //  Models.swift
 //
 //
-//  Created by ErrorErrorError on 11/22/23.
+//  Created by MochiTeam on 11/22/23.
 //
 //
 
@@ -13,7 +13,8 @@ public struct PlayerSettings: Equatable, Sendable {
   public var speed = 1.0
 
   // In Seconds
-  public var skipTime = 15.0
+  public var skipForwardTime = UserDefaults.standard.double(forKey: "userSettings.fastForwardAmount")
+  public var skipBackwardTime = UserDefaults.standard.double(forKey: "userSettings.fastBackwardAmount")
 
   public init(speed: Double = 1.0) {
     self.speed = speed

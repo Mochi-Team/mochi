@@ -2,7 +2,7 @@
 //  VideoPlayerFeature.swift
 //
 //
-//  Created ErrorErrorError on 5/26/23.
+//  Created MochiTeam on 5/26/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -67,6 +67,7 @@ public struct VideoPlayerFeature: Feature {
     public var overlay: Overlay?
     public var player: PlayerClient.Status
     public var playerSettings: PlayerSettings
+    public var prefersOffline: Bool
 
     public init(
       repoModuleId: RepoModuleID,
@@ -77,7 +78,8 @@ public struct VideoPlayerFeature: Feature {
       page: PagingID,
       episodeId: Playlist.Item.ID,
       overlay: Overlay? = .tools,
-      playerSettings: PlayerSettings = .init()
+      playerSettings: PlayerSettings = .init(),
+      prefersOffline: Bool? = false
     ) {
       @Dependency(\.playerClient.get) var status
 
@@ -91,7 +93,8 @@ public struct VideoPlayerFeature: Feature {
         episodeId: episodeId,
         overlay: overlay,
         player: status(),
-        playerSettings: playerSettings
+        playerSettings: playerSettings,
+        prefersOffline: prefersOffline ?? false
       )
     }
 
@@ -105,12 +108,23 @@ public struct VideoPlayerFeature: Feature {
       episodeId: Playlist.Item.ID,
       overlay: Overlay? = .tools,
       player: PlayerClient.Status,
-      playerSettings: PlayerSettings = .init()
+      playerSettings: PlayerSettings = .init(),
+      prefersOffline: Bool
     ) {
-      self.content = .init(
-        repoModuleId: repoModuleId,
-        playlist: playlist
-      )
+      if (prefersOffline) {
+        @Dependency(\.fileClient) var fileClient
+        let metadata = try? JSONDecoder().decode(PlaylistCache.self, from: try fileClient.retrieveLibraryMetadata(root: .playlistCache, playlist: playlist.id.rawValue) ?? .init())
+        self.content = .init(
+          repoModuleId: repoModuleId,
+          playlist: playlist,
+          cachedGroups: metadata?.groups
+        )
+      } else {
+        self.content = .init(
+          repoModuleId: repoModuleId,
+          playlist: playlist
+        )
+      }
       self.loadables = loadables
       self.selected = .init(
         groupId: group,
@@ -121,6 +135,7 @@ public struct VideoPlayerFeature: Feature {
       self.overlay = overlay
       self.player = player
       self.playerSettings = playerSettings
+      self.prefersOffline = prefersOffline
     }
   }
 

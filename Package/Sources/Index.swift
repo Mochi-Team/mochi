@@ -2,7 +2,7 @@
 //  Index.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -15,6 +15,8 @@ let package = Package {
     ModuleLists()
     PlaylistDetails()
     Discover()
+    Library()
+    DownloadQueue()
     Repos()
     Search()
     Settings()

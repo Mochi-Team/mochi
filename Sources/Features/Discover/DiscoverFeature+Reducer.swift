@@ -2,7 +2,7 @@
 //  DiscoverFeature+Reducer.swift
 //
 //
-//  Created by ErrorErrorError on 4/5/23.
+//  Created by MochiTeam on 4/5/23.
 //
 //
 
@@ -35,7 +35,7 @@ extension DiscoverFeature {
         }
         guard let moduleId = UserDefaults.standard.string(forKey: "LastSelectedModuleId"),
               let repoId = UserDefaults.standard.url(forKey: "LastSelectedRepoId") else {
-          state.section = .home()
+          state.section = .home(.init(listings: .pending))
           break
         }
         return .run { send in
@@ -50,11 +50,12 @@ extension DiscoverFeature {
       case let .view(.didTapContinueWatching(item)):
         let blankUrl = URL(string: "_blank")!
         return .run { send in
-          try? await moduleClient.withModule(id: .init(repoId: Repo.ID(URL(string: item.repoId)!), moduleId: Module.ID(item.moduleId))) { module in
+          await send(.internal(.setPlaylistLoading(item.playlistID)))
+          try await moduleClient.withModule(id: .init(repoId: Repo.ID(URL(string: item.repoId)!), moduleId: Module.ID(item.moduleId))) { module in
 
             let options = Playlist.ItemsRequestOptions.page(.init(item.groupId), .init(item.variantId), .init(item.pageId))
 
-            let eps = try? await module.playlistEpisodes(Playlist.ID(rawValue: item.playlistID), options)
+            let eps = try await module.playlistEpisodes(Playlist.ID(rawValue: item.playlistID), options)
 
             let playlist = Playlist(id: Playlist.ID(rawValue: item.playlistID), title: item.playlistName, posterImage: nil, bannerImage: nil, url: blankUrl, status: .unknown, type: .video)
 
@@ -62,7 +63,7 @@ extension DiscoverFeature {
             await send(
               .delegate(
                 .playbackVideoItem(
-                  eps ?? [],
+                  eps,
                   repoModuleId: .init(repoId: Repo.ID(URL(string: item.repoId)!), moduleId: Module.ID(item.moduleId)),
                   playlist: playlist,
                   group: .init(item.groupId),
@@ -72,7 +73,11 @@ extension DiscoverFeature {
                 )
               )
             )
+            await send(.internal(.setPlaylistLoading(nil)))
           }
+        } catch: { error, send in
+          logger.error("failed to play last watched episode: \(error)")
+          await send(.internal(.setPlaylistLoading(nil)))
         }
 
       case let .view(.didTapRemovePlaylistHistory(repoId, moduleId, playlistId)):
@@ -111,12 +116,38 @@ extension DiscoverFeature {
         }
 
         state.path.append(.viewMoreListing(.init(repoModuleId: id, listing: listing)))
+        
+      case .view(.onLastWatchedAppear):
+        return .run { send in
+          await send(.internal(.fetchLastWatchedListing))
+        }
+        
+      case .view(.didHomeAppear):
+        return .run { send in
+          try await Task.sleep(nanoseconds: 50_000_000)
+          let items = try await databaseClient.fetch(Request<Repo>.all).flatMap { $0.modules.map { $0.manifest } }
+          
+          for await history in playlistHistoryClient.observeAll() {
+            let grouped = Dictionary(grouping: history.sorted(by: { $0.dateWatched > $1.dateWatched }), by: { $0.moduleId }).sorted(by: { $0.key < $1.key })
+            let listings = grouped.filter { (key, value) in items.contains(where: { $0.id.rawValue == key } ) }.map { (key, value) in
+              let manifest = items[id: Tagged<Module.Manifest, String>(rawValue: key)]
+              return DiscoverFeature.Section.HistoryListings(id: Tagged<Module.Manifest, String>(rawValue: key), history: value, title: manifest?.name, icon: manifest?.icon)
+            }
+            await send(.internal(.setHomeListings(.loaded(listings))))
+          }
+        }
+        
+      case let .internal(.setHomeListings(listings)):
+        if var homeState = state.section.home {
+          homeState.listings = listings
+          state.section = .home(homeState)
+        }
 
       case let .internal(.selectedModule(selection)):
         if let selection {
           state.section = .module(.init(module: selection, listings: .pending))
         } else {
-          state.section = .home()
+          state.section = .home(.init(listings: .pending))
         }
         return state.fetchLatestListings(selection)
 
@@ -154,15 +185,14 @@ extension DiscoverFeature {
           )
         )
 
-      case .internal(.onLastWatchedAppear):
+      case .internal(.fetchLastWatchedListing):
         guard let repoModule = state.section.module?.module.id else {
           break
         }
 
         return .run { send in
-          if let history = try? await playlistHistoryClient.fetchForModule(repoModule.repoId.absoluteString, repoModule.moduleId.rawValue) {
-            await send(.internal(.updateLastWatched(history)))
-          }
+          let history = try await playlistHistoryClient.fetchForModule(repoModule.repoId.absoluteString, repoModule.moduleId.rawValue)
+          await send(.internal(.updateLastWatched(history)))
         }
 
       case let .internal(.removeLastWatchedPlaylist(playlistId)):
@@ -176,6 +206,9 @@ extension DiscoverFeature {
 
       case let .internal(.showCaptcha(html, hostname)):
         state.solveCaptcha = .solveCaptcha(.init(html: html, hostname: hostname))
+        
+      case let .internal(.setPlaylistLoading(loadingState)):
+        state.playlistLoading = loadingState
 
       case .internal(.solveCaptcha):
         break
@@ -184,7 +217,7 @@ extension DiscoverFeature {
         break
 
       case .delegate(.playbackDismissed):
-        return .send(.internal(.onLastWatchedAppear))
+        return .send(.internal(.fetchLastWatchedListing))
 
       case .delegate:
         break
@@ -208,7 +241,7 @@ extension DiscoverFeature.State {
     @Dependency(\.moduleClient) var moduleClient
 
     guard let selectedModule else {
-      section = .home(.init())
+      section = .home(.init(listings: .loading))
       return .none
     }
 
@@ -222,7 +255,7 @@ extension DiscoverFeature.State {
           try await module.discoverListings()
         }
 
-        await send(.internal(.onLastWatchedAppear))
+        await send(.internal(.fetchLastWatchedListing))
 
         await send(.internal(.loadedListings(id, .loaded(value))))
       }

@@ -2,7 +2,7 @@
 //  AppFeature+Reducer.swift
 //
 //
-//  Created by ErrorErrorError on 4/6/23.
+//  Created by MochiTeam on 4/6/23.
 //
 //
 
@@ -14,6 +14,7 @@ import Discover
 import Foundation
 import ModuleLists
 import Repos
+import Library
 import Settings
 import VideoPlayer
 
@@ -40,6 +41,8 @@ extension AppFeature: Reducer {
       case let .view(.didSelectTab(tab)):
         if state.selected == tab {
           switch tab {
+          case .library:
+            break
           case .discover:
             state.discover.path.removeAll()
           case .repos:
@@ -53,6 +56,31 @@ extension AppFeature: Reducer {
 
       case .internal(.appDelegate):
         break
+
+      case let .internal(.library(.delegate(.playbackVideoItem(_, repoModuleId, playlist, group, variant, paging, itemId)))):
+        let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
+          repoModuleId: repoModuleId,
+          playlist: playlist,
+          groupId: group,
+          variantId: variant,
+          pageId: paging,
+          episodeId: itemId
+        )
+        .map { Action.internal(.videoPlayer(.presented($0))) }
+
+        if let effect {
+          return effect
+        } else {
+          state.videoPlayer = .init(
+            repoModuleId: repoModuleId,
+            playlist: playlist,
+            group: group,
+            variant: variant,
+            page: paging,
+            episodeId: itemId,
+            prefersOffline: true
+          )
+        }
 
       case let .internal(.discover(.delegate(.playbackVideoItem(_, repoModuleId, playlist, group, variant, paging, itemId)))):
         let effect = state.videoPlayer?.clearForNewPlaylistIfNeeded(
@@ -81,6 +109,9 @@ extension AppFeature: Reducer {
       case .internal(.discover):
         break
 
+      case .internal(.library):
+        break
+
       case .internal(.repos):
         break
 
@@ -104,6 +135,10 @@ extension AppFeature: Reducer {
 
     Scope(state: \.discover, action: \.internal.discover) {
       DiscoverFeature()
+    }
+
+    Scope(state: \.library, action: \.internal.library) {
+      LibraryFeature()
     }
 
     Scope(state: \.repos, action: \.internal.repos) {

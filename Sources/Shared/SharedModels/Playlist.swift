@@ -2,7 +2,7 @@
 //  Playlist.swift
 //
 //
-//  Created by ErrorErrorError on 5/29/23.
+//  Created by MochiTeam on 5/29/23.
 //
 //
 
@@ -16,8 +16,8 @@ import Tagged
 public struct Playlist: Sendable, Identifiable, Hashable, Codable {
   public let id: Tagged<Self, String>
   public let title: String?
-  public let posterImage: URL?
-  public let bannerImage: URL?
+  public var posterImage: URL?
+  public var bannerImage: URL?
   public let url: URL
   public let status: Status
   public let type: PlaylistType
@@ -121,7 +121,7 @@ extension Playlist {
 // MARK: Playlist.Item
 
 extension Playlist {
-  public struct Item: Sendable, Equatable, Identifiable, Codable {
+  public struct Item: Sendable, Equatable, Identifiable, Codable, Hashable {
     public let id: Tagged<Self, String>
     public let title: String?
     public let description: String?
@@ -209,7 +209,7 @@ extension Playlist {
 
   public typealias ItemsResponse = [Playlist.Group]
 
-  public struct Group: Sendable, Equatable, Identifiable, Decodable {
+  public struct Group: Sendable, Equatable, Identifiable, Codable {
     public let id: Tagged<Self, String>
     public let number: Double
     public let altTitle: String?
@@ -232,7 +232,7 @@ extension Playlist {
       self.default = `default`
     }
 
-    public struct Variant: Sendable, Equatable, Identifiable, Decodable {
+    public struct Variant: Sendable, Equatable, Identifiable, Codable {
       public let id: Tagged<Self, String>
       public let title: String
       public let pagings: Loadable<Pagings>

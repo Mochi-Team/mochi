@@ -2,7 +2,7 @@
 //  PlayerItem+HLS.swift
 //
 //
-//  Created by ErrorErrorError on 6/18/23.
+//  Created by MochiTeam on 6/18/23.
 //
 //
 //  Source: https://github.com/jbweimar/external-webvtt-example/blob/master/External%20WebVTT%20Example/CustomResourceLoaderDelegate.swift

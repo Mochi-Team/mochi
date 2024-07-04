@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>development</string> <!-- Specify "development" for unsigned IPA -->
+    <key>signingStyle</key>
+    <string>manual</string> <!-- Specify "manual" signing style -->
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>compileBitcode</key>
+    <false/>
+    <key>uploadBitcode</key>
+    <false/>
+    <key>uploadSymbols</key>
+    <false/>
+</dict>
+</plist>

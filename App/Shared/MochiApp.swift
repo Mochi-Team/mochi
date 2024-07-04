@@ -2,7 +2,7 @@
 //  MochiApp.swift
 //  mochi
 //
-//  Created by ErrorErrorError on 3/24/23.
+//  Created by MochiTeam on 3/24/23.
 //
 //
 

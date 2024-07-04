@@ -2,7 +2,7 @@
 //  View+Squircle.swift
 //
 //
-//  Created by ErrorErrorError on 5/29/23.
+//  Created by MochiTeam on 5/29/23.
 //
 //
 

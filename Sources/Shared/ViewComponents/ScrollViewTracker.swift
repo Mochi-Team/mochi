@@ -2,7 +2,7 @@
 //  ScrollViewTracker.swift
 //
 //
-//  Created by ErrorErrorError on 12/12/23.
+//  Created by MochiTeam on 12/12/23.
 //
 //  Source: https://github.com/danielsaidi/ScrollKit/blob/main/Sources/ScrollKit/ScrollViewWithOffsetTracking.swift
 

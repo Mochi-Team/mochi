@@ -2,7 +2,7 @@
 //  Client.swift
 //
 //
-//  Created by ErrorErrorError on 10/6/23.
+//  Created by MochiTeam on 10/6/23.
 //
 //
 
@@ -21,6 +21,7 @@ public struct FileClient {
   public let fileExists: @Sendable (_ path: String) -> Bool
   public let create: @Sendable (_ url: URL) throws -> Void
   public let remove: @Sendable (_ url: URL) throws -> Void
+  public let observeDirectory: @Sendable (_ url: URL) throws -> AsyncStream<[String]>
 }
 
 // MARK: TestDependencyKey
@@ -30,7 +31,8 @@ extension FileClient: TestDependencyKey {
     url: unimplemented(".url"),
     fileExists: unimplemented(".remove"),
     create: unimplemented(".create"),
-    remove: unimplemented(".remove")
+    remove: unimplemented(".remove"),
+    observeDirectory: unimplemented(".observeDirectory")
   )
 }
 

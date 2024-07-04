@@ -2,7 +2,7 @@
 //  ProgressBar.swift
 //
 //
-//  Created by ErrorErrorError on 11/22/23.
+//  Created by MochiTeam on 11/22/23.
 //
 //
 
@@ -59,8 +59,9 @@ struct ProgressBar: View {
     }
     return false
   }
-
+    
   private static let defaultEmptyTime = "--:--"
+  private static let defaultLiveVideo = "LIVE"
   private static let defaultZeroTime = "00:00"
 
   init(store: Store<PlayerClient.Status.Playback?, VideoPlayerFeature.Action>) {
@@ -116,27 +117,47 @@ struct ProgressBar: View {
       .frame(maxWidth: .infinity)
       .frame(height: 24)
 
-      Text("\(progressDisplayTime) / \(durationDisplayTime)")
-        .font(.caption.monospacedDigit())
-        .foregroundColor(.white)
+    if viewState.state?.totalDuration.isInfinite == true {
+        Text("\(durationDisplayTime)")
+          .font(.caption.monospacedDigit().weight(.bold))
+          .foregroundColor(.red)
+       }
+    else if viewState.state?.totalDuration.isNaN == true {
+        Text("\(durationDisplayTime)")
+            .font(.caption.monospacedDigit().weight(.bold))
+          .foregroundColor(.red)
+       }
+    else{
+        Text("\(progressDisplayTime) / \(durationDisplayTime)")
+            .font(.caption.monospacedDigit())
+            .foregroundColor(.white)
+       }
+        
+
     }
     .disabled(!canUseControls)
     .preferredColorScheme(.dark)
   }
 
-  private var progressDisplayTime: String {
-    if canUseControls {
-      formatter.playbackTimestamp(progress * (viewState.state?.totalDuration ?? .zero)) ?? Self.defaultZeroTime
-    } else {
-      Self.defaultEmptyTime
+    private var progressDisplayTime: String {
+      if canUseControls {
+        formatter.playbackTimestamp(progress * (viewState.state?.totalDuration ?? .zero)) ?? Self.defaultZeroTime
+      } else {
+        Self.defaultEmptyTime
+      }
     }
-  }
 
   private var durationDisplayTime: String {
-    if canUseControls {
-      formatter.playbackTimestamp(viewState.state?.totalDuration ?? .zero) ?? Self.defaultZeroTime
-    } else {
-      Self.defaultEmptyTime
-    }
+      if canUseControls {
+        formatter.playbackTimestamp(viewState.state?.totalDuration ?? .zero) ?? Self.defaultZeroTime
+      } else if viewState.state?.totalDuration.isInfinite == true {
+        Self.defaultLiveVideo
+      }
+      else if viewState.state?.totalDuration.isNaN == true {
+        Self.defaultLiveVideo
+      }
+        else {
+            Self.defaultEmptyTime
+        }
   }
 }

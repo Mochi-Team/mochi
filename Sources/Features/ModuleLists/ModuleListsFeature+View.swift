@@ -2,7 +2,7 @@
 //  ModuleListsFeature+View.swift
 //
 //
-//  Created ErrorErrorError on 4/23/23.
+//  Created MochiTeam on 4/23/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -48,6 +48,12 @@ extension ModuleListsFeature.View: View {
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.horizontal)
 
+            Button {
+              store.send(.view(.didTapHome))
+            } label: {
+              Image(systemName: "house")
+            }
+            .buttonStyle(.materialToolbarItem)
             Button {
               store.send(.view(.didTapToDismiss))
             } label: {
@@ -200,7 +206,7 @@ import Styling
             remoteURL: .init(string: "/").unsafelyUnwrapped,
             manifest: .init(
               name: "Local Repo",
-              author: "errorerrorerror",
+              author: "MochiTeam",
               description: "This is a local repo"
             ),
             modules: [

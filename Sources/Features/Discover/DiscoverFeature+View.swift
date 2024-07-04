@@ -2,7 +2,7 @@
 //  DiscoverFeature+View.swift
 //
 //
-//  Created by ErrorErrorError on 4/5/23.
+//  Created by MochiTeam on 4/5/23.
 //
 //
 
@@ -33,13 +33,8 @@ extension DiscoverFeature.View: View {
           switch viewStore.state {
           case .empty:
             VStack {}
-          case .home:
-            // TODO: Create home listing
-            VStack {
-              Spacer()
-              Text("Coming soon!")
-              Spacer()
-            }
+          case let .home(homeState):
+            buildHomeView(homeState: homeState)
           case let .module(moduleState):
             buildModuleView(moduleState: moduleState)
           }
@@ -166,6 +161,110 @@ extension DiscoverFeature.View: View {
 
 extension DiscoverFeature.View {
   @MainActor
+  func buildHomeView(homeState: DiscoverFeature.Section.HomeState) -> some View {
+    LoadableView(loadable: homeState.listings) { listings in
+      ScrollView(.vertical, showsIndicators: false) {
+        ForEach(listings, id: \.id) { listing in
+          Group {
+            if listing.history.isEmpty {
+              VStack(spacing: 12) {
+                Spacer()
+                Text(localizable: "Listings Empty")
+                  .font(.title2.weight(.medium))
+                Text(localizable: "There are no listings for this module")
+                Spacer()
+              }
+              .foregroundColor(.gray)
+            } else {
+              VStack(spacing: 24) {
+                Spacer()
+                  .frame(height: 0)
+                  .fixedSize(horizontal: false, vertical: true)
+                lastWatchedListing(listing)
+              }
+            }
+          }
+          .transition(.opacity)
+        }
+      }
+    } failedView: { _ in
+      VStack(spacing: 12) {
+        Spacer()
+
+        Text(localizable: "Module Error")
+          .font(.title2.weight(.medium))
+        Text(String(localizable: "There was an error retrieving content"))
+        Button {
+          store.send(.view(.didTapRetryLoadingModule))
+        } label: {
+          Text(localizable: "Retry")
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background {
+              RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(Color.gray.opacity(0.25))
+            }
+        }
+        .buttonStyle(.plain)
+
+        Spacer()
+      }
+      .transition(.opacity)
+    } waitingView: {
+      let placeholders: [Playlist] = (0..<10).map { .placeholder($0) }
+
+      buildListingsView(
+        [
+          .init(
+            id: "0",
+            title: "Continue Watching",
+            type: .lastWatched,
+            paging: .init(
+              id: "demo-1",
+              items: placeholders
+            )
+          ),
+          .init(
+            id: "1",
+            title: "Continue Watching",
+            type: .lastWatched,
+            paging: .init(
+              id: "demo-1",
+              items: placeholders
+            )
+          ),
+          .init(
+            id: "2",
+            title: "Continue Watching",
+            type: .lastWatched,
+            paging: .init(
+              id: "demo-1",
+              items: placeholders
+            )
+          ),
+          .init(
+            id: "3",
+            title: "Continue Watching",
+            type: .lastWatched,
+            paging: .init(
+              id: "demo-1",
+              items: placeholders
+            )
+          )
+        ]
+      )
+      .shimmering()
+      .disabled(true)
+      .transition(.opacity)
+      .onAppear {
+        store.send(.view(.didHomeAppear))
+      }
+    }
+  }
+}
+
+extension DiscoverFeature.View {
+  @MainActor
   func buildModuleView(moduleState: DiscoverFeature.Section.ModuleListingState) -> some View {
     LoadableView(loadable: moduleState.listings) { listings in
       Group {
@@ -250,7 +349,6 @@ extension DiscoverFeature.View {
         ]
       )
       .shimmering()
-      .disabled(true)
       .transition(.opacity)
     }
   }
@@ -273,7 +371,7 @@ extension DiscoverFeature.View {
           case .featured:
             featuredListing(listing)
           case .lastWatched:
-            lastWatchedListing()
+            lastWatchedListing(nil)
           }
         }
       }
@@ -283,12 +381,39 @@ extension DiscoverFeature.View {
 
 extension DiscoverFeature.View {
   @MainActor
-  func lastWatchedListing() -> some View {
+  func lastWatchedListing(_ listing: DiscoverFeature.Section.HistoryListings?) -> some View {
     LazyVStack(alignment: .leading) {
       HStack {
-        Text("Last Watched")
-          .font(.title3.weight(.semibold))
+        if let listing = listing {
+          HStack {
+            LazyImage(url: URL(string: listing.icon ?? "")) { state in
+              if let image = state.image {
+                image
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 44, height: 44)
+                  .clipShape(RoundedRectangle(cornerRadius: 12))
+              } else {
+                EmptyView()
+              }
+            }
+            .transition(.opacity)
 
+            VStack(alignment: .leading) {
+              Text("Continue Watching")
+                .font(.title3.weight(.semibold))
+              if let title = listing.title {
+                Text(title)
+                  .foregroundStyle(.secondary)
+                  .font(.subheadline)
+              }
+            }
+          }
+        } else {
+          Text("Continue Watching")
+            .font(.title3.weight(.semibold))
+        }
+        
         Spacer()
 
 //        if listing.paging.nextPage != nil {
@@ -308,45 +433,55 @@ extension DiscoverFeature.View {
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(alignment: .top, spacing: 12) {
           WithViewStore(store, observe: \.`self`) { viewStore in
-            ForEach(viewStore.lastWatched ?? [], id: \.self) { item in
+            ForEach(listing?.history ?? viewStore.lastWatched ?? [], id: \.self) { item in
               VStack(alignment: .leading, spacing: 8) {
-                ZStack(alignment: .bottom) {
-                  FillAspectImage(url: item.thumbnail ?? URL(string: ""))
-                    .aspectRatio(16 / 10, contentMode: .fit)
-                    .overlay {
-                      LinearGradient(
-                        gradient: .init(
-                          colors: [
-                            .black.opacity(0),
-                            .black.opacity(0.8)
-                          ],
-                          easing: .easeIn
-                        ),
-                        startPoint: .top,
-                        endPoint: .bottom
-                      )
+                ZStack {
+                  ZStack(alignment: .bottom) {
+                    FillAspectImage(url: item.thumbnail ?? URL(string: ""))
+                      .aspectRatio(16 / 10, contentMode: .fit)
+                      .overlay {
+                        LinearGradient(
+                          gradient: .init(
+                            colors: [
+                              .black.opacity(0),
+                              .black.opacity(0.8)
+                            ],
+                            easing: .easeIn
+                          ),
+                          startPoint: .top,
+                          endPoint: .bottom
+                        )
+                      }
+                    
+                    VStack(alignment: .leading, spacing: 5) {
+                      Text(item.playlistName ?? "No Title")
+                        .lineLimit(3)
+                        .font(.subheadline.weight(.medium))
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundColor(.white)
+                        .padding(.horizontal)
+                      
+                      GeometryReader { proxy in
+                        Color(.white)
+                          .opacity(0.8)
+                          .frame(maxWidth: proxy.size.width * item.timestamp)
+                      }
+                      .clipShape(Capsule(style: .continuous))
+                      .frame(maxWidth: .infinity)
+                      .frame(height: 6)
                     }
-
-                  VStack(alignment: .leading, spacing: 5) {
-                    Text(item.playlistName ?? "No Title")
-                      .lineLimit(3)
-                      .font(.subheadline.weight(.medium))
-                      .multilineTextAlignment(.leading)
-                      .fixedSize(horizontal: false, vertical: true)
-                      .foregroundColor(.white)
-                      .padding(.horizontal)
-
-                    GeometryReader { proxy in
-                      Color(.white)
-                        .opacity(0.8)
-                        .frame(maxWidth: proxy.size.width * item.timestamp)
-                    }
-                    .clipShape(Capsule(style: .continuous))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 6)
+                  }
+                  .blur(radius: viewStore.playlistLoading == item.playlistID ? 5 : 0)
+                  .animation(.easeOut, value: viewStore.playlistLoading)
+                  if (viewStore.playlistLoading == item.playlistID) {
+                    ProgressView()
+                      .controlSize(.large)
+                      .tint(.white)
+                      .frame(width: 50, height: 50)
                   }
                 }
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .contextMenu {
                   Button(role: .destructive) {
                     viewStore.send(.view(.didTapRemovePlaylistHistory(item.repoId, item.moduleId, item.playlistID)))
@@ -365,15 +500,20 @@ extension DiscoverFeature.View {
               .frame(width: 248)
               .contentShape(Rectangle())
               .onTapGesture {
-                store.send(.view(.didTapContinueWatching(item)))
+                if (viewStore.playlistLoading == nil) {
+                  store.send(.view(.didTapContinueWatching(item)))
+                }
               }
-              .animation(.easeInOut, value: viewStore.lastWatched)
+              .animation(.easeInOut, value: listing?.history)
             }
           }
         }
         .padding(.horizontal)
       }
       .frame(maxWidth: .infinity)
+    }
+    .onAppear {
+      store.send(.view(.onLastWatchedAppear))
     }
   }
 

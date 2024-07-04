@@ -2,7 +2,7 @@
 //  PlaylistDetailsFeature+Reducer.swift
 //
 //
-//  Created ErrorErrorError on 5/19/23.
+//  Created MochiTeam on 5/19/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -37,7 +37,32 @@ extension PlaylistDetailsFeature {
     Reduce { state, action in
       switch action {
       case .view(.onTask):
-        return state.fetchPlaylistDetails()
+        @Dependency(\.fileClient) var fileClient
+        
+        let playlistId = state.playlist.id.rawValue
+        let cacheDirectory = try? fileClient.retrieveLibraryDirectory(root: .playlistCache)
+        let downloadsDirectory = try? fileClient.retrieveLibraryDirectory(root: .downloaded)
+        return .merge(
+          state.fetchPlaylistDetails(),
+          .run { send in
+            if let cacheDirectory = cacheDirectory, fileClient.fileExists(cacheDirectory.path) {
+              for await _ in try fileClient.observeDirectory(cacheDirectory) {
+                let dir = try fileClient.retrieveLibraryDirectory(root: .playlistCache, playlist: playlistId)
+                await send(.internal(.setBookmark(FileManager.default.fileExists(atPath: dir.path))))
+              }
+            }
+          },
+          .run { send in
+            if let downloadsDirectory = downloadsDirectory, fileClient.fileExists(downloadsDirectory.path) {
+              for await _ in try fileClient.observeDirectory(downloadsDirectory) {
+                if let dir = try? fileClient.retrieveLibraryDirectory(root: .downloaded, playlist: playlistId) {
+                  let isEmpty = (try? FileManager.default.contentsOfDirectory(atPath: dir.path).isEmpty) ?? true
+                  await send(.internal(.setHasDownloadedContent(!isEmpty)))
+                }
+              }
+            }
+          }
+        )
 
       case .view(.didTappedBackButton):
         return .run { await self.dismiss() }
@@ -52,6 +77,31 @@ extension PlaylistDetailsFeature {
             description: state.details.value?.synopsis ?? "No Description Available"
           )
         )
+        
+      case .view(.didTapAddToLibrary):
+        let playlist = state.playlist
+        if (state.isInLibrary) {
+          return .run {
+            try await offlineManagerClient.remove(.cache, playlist.id.rawValue, nil)
+          }
+        }
+        let repoModuleId = state.content.repoModuleId
+        let details = state.details.value
+        let groups = state.content.groups.value
+        return .run {
+          try await offlineManagerClient.cache(.init(
+            groups: groups,
+            playlist: playlist,
+            details: details,
+            repoModuleId: repoModuleId
+          ))
+        }
+        
+      case .view(.didTapRemoveDownloads):
+        let playlist = state.playlist
+          return .run {
+            try await offlineManagerClient.remove(.download, playlist.id.rawValue, nil)
+          }
 
       case .view(.binding):
         break
@@ -61,6 +111,42 @@ extension PlaylistDetailsFeature {
 
       case let .internal(.playlistDetailsResponse(loadable)):
         state.details = loadable
+        break
+        
+      case let .internal(.content(.downloadSelection(.presented(.selection(.download(source, server, link, subtitles, skipTimes, episode, headers)))))):
+        let playlist = state.playlist
+        let details = state.details.value
+        let groups = state.content.groups.value
+        let repoModuleId = state.content.repoModuleId
+        return .run { send in
+          try await offlineManagerClient.download(.init(
+            episodeMetadata: .init(link: link, source: source, subtitles: subtitles, server: server, skipTimes: skipTimes),
+            headers: headers,
+            episode: episode,
+            groups: groups,
+            playlist: playlist,
+            details: details,
+            repoModuleId: repoModuleId
+          ))
+        }
+          
+      case let .internal(.setBookmark(bookmarked)):
+        state.isInLibrary = bookmarked
+          
+      case let .internal(.setHasDownloadedContent(isDownloaded)):
+        state.hasDownloadedContent = isDownloaded
+        
+      case let .internal(.content(.updateCache(newCache))):
+        if (!state.isInLibrary) {
+          break
+        }
+        let playlist = state.playlist
+        let details = state.details.value
+        let repoModuleId = state.content.repoModuleId
+        return .run { send in
+          try await offlineManagerClient.cache(.init(groups: newCache, playlist: playlist, details: details, repoModuleId: repoModuleId))
+        }
+        
 
       case let .internal(.content(.didTapPlaylistItem(groupId, variantId, pageId, itemId, _))):
         guard state.content.groups.value != nil else {

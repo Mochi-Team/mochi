@@ -2,7 +2,7 @@
 //  MochiApp.swift
 //
 //
-//  Created by ErrorErrorError on 10/4/23.
+//  Created by MochiTeam on 10/4/23.
 //
 //
 
@@ -14,6 +14,8 @@ struct MochiApp: _Feature {
     var dependencies: any Dependencies {
         Architecture()
         Discover()
+        Library()
+        DownloadQueue()
         Repos()
         Settings()
         SharedModels()

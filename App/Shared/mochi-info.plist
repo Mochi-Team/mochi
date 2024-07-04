@@ -8,7 +8,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>dev.errorerrorerror.mochi</string>
+			<string>dev.MochiTeam.mochi</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>mochi</string>

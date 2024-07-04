@@ -1,7 +1,7 @@
 //  Request.swift
 //  mochi
 //
-//  Created by ErrorErrorError on 11/16/22.
+//  Created by MochiTeam on 11/16/22.
 //
 //  Modified version of https://github.com/prisma-ai/Sworm
 

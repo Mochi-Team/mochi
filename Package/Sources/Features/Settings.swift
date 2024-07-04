@@ -2,7 +2,7 @@
 //  Settings.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -16,6 +16,7 @@ struct Settings: _Feature {
         SharedModels()
         Styling()
         ViewComponents()
+        PlaylistHistoryClient()
         UserSettingsClient()
         ComposableArchitecture()
         NukeUI()

@@ -2,7 +2,7 @@
 //  Theme.swift
 //
 //
-//  Created by ErrorErrorError on 10/11/23.
+//  Created by MochiTeam on 10/11/23.
 //
 //
 
@@ -104,6 +104,7 @@ public enum Theme: Codable, Sendable, Hashable, Identifiable, CaseIterable {
 
 extension Theme {
   public static let pastelGreen = Color(hue: 138 / 360, saturation: 0.33, brightness: 0.63)
+  public static let pastelRed = Color(hue: 2 / 360, saturation: 0.42, brightness: 0.96)
   public static let pastelBlue = Color(hue: 178 / 360, saturation: 0.39, brightness: 0.7)
   public static let pastelOrange = Color(hue: 27 / 360, saturation: 0.41, brightness: 0.69)
 }

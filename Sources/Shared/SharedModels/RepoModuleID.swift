@@ -2,7 +2,7 @@
 //  RepoModuleID.swift
 //
 //
-//  Created by ErrorErrorError on 6/2/23.
+//  Created by MochiTeam on 6/2/23.
 //
 //
 
@@ -26,7 +26,7 @@ public struct RepoModuleID: Hashable, Sendable {
 extension Repo.ID {
   // Follow reverse domain name notation
   public var displayIdentifier: String {
-    // "dev.errorerrorerror.mochi.repo.local" for local storage
+    // "dev.MochiTeam.mochi.repo.local" for local storage
     rawValue.host?.split(separator: ".").reversed().joined(separator: ".").lowercased() ?? rawValue.absoluteString
   }
 }

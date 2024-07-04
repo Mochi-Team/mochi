@@ -2,7 +2,7 @@
 //  ContentCore.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -13,6 +13,8 @@ struct ContentCore: _Feature {
         Architecture()
         FoundationHelpers()
         ModuleClient()
+        PlaylistHistoryClient()
+        OfflineManagerClient()
         LoggerClient()
         Tagged()
         ComposableArchitecture()

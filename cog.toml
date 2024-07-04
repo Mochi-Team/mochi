@@ -14,5 +14,5 @@ owner = "Mochi-Team"
 # intended to map git signature to remote username
 # and generate changelog links to their remote profiles
 authors = [
-    { signature = "ErrorErrrorError", username = "errorerrorerror" }
+    { signature = "ErrorErrrorError", username = "MochiTeam" }
 ]

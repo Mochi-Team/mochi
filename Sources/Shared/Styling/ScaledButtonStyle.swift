@@ -2,7 +2,7 @@
 //  ScaledButtonStyle.swift
 //
 //
-//  Created by ErrorErrorError on 10/12/23.
+//  Created by MochiTeam on 10/12/23.
 //
 //
 

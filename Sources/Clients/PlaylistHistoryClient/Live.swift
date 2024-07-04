@@ -2,7 +2,7 @@
 //  Live.swift
 //
 //
-//  Created by DeNeRr on 28.01.2024.
+//  Created by MochiTeam on 28.01.2024.
 //
 
 import DatabaseClient
@@ -19,7 +19,7 @@ extension PlaylistHistoryClient: DependencyKey {
     updateEpId: { payload in
       if var playlist = try? await databaseClient
         .fetch(.all.where(\PlaylistHistory.repoId == payload.rmp.repoId).where(\PlaylistHistory.moduleId == payload.rmp.moduleId).where(\PlaylistHistory.playlistID == payload.rmp.playlistId)).first {
-        playlist.epId = payload.episode.id.rawValue
+        playlist.epId = payload.episode.id
         playlist.dateWatched = Date.now
         playlist.epName = payload.episode.title
         playlist.groupId = payload.groupId
@@ -30,7 +30,7 @@ extension PlaylistHistoryClient: DependencyKey {
       } else {
         _ = try await databaseClient.insert(PlaylistHistory(
           playlistID: payload.rmp.playlistId,
-          epId: payload.episode.id.rawValue,
+          epId: payload.episode.id,
           playlistName: payload.playlistName,
           moduleId: payload.rmp.moduleId,
           repoId: payload.rmp.repoId,
@@ -53,6 +53,12 @@ extension PlaylistHistoryClient: DependencyKey {
       let history = try? await databaseClient.fetch(.all.where(\PlaylistHistory.repoId == repoId).where(\PlaylistHistory.moduleId == moduleId))
 
       return history?.sorted(by: { $0.dateWatched > $1.dateWatched }) ?? []
+    },
+    observeAll: {
+      databaseClient.observe(.all.where(\PlaylistHistory.moduleId != nil))
+    },
+    observeRepoModule: { repoId, moduleId in
+      databaseClient.observe(.all.where(\PlaylistHistory.repoId == repoId).where(\PlaylistHistory.moduleId == moduleId))
     },
     updateTimestamp: { rmp, timestamp in
       if var playlist = try? await databaseClient

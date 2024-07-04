@@ -2,7 +2,7 @@
 //  Video.swift
 //
 //
-//  Created by ErrorErrorError on 4/18/23.
+//  Created by MochiTeam on 4/18/23.
 //
 //
 
@@ -42,7 +42,7 @@ extension Playlist {
     }
   }
 
-  public struct EpisodeSource: Sendable, Equatable, Identifiable, Decodable {
+  public struct EpisodeSource: Sendable, Equatable, Identifiable, Codable, Hashable {
     public let id: Tagged<Self, String>
     public let displayName: String
     public let description: String?
@@ -61,7 +61,7 @@ extension Playlist {
     }
   }
 
-  public struct EpisodeServer: Sendable, Equatable, Identifiable, Decodable {
+  public struct EpisodeServer: Sendable, Equatable, Identifiable, Codable, Hashable {
     public let id: Tagged<Self, String>
     public let displayName: String
     public let description: String?
@@ -76,7 +76,7 @@ extension Playlist {
       self.description = description
     }
 
-    public struct Link: Sendable, Equatable, Identifiable, Decodable {
+    public struct Link: Sendable, Equatable, Identifiable, Codable, Hashable {
       public var id: Tagged<Self, URL> { .init(url) }
       public let url: URL
       public let quality: Quality
@@ -92,7 +92,7 @@ extension Playlist {
         self.format = format
       }
 
-      public enum Quality: Int, Sendable, Equatable, CustomStringConvertible, Decodable {
+      public enum Quality: Int, Sendable, Equatable, CustomStringConvertible, Codable {
         case auto
         case q360
         case q480
@@ -115,15 +115,15 @@ extension Playlist {
         }
       }
 
-      public enum Format: Int, Equatable, Sendable, Decodable {
+      public enum Format: Int, Equatable, Sendable, Codable {
         case hls
         case dash
       }
     }
 
-    public struct Subtitle: Sendable, Equatable, Identifiable, Decodable {
+    public struct Subtitle: Sendable, Equatable, Identifiable, Codable, Hashable {
       public var id: Tagged<Self, URL> { .init(url) }
-      public let url: URL
+      public var url: URL
       public let name: String
       public let format: Format
       public let `default`: Bool
@@ -143,14 +143,14 @@ extension Playlist {
         self.autoselect = autoselect
       }
 
-      public enum Format: Int32, Sendable, Equatable, Decodable {
+      public enum Format: Int32, Sendable, Equatable, Codable {
         case vtt
         case ass
         case srt
       }
     }
 
-    public struct SkipTime: Hashable, Sendable, Decodable {
+    public struct SkipTime: Hashable, Sendable, Codable {
       public let startTime: Double
       public let endTime: Double
       public let type: SkipType
@@ -165,7 +165,7 @@ extension Playlist {
         self.type = type
       }
 
-      public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible, Decodable {
+      public enum SkipType: Int32, Equatable, Sendable, CustomStringConvertible, Codable {
         case opening
         case ending
         case recap

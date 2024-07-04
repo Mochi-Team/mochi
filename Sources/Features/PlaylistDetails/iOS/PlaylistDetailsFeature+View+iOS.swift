@@ -2,7 +2,7 @@
 //  PlaylistDetailsFeature+View+iOS.swift
 //
 //
-//  Created ErrorErrorError on 5/19/23.
+//  Created MochiTeam on 5/19/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -83,11 +83,15 @@ extension PlaylistDetailsFeature.View: View {
       .navigationBarTitle("", displayMode: .inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          Button {} label: {
-            Image(systemName: "plus")
+          WithViewStore(store, observe: \.isInLibrary) { viewStore in
+            Button {
+              viewStore.send(.didTapAddToLibrary)
+            } label: {
+              Image(systemName: viewStore.state ? "bookmark.fill" : "plus")
+            }
+            .animation(.spring, value: viewStore.state)
+            .buttonStyle(.materialToolbarItem)
           }
-          .buttonStyle(.materialToolbarItem)
-          .disabled(true)
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -98,6 +102,16 @@ extension PlaylistDetailsFeature.View: View {
               } label: {
                 Image(systemName: "arrow.up.right.square.fill")
                 Text("Open Playlist URL")
+              }
+            }
+            WithViewStore(store, observe: \.hasDownloadedContent) { viewStore in
+              if (viewStore.state) {
+                Button(role: .destructive) {
+                  viewStore.send(.didTapRemoveDownloads)
+                } label: {
+                  Image(systemName: "trash.fill")
+                  Text("Remove Downloaded Content")
+                }
               }
             }
           } label: {

@@ -2,11 +2,10 @@
 //  Models.swift
 //
 //
-//  Created by DeNeRr on 29.01.2024.
+//  Created by MochiTeam on 29.01.2024.
 //
 
 import Foundation
-import SharedModels
 
 extension PlaylistHistoryClient {
   public enum Error: Swift.Error, Equatable, Sendable {
@@ -24,16 +23,28 @@ extension PlaylistHistoryClient {
       self.playlistId = playlistId
     }
   }
+  
+  public struct Episode: Equatable, Sendable {
+    let id: String
+    let title: String
+    let thumbnail: URL?
+    
+    public init(id: String, title: String, thumbnail: URL?) {
+      self.id = id
+      self.title = title
+      self.thumbnail = thumbnail
+    }
+  }
 
   public struct EpIdPayload: Equatable, Sendable {
     public let rmp: RMP
-    public let episode: Playlist.Item
+    public let episode: Episode
     public let playlistName: String?
     public let pageId: String
     public let groupId: String
     public let variantId: String
 
-    public init(rmp: RMP, episode: Playlist.Item, playlistName: String?, pageId: String, groupId: String, variantId: String) {
+    public init(rmp: RMP, episode: Episode, playlistName: String?, pageId: String, groupId: String, variantId: String) {
       self.rmp = rmp
       self.episode = episode
       self.playlistName = playlistName

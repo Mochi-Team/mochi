@@ -2,7 +2,7 @@
 //  ContentCore.swift
 //
 //
-//  Created by ErrorErrorError on 7/2/23.
+//  Created by MochiTeam on 7/2/23.
 //
 //
 
@@ -16,6 +16,7 @@ import OrderedCollections
 import PlaylistHistoryClient
 import SharedModels
 import Tagged
+import FileClient
 
 // MARK: - Cancellable
 
@@ -30,24 +31,34 @@ public struct ContentCore: Reducer {
     public var repoModuleId: RepoModuleID
     public var playlist: Playlist
     public var groups: Loadable<[Playlist.Group]>
+    public var cachedGroups: [Playlist.Group]?
     public var playlistHistory: Loadable<PlaylistHistory>
+    
+    @PresentationState public var downloadSelection: DownloadSelection.State?
+    
+    public var downloadedEpisodes: [String] = []
 
     public init(
       repoModuleId: RepoModuleID,
       playlist: Playlist,
       groups: Loadable<[Playlist.Group]> = .pending,
-      playlistHistory: Loadable<PlaylistHistory> = .pending
+      cachedGroups: [Playlist.Group]? = nil,
+      playlistHistory: Loadable<PlaylistHistory> = .pending,
+      downloadSelection: DownloadSelection.State? = nil
     ) {
       self.repoModuleId = repoModuleId
       self.playlist = playlist
       self.groups = groups
+      self.cachedGroups = cachedGroups
       self.playlistHistory = playlistHistory
+      self.downloadSelection = downloadSelection
     }
   }
 
   @CasePathable
   @dynamicMemberLookup
   public enum Action: SendableAction {
+    case didAppear
     case update(option: Playlist.ItemsRequestOptions?, Loadable<Playlist.ItemsResponse>)
     case didRequestLoadingPendingContent(Playlist.ItemsRequestOptions?)
     case didTapContent(Playlist.ItemsRequestOptions)
@@ -59,6 +70,12 @@ public struct ContentCore: Reducer {
       id: Playlist.Item.ID,
       shouldReset: Bool = false
     )
+    case observeDirectory(URL, Bool)
+    case didTapDownloadPlaylist(Playlist.Item)
+    case didTapRemoveDownloadedPlaylist(Playlist.Item)
+    case setDownloadedEpisodes([String])
+    case downloadSelection(PresentationAction<DownloadSelection.Action>)
+    case updateCache([Playlist.Group])
   }
 
   public enum Error: Swift.Error, Equatable, Sendable {
@@ -70,9 +87,25 @@ public struct ContentCore: Reducer {
   public var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
+      case .didAppear:
+        let playlist = state.playlist
+        return .run { send in
+          @Dependency(\.fileClient) var fileClient
+          let playlistDir = try fileClient.retrieveLibraryDirectory(root: .downloaded, playlist: playlist.id.rawValue)
+          if fileClient.fileExists(playlistDir.path) {
+            await send(.observeDirectory(playlistDir, true))
+          } else {
+            await send(.observeDirectory(playlistDir.deletingLastPathComponent(), false))
+          }
+
+        }
+
       case let .didTapContent(option):
         return state.fetchContent(option)
-
+          
+      case let .didTapDownloadPlaylist(episode):
+        state.downloadSelection = .selection(.init(repoModuleId: state.repoModuleId, playlistId: state.playlist.id, episode: episode))
+        
       case let .didTapPlaylistItem(groupId, variantId, pageId, itemId, shouldReset):
         @Dependency(\.playlistHistoryClient) var playlistHistoryClient
         let playlist = state.playlist
@@ -80,9 +113,9 @@ public struct ContentCore: Reducer {
         let item = state.item(groupId: groupId, variantId: variantId, pageId: pageId, itemId: itemId).value
         return .run { _ in
           if let item {
-            try? await playlistHistoryClient.updateEpId(.init(
+              try await playlistHistoryClient.updateEpId(.init(
               rmp: .init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlist.id.rawValue),
-              episode: item,
+              episode: .init(id: item.id.rawValue, title: item.title ?? "Unknown", thumbnail: item.thumbnail ?? playlist.posterImage ?? playlist.bannerImage),
               playlistName: playlist.title,
               pageId: pageId.rawValue,
               groupId: groupId.rawValue,
@@ -93,6 +126,32 @@ public struct ContentCore: Reducer {
             }
           }
         }
+        
+      case let .didTapRemoveDownloadedPlaylist(episode):
+        @Dependency(\.fileClient) var fileClient
+        let playlist = state.playlist
+        return .run { _ in
+          try fileClient.removePlaylistFromLibrary(.downloaded, playlist.id.rawValue, episode.id.rawValue)
+        }
+        
+      case let .observeDirectory(directory, isPlaylistDirectory):
+        @Dependency(\.fileClient) var fileClient
+        let playlistId = state.playlist.id.rawValue
+        return .run { send in
+          for await contents in try fileClient.observeDirectory(directory) {
+            if (isPlaylistDirectory) {
+              await send(.setDownloadedEpisodes(contents))
+            } else {
+              if let directory = try? fileClient.retrieveLibraryDirectory(root: .downloaded, playlist: playlistId), FileManager.default.fileExists(atPath: directory.path) {
+                await send(.observeDirectory(directory, true))
+              }
+            }
+            
+          }
+        }
+
+      case let .setDownloadedEpisodes(episodes):
+        state.downloadedEpisodes = episodes
 
       case let .playlistHistoryResponse(response):
         state.playlistHistory = response
@@ -102,8 +161,17 @@ public struct ContentCore: Reducer {
 
       case let .update(option, response):
         state.update(option, response)
+        
+      case .updateCache:
+        break
+
+      case .downloadSelection:
+        break
       }
       return .none
+    }
+    .ifLet(\.$downloadSelection, action: \.downloadSelection) {
+      DownloadSelection()
     }
   }
 }
@@ -146,14 +214,18 @@ extension ContentCore.State {
     }
 
     update(option, .loading)
-
+    let cachedGroups = cachedGroups
     return .run { send in
       try await withTaskCancellation(id: Cancellable.fetchContent, cancelInFlight: true) {
-        let value = try await moduleClient.withModule(id: repoModuleId) { module in
-          try await module.playlistEpisodes(playlistId, option)
+        let module = try await moduleClient.getModule(repoModuleId)
+        do {
+          let newGroups = try await module.playlistEpisodes(playlistId, option)
+          await send(.updateCache(newGroups))
+          await send(.update(option: option, .loaded(newGroups)))
+        } catch let error {
+          await send(.update(option: option, cachedGroups != nil ? .loaded(cachedGroups!) : .failed(error)))
         }
 
-        await send(.update(option: option, .loaded(value)))
         for await playlistHistoryItems in playlistHistoryClient.observe(.init(repoId: repoModuleId.repoId.absoluteString, moduleId: repoModuleId.moduleId.rawValue, playlistId: playlistId.rawValue)) {
           if let playlistHistory = playlistHistoryItems.first {
             await send(.playlistHistoryResponse(.loaded(playlistHistory)))

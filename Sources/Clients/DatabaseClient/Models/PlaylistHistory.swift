@@ -2,7 +2,7 @@
 //  PlaylistHistory.swift
 //
 //
-//  Created by DeNeRr on 27.01.2024.
+//  Created by MochiTeam on 27.01.2024.
 //
 
 import CoreDB

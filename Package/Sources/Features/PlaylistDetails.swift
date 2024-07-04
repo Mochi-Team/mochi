@@ -2,7 +2,7 @@
 //  PlaylistDetails.swift
 //
 //
-//  Created by ErrorErrorError on 10/5/23.
+//  Created by MochiTeam on 10/5/23.
 //
 //
 
@@ -15,6 +15,7 @@ struct PlaylistDetails: _Feature {
         LoggerClient()
         ModuleClient()
         RepoClient()
+        OfflineManagerClient()
         PlaylistHistoryClient()
         Styling()
         SharedModels()

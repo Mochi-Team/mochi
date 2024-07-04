@@ -2,7 +2,7 @@
 //  VideoPlayerFeature+View.swift
 //
 //
-//  Created by ErrorErrorError on 11/23/23.
+//  Created by MochiTeam on 11/23/23.
 //
 //
 
@@ -588,8 +588,7 @@ extension VideoPlayerFeature.View {
         contentType: .video,
         selectedGroupId: viewStore.groupId,
         selectedVariantId: viewStore.variantId,
-        selectedPageId: viewStore.pageId,
-        selectedItemId: viewStore.itemId
+        selectedPageId: viewStore.pageId
       )
     }
   }
@@ -808,21 +807,3 @@ extension VideoPlayerFeature.View {
   }
 }
 
-#Preview {
-  VideoPlayerFeature.View(
-    store: .init(
-      initialState: .init(
-        repoModuleId: Repo().id(.init("")),
-        playlist: .empty,
-        loadables: .init(),
-        group: .init(""),
-        variant: .init(""),
-        page: .init(""),
-        episodeId: .init(""),
-        overlay: .tools
-      ),
-      reducer: { EmptyReducer() }
-    )
-  )
-  .previewInterfaceOrientation(.landscapeRight)
-}

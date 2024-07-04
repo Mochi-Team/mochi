@@ -2,7 +2,7 @@
 //  ChipView.swift
 //
 //
-//  Created by ErrorErrorError on 7/23/23.
+//  Created by MochiTeam on 7/23/23.
 //
 //
 

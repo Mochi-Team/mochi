@@ -2,7 +2,7 @@
 //  WebView.swift
 //
 //
-//  Created by DeNeRr on 22.02.2024.
+//  Created by MochiTeam on 22.02.2024.
 //
 
 import SwiftUI

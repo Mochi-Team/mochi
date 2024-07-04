@@ -1,0 +1,53 @@
+scripts:
+  - name: Get Flutter packages
+    script: | 
+      flutter pub get
+  - name: Install pods
+    script: | 
+      cd $CM_BUILD_DIR/ios
+      pod install
+  - name: Build the .app
+    script: | 
+      # build using workspace
+      xcodebuild build \
+        -project "$CM_BUILD_DIR/App/Mochi.xcodeproj" \
+        -scheme MochiScheme \
+        -skipMacroValidation \
+        CODE_SIGN_IDENTITY="" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO \
+  - name: Create a Payload directory and move the .app file into it
+    script: | 
+        # Locate the .app in the specified location
+        BUILD_OUTPUT_DIR=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/Build/*" -type d -name "*.app" -print -quit)
+        echo "Build output directory: $BUILD_OUTPUT_DIR"
+
+        if [ -d "$BUILD_OUTPUT_DIR" ]; then
+            # Create Payload directory
+            mkdir -p Payload
+
+            # Move the .app file to the Payload directory
+            mv "$BUILD_OUTPUT_DIR" Payload/
+            if [ $? -eq 0 ]; then
+                echo "App moved to Payload directory successfully."
+            else
+                echo "Failed to move app to Payload directory."
+                exit 1
+            fi
+
+            # Zip the Payload directory
+            zip -r RunnerTest.ipa Payload
+            if [ $? -eq 0 ]; then
+                echo "IPA file created successfully: RunnerTest.ipa"
+            else
+                echo "Failed to create IPA file."
+                exit 1
+            fi
+        else
+            echo "Error: .app file not found in the specified location."
+            exit 1
+        fi
+artifacts:
+  - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+  - /Users/builder/clone/build/ios/ipa/*.ipa
+  - /Users/builder/clone/*.ipa

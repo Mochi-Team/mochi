@@ -2,7 +2,7 @@
 //  PlayerItem.swift
 //
 //
-//  Created by ErrorErrorError on 6/18/23.
+//  Created by MochiTeam on 6/18/23.
 //
 //
 
@@ -40,7 +40,7 @@ final class PlayerItem: AVPlayerItem {
     self.resourceQueue = DispatchQueue(label: "playeritem-\(payload.link.absoluteString)", qos: .utility)
 
     let headers = payload.headers
-    if payload.subtitles.isEmpty {
+    if payload.subtitles.isEmpty || payload.link.isFileURL {
       self.payload = .init(modifiedLink: payload.link, payload: payload)
     } else {
       self.payload = .init(modifiedLink: payload.link.change(scheme: Self.hlsCommonScheme), payload: payload)

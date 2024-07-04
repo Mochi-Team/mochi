@@ -2,7 +2,7 @@
 //  ModuleListsFeature.swift
 //
 //
-//  Created ErrorErrorError on 4/23/23.
+//  Created MochiTeam on 4/23/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -46,6 +46,7 @@ public struct ModuleListsFeature: Feature {
     public enum ViewAction: SendableAction {
       case onTask
       case didTapToDismiss
+      case didTapHome
       case didSelectModule(Repo.ID, Module.ID)
     }
 

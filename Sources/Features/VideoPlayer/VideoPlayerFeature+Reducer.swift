@@ -2,7 +2,7 @@
 //  VideoPlayerFeature+Reducer.swift
 //
 //
-//  Created ErrorErrorError on 5/26/23.
+//  Created MochiTeam on 5/26/23.
 //  Copyright © 2023. All rights reserved.
 //
 
@@ -14,6 +14,7 @@ import ModuleClient
 import PlayerClient
 import PlaylistHistoryClient
 import SharedModels
+import FileClient
 
 // MARK: - Cancellables
 
@@ -21,6 +22,7 @@ private enum Cancellables: Hashable, CaseIterable {
   case delayCloseTab
   case fetchingSources
   case fetchingServer
+  case updateTimestamp
 }
 
 // MARK: - VideoPlayerFeature + Reducer
@@ -42,10 +44,18 @@ extension VideoPlayerFeature: Reducer {
           state.content.fetchContent(.page(state.selected.groupId, state.selected.variantId, state.selected.pageId))
             .map { .internal(.content($0)) },
           .run { send in
-            for await status in playerClient.observe() {
-              if let progress = status.playback?.progress {
-                try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModule.repoId.absoluteString, moduleId: repoModule.moduleId.rawValue, playlistId: groupId), progress)
+            try await withTaskCancellation(id: Cancellables.updateTimestamp) {
+              while (true) {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                let status = playerClient.get()
+                if let progress = status.playback?.progress {
+                  try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModule.repoId.absoluteString, moduleId: repoModule.moduleId.rawValue, playlistId: groupId), progress)
+                }
               }
+            }
+          },
+          .run { send in
+            for await status in playerClient.observe() {
               await send(.internal(.playerStatusUpdate(status)))
             }
           }
@@ -116,10 +126,9 @@ extension VideoPlayerFeature: Reducer {
         }
 
       case .view(.didSkipForward):
-        let skipTime = state.playerSettings.skipTime // In seconds
         let currentProgress = state.player.playback?.progress ?? .zero
         let totalDuration = state.player.playback?.totalDuration ?? 1
-        let newProgress = min(1.0, max(0, currentProgress + (skipTime / totalDuration)))
+        let newProgress = min(1.0, max(0, currentProgress + (state.playerSettings.skipForwardTime / totalDuration)))
         return .merge(
           state.delayDismissOverlayIfNeeded(),
           .run { _ in
@@ -128,10 +137,9 @@ extension VideoPlayerFeature: Reducer {
         )
 
       case .view(.didSkipBackwards):
-        let skipTime = state.playerSettings.skipTime // In seconds
         let currentProgress = state.player.playback?.progress ?? .zero
         let totalDuration = state.player.playback?.totalDuration ?? 1
-        let newProgress = min(1.0, max(0, currentProgress - (skipTime / totalDuration)))
+        let newProgress = min(1.0, max(0, currentProgress - (state.playerSettings.skipBackwardTime / totalDuration)))
         return .merge(
           state.delayDismissOverlayIfNeeded(),
           .run { _ in
@@ -312,7 +320,6 @@ extension VideoPlayerFeature.State {
         fetchSourcesIfNecessary(),
         .run { _ in
           await playerClient.clear()
-          try? await playlistHistoryClient.updateTimestamp(.init(repoId: repoModule.repoId.absoluteString, moduleId: repoModule.moduleId.rawValue, playlistId: groupId.rawValue), 0)
         }
       )
     }
@@ -413,14 +420,24 @@ extension VideoPlayerFeature.State {
 
   public mutating func fetchSourcesIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
     @Dependency(\.moduleClient) var moduleClient
+    @Dependency(\.fileClient) var fileClient
 
     let repoModuleId = content.repoModuleId
     let playlist = playlist
     let episodeId = selected.itemId
-
+    let prefersOffline = prefersOffline
+    
     if forced || !loadables[episodeId: episodeId].hasInitialized {
       loadables.update(with: episodeId, response: .loading)
       return .run { send in
+        if (prefersOffline) {
+          if let directory = try? fileClient.retrieveLibraryDirectory(root: .downloaded, playlist: playlist.id.rawValue, episode: episodeId.rawValue).appendingPathComponent("metadata.json") {
+            if let sources = try? JSONDecoder().decode(EpisodeMetadata.self, from: FileManager.default.contents(atPath: directory.path ?? "") ?? .init()) {
+              return await send(.internal(.sourcesResponse(episodeId, .loaded([sources.source]))))
+            }
+          }
+        }
+
         try await withTaskCancellation(id: Cancellables.fetchingSources, cancelInFlight: true) {
           let value = try await moduleClient.withModule(id: repoModuleId) { module in
             try await module.playlistEpisodeSources(
@@ -443,12 +460,14 @@ extension VideoPlayerFeature.State {
 
   public mutating func fetchServerIfNecessary(forced: Bool = false) -> Effect<VideoPlayerFeature.Action> {
     @Dependency(\.moduleClient) var moduleClient
+    @Dependency(\.fileClient) var fileClient
 
     let repoModuleId = content.repoModuleId
     let playlist = playlist
     let episodeId = selected.itemId
     let sourceId = selected.sourceId
     let serverId = selected.serverId
+    let prefersOffline = prefersOffline
 
     guard let sourceId else {
       return .none
@@ -460,6 +479,18 @@ extension VideoPlayerFeature.State {
     if forced || !loadables[serverId: serverId].hasInitialized {
       loadables.update(with: serverId, response: .loading)
       return .run { send in
+        if (prefersOffline) {
+          if let directory = try? fileClient.retrieveLibraryDirectory(root: .downloaded, playlist: playlist.id.rawValue, episode: episodeId.rawValue) {
+            if let sources = try? JSONDecoder().decode(EpisodeMetadata.self, from: FileManager.default.contents(atPath: directory.appendingPathComponent("metadata.json").path) ?? .init()) {
+              let linkPath = directory.appendingPathComponent("data").appendingPathExtension("movpkg")
+              return await send(.internal(.serverResponse(serverId, .loaded(.init(links: [.init(url: linkPath, quality: sources.link.quality, format: sources.link.format)], subtitles: sources.subtitles.map{
+                var newValue = $0
+                newValue.url = directory.appendingPathComponent(newValue.url.lastPathComponent)
+                return newValue
+              }, headers: [:], skipTimes: sources.skipTimes)))))
+            }
+          }
+        }
         try await withTaskCancellation(id: Cancellables.fetchingServer, cancelInFlight: true) {
           let value = try await moduleClient.withModule(id: repoModuleId) { module in
             try await module.playlistEpisodeServer(
