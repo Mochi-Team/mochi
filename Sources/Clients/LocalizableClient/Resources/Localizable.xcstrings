@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "探す"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entdecken"
+          }
         }
       }
     },
@@ -22,6 +28,12 @@
             "state" : "translated",
             "value" : "ホーム"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startseite"
+          }
         }
       }
     },
@@ -32,7 +44,13 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moduleエラー"
-          }
+          },
+        },
+      "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modul Fehler"
+          },
         }
       }
     },
@@ -44,6 +62,12 @@
             "state" : "translated",
             "value" : "ご視聴いただけるコンテンツがありません"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Inhalt verfügbar"
+          }
         }
       }
     },
@@ -52,6 +76,12 @@
       "extractionState" : "manual",
       "localizations" : {
         "jp" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repos"
+          }
+        },
+        "ger" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Repos"
@@ -67,6 +97,12 @@
             "state" : "translated",
             "value" : "再試行する"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut versuchen"
+          }
         }
       }
     },
@@ -79,6 +115,12 @@
             "state" : "translated",
             "value" : "設定"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
         }
       }
     },
@@ -89,6 +131,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "このModuleには一覧表がありません"
+          }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt keine Auflistungen für dieses Modul"
           }
         }
       }
@@ -102,6 +150,12 @@
             "state" : "translated",
             "value" : "Moduleが選択されていません"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es ist kein Modul ausgewählt"
+          }
         }
       }
     },
@@ -112,6 +166,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンテンツを取得する際にエラーが発生しました"
+          }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Abrufen von Inhalten ist ein Fehler aufgetreten"
           }
         }
       }
@@ -125,6 +185,12 @@
             "state" : "translated",
             "value" : "不明なシステムエラーが発生しました"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannter System Fehler ist aufgetreten"
+          }
         }
       }
     },
@@ -136,9 +202,15 @@
             "state" : "translated",
             "value" : "すべて見る"
           }
+        },
+        "ger" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle anzeigen"
+          }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version" : "1.1"
 }
